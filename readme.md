@@ -24,6 +24,7 @@ The main features of this tool are:
 ## Documentation
 
 We are currently working on it :)
+
 See the Syfoh and Syntherrupter documentation in order to understand the Syntherrupter SYSEX (system exclusive) MIDI commands. (Links in the Credits section)
 
 ### Song example configuration
@@ -49,6 +50,7 @@ python3 app.py
 ```
 
 The web server is now running on localhost:5000 and the songs/configuration are saved in this 'flask-backend' folder. 
+
 You can now connect to http://localhost:5000 with your web navigator ! (IMPORTANT: Firefox, Safari and Internet Explorer are not implementing the WebMIDI API and the web app will therefore not work on these navigators)
 
 There is also a Dockerfile if you prefer know how to use/prefer a dockerized environnement. 
@@ -79,11 +81,15 @@ If you want to contribute, feel free to reach us ! It requires no programming sk
 ## Contributing
 
 This project is fully open source, feel free to modify it! Any contribution (using Github pull requests) are obviously welcome.
+
 We well also be glad to ear your features requests and comments using Github issues.
 
 ## Credits
 
 [MMMZZZ's Syntherrupter](https://github.com/MMMZZZZ/Syntherrupter)
+
 [MMMZZZZ's Syfoh](https://github.com/MMMZZZZ/Syfoh)
+
 [Ryohey's Signal MIDI editor](https://github.com/ryohey/signal)
+
 [Ryoyakawai's smfplayer](https://github.com/ryoyakawai/smfplayer)
