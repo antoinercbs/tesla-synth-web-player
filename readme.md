@@ -33,7 +33,7 @@ See the Syfoh and Syntherrupter documentation in order to understand the Synther
 
 ![tesla player song config example](./illustrations/example-config.png "Tesla Player song config example")
 
-In this example, we have a setup of 3 Tesla coils, the coil 0 and 1 are playing the channel 0 (binary value of 0000 0000 000 0001 = 1) and the coil 2 is playing the channel 1 (binary value of 0000 0000 000 0010 = 2) of the provided MIDI file. 
+In this example, we have a setup of 3 Tesla coils, the coil 0 and 1 are playing the channel 1 (binary value of 0000 0000 000 0010 = 1) and the coil 2 is playing the channel 0 (binary value of 0000 0000 000 0001 = 1) of the provided MIDI file. 
 
 The Tesla coils are respectively running with maximum on-times of 40/30µs and duty-cycles of 3%/2.1%.
 
