@@ -1,0 +1,59 @@
+@charset "utf-8";
+
+$my-text-color: #e6e6e6;
+$my-hover-color: #979797;
+$my-hover-background-color: #4c4c4c;
+$my-background-color: #1c1c1c;
+
+$warning: #ffb400;
+$danger: #ff3b30;
+$light: #3c3c3c;
+
+
+$body-background-color: $my-background-color;
+$text: $my-text-color;
+$link-hover: $my-text-color;
+$link: $my-text-color;
+
+$panel-heading-size:1em;
+$panel-heading-background-color: $my-hover-color;
+$panel-block-color: $my-text-color;
+$panel-icon-color: $my-hover-color;
+$panel-block-active-color: $my-text-color;
+$panel-block-hover-background-color: $light;
+$panel-block-active-color: $my-text-color;
+$panel-list-item-color: $my-text-color;
+$panel-list-item-hover-color: $my-text-color;
+$panel-block-active-icon-color: $my-hover-color;
+$panel-block-active-border-left-color: $my-hover-color;
+$panel-item-border: 1px solid $my-hover-color;
+
+$input-color: $my-text-color;
+$input-hover-color: $my-hover-color;
+$input-background-color: $light;
+$input-border-color: $my-hover-color;
+$input-focus-color: $my-hover-color;
+
+$file-border-color: $my-hover-color;
+$file-cta-hover-color: $my-hover-color;
+$file-cta-active-color: $my-text-color;
+$file-name-border-color: $my-hover-color;
+$file-cta-background-color: $light;
+
+
+$button-color: $my-text-color;
+$button-text-color: $my-text-color;
+$button-focus-color: $my-text-color;
+$button-static-color: $my-text-color;
+$button-active-color: $my-text-color;
+$button-border-color: $my-hover-color;
+$button-hover-color: $my-hover-color;
+$button-background-color: $my-hover-background-color;
+$button-static-background-color: $my-hover-background-color;
+$button-disabled-background-color : $my-background-color;
+
+$pagination-color: $my-text-color;
+
+
+
+@import '~bulma'; 
