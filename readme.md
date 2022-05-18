@@ -53,7 +53,7 @@ The web server is now running on localhost:5000 and the songs/configuration are 
 
 You can now connect to http://localhost:5000 with your web navigator ! (IMPORTANT: Firefox, Safari and Internet Explorer are not implementing the WebMIDI API and the web app will therefore not work on these navigators)
 
-There is also a Dockerfile if you prefer know how to use/prefer a dockerized environnement. 
+There is also a Dockerfile if you know how to use/prefer a dockerized environnement. 
 
 ## Deploying or recompiling the project (address change, etc) for web hosting
 
@@ -65,9 +65,9 @@ In order to change the default address (http://localhost:5000) you must rebuild 
 
 
 
-### Authentification (advices)
+### Authentication (advices)
 
-In order to perform authentication, we strongly advice you to use this web app Docker image. we advice you to use a Docker proxy such as traefik native basic auth label or keycloak gatekeeper (if you are using a Keycloak SSO)
+In order to perform authentication, we strongly advice you to use this web app Docker image. we advice you to use a Docker proxy such as Traefik's native basicauth feature or keycloak gatekeeper (if you are using a Keycloak SSO)
 
 
 ## Internationalization
