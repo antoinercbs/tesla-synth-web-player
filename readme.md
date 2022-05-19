@@ -10,22 +10,6 @@ The goal was to avoid using complex MIDI editors for registering the SYSEX comma
 
 ![tesla player interface](./illustrations/interface.png "Tesla Player interface")
 
-
-- [Tesla Coil Synterrupter Web Player](#tesla-coil-synterrupter-web-player)
-  * [Features](#features)
-  * [Documentation](#documentation)
-    + [Song example configuration](#song-example-configuration)
-  * [Installation and running (localy)](#installation-and-running--localy-)
-    + [Standard install](#standard-install)
-    + [Dockerized install](#dockerized-install)
-  * [Deploying or recompiling the project (address change, etc) for web hosting](#deploying-or-recompiling-the-project--address-change--etc--for-web-hosting)
-    + [Authentication (advices)](#authentication--advices-)
-    + [Example minimalistic docker-compose.yaml](#example-minimalistic-docker-composeyaml)
-  * [Internationalization](#internationalization)
-  * [Contributing](#contributing)
-  * [Credits](#credits)
-
-
 ## Features
 
 The main features of this tool are:
@@ -57,9 +41,9 @@ All the 16 channels are allowed on both outputs.
 
 ## Installation and running (localy)
 
-### Standard install
+### Standard install (recommanded for local run)
 
-In order to run the app, use a release from this repository or clone this repo and enter the follwing terminal commands in the 'flask-backend' folder. (You must have Python3 and PIP installed)
+In order to run the app, use a [local release](https://github.com/antoinercbs/tesla-synth-web-player/releases) from this repository, unzip it and enter the follwing terminal commands in the resulting folder. (You must have Python3 and PIP installed)
 
 The first time:
 ```bash
@@ -74,61 +58,30 @@ Any other time:
 python3 app.py
 ```
 
-The web server is now running on localhost:5000 and the songs/configuration are saved in this 'flask-backend' folder. 
+**The web server is now running on localhost:5000 and the songs/configuration are saved in this this folder.**
 
 You can now connect to http://localhost:5000 with your web navigator ! (IMPORTANT: Firefox, Safari and Internet Explorer are not implementing the WebMIDI API and the web app will therefore not work on these navigators)
 
-### Dockerized install 
+### Dockerized install (recommanded for web hosting)
 
-There is also a Dockerfile if you know how to use/prefer a dockerized environnement (in this case, we strongly advice you to use a docker-compose configuration in order to backup the DB, see the section bellow)
+In order to deploy to your server (in order to have an hosted/shared instance), we strongly advice you to use a [docker-compose release](https://github.com/antoinercbs/tesla-synth-web-player/releases). The provided Dockerfile recompile the frontend code to match the URL that you provide in the `docker-compose.yml` config file.
 
-The first time, in the flask-backend or release folder, run:
+You just have to download and unzip a docker-compose release and enter:
 ```bash
-docker build -t tesla-player .
-docker run -p 5000:5000 tesla-player
+docker-compose up
 ```
 
-Any other time, just run:
-```bash
-docker run -p 5000:5000 tesla-player
-```
+You can now connect to http://localhost:5000 with your web navigator ! 
 
-You can now connect to http://localhost:5000 with your web navigator !
+You only have to modify this docker-compose config file (and to rebuild the if you change the config after the first launch) to match your server configuration (reverse proxy, DNS, etc).
 
-
-## Deploying or recompiling the project (address change, etc) for web hosting
-
-The frontend of this app is developped using Vue.js (tesla-player folder) and the backend using Flask/SQLite under Python3. Futhermore, it implements Signal (a React app).
-
-To deploy to a custom server (and changing the server address) you will need to rebuild the frontend sources.
-
-In order to change the default address (http://localhost:5000) you must rebuild theses frontends, change their .env files and put the binaries in the 'public' folder of the 'flask-backend'. More instructions comming soon. In the meantime feel free to reach me ;)
-
+**Important note:** This dockerization is still under progress. All features are working properly except one: saving a MIDI to the server from the Signal MIDI Track editor.
 
 
 ### Authentication (advices)
 
-In order to perform authentication, we strongly advice you to use this web app Docker image. we advice you to use a Docker proxy such as Traefik's native basicauth feature or keycloak gatekeeper (if you are using a Keycloak SSO)
+In order to perform authentication, we strongly advice you to use this web app docker image. We advice you to use a Docker proxy such as Traefik's native basicauth feature or Keycloak Gatekeeper (if you are using a Keycloak SSO)
 
-### Example minimalistic docker-compose.yaml
-
-```yaml
-version: '3'
-services:
-  tesla-player:
-    build : .
-    volumes:
-      - .:/python-docker
-      - ./uploads:/python-docker/uploads
-    ports:
-      - "5000:5000"
-    networks: 
-      - web
-    restart: unless-stopped
-networks:
-  web:
-    external: true
-```
 
 ## Internationalization
 
