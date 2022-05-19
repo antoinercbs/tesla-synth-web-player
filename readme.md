@@ -11,6 +11,21 @@ The goal was to avoid using complex MIDI editors for registering the SYSEX comma
 ![tesla player interface](./illustrations/interface.png "Tesla Player interface")
 
 
+- [Tesla Coil Synterrupter Web Player](#tesla-coil-synterrupter-web-player)
+  * [Features](#features)
+  * [Documentation](#documentation)
+    + [Song example configuration](#song-example-configuration)
+  * [Installation and running (localy)](#installation-and-running--localy-)
+    + [Standard install](#standard-install)
+    + [Dockerized install](#dockerized-install)
+  * [Deploying or recompiling the project (address change, etc) for web hosting](#deploying-or-recompiling-the-project--address-change--etc--for-web-hosting)
+    + [Authentication (advices)](#authentication--advices-)
+    + [Example minimalistic docker-compose.yaml](#example-minimalistic-docker-composeyaml)
+  * [Internationalization](#internationalization)
+  * [Contributing](#contributing)
+  * [Credits](#credits)
+
+
 ## Features
 
 The main features of this tool are:
@@ -48,6 +63,7 @@ In order to run the app, use a release from this repository or clone this repo a
 
 The first time:
 ```bash
+mkdir uploads
 pip3 install -r requirements.txt
 python3 init_db.py
 python3 app.py
@@ -64,7 +80,7 @@ You can now connect to http://localhost:5000 with your web navigator ! (IMPORTAN
 
 ### Dockerized install 
 
-There is also a Dockerfile if you know how to use/prefer a dockerized environnement (in this case, we strongly advice you to use a docker-compose configuration in order to backup the DB)
+There is also a Dockerfile if you know how to use/prefer a dockerized environnement (in this case, we strongly advice you to use a docker-compose configuration in order to backup the DB, see the section bellow)
 
 The first time, in the flask-backend or release folder, run:
 ```bash
@@ -94,6 +110,25 @@ In order to change the default address (http://localhost:5000) you must rebuild 
 
 In order to perform authentication, we strongly advice you to use this web app Docker image. we advice you to use a Docker proxy such as Traefik's native basicauth feature or keycloak gatekeeper (if you are using a Keycloak SSO)
 
+### Example minimalistic docker-compose.yaml
+
+```yaml
+version: '3'
+services:
+  tesla-player:
+    build : .
+    volumes:
+      - .:/python-docker
+      - ./uploads:/python-docker/uploads
+    ports:
+      - "5000:5000"
+    networks: 
+      - web
+    restart: unless-stopped
+networks:
+  web:
+    external: true
+```
 
 ## Internationalization
 
