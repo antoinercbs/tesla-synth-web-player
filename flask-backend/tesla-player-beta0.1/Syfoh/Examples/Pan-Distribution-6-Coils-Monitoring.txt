@@ -1,0 +1,11 @@
+# Disable UI updates to ensure fast processing
+set ui-update to manual
+
+# Enable and configure MIDI Live
+set enable for mode midi-live to 1
+set ontime for mode midi-live and coil all to 100
+set duty for mode midi-live and coil all to 0.03
+
+# Read commands for monitoring coil 0
+read coil-active-duty of coil 0
+read coil-active-tones of coil 0

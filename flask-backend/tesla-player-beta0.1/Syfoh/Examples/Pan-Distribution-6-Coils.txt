@@ -1,0 +1,12 @@
+# Disable UI updates to ensure fast processing
+set ui-update to manual
+
+# Configure stereo mode, range and position for all six coils
+set midi-pan-cfg for coil all to constant
+set midi-pan-reach for coil all to 0.1
+set midi-pan-pos for coil 0 to 0.0
+set midi-pan-pos for coil 1 to 0.2
+set midi-pan-pos for coil 2 to 0.4
+set midi-pan-pos for coil 3 to 0.6
+set midi-pan-pos for coil 4 to 0.8
+set midi-pan-pos for coil 5 to 1.0
