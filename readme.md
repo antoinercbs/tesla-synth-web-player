@@ -39,9 +39,13 @@ The Tesla coils are respectively running with maximum on-times of 40/30µs and d
 All the 16 channels are allowed on both outputs.
 
 
-## Installation and running (localy)
+## Installation and launch
 
-### Standard install (recommanded for local run)
+## Standalone app (recommanded if intended to use on a standalone computer/easiest to use
+
+Just download and unzip the last [release](https://github.com/antoinercbs/tesla-synth-web-player/releases) (matching your OS) and just run the TeslaPlayer.exe (or equivalent) :)
+
+### Python script (recommanded for local network run or best performances)
 
 In order to run the app, use a [local release](https://github.com/antoinercbs/tesla-synth-web-player/releases) from this repository, unzip it and enter the follwing terminal commands in the resulting folder. (You must have Python3 and PIP installed)
 
