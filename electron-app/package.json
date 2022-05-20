@@ -1,0 +1,15 @@
+{
+  "name": "tesla-player-electron",
+  "version": "0.0.1",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron . --disable-gpu-sandbox --no-sandbox"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^18.2.4",
+    "electron-packager": "^15.5.1"
+  }
+}

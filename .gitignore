@@ -1,3 +1,7 @@
 /__pycache__
 database.db
-/uploads
+uploads
+node_modules
+*.zip
+/flask-backend/build/*
+/electron-app/TeslaPlayer*
