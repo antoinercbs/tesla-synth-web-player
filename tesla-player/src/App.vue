@@ -8,7 +8,7 @@
       </div>
       <div class="column text-align-right">
         <div class="locale-changer select is-small">
-          <select v-model="$i18n.locale">
+          <select v-model="$i18n.locale" @change="onLanguageChange">
             <option v-for="locale in $i18n.availableLocales" :key="`locale-${locale}`" :value="locale">{{ locale }}</option>
           </select>
         </div>
@@ -107,6 +107,9 @@ export default {
     },
     onAddToPlaylist(songId) {
       this.$refs.playlist.addSongById(songId);
+    },
+    onLanguageChange() {
+      localStorage.setItem('locale', this.$i18n.locale);
     }
   },
   mounted: function() {

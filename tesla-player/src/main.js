@@ -72,7 +72,7 @@ import { createI18n } from 'vue-i18n'
 import {messages} from './assets/translations'
 
 const i18n = createI18n({
-  locale: 'en',
+  locale: localStorage.getItem('locale') || 'en',
   fallbackLocale: 'en',
   messages
 })
