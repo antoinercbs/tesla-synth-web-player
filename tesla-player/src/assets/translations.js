@@ -41,6 +41,8 @@ module.exports.messages = {
             binaryDecimalConverter : "Binary/Decimal converter:",
             commandTranslatesTo: 'The command "{command}" translates to "{translatedCommand}"',
             enableSecondMidiOutput: "Enable second MIDI output (alpha)",
+            ontimeRatio: "Ontime multiplier factor (0 - 200%)",
+            dutyRatio: "Duty cycle multiplier factor (0 - 200%)",
         },
         message: {
             connectedToServer: 'Connected to server',
@@ -89,6 +91,8 @@ module.exports.messages = {
             binaryDecimalConverter : "Convertisseur binaire/décimal :",
             commandTranslatesTo: 'La commande "{command}" se traduit en "{translatedCommand}"',
             enableSecondMidiOutput: "Activer la deuxième sortie MIDI (alpha)",
+            ontimeRatio: "Facteur multiplicateur ontime (0 - 200%)",
+            dutyRatio: "Facteur multiplicateur duty cycle (0 - 200%)",
         },
         message: {
             connectedToServer: 'Connecté au serveur',

@@ -9,6 +9,7 @@ axios.defaults.baseURL = process.env.VUE_APP_BASE_URL
 require('@/assets/main.scss');
 import '@fortawesome/fontawesome-free/css/all.css'
 import '@fortawesome/fontawesome-free/js/all.js'
+import { sendLiveOntimeAdjustForSong, sendLiveDutyAdjustForSong, sendSysex } from './utils/live-sysex-helper'
 
 const store = createStore({
     state () {
@@ -65,15 +66,17 @@ const store = createStore({
     },
     actions: {
         sendSysex (context, payload) {
-            var strBytes = payload.split(' ');
-            var bytes = strBytes.map(str => parseInt(str, 16));
-            console.log(bytes.slice(1, 4));
-            console.log(bytes.slice(4, 15));
-            context.state.midiOutput.sendSysex(bytes.slice(1, 4), bytes.slice(4, 15));
+            sendSysex(context.state.midiOutput, payload);
         },
         sendProgramChange(context, program) {
             console.log("Set program to " + program);
             context.state.midiOutput.sendProgramChange(program, {channels:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]});
+        },
+        sendLiveOntimeAdjustForSong(context, {song, ontimeRatio}) {
+            sendLiveOntimeAdjustForSong(song, ontimeRatio, context.state.midiOutput);
+        },
+        sendLiveDutyAdjustForSong(context, {song, dutyRatio}) {
+          sendLiveDutyAdjustForSong(song, dutyRatio, context.state.midiOutput);
         }
     },
 

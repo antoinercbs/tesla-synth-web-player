@@ -3,6 +3,8 @@
     <p class="panel-heading">
         {{$t('title.player')}}
     </p>
+
+    <!-- Currently loaded song title and metadatas -->
     <label class="panel-block">
       <span class="panel-icon">
         <i class="fas fa-music"></i>
@@ -15,6 +17,7 @@
       </span>
     </label>
 
+    <!-- Currently disabled outputs (from the player) -->
     <label class="panel-block">
         <span class="panel-icon">
             <i class="fas fa-hashtag"></i>
@@ -45,6 +48,39 @@
         </div>
     </label>
 
+    <!-- Ontime change slider (between 0 and 200%) -->
+    <label class="panel-block">
+      <span class="panel-icon">
+        <i class="fas fa-wave-square"></i>
+      </span>
+      <span>{{$t('label.ontimeRatio')}}</span>
+      <input type="range" min="0" max="200" step="1" 
+        @change="onOntimeRatioChange" 
+        v-model="ontimeRatio" 
+        class="slider is-fullwidth is-circle is-warning has-output ml-3"
+        id="ontimeRatioSlider"
+        :disabled="!canPlay && !canStop"
+      >
+      <output class="is-size-7">{{ontimeRatio}}%</output>
+    </label>
+
+    <!-- Duty change slider (between 0 and 200%) -->
+    <label class="panel-block">
+      <span class="panel-icon">
+        <i class="fas fa-wave-square"></i>
+      </span>
+      <span>{{$t('label.dutyRatio')}}</span>
+      <input type="range" min="0" max="200" step="1" 
+        @change="onDutyRatioChange" 
+        v-model="dutyRatio" 
+        class="slider is-fullwidth is-circle is-warning has-output ml-3"
+        id="dutyRatioSlider"
+        :disabled="!canPlay && !canStop"
+      >
+      <output class="is-size-7">{{dutyRatio}}%</output>
+    </label>
+
+    <!-- Currently played notes visualisation -->
     <label class="panel-block">
       <div class="buttons has-addons" id="midiouts">
         <button class="button is-small" id="midiout1" disabled>0</button>
@@ -116,6 +152,8 @@ export default {
       smfPlayer: null,
       isPlaying: false,
       finishedInterval: null,
+      ontimeRatio: 100,
+      dutyRatio: 100,
       midiSTimerId: {input:[], output:[]},
       channelMapping1Bool: [false, false, false, false,
                             false, false, false, false,
@@ -205,6 +243,14 @@ export default {
       if (this.$store.state.midiOutput2) this.$store.state.midiOutput2.sendAllSoundOff();
     },
 
+    onOntimeRatioChange() {
+      this.$store.dispatch('sendLiveOntimeAdjustForSong', {song: this.song, ontimeRatio: this.ontimeRatio});
+    },
+
+    onDutyRatioChange() {
+      this.$store.dispatch('sendLiveDutyAdjustForSong', {song: this.song, dutyRatio: this.dutyRatio});
+    },
+
     loadMidiFile(path) {
       return new Promise((resolve, reject) => {
         path = path.substring(1);
@@ -246,7 +292,6 @@ export default {
     },
 
     intToBoolArray(int) {
-      console.log("cc")
       let output = [];
       for (let i = 0; i < 16; i++) {
           output.push((int & Math.pow(2, i)) > 0);
@@ -278,6 +323,10 @@ export default {
 #midiouts {
   margin-left: auto;
   margin-right: auto;
+}
+
+output {
+  min-width: 3.5rem;
 }
 
 </style>
