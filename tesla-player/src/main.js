@@ -18,6 +18,9 @@ const store = createStore({
         midiOutputList: null,
         midiFileList: [],
         midiSongList: [],
+        settings: {
+          enableSecondMidiOutput: false
+        }
       }
     },
     mutations: {
@@ -47,10 +50,17 @@ const store = createStore({
       },
       updateMidiSong(state, midiSong) {
         const index = state.midiSongList.findIndex( song => song.id === midiSong.id );
-        state.midiSongList.splice(index, 1, midiSong)
+        state.midiSongList.splice(index, 1, midiSong);
       },
       deleteMidiSong( state, midiSongId ) {
-        state.midiSongList = state.midiSongList.filter( midiSong => midiSong.id !== midiSongId )
+        state.midiSongList = state.midiSongList.filter( midiSong => midiSong.id !== midiSongId );
+      },
+      saveSettings(state) {
+        localStorage.setItem('settings', JSON.stringify(state.settings));
+      },
+      loadSettings(state) {
+        const settings = JSON.parse(localStorage.getItem('settings'));
+        if (settings) state.settings = settings;
       }
     },
     actions: {
@@ -65,8 +75,11 @@ const store = createStore({
             console.log("Set program to " + program);
             context.state.midiOutput.sendProgramChange(program, {channels:[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]});
         }
-    }
-  })
+    },
+
+});
+
+store.commit('loadSettings');
 
 import { createI18n } from 'vue-i18n'
 import {messages} from './assets/translations'

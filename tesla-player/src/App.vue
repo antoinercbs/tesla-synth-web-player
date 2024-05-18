@@ -1,17 +1,18 @@
 <template>
   <div>
-    <div class="columns is-vcentered mx-6 mt-3">
-      <div class="column">
-        <p class="is-size-5">
+    <div class="level my-5 mx-6">
+      <div class="level-left">
+        <p class="is-size-5 level-item">
           {{isConnected ? $t('message.connectedToServer') : $t('message.disconnectedFromServer')}}
         </p>
       </div>
-      <div class="column text-align-right">
-        <div class="locale-changer select is-small">
+      <div class="level-right">
+        <div class="locale-changer select is-small  level-item">
           <select v-model="$i18n.locale" @change="onLanguageChange">
             <option v-for="locale in $i18n.availableLocales" :key="`locale-${locale}`" :value="locale">{{ locale }}</option>
           </select>
         </div>
+        <settings-modal class="level-item"></settings-modal>
       </div>
     </div>
     <div class="mx-6 my-3">
@@ -71,6 +72,8 @@ import MidiSongList from './components/MidiSongList.vue';
 import MidiSongSequencer from './components/MidiSongSequencer.vue';
 import PlaylistManager from './components/PlaylistManager.vue';
 import SyfohCommandCreator from './components/SyfohCommandCreator.vue';
+import SettingsModal from './components/SettingsModal.vue';
+
 export default {
   name: 'App',
   metaInfo: {
@@ -83,7 +86,8 @@ export default {
     MidiFileUploader,
     MidiSongList,
     PlaylistManager,
-    MidiPlayer
+    MidiPlayer,
+    SettingsModal,
   },
   data: function() {
     return {
@@ -110,7 +114,7 @@ export default {
     },
     onLanguageChange() {
       localStorage.setItem('locale', this.$i18n.locale);
-    }
+    },
   },
   mounted: function() {
     WebMidi.enable({sysex: true}).then(this.onEnabled).catch(err => alert(err));

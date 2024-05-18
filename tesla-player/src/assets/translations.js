@@ -8,6 +8,7 @@ module.exports.messages = {
             songEditor: "Song editor",
             playlistEditor: "Playlist editor",
             syntherrupterCommandCreator: "Syntherrupter command creator",
+            applicationSettings: "Application settings",
         },
         label: {
             chooseAMidiFile: 'Choose a MIDI file',
@@ -39,6 +40,7 @@ module.exports.messages = {
             addToSong: "Add to song",
             binaryDecimalConverter : "Binary/Decimal converter:",
             commandTranslatesTo: 'The command "{command}" translates to "{translatedCommand}"',
+            enableSecondMidiOutput: "Enable second MIDI output (alpha)",
         },
         message: {
             connectedToServer: 'Connected to server',
@@ -54,6 +56,7 @@ module.exports.messages = {
             songEditor: "Éditeur de morceau",
             playlistEditor: "Éditeur de playlist",
             syntherrupterCommandCreator: "Créateur de commandes Syntherrupter",
+            applicationSettings: "Paramètres de l'application",
         },
         label: {
             chooseAMidiFile: 'Choisir un fichier MIDI',
@@ -85,6 +88,7 @@ module.exports.messages = {
             addToSong: "Ajouter au morceau",
             binaryDecimalConverter : "Convertisseur binaire/décimal :",
             commandTranslatesTo: 'La commande "{command}" se traduit en "{translatedCommand}"',
+            enableSecondMidiOutput: "Activer la deuxième sortie MIDI (alpha)",
         },
         message: {
             connectedToServer: 'Connecté au serveur',

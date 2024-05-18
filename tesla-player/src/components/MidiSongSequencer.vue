@@ -39,7 +39,7 @@
         </div>
     </label>
 
-    <label class="panel-block">
+    <label class="panel-block"  v-if="$store.state.settings.enableSecondMidiOutput" >
         <span class="panel-icon">
             <i class="fas fa-hashtag"></i>
         </span>

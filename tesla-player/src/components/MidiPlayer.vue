@@ -30,7 +30,7 @@
         </div>
     </label>
 
-     <label class="panel-block">
+     <label class="panel-block" v-if="$store.state.settings.enableSecondMidiOutput" >
         <span class="panel-icon">
             <i class="fas fa-hashtag"></i>
         </span>
@@ -202,9 +202,7 @@ export default {
     },
     panic() {
       this.$store.state.midiOutput.sendAllSoundOff();
-      if (this.$store.state.midiOutput2) {
-        this.$store.state.midiOutput2.sendAllSoundOff();
-      }
+      if (this.$store.state.midiOutput2) this.$store.state.midiOutput2.sendAllSoundOff();
     },
 
     loadMidiFile(path) {

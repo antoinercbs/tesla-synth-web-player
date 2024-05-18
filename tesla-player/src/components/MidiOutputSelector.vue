@@ -20,7 +20,7 @@
         </select>
         </div>
     </a>
-    <a class="panel-block">
+    <a class="panel-block"  v-if="$store.state.settings.enableSecondMidiOutput" >
         <span class="panel-icon">
             <i class="fas fa-right-from-bracket"></i>
         </span>
