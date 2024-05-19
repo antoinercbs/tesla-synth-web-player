@@ -5,3 +5,4 @@ node_modules
 *.zip
 /flask-backend/build/*
 /electron-app/TeslaPlayer*
+.env.production
