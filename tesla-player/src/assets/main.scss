@@ -294,6 +294,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
   border-top: 1px solid var(--line);
 }
+.editor-footer__delete { margin-right: auto; } // delete left, save stays right
 
 // Below this width the side dock would crush the editor: stack it underneath.
 @media (max-width: 1100px) {

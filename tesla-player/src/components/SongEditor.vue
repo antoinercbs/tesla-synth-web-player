@@ -7,11 +7,13 @@ import type { CoilConfig, MidiFile, Song } from '@/types/domain';
 import CoilConfigCard from './CoilConfigCard.vue';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 import SearchableSelect from './SearchableSelect.vue';
+import ConfirmModal from './ConfirmModal.vue';
 
 const props = defineProps<{ song?: Song | null; locked?: boolean }>();
 const emit = defineEmits<{
   (e: 'saved', song: Song): void;
   (e: 'change', song: Song): void;
+  (e: 'deleted', id: number): void;
 }>();
 
 const midiStore = useMidiStore();
@@ -103,6 +105,17 @@ async function save(): Promise<void> {
   else midiStore.addMidiSongToList(data);
   draft.id = data.id;
   emit('saved', data);
+}
+
+const confirmDeleteSong = ref(false);
+function doDelete(): void {
+  const id = draft.id;
+  confirmDeleteSong.value = false;
+  if (!id) return;
+  axios.delete(`/api/songs/${id}`).then(() => {
+    midiStore.deleteMidiSong(id);
+    emit('deleted', id);
+  });
 }
 
 // Reflect every edit into the embedded debug player (no manual "load" step).
@@ -277,11 +290,19 @@ function closeLibrary(): void {
     </section>
 
     <div class="editor-footer">
+      <button v-if="draft.id" class="btn btn--danger editor-footer__delete" type="button" @click="confirmDeleteSong = true">
+        <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.deleteSong') }}
+      </button>
       <button class="btn btn--volt" type="button" @click="save">
         <span class="icon"><i class="fas fa-floppy-disk"></i></span>
         {{ draft.id ? $t('label.update') : $t('label.save') }}
       </button>
     </div>
+
+    <ConfirmModal :open="confirmDeleteSong" :title="$t('label.deleteSong')"
+      :message="`${$t('label.deleteQuestion')} « ${draft.name || ('#' + draft.id)} » ?`"
+      :confirm-label="$t('label.confirm')" :cancel-label="$t('label.cancel')"
+      @confirm="doDelete" @cancel="confirmDeleteSong = false" />
 
     <!-- MIDI library / upload modal (teleported so it never affects the editor flex layout) -->
     <Teleport to="body">

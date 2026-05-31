@@ -22,7 +22,7 @@
  * existing songs exactly.
  */
 
-import type { CoilConfig, PlaybackMode } from '@/types/domain';
+import type { CoilConfig, PlaybackMode, SimpleCoil } from '@/types/domain';
 
 /** Fixed SysEx header: start, manufacturer id, protocol version, broadcast id. */
 export const SYSEX_HEADER = [0xf0, 0x00, 0x26, 0x05, 0x01, 0x7f] as const;
@@ -33,6 +33,8 @@ export const PN = {
   ENABLE: 0x20,
   ONTIME: 0x21,
   DUTY: 0x22,
+  /** Firing rate ("beats per second" / frequency in Hz). */
+  BPS: 0x23,
   CHANNEL_MAP: 0x60,
 } as const;
 
@@ -96,7 +98,10 @@ export interface FrameSpec {
 
 /** Build a 16-byte SysEx frame as an array of byte values (0..255). */
 export function buildFrame({ pn, coil, mode, value, isFloat = false }: FrameSpec): number[] {
-  const bits = isFloat ? floatToBits(value) : Math.trunc(value);
+  // hardware safety: a non-finite value (NaN from an empty input) must never
+  // reach a coil as garbage bits — coerce to 0 (silent) at the boundary.
+  const safe = Number.isFinite(value) ? value : 0;
+  const bits = isFloat ? floatToBits(safe) : Math.trunc(safe);
   return [
     ...SYSEX_HEADER,
     pn,
@@ -112,8 +117,8 @@ export function buildFrame({ pn, coil, mode, value, isFloat = false }: FrameSpec
 // High-level command encoders (default to MIDI-Live, the production mode)
 // ---------------------------------------------------------------------------
 
-export function encodeEnable(mode: number = MODE_BYTE.midi): number[] {
-  return buildFrame({ pn: PN.ENABLE, coil: 0, mode, value: 1 });
+export function encodeEnable(mode: number = MODE_BYTE.midi, enabled = true): number[] {
+  return buildFrame({ pn: PN.ENABLE, coil: 0, mode, value: enabled ? 1 : 0 });
 }
 
 export function encodeChannelMap(
@@ -138,6 +143,15 @@ export function encodeDuty(
   mode: number = MODE_BYTE.midi,
 ): number[] {
   return buildFrame({ pn: PN.DUTY, coil, mode, value: duty, isFloat: true });
+}
+
+/** Firing frequency in Hz (integer, like Syfoh sends for whole-number values). */
+export function encodeBps(
+  coil: number,
+  frequencyHz: number,
+  mode: number = MODE_BYTE.simple,
+): number[] {
+  return buildFrame({ pn: PN.BPS, coil, mode, value: Math.round(frequencyHz) });
 }
 
 // ---------------------------------------------------------------------------
@@ -204,6 +218,39 @@ export function compileCoilConfig(
     frames.push(encodeDuty(coil.coilIndex, coil.duty, modeByte));
     frames.push(encodeChannelMap(coil.coilIndex, coil.channelMask, modeByte));
   }
+  return frames;
+}
+
+/**
+ * Compile the "fixed" (Simple) mode: a constant tone per coil (ontime + duty +
+ * frequency), no MIDI channels. Coils are configured FIRST, then Simple mode is
+ * enabled last so it never fires with stale/default parameters.
+ */
+export function compileSimpleConfig(coils: SimpleCoil[]): number[][] {
+  const m = MODE_BYTE.simple;
+  const frames: number[][] = [];
+  for (const coil of coils) {
+    frames.push(encodeOntime(coil.coilIndex, coil.ontimeUs, m));
+    frames.push(encodeDuty(coil.coilIndex, coil.duty, m));
+    frames.push(encodeBps(coil.coilIndex, coil.frequencyHz, m));
+  }
+  frames.push(encodeEnable(m, true));
+  return frames;
+}
+
+/**
+ * Stop the fixed output. Defense-in-depth: zero each coil's ontime AND duty
+ * first (so a coil can't stay armed if the disable frame is lost), then disable
+ * Simple mode globally. Pass the coils to zero; with no args it just disables.
+ */
+export function compileSimpleStop(coils: SimpleCoil[] = []): number[][] {
+  const m = MODE_BYTE.simple;
+  const frames: number[][] = [];
+  for (const coil of coils) {
+    frames.push(encodeOntime(coil.coilIndex, 0, m));
+    frames.push(encodeDuty(coil.coilIndex, 0, m));
+  }
+  frames.push(encodeEnable(m, false));
   return frames;
 }
 

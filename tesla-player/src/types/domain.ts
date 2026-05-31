@@ -47,6 +47,20 @@ export interface CoilConfig {
   duty: number;
 }
 
+/**
+ * A single coil in "fixed" (firmware Simple) mode: a constant tone defined by
+ * ontime, duty and firing frequency — no MIDI channels involved.
+ */
+export interface SimpleCoil {
+  coilIndex: number;
+  /** Ontime in microseconds. */
+  ontimeUs: number;
+  /** Duty as a fraction (0..1). */
+  duty: number;
+  /** Firing rate in Hz (the firmware's "bps"). */
+  frequencyHz: number;
+}
+
 /** A mid-song parameter change scheduled at a point in time (future feature). */
 export interface CoilEvent {
   coilIndex: number;

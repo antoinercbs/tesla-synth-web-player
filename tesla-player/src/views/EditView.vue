@@ -30,7 +30,7 @@
     </header>
     <div class="edit-body">
       <div class="edit-body__editor">
-        <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" />
+        <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" @deleted="onDeleted" />
       </div>
       <aside class="edit-body__dock">
         <midi-player ref="player" :show-autoplay="false" @playing-change="playing = $event" />
@@ -98,6 +98,10 @@ export default {
     },
     onChange(song) {
       this.$refs.player?.loadSong(song)
+    },
+    onDeleted() {
+      // song removed from the store by the editor → back to the chooser
+      this.$router.push({ name: 'edit', params: {} })
     },
     // Preload the embedded player with the current song (refs ready on nextTick).
     syncPlayer() {

@@ -9,6 +9,10 @@ import {
   hexToBytes,
   decodeFrame,
   compileCoilConfig,
+  compileSimpleConfig,
+  compileSimpleStop,
+  encodeBps,
+  MODE_BYTE,
   pack7,
   unpack7,
   maskToChannels,
@@ -120,6 +124,39 @@ describe('Syntherrupter encoder — byte-exact against the production DB', () =>
     const frame = decodeFrame(buildFrame({ pn: 0x21, coil: 0, mode: 0x01, value: 50 }));
     expect(frame.mode).toBe(0x01);
     expect(frame.valueInt).toBe(50);
+  });
+
+  it('encodes BPS / frequency (PN 0x23, integer Hz) in Simple mode', () => {
+    expect(bytesToHex(encodeBps(0, 100))).toBe(
+      'f0 00 26 05 01 7f 23 00 00 01 64 00 00 00 00 f7',
+    );
+    expect(bytesToHex(encodeBps(1, 440))).toBe(
+      'f0 00 26 05 01 7f 23 00 01 01 38 03 00 00 00 f7',
+    );
+  });
+
+  it('enable can disable a mode (value 0) — the fixed-mode stop', () => {
+    expect(bytesToHex(encodeEnable(MODE_BYTE.simple, true))).toBe(
+      'f0 00 26 05 01 7f 20 00 00 01 01 00 00 00 00 f7',
+    );
+    expect(bytesToHex(encodeEnable(MODE_BYTE.simple, false))).toBe(
+      'f0 00 26 05 01 7f 20 00 00 01 00 00 00 00 00 f7',
+    );
+    expect(compileSimpleStop().map(bytesToHex)).toEqual([
+      'f0 00 26 05 01 7f 20 00 00 01 00 00 00 00 00 f7',
+    ]);
+  });
+
+  it('compiles fixed (Simple) config: per-coil ontime/duty/bps, enable LAST', () => {
+    const hex = compileSimpleConfig([
+      { coilIndex: 0, ontimeUs: 50, duty: 0.05, frequencyHz: 100 },
+    ]).map(bytesToHex);
+    expect(hex).toEqual([
+      'f0 00 26 05 01 7f 21 00 00 01 32 00 00 00 00 f7', // ontime 50µs
+      'f0 00 26 05 01 7f 22 20 00 01 4d 19 33 6a 03 f7', // duty 0.05 (float)
+      'f0 00 26 05 01 7f 23 00 00 01 64 00 00 00 00 f7', // bps 100Hz
+      'f0 00 26 05 01 7f 20 00 00 01 01 00 00 00 00 f7', // enable simple (last)
+    ]);
   });
 
   it('converts between channel mask and boolean array', () => {
