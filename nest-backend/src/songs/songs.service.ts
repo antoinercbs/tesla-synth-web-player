@@ -3,24 +3,30 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MidiFile } from '../midi/entities/midi-file.entity';
 import { CreateSongDto } from './dto/create-song.dto';
-import { Song } from './entities/song.entity';
-import { SysexCommand } from './entities/sysex-command.entity';
+import { Coil } from './entities/coil.entity';
+import { CoilEvent } from './entities/coil-event.entity';
+import { PlaybackMode, Song } from './entities/song.entity';
 
-/** JSON shape returned to the front, identical to the original Flask output. */
+/** JSON shape returned to the front (the structured per-coil model). */
 export interface SongResponse {
   id: number;
   name: string;
-  outputMapping1: number;
-  outputMapping2: number;
-  sysex: { command: string; value: string; idx: number }[];
-  // Always an object, even when no file is associated (id/name/path null).
-  // This matches the original Flask json_object output, which the front relies
-  // on (it reads song.midiFile.name / .id without a null guard).
-  midiFile: {
-    id: number | null;
-    name: string | null;
-    path: string | null;
-  };
+  coilCount: number;
+  mode: PlaybackMode;
+  output2Mask: number;
+  midiFile: { id: number; name: string; path: string } | null;
+  coils: {
+    coilIndex: number;
+    channelMask: number;
+    ontimeUs: number;
+    duty: number;
+  }[];
+  events: {
+    coilIndex: number;
+    atMs: number;
+    param: string;
+    value: number;
+  }[];
 }
 
 @Injectable()
@@ -48,13 +54,10 @@ export class SongsService {
     if (!song) {
       throw new NotFoundException(`Song ${id} not found`);
     }
-    // Replace the sysex commands wholesale (delete-then-insert, like Flask).
-    // Done with a targeted statement so it works regardless of whether the
-    // database schema declares ON DELETE CASCADE.
-    await this.songRepository.query(
-      'DELETE FROM SysexCommand WHERE song_id = ?',
-      [id],
-    );
+    // Replace coils/events wholesale (delete-then-insert). Targeted SQL works
+    // regardless of whether the schema declares ON DELETE CASCADE.
+    await this.songRepository.query('DELETE FROM "Coil" WHERE song_id = ?', [id]);
+    await this.songRepository.query('DELETE FROM "CoilEvent" WHERE song_id = ?', [id]);
     await this.fromDto(song, dto);
     await this.songRepository.save(song);
     return this.findOneOrThrow(id);
@@ -65,16 +68,9 @@ export class SongsService {
     if (!song) {
       throw new NotFoundException(`Song ${id} not found`);
     }
-    // Clean up dependents first so the delete works even when the schema has
-    // no ON DELETE CASCADE (the existing Flask-created database.db).
-    await this.songRepository.query(
-      'DELETE FROM SysexCommand WHERE song_id = ?',
-      [id],
-    );
-    await this.songRepository.query(
-      'DELETE FROM PlaylistSong WHERE song_id = ?',
-      [id],
-    );
+    await this.songRepository.query('DELETE FROM "Coil" WHERE song_id = ?', [id]);
+    await this.songRepository.query('DELETE FROM "CoilEvent" WHERE song_id = ?', [id]);
+    await this.songRepository.query('DELETE FROM "PlaylistSong" WHERE song_id = ?', [id]);
     await this.songRepository.delete(id);
   }
 
@@ -89,46 +85,64 @@ export class SongsService {
   /** Hydrates a Song entity from a DTO (used by both create and update). */
   private async fromDto(song: Song, dto: CreateSongDto): Promise<Song> {
     song.name = dto.name;
-    song.outputMapping1 = dto.outputMapping1;
-    song.outputMapping2 = dto.outputMapping2;
+    song.coilCount = dto.coilCount;
+    song.mode = dto.mode;
+    song.output2Mask = dto.output2Mask;
 
     const midiFileId = dto.resolvedMidiFileId;
     song.midiFile = midiFileId
       ? await this.midiFileRepository.findOne({ where: { id: midiFileId } })
       : null;
 
-    song.sysexCommands = dto.sysex.map((sysex, idx) => {
-      const command = new SysexCommand();
-      command.command = sysex.command ?? '';
-      command.value = sysex.value;
-      command.indexInSong = idx;
-      return command;
+    song.coils = dto.coils.map((c) => {
+      const coil = new Coil();
+      coil.coilIndex = c.coilIndex;
+      coil.channelMask = c.channelMask;
+      coil.ontimeUs = c.ontimeUs;
+      coil.duty = c.duty;
+      return coil;
     });
+
+    song.events = (dto.events ?? []).map((e) => {
+      const event = new CoilEvent();
+      event.coilIndex = e.coilIndex;
+      event.atMs = e.atMs;
+      event.param = e.param;
+      event.value = e.value;
+      return event;
+    });
+
     return song;
   }
 
   private toResponse(song: Song): SongResponse {
-    const sysex = [...(song.sysexCommands ?? [])]
-      .sort((a, b) => a.indexInSong - b.indexInSong)
-      .map((command) => ({
-        command: command.command,
-        value: command.value,
-        idx: command.indexInSong,
-      }));
-
     return {
       id: song.id,
       name: song.name,
-      outputMapping1: song.outputMapping1,
-      outputMapping2: song.outputMapping2,
-      sysex,
+      coilCount: song.coilCount,
+      mode: song.mode,
+      output2Mask: song.output2Mask,
       midiFile: song.midiFile
         ? {
             id: song.midiFile.id,
             name: song.midiFile.name,
             path: song.midiFile.path,
           }
-        : { id: null, name: null, path: null },
+        : null,
+      coils: [...(song.coils ?? [])]
+        .sort((a, b) => a.coilIndex - b.coilIndex)
+        .map((c) => ({
+          coilIndex: c.coilIndex,
+          channelMask: c.channelMask,
+          ontimeUs: c.ontimeUs,
+          duty: c.duty,
+        })),
+      events: [...(song.events ?? [])].map((e) => ({
+        coilIndex: e.coilIndex,
+        atMs: e.atMs,
+        param: e.param,
+        value: e.value,
+      })),
     };
   }
 }

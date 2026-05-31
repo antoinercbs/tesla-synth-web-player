@@ -7,9 +7,13 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { MidiFile } from '../../midi/entities/midi-file.entity';
-import { SysexCommand } from './sysex-command.entity';
+import { Coil } from './coil.entity';
+import { CoilEvent } from './coil-event.entity';
 
-/** Maps the existing `Song` table from the Flask schema (schema.sql). */
+/** 'midi' = firmware MIDI mode (normal playback + live); 'simple' = fixed mode. */
+export type PlaybackMode = 'midi' | 'simple';
+
+/** A song: its MIDI file plus the structured per-coil configuration. */
 @Entity({ name: 'Song' })
 export class Song {
   @PrimaryGeneratedColumn({ name: 'id' })
@@ -18,11 +22,16 @@ export class Song {
   @Column({ name: 'name', type: 'text', nullable: true })
   name!: string;
 
-  @Column({ name: 'output_mapping_1', type: 'integer', nullable: true })
-  outputMapping1!: number;
+  /** Number of physical coils this song is authored for (1..6). */
+  @Column({ name: 'coilCount', type: 'integer', default: 1 })
+  coilCount!: number;
 
-  @Column({ name: 'output_mapping_2', type: 'integer', nullable: true })
-  outputMapping2!: number;
+  @Column({ name: 'mode', type: 'text', default: 'midi' })
+  mode!: PlaybackMode;
+
+  /** 16-bit mask of channels mirrored to the second (speaker) output. */
+  @Column({ name: 'output2Mask', type: 'integer', default: 0 })
+  output2Mask!: number;
 
   @ManyToOne(() => MidiFile, {
     eager: true,
@@ -32,9 +41,9 @@ export class Song {
   @JoinColumn({ name: 'midiFile_id' })
   midiFile!: MidiFile | null;
 
-  @OneToMany(() => SysexCommand, (sysex) => sysex.song, {
-    cascade: true,
-    eager: true,
-  })
-  sysexCommands!: SysexCommand[];
+  @OneToMany(() => Coil, (coil) => coil.song, { cascade: true, eager: true })
+  coils!: Coil[];
+
+  @OneToMany(() => CoilEvent, (event) => event.song, { cascade: true, eager: true })
+  events!: CoilEvent[];
 }

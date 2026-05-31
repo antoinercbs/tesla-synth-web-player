@@ -10,7 +10,7 @@
         <i class="fas fa-music"></i>
       </span>
       <span v-if="song">
-         {{$t('label.selectedSong')}} {{song.name}} ({{song.sysex.length}} {{$t('label.configCommands')}})
+         {{$t('label.selectedSong')}} {{song.name}} ({{song.coilCount}}&nbsp;⚡)
       </span>
       <span v-else>
         {{$t('label.noSongLoaded')}}
@@ -33,7 +33,7 @@
         </div>
     </label>
 
-     <label class="panel-block" v-if="midiStore.settings.enableSecondMidiOutput" >
+     <label class="panel-block" v-if="midiStore.midiOutput2" >
         <span class="panel-icon">
             <i class="fas fa-hashtag"></i>
         </span>
@@ -144,6 +144,7 @@
 <script>
 import { mapStores } from 'pinia';
 import { useMidiStore } from '@/stores/midi';
+import { compileCoilConfig, maskToChannels } from '@/sysex/syntherrupter';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 export default {
@@ -194,23 +195,28 @@ export default {
       if (this.smfPlayer) {
         this.stop();
       }
-      this.channelMapping1Bool = this.intToBoolArray(this.song.outputMapping1);
-      this.channelMapping2Bool = this.intToBoolArray(this.song.outputMapping2);
+      // Output 1 (Syntherrupter) carries every channel mapped to a coil; output 2
+      // (speakers) carries the explicit output2Mask. No "deactivated channels".
+      const coilUnion = (song.coils ?? []).reduce((mask, c) => mask | c.channelMask, 0);
+      this.channelMapping1Bool = maskToChannels(coilUnion);
+      this.channelMapping2Bool = maskToChannels(song.output2Mask ?? 0);
       this.parsedMidiFile = null;
       this.smfPlayer = null;
-      this.loadMidiFile(this.song.midiFile.path)
-      .then((midiFile) => {
-        var smfParser = new SmfParser();
-        this.parsedMidiFile = smfParser.parse(this.arrayBufferToString(midiFile));
-        console.log(this.parsedMidiFile)
-      });
+      if (!song.midiFile) {
+        return; // config-only song: nothing to stream
+      }
+      this.loadMidiFile(song.midiFile.path)
+        .then((midiFile) => {
+          const smfParser = new SmfParser();
+          this.parsedMidiFile = smfParser.parse(this.arrayBufferToString(midiFile));
+        });
     },
     executeConfig() {
-      this.song.sysex.forEach(cmd => {
-          console.log("Executing Sysex:",cmd);
-          this.midiStore.sendSysex(cmd.value);
-      });
-      //this.midiStore.sendProgramChange(80);
+      // Compile the per-coil config to SysEx in the browser and send each frame.
+      const frames = compileCoilConfig(this.song.coils ?? [], this.song.mode ?? 'midi');
+      for (const frame of frames) {
+        this.midiStore.sendSysex(frame);
+      }
     },
 
     play(){
@@ -247,11 +253,11 @@ export default {
     },
 
     onOntimeRatioChange() {
-      this.midiStore.sendLiveOntimeAdjustForSong({song: this.song, ontimeRatio: this.ontimeRatio});
+      this.midiStore.sendLiveOntimeAdjust({coils: this.song?.coils ?? [], ratio: this.ontimeRatio});
     },
 
     onDutyRatioChange() {
-      this.midiStore.sendLiveDutyAdjustForSong({song: this.song, dutyRatio: this.dutyRatio});
+      this.midiStore.sendLiveDutyAdjust({coils: this.song?.coils ?? [], ratio: this.dutyRatio});
     },
 
     loadMidiFile(path) {

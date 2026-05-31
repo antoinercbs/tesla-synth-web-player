@@ -9,7 +9,10 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
-    "init:db": "ts-node src/scripts/init-db.ts"
+    "init:db": "ts-node src/scripts/init-db.ts",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
+    "migration:show": "typeorm-ts-node-commonjs migration:show -d src/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.0",

@@ -1,27 +1,20 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DATABASE_PATH, PUBLIC_DIR, UPLOADS_DIR_ABS } from './config/paths';
+import { PUBLIC_DIR, UPLOADS_DIR_ABS } from './config/paths';
+import { dataSourceOptions } from './database/data-source';
 import { HealthModule } from './health/health.module';
-import { MidiFile } from './midi/entities/midi-file.entity';
 import { MidiModule } from './midi/midi.module';
-import { PlaylistSong } from './playlists/entities/playlist-song.entity';
-import { Playlist } from './playlists/entities/playlist.entity';
 import { PlaylistsModule } from './playlists/playlists.module';
-import { Song } from './songs/entities/song.entity';
-import { SysexCommand } from './songs/entities/sysex-command.entity';
 import { SongsModule } from './songs/songs.module';
-import { SyfohModule } from './syfoh/syfoh.module';
 
 @Module({
   imports: [
+    // Schema is owned by schema.sql (baseline) + TypeORM migrations, which run
+    // automatically on boot (migrationsRun). synchronize stays off.
     TypeOrmModule.forRoot({
-      type: 'sqlite',
-      database: DATABASE_PATH,
-      entities: [Song, SysexCommand, MidiFile, Playlist, PlaylistSong],
-      // The schema is owned by schema.sql (run `npm run init:db`); TypeORM does
-      // not manage migrations here to keep parity with the Flask backend.
-      synchronize: false,
+      ...dataSourceOptions,
+      migrationsRun: true,
     }),
     // Serve uploaded MIDI files at /uploads/<file> (matches the stored paths).
     ServeStaticModule.forRoot({
@@ -36,7 +29,6 @@ import { SyfohModule } from './syfoh/syfoh.module';
     SongsModule,
     MidiModule,
     PlaylistsModule,
-    SyfohModule,
   ],
 })
 export class AppModule {}

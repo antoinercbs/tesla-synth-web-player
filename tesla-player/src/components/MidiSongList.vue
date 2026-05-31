@@ -131,9 +131,11 @@ export default {
         copySong(song) {
             const data = {
                 name: song.name + (song.name.length > 0 ? ' - copy' : 'copy'),
-                sysex: song.sysex,
-                outputMapping1: song.outputMapping1,
-                outputMapping2: song.outputMapping2,
+                coilCount: song.coilCount,
+                mode: song.mode,
+                output2Mask: song.output2Mask,
+                coils: song.coils,
+                events: song.events ?? [],
                 midiFileId: song.midiFile ? song.midiFile.id : null,
             }
             this.axios.post('/api/songs', data).then(response => {

@@ -1,0 +1,36 @@
+{
+  // Incremental TypeScript migration: new code (src/types, src/sysex, *.ts and
+  // <script lang="ts"> SFCs) is type-checked strictly; legacy JavaScript is
+  // allowed but NOT type-checked (allowJs + checkJs:false) so the editor stays
+  // quiet until each component is converted. `paths` works without `baseUrl`
+  // on modern TS; Vite owns the actual alias resolution (vite.config.js).
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    "allowJs": true,
+    "checkJs": false,
+
+    "noEmit": true,
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "useDefineForClassFields": true,
+
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["env.d.ts", "src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue"],
+  "exclude": ["node_modules", "dist", "src/smfplayer/**"]
+}

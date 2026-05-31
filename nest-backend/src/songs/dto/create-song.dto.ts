@@ -1,14 +1,19 @@
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
-import { SysexCommandDto } from './sysex-command.dto';
+import { PlaybackMode } from '../entities/song.entity';
+import { CoilDto } from './coil.dto';
+import { CoilEventDto } from './coil-event.dto';
 
-/** Reference to a MIDI file, as sent nested by the v2 front (`midiFile.id`). */
+/** Reference to a MIDI file, as sent nested by the front (`midiFile.id`). */
 export class MidiFileRefDto {
   @IsInt()
   id!: number;
@@ -19,31 +24,45 @@ export class CreateSongDto {
   name!: string;
 
   /**
-   * The MIDI file can be provided either as a nested object (v2 front sends the
-   * whole `midiFile`) or as a flat `midiFileId` (original Flask contract).
+   * The MIDI file can be provided either as a nested object (`midiFile`) or as a
+   * flat `midiFileId`. Either is optional (a song may have no MIDI file).
    */
   @IsOptional()
   @ValidateNested()
   @Type(() => MidiFileRefDto)
-  midiFile?: MidiFileRefDto;
+  midiFile?: MidiFileRefDto | null;
 
   @IsOptional()
   @IsInt()
-  midiFileId?: number;
+  midiFileId?: number | null;
 
   @IsInt()
-  outputMapping1!: number;
+  @Min(1)
+  @Max(6)
+  coilCount!: number;
 
+  @IsIn(['midi', 'simple'])
+  mode!: PlaybackMode;
+
+  /** 16-bit mask of channels mirrored to the second (speaker) output. */
   @IsInt()
-  outputMapping2!: number;
+  @Min(0)
+  @Max(0xffff)
+  output2Mask!: number;
 
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => SysexCommandDto)
-  sysex!: SysexCommandDto[];
+  @Type(() => CoilDto)
+  coils!: CoilDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CoilEventDto)
+  events?: CoilEventDto[];
 
   /** Convenience accessor that resolves the MIDI file id from either field. */
-  get resolvedMidiFileId(): number | undefined {
-    return this.midiFile?.id ?? this.midiFileId;
+  get resolvedMidiFileId(): number | null {
+    return this.midiFile?.id ?? this.midiFileId ?? null;
   }
 }
