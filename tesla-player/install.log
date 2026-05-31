@@ -1,5 +1,0 @@
-npm error code ETARGET
-npm error notarget No matching version found for globals@^16.6.0.
-npm error notarget In most cases you or one of your dependencies are requesting
-npm error notarget a package version that doesn't exist.
-npm error A complete log of this run can be found in: C:\Users\antoi\AppData\Local\npm-cache\_logs\2026-05-31T14_54_34_110Z-debug-0.log

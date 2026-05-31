@@ -10,14 +10,13 @@ Syntherrupter sysex format:
     Parameter value. With 5 MIDI data bytes, full 32 bit values can be covered. Any 32bits of data will be sent in groups of 7 bits, LSB first.
 */
 
-sendSysex = (midiOutput, payload) => {
+export const sendSysex = (midiOutput, payload) => {
     const strBytes = payload.split(' ');
     const bytes = strBytes.map(str => parseInt(str, 16));
     midiOutput.sendSysex(bytes.slice(1, 4), bytes.slice(4, 15));
 };
-exports.sendSysex = sendSysex;
 
-exports.sendLiveOntimeAdjustForSong = function (song, ontimeRatio, midiOutput) {
+export function sendLiveOntimeAdjustForSong (song, ontimeRatio, midiOutput) {
     const coilsUpdatedOntimes = getCoilsParamValuesFromSong(0x21, song, false).map(coilOntime => 
         ({ coil: coilOntime.coil, ontime: Math.round(coilOntime.value * ontimeRatio / 100) })
     );
@@ -28,7 +27,7 @@ exports.sendLiveOntimeAdjustForSong = function (song, ontimeRatio, midiOutput) {
     }
 };
 
-exports.sendLiveDutyAdjustForSong = function (song, dutyRatio, midiOutput) {
+export function sendLiveDutyAdjustForSong (song, dutyRatio, midiOutput) {
     const coilsUpdatedDuties = getCoilsParamValuesFromSong(0x22, song, true).map(coilDuty =>
         ({ coil: coilDuty.coil, duty: coilDuty.value * dutyRatio / 100 })
     );

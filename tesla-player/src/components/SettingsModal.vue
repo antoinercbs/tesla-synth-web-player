@@ -68,7 +68,6 @@ export default {
     },
     created() {
         this.settings = this.midiStore.settings;
-        console.log(this.settings);
     }
 };
 </script>

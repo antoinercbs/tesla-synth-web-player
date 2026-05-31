@@ -1,4 +1,4 @@
-module.exports.messages = {
+export const messages = {
     en: {
         title: {
             midiFileManager: 'MIDI File Manager',
@@ -9,9 +9,20 @@ module.exports.messages = {
             playlistEditor: "Playlist editor",
             syntherrupterCommandCreator: "Syntherrupter command creator",
             applicationSettings: "Application settings",
+            fileManager: 'MIDI File Manager',
+            outputSelection: 'MIDI Output Selection',
+            songManager: 'My Songs',
+            songSequencer: 'Song Editor',
+            playlistManager: 'Playlist Manager',
         },
         label: {
             chooseAMidiFile: 'Choose a MIDI file',
+            chooseFile: 'Choose a MIDI file',
+            upload: 'Upload',
+            saveSong: 'Save song',
+            sysexPlaceholder: 'One sysex command per line',
+            mainOutput: 'Main output (e.g. Syntherrupter)',
+            emptyPlaylist: 'The playlist is empty',
             delete: 'Delete',
             save: 'Save',
             update: 'Update',
@@ -59,9 +70,20 @@ module.exports.messages = {
             playlistEditor: "Éditeur de playlist",
             syntherrupterCommandCreator: "Créateur de commandes Syntherrupter",
             applicationSettings: "Paramètres de l'application",
+            fileManager: 'Gestionnaire de fichier MIDI',
+            outputSelection: 'Sélection de la sortie MIDI',
+            songManager: 'Mes morceaux',
+            songSequencer: 'Éditeur de morceau',
+            playlistManager: 'Gestionnaire de playlist',
         },
         label: {
             chooseAMidiFile: 'Choisir un fichier MIDI',
+            chooseFile: 'Choisir un fichier MIDI',
+            upload: 'Téléverser',
+            saveSong: 'Sauvegarder le morceau',
+            sysexPlaceholder: 'Une commande sysex par ligne',
+            mainOutput: 'Sortie principale (e.g. Syntherrupter)',
+            emptyPlaylist: 'La playlist est vide',
             delete: 'Supprimer',
             save: 'Sauvegarder',
             update: 'Mettre à jour',

@@ -18,6 +18,22 @@ export default defineConfig({
     __VUE_I18N_LEGACY_API__: true,
     __INTLIFY_PROD_DEVTOOLS__: false
   },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        // bulma-slider's sass imports bulma via "node_modules/bulma/..."
+        // paths, which only resolve when node_modules' parent (the project
+        // root) is on the sass load path.
+        loadPaths: [fileURLToPath(new URL('.', import.meta.url))],
+        silenceDeprecations: [
+          'import',
+          'global-builtin',
+          'color-functions',
+          'if-function'
+        ]
+      }
+    }
+  },
   server: {
     port: 8080
   }

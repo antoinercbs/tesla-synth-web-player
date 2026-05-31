@@ -267,7 +267,7 @@ export default {
       });
     },
 
-    dispEventMonitor(msg, type, latency) {
+    dispEventMonitor(msg, type) {
       var tmp;
       if(typeof msg[0]==="number") {
             tmp=msg[0].toString(16);

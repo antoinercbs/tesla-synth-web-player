@@ -10,8 +10,9 @@ import { useMidiStore } from './stores/midi'
 import { messages } from './assets/translations'
 
 import '@/assets/main.scss'
+// CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
+// of <i> elements fights Vue's reactive re-renders and makes icons disappear.
 import '@fortawesome/fontawesome-free/css/all.css'
-import '@fortawesome/fontawesome-free/js/all.js'
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 

@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      // Launchable from the Run and Debug panel (▶). The preLaunchTask starts
+      // both dev servers in two side-by-side terminals (no --inspect, so no
+      // debugger attaches to the back/front). No browser is opened. This script
+      // just keeps the session alive; pressing Stop runs the postDebugTask,
+      // which frees the ports cleanly.
+      "name": "Run app (2 terminals, no debugger, no browser)",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/.vscode/keepalive.js",
+      "preLaunchTask": "dev: servers",
+      "postDebugTask": "dev: stop",
+      "internalConsoleOptions": "neverOpen",
+      "autoAttachChildProcesses": false,
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ]
+}

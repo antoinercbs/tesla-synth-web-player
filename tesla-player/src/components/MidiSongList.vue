@@ -1,40 +1,83 @@
 <template>
-    <article class="panel">
-        <p class="panel-heading">
-            {{$t('title.songManager')}}
-        </p>
-        <div class="panel-block" v-for="song in midiSongList" :key="song.id">
-            <div class="card is-fullwidth">
-                <header class="card-header">
-                    <p class="card-header-title">
-                        {{song.name}}
-                    </p>
-                </header>
-                <div class="card-content">
-                    <div class="content">
-                        {{song.midiFile.name}}
-                    </div>
-                </div>
-                <footer class="card-footer">
-                    <a class="card-footer-item" @click="playSong(song)">
-                        <span class="icon is-small">
-                            <i class="fas fa-play"></i>
-                        </span>
-                    </a>
-                    <a class="card-footer-item" @click="editSong(song)">
-                        <span class="icon is-small">
-                            <i class="fas fa-edit"></i>
-                        </span>
-                    </a>
-                    <a class="card-footer-item" @click="addToPlaylist(song.id)">
-                        <span class="icon is-small">
-                            <i class="fas fa-plus"></i>
-                        </span>
-                    </a>
-                </footer>
-            </div>
+  <article class="panel">
+    <p class="panel-heading">
+        {{$t('title.mySongs')}}
+    </p>
+    <div class="panel-block">
+      <p class="control has-icons-left">
+        <input class="input" type="text" :placeholder="$t('label.search')" v-model="searchText">
+        <span class="icon is-left">
+          <i class="fas fa-search"></i>
+        </span>
+      </p>
+    </div>
+    <a class="panel-block" v-for="song in filteredSongs" :key="song.id">
+        <span class="panel-icon">
+            <i class="fas fa-music"></i>
+        </span>
+        {{song.name}}
+        <div class="buttons has-addons">
+            <button class="button is-small" @click="playSong(song)">
+                <span class="icon">
+                    <i class="fas fa-play"></i>
+                </span>
+            </button>
+            <button class="button is-small" @click="addToPlaylist(song)">
+                <span class="icon">
+                    <i class="fas fa-add"></i>
+                </span>
+            </button>
+            <button class="button is-small" @click="copySong(song)">
+                <span class="icon">
+                    <i class="fas fa-copy"></i>
+                </span>
+            </button>
+            <button class="button is-small" @click="editSong(song)">
+                <span class="icon">
+                    <i class="fas fa-pen"></i>
+                </span>
+            </button>
+            <button class="button is-small"
+            :class="(deletingSong == song) ? 'is-danger' : 'is-warning'"
+            @click="deleteSong(song)">
+                <span class="icon">
+                    <i class="fas fa-trash"></i>
+                </span>
+            </button>
         </div>
-    </article>
+    </a>
+    <a class="panel-block" v-if="pageCount > 1">
+        <nav class="pagination" role="navigation" aria-label="pagination">
+            <ul class="pagination-list">
+                <li>
+                    <a class="pagination-link"
+                        @click="selectedPageIdx = 0">
+                        <span class="icon">
+                            <i class="fas fa-angles-left"></i>
+                        </span>
+                    </a>
+                </li>
+                <div v-for="(n, idx) in 5" :key="idx">
+                    <li v-if="idx-2+selectedPageIdx >= 0 && idx-2+selectedPageIdx < pageCount">
+                        <a class="pagination-link"
+                            @click="selectedPageIdx = idx-2+selectedPageIdx"
+                            :class="idx == 2 ? 'is-current':''">
+                            {{n-2+selectedPageIdx}}
+                        </a>
+                    </li>
+                </div>
+                <li>
+                    <a class="pagination-link"
+                        @click="selectedPageIdx = pageCount - 1">
+                        <span class="icon">
+                            <i class="fas fa-angles-right"></i>
+                        </span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </a>
+  </article>
 </template>
 
 <script>
@@ -42,22 +85,72 @@ import { mapStores } from 'pinia'
 import { useMidiStore } from '@/stores/midi'
 
 export default {
-    computed: {
+    data: function() {
+        return {
+            searchText: '',
+            selectedPageIdx: 0,
+            deletingSong: null,
+        }
+    },
+    computed : {
         ...mapStores(useMidiStore),
-        midiSongList() {
-            return this.midiStore.midiSongList;
+        pageCount() {
+            return Math.ceil(this.searchedSongs.length/10);
+        },
+        searchedSongs() {
+            return this.midiStore.midiSongList.filter(song => {
+                return song.name.toLowerCase().includes(this.searchText.toLowerCase());
+            });
+        },
+        filteredSongs() {
+            return this.searchedSongs.slice(this.selectedPageIdx*10, (this.selectedPageIdx+1)*10);
         }
     },
     methods: {
-        playSong(song) {
-            this.$emit('playSong', song);
-        },
         editSong(song) {
             this.$emit('editSong', song);
         },
-        addToPlaylist(songId) {
-            this.$emit('addToPlaylist', songId);
+        playSong(song) {
+            this.$emit('playSong', song);
+        },
+        addToPlaylist(song) {
+            this.$emit('addToPlaylist', song.id);
+        },
+        deleteSong(song) {
+            if (song != this.deletingSong) {
+                this.deletingSong = song;
+                return;
+            }
+            this.axios.delete(`/api/songs/${song.id}`).then(() => {
+                this.midiStore.deleteMidiSong(song.id);
+                this.deletingSong = null;
+            }).catch(error => {
+                console.log(error);
+            });
+        },
+        copySong(song) {
+            const data = {
+                name: song.name + (song.name.length > 0 ? ' - copy' : 'copy'),
+                sysex: song.sysex,
+                outputMapping1: song.outputMapping1,
+                outputMapping2: song.outputMapping2,
+                midiFileId: song.midiFile ? song.midiFile.id : null,
+            }
+            this.axios.post('/api/songs', data).then(response => {
+                this.midiStore.addMidiSongToList(response.data);
+            }).catch(error => {
+                console.log(error);
+            });
         }
-    }
+    },
 }
 </script>
+
+<style scoped>
+.buttons  {
+    margin-left: auto;
+}
+.pagination {
+    margin: auto;
+}
+</style>
