@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "esnext",
     "module": "esnext",
+    "moduleResolution": "bundler",
     "baseUrl": "./",
-    "moduleResolution": "node",
     "paths": {
       "@/*": [
         "src/*"
@@ -12,8 +12,11 @@
     "lib": [
       "esnext",
       "dom",
-      "dom.iterable",
-      "scripthost"
+      "dom.iterable"
     ]
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

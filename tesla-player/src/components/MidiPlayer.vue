@@ -23,9 +23,9 @@
             <i class="fas fa-hashtag"></i>
         </span>
         <span class="mr-2 ml-2">{{$t('label.disactivatedChannelsOutput1')}}</span>
-        <div v-if="channelMapping1Bool" class="buttons has-addons"> 
+        <div v-if="channelMapping1Bool" class="buttons has-addons">
             <button v-for="(activated, index) in channelMapping1Bool" :key="index"
-            class="button is-small" 
+            class="button is-small"
             :class="(activated) ? '' : 'is-danger'"
             disabled>
             {{index}}
@@ -33,14 +33,14 @@
         </div>
     </label>
 
-     <label class="panel-block" v-if="$store.state.settings.enableSecondMidiOutput" >
+     <label class="panel-block" v-if="midiStore.settings.enableSecondMidiOutput" >
         <span class="panel-icon">
             <i class="fas fa-hashtag"></i>
         </span>
         <span class="mr-2 ml-2">{{$t('label.disactivatedChannelsOutput2')}}</span>
-        <div v-if="channelMapping1Bool" class="buttons has-addons"> 
+        <div v-if="channelMapping1Bool" class="buttons has-addons">
             <button v-for="(activated, index) in channelMapping2Bool" :key="index"
-            class="button is-small" 
+            class="button is-small"
             :class="(activated) ? '' : 'is-danger'"
             disabled>
             {{index}}
@@ -54,9 +54,9 @@
         <i class="fas fa-wave-square"></i>
       </span>
       <span>{{$t('label.ontimeRatio')}}</span>
-      <input type="range" min="0" max="200" step="1" 
-        @change="onOntimeRatioChange" 
-        v-model="ontimeRatio" 
+      <input type="range" min="0" max="200" step="1"
+        @change="onOntimeRatioChange"
+        v-model="ontimeRatio"
         class="slider is-fullwidth is-circle is-warning has-output ml-3"
         id="ontimeRatioSlider"
         :disabled="!canPlay && !canStop"
@@ -70,9 +70,9 @@
         <i class="fas fa-wave-square"></i>
       </span>
       <span>{{$t('label.dutyRatio')}}</span>
-      <input type="range" min="0" max="200" step="1" 
-        @change="onDutyRatioChange" 
-        v-model="dutyRatio" 
+      <input type="range" min="0" max="200" step="1"
+        @change="onDutyRatioChange"
+        v-model="dutyRatio"
         class="slider is-fullwidth is-circle is-warning has-output ml-3"
         id="dutyRatioSlider"
         :disabled="!canPlay && !canStop"
@@ -137,13 +137,15 @@
         </button>
       </span>
     </label>
-    
+
   </article>
 </template>
 
 <script>
-import SmfParser from '../smfplayer/js/smfParser.js';
-import SmfPlayer from '../smfplayer/js/smfPlayer.js';
+import { mapStores } from 'pinia';
+import { useMidiStore } from '@/stores/midi';
+import SmfParser from '@/smfplayer/js/smfParser.js';
+import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 export default {
   data: function() {
     return {
@@ -167,22 +169,23 @@ export default {
     }
   },
   computed: {
+    ...mapStores(useMidiStore),
     canPlay() {
-      return this.parsedMidiFile 
-          && this.$store.state.midiOutput
+      return this.parsedMidiFile
+          && this.midiStore.midiOutput
           && !this.isPlaying
     },
     canStop() {
-      return this.parsedMidiFile 
-          && this.$store.state.midiOutput
+      return this.parsedMidiFile
+          && this.midiStore.midiOutput
           && this.isPlaying
     },
     canPanic() {
-      return this.$store.state.midiOutput
+      return this.midiStore.midiOutput
     },
     canSysex() {
-      return this.parsedMidiFile 
-          && this.$store.state.midiOutput
+      return this.parsedMidiFile
+          && this.midiStore.midiOutput
     }
   },
   methods: {
@@ -205,9 +208,9 @@ export default {
     executeConfig() {
       this.song.sysex.forEach(cmd => {
           console.log("Executing Sysex:",cmd);
-          this.$store.dispatch('sendSysex', cmd.value);
+          this.midiStore.sendSysex(cmd.value);
       });
-      //this.$store.dispatch('sendProgramChange', 80);
+      //this.midiStore.sendProgramChange(80);
     },
 
     play(){
@@ -216,8 +219,8 @@ export default {
       }
       this.isPlaying = true;
       this.executeConfig();
-      this.smfPlayer = new SmfPlayer(this.$store.state.midiOutput, 
-                                      this.$store.state.midiOutput2,
+      this.smfPlayer = new SmfPlayer(this.midiStore.midiOutput,
+                                      this.midiStore.midiOutput2,
                                       this.channelMapping1Bool,
                                       this.channelMapping2Bool);
       this.smfPlayer.dispEventMonitor=this.dispEventMonitor;
@@ -239,16 +242,16 @@ export default {
       this.smfPlayer.stopPlay();
     },
     panic() {
-      this.$store.state.midiOutput.sendAllSoundOff();
-      if (this.$store.state.midiOutput2) this.$store.state.midiOutput2.sendAllSoundOff();
+      this.midiStore.midiOutput.sendAllSoundOff();
+      if (this.midiStore.midiOutput2) this.midiStore.midiOutput2.sendAllSoundOff();
     },
 
     onOntimeRatioChange() {
-      this.$store.dispatch('sendLiveOntimeAdjustForSong', {song: this.song, ontimeRatio: this.ontimeRatio});
+      this.midiStore.sendLiveOntimeAdjustForSong({song: this.song, ontimeRatio: this.ontimeRatio});
     },
 
     onDutyRatioChange() {
-      this.$store.dispatch('sendLiveDutyAdjustForSong', {song: this.song, dutyRatio: this.dutyRatio});
+      this.midiStore.sendLiveDutyAdjustForSong({song: this.song, dutyRatio: this.dutyRatio});
     },
 
     loadMidiFile(path) {
@@ -287,7 +290,7 @@ export default {
                   light.className="button is-small";
               }, 300);
           }, 0);
-        } 
+        }
       }
     },
 

@@ -9,11 +9,11 @@
         <div class="modal" :class="{ 'is-active': showModal }">
             <div class="modal-background" @click="closeModal"></div>
             <div class="modal-content">
-               
+
                 <!-- Modal content -->
                 <div class="panel">
                     <h2 class="panel-heading">{{$t('title.applicationSettings')}}</h2>
-                    
+
                     <label class="panel-block setting">
                         <div class="line-head">
                             <span class="panel-icon">
@@ -39,7 +39,13 @@
 </template>
 
 <script>
+import { mapStores } from 'pinia'
+import { useMidiStore } from '@/stores/midi'
+
 export default {
+    computed: {
+        ...mapStores(useMidiStore)
+    },
     data() {
         return {
             showModal: false,
@@ -56,12 +62,12 @@ export default {
             this.showModal = false;
         },
         saveSettings() {
-            this.$store.commit('saveSettings', this.settings);
+            this.midiStore.saveSettings();
             this.showModal = false;
         }
     },
     created() {
-        this.settings = this.$store.state.settings;
+        this.settings = this.midiStore.settings;
         console.log(this.settings);
     }
 };
