@@ -14,6 +14,8 @@ interface MidiState {
   midiOutputList: Output[] | null;
   midiFileList: MidiFile[];
   midiSongList: Song[];
+  /** Auto-start a track on select / when the previous one ends (persisted). */
+  autoplay: boolean;
 }
 
 export const useMidiStore = defineStore('midi', {
@@ -23,8 +25,13 @@ export const useMidiStore = defineStore('midi', {
     midiOutputList: null,
     midiFileList: [],
     midiSongList: [],
+    autoplay: localStorage.getItem('autoplay') === '1', // default OFF
   }),
   actions: {
+    setAutoplay(value: boolean) {
+      this.autoplay = value;
+      localStorage.setItem('autoplay', value ? '1' : '0');
+    },
     setMidiOutput(output: Output | null) {
       this.midiOutput = output;
     },

@@ -9,6 +9,7 @@ import { Playlist } from './entities/playlist.entity';
 export interface PlaylistResponse {
   id: number;
   name: string;
+  coilCount: number;
   songIds: number[];
 }
 
@@ -60,6 +61,7 @@ export class PlaylistsService {
 
   private fromDto(playlist: Playlist, dto: CreatePlaylistDto): Playlist {
     playlist.name = dto.name;
+    playlist.coilCount = dto.coilCount ?? 3;
     playlist.playlistSongs = dto.songIds.map((songId, idx) => {
       const playlistSong = new PlaylistSong();
       playlistSong.songId = songId;
@@ -73,6 +75,6 @@ export class PlaylistsService {
     const songIds = [...(playlist.playlistSongs ?? [])]
       .sort((a, b) => a.idx - b.idx)
       .map((playlistSong) => playlistSong.songId);
-    return { id: playlist.id, name: playlist.name, songIds };
+    return { id: playlist.id, name: playlist.name, coilCount: playlist.coilCount ?? 3, songIds };
   }
 }

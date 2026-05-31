@@ -75,6 +75,8 @@ export interface Song {
 export interface Playlist {
   id: number;
   name: string;
+  /** Tesla-coil count this playlist targets (1..6); only matching songs play. */
+  coilCount: number;
   songIds: number[];
 }
 

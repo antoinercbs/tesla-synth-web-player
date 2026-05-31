@@ -7,6 +7,7 @@ import { Coil } from '../songs/entities/coil.entity';
 import { CoilEvent } from '../songs/entities/coil-event.entity';
 import { Song } from '../songs/entities/song.entity';
 import { CoilModel1717200000000 } from './migrations/1717200000000-CoilModel';
+import { PlaylistCoilCount1717300000000 } from './migrations/1717300000000-PlaylistCoilCount';
 
 /**
  * Shared TypeORM configuration, used both by the Nest app (app.module) and the
@@ -18,7 +19,7 @@ export const dataSourceOptions: DataSourceOptions = {
   type: 'sqlite',
   database: DATABASE_PATH,
   entities: [Song, Coil, CoilEvent, MidiFile, Playlist, PlaylistSong],
-  migrations: [CoilModel1717200000000],
+  migrations: [CoilModel1717200000000, PlaylistCoilCount1717300000000],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,
 };

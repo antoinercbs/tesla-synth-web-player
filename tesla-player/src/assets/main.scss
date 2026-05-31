@@ -186,17 +186,23 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 // editing is blocked while the embedded player is playing
 .editor-lock {
   position: absolute; inset: 0; z-index: 20;
-  display: flex; align-items: flex-start; justify-content: center; padding-top: 3rem;
-  background: rgba(8, 11, 17, 0.55);
-  -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
+  display: flex; align-items: center; justify-content: center; padding: 1.5rem;
+  background: rgba(8, 11, 17, 0.6);
+  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
   border-radius: var(--radius);
 }
 .editor-lock__msg {
-  display: flex; align-items: center; gap: 0.55rem;
-  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.7rem; text-align: center;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.07em;
+  font-size: 1.05rem; font-weight: 600;
   color: var(--text); background: var(--panel-2); border: 1px solid var(--line-strong);
-  padding: 0.7rem 1.1rem; border-radius: 10px; box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.7);
+  padding: 1.6rem 2.2rem; border-radius: 14px; box-shadow: 0 18px 50px -10px rgba(0, 0, 0, 0.75);
 }
+.editor-lock__msg .icon {
+  font-size: 1.8rem; color: var(--volt);
+  filter: drop-shadow(0 0 12px var(--volt)); animation: lock-pulse 1.8s ease-in-out infinite;
+}
+@keyframes lock-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
 .editor-lock__msg .icon { color: var(--volt); }
 
 .editor-meta {
@@ -234,6 +240,9 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 }
 .screen-head > * { pointer-events: auto; }
 .screen-body { padding: 1.3rem 2rem 2rem; }
+// variant: body fills the remaining viewport height so columns can stretch and
+// scroll internally (used by the Play screen so the player fills its column).
+.screen-body--fill { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .icon-btn {
   width: 2.4rem; height: 2.4rem; border-radius: 50%;
   display: grid; place-items: center; cursor: pointer;
@@ -262,8 +271,13 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   flex: 0 0 360px; width: 360px;
   align-self: flex-start;
   position: sticky; top: 4.2rem;
+  // fill the viewport beside the (scrolling) editor; leave a small bottom gap so
+  // the player bottom lines up with the sticky save button.
+  height: calc(100vh - 4.2rem - 3.3rem);
+  display: flex; flex-direction: column;
   padding-left: 1.8rem;
 }
+.edit-body__dock .player-panel { flex: 1 1 auto; min-height: 0; }
 .dock-head {
   display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em;
@@ -288,7 +302,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   .edit-body__editor::after { display: none; }
   .edit-body__dock {
     position: static; width: auto; flex: 1 1 auto;
-    padding-left: 0; margin-top: 1.5rem;
+    height: auto; padding-left: 0; margin-top: 1.5rem;
   }
 }
 .field-block { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
@@ -332,6 +346,30 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 }
 .segmented--fill { display: flex; width: 100%; }
 .segmented--fill button { flex: 1; }
+
+// play-screen mode switch (Playback / Live / Fixed) — icon + label segments
+.mode-switch button {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-family: var(--font-display); text-transform: uppercase;
+  letter-spacing: 0.05em; font-size: 0.78rem; min-width: 0;
+}
+.mode-switch button .icon { font-size: 0.85rem; }
+
+// placeholder for not-yet-built play modes
+.mode-stub {
+  flex: 1; min-height: 50vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.6rem; color: var(--text-mute); text-align: center;
+}
+.mode-stub__icon {
+  font-size: 2.4rem; color: var(--volt); opacity: 0.65;
+  filter: drop-shadow(0 0 14px var(--volt));
+}
+.mode-stub__title {
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 1.1rem; color: var(--text-dim);
+}
+.mode-stub__hint { font-family: var(--font-mono); font-size: 0.85rem; }
 
 // --- coil cards ------------------------------------------------------------
 // At most 3 coils per row so the layout mirrors the typical coil counts.
@@ -506,6 +544,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .player-panel {
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  display: flex; flex-direction: column; // sections stack; the VU grows to fill
 }
 .player-panel__head {
   display: flex; align-items: center; gap: 0.5rem;
@@ -514,6 +553,8 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
   background: rgba(70, 224, 255, 0.06); border-bottom: 1px solid var(--line);
 }
 .player-panel__head .icon { color: var(--volt); }
+.player-panel__title { display: inline-flex; align-items: center; gap: 0.5rem; }
+.player-panel__autoplay { margin-left: auto; } // autoplay toggle pinned right
 
 .player-song { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.6rem; padding: 0.9rem 1rem 0.5rem; min-width: 0; }
 .player-song .icon { color: var(--text-dim); flex: 0 0 auto; }
@@ -538,16 +579,23 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .player-hint .icon { color: var(--volt); }
 
-// channel activity — vertical "VU" bars, lit in each channel's coil colour
-.vu { padding: 0.7rem 1rem 0.5rem; }
+// channel activity — vertical "VU" bars, lit in each channel's coil colour.
+// The strip grows to fill whatever height the player is given (responsive).
+.vu {
+  padding: 0.7rem 1rem 0.6rem; flex: 1 1 auto; min-height: 150px;
+  display: flex; flex-direction: column;
+}
 .vu__label {
   display: block; font-family: var(--font-display); text-transform: uppercase;
   letter-spacing: 0.07em; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 0.5rem;
 }
-.vu-strip { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; align-items: end; }
-.vu-chan { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 0; }
+.vu-strip {
+  display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px;
+  align-items: stretch; flex: 1 1 auto; min-height: 80px;
+}
+.vu-chan { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 0; min-height: 0; }
 .vu-track {
-  width: 100%; height: 104px; border-radius: 4px; position: relative; overflow: hidden;
+  width: 100%; flex: 1 1 auto; min-height: 56px; border-radius: 4px; position: relative; overflow: hidden;
   background: rgba(255, 255, 255, 0.025); border: 1px solid var(--line);
 }
 .vu-track.is-unmapped { opacity: 0.3; }
@@ -570,6 +618,48 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 
 .player-transport { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.4rem 1rem 1rem; }
 .player-transport .btn { flex: 1 1 auto; justify-content: center; min-width: 4.5rem; }
+
+// only the VU flexes; every other player section keeps its natural height
+.player-song, .player-hint, .player-options, .player-faders, .player-transport { flex: 0 0 auto; }
+
+// per-coil legend (colour + ontime + duty): lives inside the song line, wraps
+// full-width onto the next line when it doesn't fit; min-width:0 lets the chips
+// wrap (instead of overflowing) when the player is compact.
+.player-coils { display: flex; flex-wrap: wrap; gap: 0.45rem; min-width: 0; }
+.player-coil {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.3rem 0.55rem; border-radius: 8px;
+  background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--c, var(--volt));
+}
+.player-coil__chip {
+  width: 1.3rem; height: 1.3rem; border-radius: 5px; display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+  color: #06090f; background: var(--c, var(--volt)); box-shadow: 0 0 8px -2px var(--c, var(--volt));
+}
+.player-coil__readouts { display: flex; gap: 0.5rem; }
+.player-coil__readout { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); }
+.player-coil__readout i { color: var(--text-mute); font-style: normal; font-size: 0.7rem; margin-left: 1px; }
+
+// autoplay toggle (and any future player switches)
+.player-options { padding: 0.2rem 1rem 0.5rem; }
+.switch { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
+.switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+.switch__track {
+  position: relative; flex: 0 0 auto; width: 2.2rem; height: 1.2rem; border-radius: 999px;
+  background: var(--bg-2); border: 1px solid var(--line-strong); transition: 0.15s;
+}
+.switch__track::after {
+  content: ""; position: absolute; top: 1px; left: 1px;
+  width: calc(1.2rem - 4px); height: calc(1.2rem - 4px); border-radius: 50%;
+  background: var(--text-mute); transition: 0.15s;
+}
+.switch input:checked + .switch__track { background: var(--volt); border-color: var(--volt); box-shadow: 0 0 12px -3px var(--volt); }
+.switch input:checked + .switch__track::after { transform: translateX(1rem); background: #06090f; }
+.switch input:focus-visible + .switch__track { box-shadow: 0 0 0 2px var(--volt); }
+.switch__text {
+  font-family: var(--font-display); text-transform: uppercase;
+  letter-spacing: 0.05em; font-size: 0.7rem; color: var(--text-dim);
+}
 .midi-lib__empty { color: var(--text-mute); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.4rem 0; }
 .midi-lib__item {
   display: flex; align-items: center; gap: 0.6rem;

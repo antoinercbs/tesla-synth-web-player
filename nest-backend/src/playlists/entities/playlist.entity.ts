@@ -10,6 +10,11 @@ export class Playlist {
   @Column({ name: 'name', type: 'text', nullable: true })
   name!: string;
 
+  /** Tesla-coil count this playlist targets (1..6). Only songs with the same
+   *  coilCount are meant to play; default 3. */
+  @Column({ name: 'coilCount', type: 'integer', default: 3 })
+  coilCount!: number;
+
   @OneToMany(() => PlaylistSong, (playlistSong) => playlistSong.playlist, {
     cascade: true,
     eager: true,
