@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, reactive, ref } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { compileCoilConfig, maskToChannels } from '@/sysex/syntherrupter';
+import { envelope, envelopeIcon } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { Song } from '@/types/domain';
@@ -26,6 +27,8 @@ const dutyRatio = ref(100);
 // per-channel "lit" flag (note activity, with a short decay) — drives the LEDs
 const litChannels = reactive<boolean[]>(Array(MIDI_CHANNEL_COUNT).fill(false));
 const ledTimers: Array<ReturnType<typeof setTimeout> | null> = Array(MIDI_CHANNEL_COUNT).fill(null);
+// per-channel envelope ("instrument"), tracked live from the MIDI Program Changes
+const channelProgram = reactive<(number | null)[]>(Array(MIDI_CHANNEL_COUNT).fill(null));
 
 interface SmfPlayerInstance {
   init(midi: unknown, latency: number, eventNo: number): void;
@@ -49,6 +52,21 @@ const canSysex = computed(() => !!song.value && !!midiStore.midiOutput);
 const legendCoils = computed(() =>
   [...(song.value?.coils ?? [])].sort((a, b) => a.coilIndex - b.coilIndex),
 );
+// distinct envelopes currently heard, with the channels using each
+const envelopesInUse = computed(() => {
+  const groups = new Map<number, number[]>();
+  channelProgram.forEach((p, ch) => {
+    if (p == null) return;
+    if (!groups.has(p)) groups.set(p, []);
+    groups.get(p)!.push(ch);
+  });
+  return [...groups.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([program, chs]) => ({ program, chs, env: envelope(program) }));
+});
+function resetPrograms(): void {
+  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) channelProgram[i] = null;
+}
 /** duty fraction (0..1) → percentage with up to 2 decimals. */
 function dutyPct(duty: number): number {
   return Math.round(duty * 1e4) / 100;
@@ -110,6 +128,7 @@ function loadSong(s: Song): void {
   loadedPath = newPath;
   parsedMidiFile.value = null;
   resetNotes();
+  resetPrograms();
   if (!newPath) return; // config-only song: nothing to stream
   loadMidiFile(newPath)
     .then((buffer) => {
@@ -145,6 +164,7 @@ function play(): void {
   isPlaying.value = true;
   emit('playingChange', true);
   resetNotes();
+  resetPrograms();
   executeConfig();
   const coilUnion = (song.value?.coils ?? []).reduce((m, c) => m | c.channelMask, 0);
   const ch1 = maskToChannels(coilUnion);
@@ -206,6 +226,7 @@ function dispEventMonitor(msg: unknown[], type: unknown): void {
   if (type === 'input') return;
   const st = statusByte(msg[0]);
   if ((st & 0xf0) === 0x90) flashChannel(st & 0x0f); // note-on → flash the channel
+  else if ((st & 0xf0) === 0xc0) channelProgram[st & 0x0f] = statusByte(msg[1]); // program change → envelope
 }
 
 function arrayBufferToString(buffer: ArrayBuffer): string {
@@ -271,6 +292,18 @@ defineExpose({ loadSong, playSong, stop });
           <span class="vu-num">{{ i - 1 }}</span>
         </div>
       </div>
+    </div>
+
+    <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
+    <div v-if="song && envelopesInUse.length" class="vu-legend">
+      <span class="vu-legend__label"><span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('label.instruments') }}</span>
+      <span v-for="e in envelopesInUse" :key="e.program" class="env-chip"
+        :title="`${$t('label.instrument')}: ${e.env.name}`">
+        <span class="icon"><i class="fas" :class="envelopeIcon(e.program)"></i></span>
+        <span class="env-chip__pn">P{{ e.program }}</span>
+        <span class="env-chip__name">{{ e.env.name }}</span>
+        <span class="env-chip__chs">ch {{ e.chs.join(', ') }}</span>
+      </span>
     </div>
 
     <div class="player-faders">

@@ -45,6 +45,12 @@ export interface CoilConfig {
    * the production wire format, which encodes duty as IEEE-754.
    */
   duty: number;
+  /**
+   * Optional Syntherrupter envelope ("instrument") to force on this coil's
+   * channels via a MIDI Program Change. Used by Live mode; null/undefined means
+   * "don't override" (pass the input's own program through).
+   */
+  program?: number | null;
 }
 
 /**

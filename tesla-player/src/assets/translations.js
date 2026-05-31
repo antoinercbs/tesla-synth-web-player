@@ -103,6 +103,9 @@ export const messages = {
       chooseOrCreatePlaylist: "Pick a playlist to edit, or create a new one.",
       onlyMatchingCoils: "Matching coils only",
       deleteSong: "Delete song",
+      instrument: "Instrument",
+      noOverride: "Passthrough (no override)",
+      instruments: "Instruments",
       selectOutputHint:
         "Select a MIDI output in the sidebar to enable playback.",
       loadSongHint: "Load a song to play.",
@@ -237,6 +240,9 @@ export const messages = {
       chooseOrCreatePlaylist: "Choisis une playlist à éditer, ou crées-en une nouvelle.",
       onlyMatchingCoils: "Bobines compatibles seulement",
       deleteSong: "Supprimer le morceau",
+      instrument: "Instrument",
+      noOverride: "Inchangé (pas d'override)",
+      instruments: "Instruments",
       selectOutputHint:
         "Sélectionne une sortie MIDI dans la barre latérale pour activer la lecture.",
       loadSongHint: "Charge un morceau pour le jouer.",

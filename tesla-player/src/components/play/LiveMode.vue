@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { WebMidi, type Input } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
 import { compileCoilConfig } from '@/sysex/syntherrupter';
+import { programChange } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS, MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig } from '@/types/domain';
@@ -12,7 +13,7 @@ const midiStore = useMidiStore();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
 
 function defaultCoil(index: number): CoilConfig {
-  return { coilIndex: index, channelMask: 0, ontimeUs: 40, duty: 0.05 };
+  return { coilIndex: index, channelMask: 0, ontimeUs: 40, duty: 0.05, program: null };
 }
 /** keep only finite numbers from (possibly corrupt) persisted config */
 function num(v: unknown, d: number): number {
@@ -35,6 +36,7 @@ try {
       channelMask: num(parsed.coils?.[i]?.channelMask, 0),
       ontimeUs: num(parsed.coils?.[i]?.ontimeUs, 40),
       duty: num(parsed.coils?.[i]?.duty, 0.05),
+      program: typeof parsed.coils?.[i]?.program === 'number' ? parsed.coils[i]!.program! : null,
     }));
   }
 } catch {
@@ -77,8 +79,22 @@ let boundInput: Input | null = null;
 const canRun = computed(() => !!selectedInput.value && !!midiStore.midiOutput);
 let resendTimer: ReturnType<typeof setTimeout> | null = null;
 
+// channel -> forced envelope program, derived from the per-coil overrides
+const channelOverride = computed(() => {
+  const map = new Map<number, number>();
+  for (const c of cfg.coils) {
+    if (c.program == null) continue;
+    for (let ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
+      if (c.channelMask & (1 << ch)) map.set(ch, c.program);
+    }
+  }
+  return map;
+});
+
 function sendConfig(): void {
   for (const frame of compileCoilConfig(cfg.coils, 'midi')) midiStore.sendSysex(frame);
+  // force the chosen envelope on each overridden channel (Program Change)
+  for (const [ch, program] of channelOverride.value) midiStore.midiOutput?.send(programChange(ch, program));
 }
 // debounce live mapping edits so a burst of keystrokes coalesces into one push
 function scheduleResend(): void {
@@ -91,6 +107,8 @@ function onMidiMessage(e: MidiMessageEvent): void {
   const data = e.message?.data;
   if (!data || data.length === 0) return;
   const status = data[0];
+  // keep our envelope override: swallow incoming Program Change on overridden channels
+  if ((status & 0xf0) === 0xc0 && channelOverride.value.has(status & 0x0f)) return;
   // forward channel-voice messages only (note/CC/pitch…), skip realtime/sysex spam
   if (status >= 0x80 && status < 0xf0) {
     midiStore.midiOutput?.send(data);
@@ -231,7 +249,8 @@ onBeforeUnmount(() => {
         </div>
       </header>
       <div class="coils-grid">
-        <CoilConfigCard v-for="i in cfg.coilCount" :key="i - 1" v-model="cfg.coils[i - 1]" :index="i - 1" />
+        <CoilConfigCard v-for="i in cfg.coilCount" :key="i - 1" v-model="cfg.coils[i - 1]" :index="i - 1"
+          :show-envelope="true" />
       </div>
     </section>
   </div>

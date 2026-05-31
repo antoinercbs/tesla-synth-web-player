@@ -2,9 +2,10 @@
 import { computed } from 'vue';
 import type { CoilConfig } from '@/types/domain';
 import { coilColor } from '@/ui/coil-colors';
+import { ENVELOPES } from '@/sysex/envelopes';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 
-const props = defineProps<{ index: number }>();
+const props = defineProps<{ index: number; showEnvelope?: boolean }>();
 const coil = defineModel<CoilConfig>({ required: true });
 
 const color = computed(() => coilColor(props.index));
@@ -28,6 +29,13 @@ const activeChannels = computed(() => {
   while (m) { n += m & 1; m >>>= 1; }
   return n;
 });
+
+// envelope ("instrument") override — null means "don't override / passthrough"
+const program = computed<number | null>({
+  get: () => coil.value.program ?? null,
+  set: (v) => { coil.value = { ...coil.value, program: v }; },
+});
+
 </script>
 
 <template>
@@ -57,5 +65,23 @@ const activeChannels = computed(() => {
         </label>
       </div>
     </div>
+
+    <template v-if="showEnvelope">
+      <span class="readout-label coil-env__label">
+        <span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('label.instrument') }}
+      </span>
+      <div class="select-field coil-env">
+        <select v-model="program">
+          <option :value="null">{{ $t('label.noOverride') }}</option>
+          <option v-for="e in ENVELOPES" :key="e.program" :value="e.program">{{ e.program }} · {{ e.name }}</option>
+        </select>
+      </div>
+    </template>
   </article>
 </template>
+
+<style scoped>
+.coil-env__label { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.85rem; }
+.coil-env__label .icon { color: var(--coil, var(--volt)); font-size: 0.8rem; }
+.coil-env { margin-top: 0.4rem; }
+</style>

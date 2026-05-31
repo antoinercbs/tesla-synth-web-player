@@ -621,7 +621,26 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .player-transport .btn { flex: 1 1 auto; justify-content: center; min-width: 4.5rem; }
 
 // only the VU flexes; every other player section keeps its natural height
-.player-song, .player-hint, .player-options, .player-faders, .player-transport { flex: 0 0 auto; }
+.player-song, .player-hint, .player-options, .player-faders, .player-transport, .vu-legend { flex: 0 0 auto; }
+
+// per-channel instruments (envelopes) heard, shown as chips under the VU
+.vu-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.2rem 1rem 0.7rem; }
+.vu-legend__label {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 0.6rem; color: var(--text-dim);
+}
+.vu-legend__label .icon { color: var(--volt); }
+.env-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.2rem 0.5rem; border-radius: 7px;
+  background: var(--bg-2); border: 1px solid var(--line-strong); color: var(--text-dim);
+  font-size: 0.78rem;
+}
+.env-chip .icon { color: var(--volt); font-size: 0.72rem; }
+.env-chip__pn { font-family: var(--font-mono); font-weight: 700; color: var(--volt); }
+.env-chip__name { color: var(--text); }
+.env-chip__chs { font-family: var(--font-mono); font-size: 0.7rem; color: var(--text-mute); }
 
 // per-coil legend (colour + ontime + duty): lives inside the song line, wraps
 // full-width onto the next line when it doesn't fit; min-width:0 lets the chips
