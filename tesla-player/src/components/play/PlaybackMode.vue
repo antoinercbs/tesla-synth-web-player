@@ -11,6 +11,7 @@ import type { Song, Playlist } from '@/types/domain';
 const router = useRouter();
 const midiStore = useMidiStore();
 const player = ref<InstanceType<typeof MidiPlayer> | null>(null);
+const isPlaying = ref(false); // mirrors the player; lets the queue keep chaining
 
 function editSong(song: Song): void {
   router.push({ name: 'edit', params: { id: String(song.id) } });
@@ -97,12 +98,12 @@ function rebuildOrder(startQueueIdx: number): void {
   if (shuffle.value) { order.value = shuffledOrder(n, startQueueIdx); pos.value = 0; }
   else { order.value = Array.from({ length: n }, (_, i) => i); pos.value = startQueueIdx; }
 }
-// Activate the current item: PLAY it when autoplay is on, otherwise just LOAD
-// it into the player (cued — the user starts it with Play). This single switch
-// drives every selection path (play-now, play-all, next/prev, auto-advance).
+// Activate the current item. It PLAYS when autoplay is on, OR something is
+// already playing (navigating an active queue). Otherwise it just LOADS (cues)
+// the track — so with autoplay off the next song is queued up but waits for Play.
 function playCurrent(): void {
   if (!current.value) return;
-  if (midiStore.autoplay) player.value?.playSong(current.value);
+  if (midiStore.autoplay || isPlaying.value) player.value?.playSong(current.value);
   else player.value?.loadSong(current.value);
 }
 
@@ -196,7 +197,8 @@ function cycleRepeat(): void {
   repeat.value = repeat.value === 'off' ? 'all' : repeat.value === 'all' ? 'one' : 'off';
 }
 
-function onSongFinished(): void { if (midiStore.autoplay) next(true); }
+// once a track has been playing, finishing it always advances the queue
+function onSongFinished(): void { next(true); }
 function isCurrent(song: Song): boolean { return current.value?.id === song.id; }
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
 </script>
@@ -352,7 +354,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
 
     <!-- RIGHT: the player, alone, filling the column -->
     <div class="column is-7 playback-right">
-      <midi-player ref="player" @songFinished="onSongFinished" />
+      <midi-player ref="player" @songFinished="onSongFinished" @playing-change="isPlaying = $event" />
     </div>
   </div>
 </template>
