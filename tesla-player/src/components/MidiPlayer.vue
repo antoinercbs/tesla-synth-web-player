@@ -1,341 +1,257 @@
-<template>
-  <article class="panel">
-    <p class="panel-heading">
-        {{$t('title.player')}}
-    </p>
-
-    <!-- Currently loaded song title and metadatas -->
-    <label class="panel-block">
-      <span class="panel-icon">
-        <i class="fas fa-music"></i>
-      </span>
-      <span v-if="song">
-         {{$t('label.selectedSong')}} {{song.name}} ({{song.coilCount}}&nbsp;⚡)
-      </span>
-      <span v-else>
-        {{$t('label.noSongLoaded')}}
-      </span>
-    </label>
-
-    <!-- Currently disabled outputs (from the player) -->
-    <label class="panel-block">
-        <span class="panel-icon">
-            <i class="fas fa-hashtag"></i>
-        </span>
-        <span class="mr-2 ml-2">{{$t('label.disactivatedChannelsOutput1')}}</span>
-        <div v-if="channelMapping1Bool" class="buttons has-addons">
-            <button v-for="(activated, index) in channelMapping1Bool" :key="index"
-            class="button is-small"
-            :class="(activated) ? '' : 'is-danger'"
-            disabled>
-            {{index}}
-            </button>
-        </div>
-    </label>
-
-     <label class="panel-block" v-if="midiStore.midiOutput2" >
-        <span class="panel-icon">
-            <i class="fas fa-hashtag"></i>
-        </span>
-        <span class="mr-2 ml-2">{{$t('label.disactivatedChannelsOutput2')}}</span>
-        <div v-if="channelMapping1Bool" class="buttons has-addons">
-            <button v-for="(activated, index) in channelMapping2Bool" :key="index"
-            class="button is-small"
-            :class="(activated) ? '' : 'is-danger'"
-            disabled>
-            {{index}}
-            </button>
-        </div>
-    </label>
-
-    <!-- Ontime change slider (between 0 and 200%) -->
-    <label class="panel-block">
-      <span class="panel-icon">
-        <i class="fas fa-wave-square"></i>
-      </span>
-      <span>{{$t('label.ontimeRatio')}}</span>
-      <input type="range" min="0" max="200" step="1"
-        @change="onOntimeRatioChange"
-        v-model="ontimeRatio"
-        class="slider is-fullwidth is-circle is-warning has-output ml-3"
-        id="ontimeRatioSlider"
-        :disabled="!canPlay && !canStop"
-      >
-      <output class="is-size-7">{{ontimeRatio}}%</output>
-    </label>
-
-    <!-- Duty change slider (between 0 and 200%) -->
-    <label class="panel-block">
-      <span class="panel-icon">
-        <i class="fas fa-wave-square"></i>
-      </span>
-      <span>{{$t('label.dutyRatio')}}</span>
-      <input type="range" min="0" max="200" step="1"
-        @change="onDutyRatioChange"
-        v-model="dutyRatio"
-        class="slider is-fullwidth is-circle is-warning has-output ml-3"
-        id="dutyRatioSlider"
-        :disabled="!canPlay && !canStop"
-      >
-      <output class="is-size-7">{{dutyRatio}}%</output>
-    </label>
-
-    <!-- Currently played notes visualisation -->
-    <label class="panel-block">
-      <div class="buttons has-addons" id="midiouts">
-        <button class="button is-small" id="midiout1" disabled>0</button>
-        <button class="button is-small" id="midiout2" disabled>1</button>
-        <button class="button is-small" id="midiout3" disabled>2</button>
-        <button class="button is-small" id="midiout4" disabled>3</button>
-        <button class="button is-small" id="midiout5" disabled>4</button>
-        <button class="button is-small" id="midiout6" disabled>5</button>
-        <button class="button is-small" id="midiout7" disabled>6</button>
-        <button class="button is-small" id="midiout8" disabled>7</button>
-        <button class="button is-small" id="midiout9" disabled>8</button>
-        <button class="button is-small" id="midiout10" disabled>9</button>
-        <button class="button is-small" id="midiout11" disabled>10</button>
-        <button class="button is-small" id="midiout12" disabled>11</button>
-        <button class="button is-small" id="midiout13" disabled>12</button>
-        <button class="button is-small" id="midiout14" disabled>13</button>
-        <button class="button is-small" id="midiout15" disabled>14</button>
-        <button class="button is-small" id="midiout16" disabled>15</button>
-      </div>
-    </label>
-    <label class="panel-block is-block mt-2">
-      <span class="buttons has-addons columns is-centered">
-        <button @click="play"
-        class="button"
-        :disabled="!canPlay">
-          <span class="icon">
-            <i class="fas fa-play"></i>
-          </span>
-          <span>Play</span>
-        </button>
-        <button @click="stop"
-        class="button"
-        :disabled="!canStop">
-          <span class="icon">
-            <i class="fas fa-stop"></i>
-          </span>
-          <span>Stop</span>
-        </button>
-        <button @click="panic"
-        class="button"
-        :disabled="!canPanic">
-          <span class="icon">
-            <i class="fas fa-bell-slash"></i>
-          </span>
-          <span>Panic</span>
-        </button>
-        <button @click="executeConfig"
-        class="button"
-        :disabled="!canSysex">
-          <span class="icon">
-            <i class="fas fa-wrench"></i>
-          </span>
-          <span>{{$t('label.executeConfiguration')}}</span>
-        </button>
-      </span>
-    </label>
-
-  </article>
-</template>
-
-<script>
-import { mapStores } from 'pinia';
+<script setup lang="ts">
+import { computed, onBeforeUnmount, reactive, ref } from 'vue';
+import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { compileCoilConfig, maskToChannels } from '@/sysex/syntherrupter';
+import { coilColor } from '@/ui/coil-colors';
+import { MIDI_CHANNEL_COUNT } from '@/types/domain';
+import type { Song } from '@/types/domain';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
-export default {
-  data: function() {
-    return {
-      song: null,
-      parsedMidiFile: null,
-      smfPlayer: null,
-      isPlaying: false,
-      finishedInterval: null,
-      ontimeRatio: 100,
-      dutyRatio: 100,
-      midiSTimerId: {input:[], output:[]},
-      channelMapping1Bool: [false, false, false, false,
-                            false, false, false, false,
-                            false, false, false, false,
-                            false, false, false, false],
-      channelMapping2Bool: [false, false, false, false,
-                            false, false, false, false,
-                            false, false, false, false,
-                            false, false, false, false],
 
-    }
-  },
-  computed: {
-    ...mapStores(useMidiStore),
-    canPlay() {
-      return this.parsedMidiFile
-          && this.midiStore.midiOutput
-          && !this.isPlaying
-    },
-    canStop() {
-      return this.parsedMidiFile
-          && this.midiStore.midiOutput
-          && this.isPlaying
-    },
-    canPanic() {
-      return this.midiStore.midiOutput
-    },
-    canSysex() {
-      return this.parsedMidiFile
-          && this.midiStore.midiOutput
-    }
-  },
-  methods: {
-    loadSong(song) {
-      this.song = song;
-      if (this.smfPlayer) {
-        this.stop();
-      }
-      // Output 1 (Syntherrupter) carries every channel mapped to a coil; output 2
-      // (speakers) carries the explicit output2Mask. No "deactivated channels".
-      const coilUnion = (song.coils ?? []).reduce((mask, c) => mask | c.channelMask, 0);
-      this.channelMapping1Bool = maskToChannels(coilUnion);
-      this.channelMapping2Bool = maskToChannels(song.output2Mask ?? 0);
-      this.parsedMidiFile = null;
-      this.smfPlayer = null;
-      if (!song.midiFile) {
-        return; // config-only song: nothing to stream
-      }
-      this.loadMidiFile(song.midiFile.path)
-        .then((midiFile) => {
-          const smfParser = new SmfParser();
-          this.parsedMidiFile = smfParser.parse(this.arrayBufferToString(midiFile));
-        });
-    },
-    executeConfig() {
-      // Compile the per-coil config to SysEx in the browser and send each frame.
-      const frames = compileCoilConfig(this.song.coils ?? [], this.song.mode ?? 'midi');
-      for (const frame of frames) {
-        this.midiStore.sendSysex(frame);
-      }
-    },
+const emit = defineEmits<{
+  (e: 'songFinished'): void;
+  (e: 'playingChange', value: boolean): void;
+}>();
+const midiStore = useMidiStore();
 
-    play(){
-      if (this.smfPlayer) {
-        this.stop();
-      }
-      this.isPlaying = true;
-      this.executeConfig();
-      this.smfPlayer = new SmfPlayer(this.midiStore.midiOutput,
-                                      this.midiStore.midiOutput2,
-                                      this.channelMapping1Bool,
-                                      this.channelMapping2Bool);
-      this.smfPlayer.dispEventMonitor=this.dispEventMonitor;
-      this.smfPlayer.init(this.parsedMidiFile, 800, 0);
-      this.smfPlayer.startPlay();
-      this.finishedInterval = setInterval(() => {
-        if (this.smfPlayer.finished) {
-          this.$emit('songFinished');
-          this.stop();
-        }
-      }, 100);
-    },
+const song = ref<Song | null>(null);
+const parsedMidiFile = ref<unknown>(null);
+const isPlaying = ref(false);
+const ontimeRatio = ref(100);
+const dutyRatio = ref(100);
+// per-channel "lit" flag (note activity, with a short decay) — drives the LEDs
+const litChannels = reactive<boolean[]>(Array(MIDI_CHANNEL_COUNT).fill(false));
+const ledTimers: Array<ReturnType<typeof setTimeout> | null> = Array(MIDI_CHANNEL_COUNT).fill(null);
 
-    stop() {
-      if (this.finishedInterval) {
-        clearInterval(this.finishedInterval);
-      }
-      this.isPlaying = false;
-      this.smfPlayer.stopPlay();
-    },
-    panic() {
-      this.midiStore.midiOutput.sendAllSoundOff();
-      if (this.midiStore.midiOutput2) this.midiStore.midiOutput2.sendAllSoundOff();
-    },
-
-    onOntimeRatioChange() {
-      this.midiStore.sendLiveOntimeAdjust({coils: this.song?.coils ?? [], ratio: this.ontimeRatio});
-    },
-
-    onDutyRatioChange() {
-      this.midiStore.sendLiveDutyAdjust({coils: this.song?.coils ?? [], ratio: this.dutyRatio});
-    },
-
-    loadMidiFile(path) {
-      return new Promise((resolve, reject) => {
-        path = path.substring(1);
-        this.axios.get(path, {responseType: 'arraybuffer'})
-          .then(response => {
-            resolve(response.data);
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
-    },
-
-    dispEventMonitor(msg, type) {
-      var tmp;
-      if(typeof msg[0]==="number") {
-            tmp=msg[0].toString(16);
-            if(tmp.length==1) {
-                tmp= "0" + tmp;
-            }
-        } else if(msg[0].length==4 && msg[0].substr(0,2)=="0x"){
-            tmp=msg[0].substr(2, 2);
-        } else {
-            tmp=msg[0];
-        }
-      var ch=(parseInt(tmp.substr(1, 1), 16)+1).toString(10);
-      if (type != "input") {
-        var midiLabel="midiout"+ch;
-        var light=document.getElementById(midiLabel);
-        if(light.className=="button is-small") {
-          setTimeout(() => {
-              light.className="button is-small is-warning";
-              setTimeout(() => {
-                  light.className="button is-small";
-              }, 300);
-          }, 0);
-        }
-      }
-    },
-
-    intToBoolArray(int) {
-      let output = [];
-      for (let i = 0; i < 16; i++) {
-          output.push((int & Math.pow(2, i)) > 0);
-      }
-      return output;
-    },
-    arrayBufferToString(buffer) {
-      return this.binaryToString(String.fromCharCode.apply(null, Array.prototype.slice.apply(new Uint8Array(buffer))));
-    },
-    binaryToString(binary) {
-      var error;
-
-      try {
-          return decodeURIComponent(escape(binary));
-      } catch (_error) {
-          error = _error;
-          if (error instanceof URIError) {
-              return binary;
-          } else {
-              throw error;
-          }
-      }
-    }
-  },
+interface SmfPlayerInstance {
+  init(midi: unknown, latency: number, eventNo: number): void;
+  startPlay(): void;
+  stopPlay(): void;
+  finished: boolean;
+  dispEventMonitor: (msg: unknown[], type: unknown) => void;
 }
+let smfPlayer: SmfPlayerInstance | null = null;
+let finishedTimer: ReturnType<typeof setInterval> | null = null;
+let loadedPath: string | null = null;
+
+const canPlay = computed(() => !!parsedMidiFile.value && !!midiStore.midiOutput && !isPlaying.value);
+const canStop = computed(() => isPlaying.value);
+const canPanic = computed(() => !!midiStore.midiOutput);
+const canSysex = computed(() => !!song.value && !!midiStore.midiOutput);
+
+/** All coil colours a channel feeds (a channel can drive several coils at once). */
+function channelColors(ch: number): string[] {
+  return (song.value?.coils ?? [])
+    .filter((c) => (c.channelMask & (1 << ch)) !== 0)
+    .map((c) => coilColor(c.coilIndex));
+}
+/** Bar fill: solid colour, or horizontal colour bands per coil fed, with a
+ *  short soft blend at each junction (mostly distinct, slightly feathered). */
+function channelBackground(ch: number): string {
+  const cols = channelColors(ch);
+  if (cols.length === 0) return 'var(--volt)';
+  if (cols.length === 1) return cols[0];
+  const n = cols.length;
+  const band = 100 / n;
+  const blend = band * 0.5; // half-width of the cross-fade between adjacent bands
+  const stops = cols
+    .flatMap((c, k) => {
+      const start = k === 0 ? 0 : k * band + blend;
+      const end = k === n - 1 ? 100 : (k + 1) * band - blend;
+      return [`${c} ${start.toFixed(2)}%`, `${c} ${end.toFixed(2)}%`];
+    })
+    .join(', ');
+  return `linear-gradient(90deg, ${stops})`;
+}
+function channelMapped(ch: number): boolean {
+  return (song.value?.coils ?? []).some((c) => (c.channelMask & (1 << ch)) !== 0);
+}
+
+function resetNotes(): void {
+  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) {
+    litChannels[i] = false;
+    const t = ledTimers[i];
+    if (t) { clearTimeout(t); ledTimers[i] = null; }
+  }
+}
+
+function loadSong(s: Song): void {
+  const newPath = s.midiFile?.path ?? null;
+  song.value = s; // always reflect the latest config (legend, VU colours, etc.)
+  if (newPath === loadedPath) return; // same MIDI (or none) → config-only, no reparse
+  stop();
+  loadedPath = newPath;
+  parsedMidiFile.value = null;
+  resetNotes();
+  if (!newPath) return; // config-only song: nothing to stream
+  loadMidiFile(newPath).then((buffer) => {
+    const parser = new SmfParser();
+    parsedMidiFile.value = parser.parse(arrayBufferToString(buffer));
+  });
+}
+
+function executeConfig(): void {
+  if (!song.value) return;
+  for (const frame of compileCoilConfig(song.value.coils ?? [], song.value.mode ?? 'midi')) {
+    midiStore.sendSysex(frame);
+  }
+}
+
+function play(): void {
+  if (!parsedMidiFile.value || !midiStore.midiOutput) return;
+  stop();
+  isPlaying.value = true;
+  emit('playingChange', true);
+  resetNotes();
+  executeConfig();
+  const coilUnion = (song.value?.coils ?? []).reduce((m, c) => m | c.channelMask, 0);
+  const ch1 = maskToChannels(coilUnion);
+  const ch2 = maskToChannels(song.value?.output2Mask ?? 0);
+  smfPlayer = new SmfPlayer(midiStore.midiOutput, midiStore.midiOutput2, ch1, ch2) as unknown as SmfPlayerInstance;
+  smfPlayer.dispEventMonitor = dispEventMonitor;
+  smfPlayer.init(parsedMidiFile.value, 800, 0);
+  smfPlayer.startPlay();
+  finishedTimer = setInterval(() => {
+    if (smfPlayer?.finished) {
+      emit('songFinished');
+      stop();
+    }
+  }, 100);
+}
+
+function stop(): void {
+  if (finishedTimer) { clearInterval(finishedTimer); finishedTimer = null; }
+  if (isPlaying.value) emit('playingChange', false);
+  isPlaying.value = false;
+  if (smfPlayer) smfPlayer.stopPlay();
+  resetNotes();
+}
+
+function panic(): void {
+  midiStore.midiOutput?.sendAllSoundOff();
+  midiStore.midiOutput2?.sendAllSoundOff();
+}
+
+function onOntimeRatioChange(): void {
+  midiStore.sendLiveOntimeAdjust({ coils: song.value?.coils ?? [], ratio: ontimeRatio.value });
+}
+function onDutyRatioChange(): void {
+  midiStore.sendLiveDutyAdjust({ coils: song.value?.coils ?? [], ratio: dutyRatio.value });
+}
+
+function loadMidiFile(path: string): Promise<ArrayBuffer> {
+  return axios
+    .get(path.replace(/^\./, ''), { responseType: 'arraybuffer' })
+    .then((r) => r.data as ArrayBuffer);
+}
+
+/** Status byte of a SMF event (handles numeric or "0xNN" string forms). */
+function statusByte(m0: unknown): number {
+  if (typeof m0 === 'number') return m0;
+  if (typeof m0 === 'string') return parseInt(m0.replace(/^0x/i, ''), 16) || 0;
+  return 0;
+}
+function flashChannel(ch: number): void {
+  litChannels[ch] = true;
+  const t = ledTimers[ch];
+  if (t) clearTimeout(t);
+  ledTimers[ch] = setTimeout(() => { litChannels[ch] = false; ledTimers[ch] = null; }, 220);
+}
+function dispEventMonitor(msg: unknown[], type: unknown): void {
+  if (type === 'input') return;
+  const st = statusByte(msg[0]);
+  if ((st & 0xf0) === 0x90) flashChannel(st & 0x0f); // note-on → flash the channel
+}
+
+function arrayBufferToString(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  try {
+    return decodeURIComponent(escape(binary));
+  } catch (e) {
+    if (e instanceof URIError) return binary;
+    throw e;
+  }
+}
+
+onBeforeUnmount(() => stop()); // stop playback + clear timers if the player unmounts
+
+defineExpose({ loadSong });
 </script>
 
-<style scoped>
-#midiouts {
-  margin-left: auto;
-  margin-right: auto;
-}
+<template>
+  <article class="player-panel">
+    <header class="player-panel__head">
+      <span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('title.player') }}
+    </header>
 
-output {
-  min-width: 3.5rem;
-}
+    <div class="player-song">
+      <span class="icon"><i class="fas fa-music"></i></span>
+      <span v-if="song" class="player-song__name">{{ song.name }}</span>
+      <span v-else class="player-song__empty">{{ $t('label.noSongLoaded') }}</span>
+      <span v-if="song" class="player-legend" :title="$t('label.coils')">
+        <span class="player-legend__label"><span class="icon"><i class="fas fa-bolt"></i></span></span>
+        <span class="coil-legend">
+          <span v-for="i in song.coilCount" :key="i - 1" class="coil-legend__chip" :style="{ '--c': coilColor(i - 1) }"
+            :title="`${$t('label.coil')} ${i - 1}`">{{ i - 1 }}</span>
+        </span>
+      </span>
+    </div>
 
-</style>
+    <p v-if="!midiStore.midiOutput" class="player-hint">
+      <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.selectOutputHint') }}
+    </p>
+    <p v-else-if="!song" class="player-hint">
+      <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.loadSongHint') }}
+    </p>
+
+    <div class="vu">
+      <span class="vu__label">{{ $t('label.channels') }}</span>
+      <div class="vu-strip">
+        <div v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" class="vu-chan">
+          <div class="vu-track" :class="{ 'is-unmapped': !channelMapped(i - 1) }">
+            <div class="vu-fill"
+              :style="{ height: litChannels[i - 1] ? '100%' : '0%', background: channelBackground(i - 1) }"></div>
+          </div>
+          <span class="vu-num">{{ i - 1 }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="player-faders">
+      <label class="fader">
+        <span class="fader__top">
+          <span class="fader__key">{{ $t('label.ontime') }}</span>
+          <span class="fader__val">{{ ontimeRatio }}%</span>
+        </span>
+        <input class="fader__range" type="range" min="0" max="200" step="1" v-model.number="ontimeRatio"
+          :disabled="!song" :title="$t('label.ontimeRatio')" @change="onOntimeRatioChange">
+      </label>
+      <label class="fader">
+        <span class="fader__top">
+          <span class="fader__key">{{ $t('label.duty') }}</span>
+          <span class="fader__val">{{ dutyRatio }}%</span>
+        </span>
+        <input class="fader__range" type="range" min="0" max="200" step="1" v-model.number="dutyRatio" :disabled="!song"
+          :title="$t('label.dutyRatio')" @change="onDutyRatioChange">
+      </label>
+    </div>
+
+    <div class="player-transport">
+      <button class="btn btn--volt" type="button" :disabled="!canPlay" @click="play">
+        <span class="icon"><i class="fas fa-play"></i></span>Play
+      </button>
+      <button class="btn" type="button" :disabled="!canStop" @click="stop">
+        <span class="icon"><i class="fas fa-stop"></i></span>Stop
+      </button>
+      <button class="btn" type="button" :disabled="!canPanic" @click="panic">
+        <span class="icon"><i class="fas fa-bell-slash"></i></span>Panic
+      </button>
+      <button class="btn" type="button" :disabled="!canSysex" @click="executeConfig">
+        <span class="icon"><i class="fas fa-wrench"></i></span>{{ $t('label.executeConfiguration') }}
+      </button>
+    </div>
+  </article>
+</template>

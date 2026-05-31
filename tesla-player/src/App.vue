@@ -70,7 +70,12 @@ import { useMidiStore } from '@/stores/midi'
 export default {
   name: 'App',
   data() {
-    return { isConnected: false, pingTimer: null, selectedOutputId: null, selectedOutput2Id: null }
+    return {
+      isConnected: false,
+      pingTimer: null,
+      selectedOutputId: localStorage.getItem('midiOutput1Id') || null,
+      selectedOutput2Id: localStorage.getItem('midiOutput2Id') || null
+    }
   },
   computed: {
     ...mapStores(useMidiStore),
@@ -93,11 +98,16 @@ export default {
       this.midiStore.setMidiOutputList(WebMidi.outputs)
       WebMidi.addListener('connected', this.refreshOutputs)
       WebMidi.addListener('disconnected', this.refreshOutputs)
+      this.resolveOutputs() // restore the persisted output selection
     },
     onOutputChange() {
+      if (this.selectedOutputId) localStorage.setItem('midiOutput1Id', this.selectedOutputId)
+      else localStorage.removeItem('midiOutput1Id')
       this.midiStore.setMidiOutput(this.outputs.find(o => o.id === this.selectedOutputId) || null)
     },
     onOutput2Change() {
+      if (this.selectedOutput2Id) localStorage.setItem('midiOutput2Id', this.selectedOutput2Id)
+      else localStorage.removeItem('midiOutput2Id')
       this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null)
     },
     onLanguageChange() {

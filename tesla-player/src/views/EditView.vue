@@ -30,13 +30,10 @@
     </header>
     <div class="edit-body">
       <div class="edit-body__editor">
-        <song-editor :song="currentSong" @saved="onSaved" @preview="onPreview" />
+        <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" />
       </div>
       <aside class="edit-body__dock">
-        <div class="dock-head">
-          <span class="icon"><i class="fas fa-vial"></i></span>{{ $t('title.player') }}
-        </div>
-        <midi-player ref="player" />
+        <midi-player ref="player" @playing-change="playing = $event" />
       </aside>
     </div>
   </div>
@@ -52,6 +49,17 @@ import SearchableSelect from '@/components/SearchableSelect.vue'
 export default {
   name: 'EditView',
   components: { SongEditor, MidiPlayer, SearchableSelect },
+  data() {
+    return { playing: false }
+  },
+  mounted() {
+    this.syncPlayer()
+  },
+  watch: {
+    currentSong() {
+      this.syncPlayer()
+    }
+  },
   computed: {
     ...mapStores(useMidiStore),
     routeId() {
@@ -88,8 +96,14 @@ export default {
         this.$router.replace({ name: 'edit', params: { id: String(song.id) } })
       }
     },
-    onPreview(song) {
-      this.$refs.player.loadSong(song)
+    onChange(song) {
+      this.$refs.player?.loadSong(song)
+    },
+    // Preload the embedded player with the current song (refs ready on nextTick).
+    syncPlayer() {
+      this.$nextTick(() => {
+        if (this.currentSong) this.$refs.player?.loadSong(this.currentSong)
+      })
     }
   }
 }

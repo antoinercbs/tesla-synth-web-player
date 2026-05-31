@@ -181,7 +181,23 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 // ===========================================================================
 //  SONG EDITOR
 // ===========================================================================
-.editor { display: flex; flex-direction: column; gap: 1.4rem; padding-bottom: 0.5rem; }
+.editor { display: flex; flex-direction: column; gap: 1.4rem; padding-bottom: 0.5rem; position: relative; }
+
+// editing is blocked while the embedded player is playing
+.editor-lock {
+  position: absolute; inset: 0; z-index: 20;
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 3rem;
+  background: rgba(8, 11, 17, 0.55);
+  -webkit-backdrop-filter: blur(1.5px); backdrop-filter: blur(1.5px);
+  border-radius: var(--radius);
+}
+.editor-lock__msg {
+  display: flex; align-items: center; gap: 0.55rem;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem;
+  color: var(--text); background: var(--panel-2); border: 1px solid var(--line-strong);
+  padding: 0.7rem 1.1rem; border-radius: 10px; box-shadow: 0 12px 40px -10px rgba(0, 0, 0, 0.7);
+}
+.editor-lock__msg .icon { color: var(--volt); }
 
 .editor-meta {
   display: grid;
@@ -258,7 +274,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 // sticky action bar pinned to the bottom of the viewport while editing
 .editor-footer {
   position: sticky; bottom: 0; z-index: 10;
-  display: flex; gap: 0.7rem; align-items: center;
+  display: flex; gap: 0.7rem; align-items: center; justify-content: flex-end;
   margin-top: auto; padding: 0.9rem 0;
   background: rgba(8, 11, 17, 0.72);
   -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
@@ -483,6 +499,77 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .midi-lib__confirm-text { display: flex; align-items: center; gap: 0.5rem; color: var(--danger); }
 .midi-lib__confirm-actions { display: flex; gap: 0.5rem; }
 .midi-lib__msg .btn { padding: 0.4rem 0.85rem; font-size: 0.72rem; }
+
+// ===========================================================================
+//  PLAYER
+// ===========================================================================
+.player-panel {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.player-panel__head {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.7rem 1rem; font-family: var(--font-display); text-transform: uppercase;
+  letter-spacing: 0.07em; font-size: 0.8rem; color: var(--text);
+  background: rgba(70, 224, 255, 0.06); border-bottom: 1px solid var(--line);
+}
+.player-panel__head .icon { color: var(--volt); }
+
+.player-song { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.6rem; padding: 0.9rem 1rem 0.5rem; min-width: 0; }
+.player-song .icon { color: var(--text-dim); flex: 0 0 auto; }
+.player-song__name { flex: 1 1 auto; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.player-song__empty { color: var(--text-mute); }
+
+// per-coil colour legend — sits at the right of the song name line
+.player-legend { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; flex-wrap: wrap; }
+.player-legend__label { display: flex; align-items: center; }
+.player-legend__label .icon { color: var(--volt); }
+.coil-legend { display: flex; gap: 4px; flex-wrap: wrap; }
+.coil-legend__chip {
+  width: 1.4rem; height: 1.4rem; border-radius: 5px; display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+  color: #06090f; background: var(--c, var(--volt)); box-shadow: 0 0 8px -2px var(--c, var(--volt));
+}
+
+.player-hint {
+  display: flex; align-items: center; gap: 0.5rem;
+  margin: 0.5rem 1rem 0.7rem; padding: 0.55rem 0.75rem; border-radius: 8px;
+  background: rgba(70, 224, 255, 0.08); color: var(--text-dim); font-size: 0.8rem;
+}
+.player-hint .icon { color: var(--volt); }
+
+// channel activity — vertical "VU" bars, lit in each channel's coil colour
+.vu { padding: 0.7rem 1rem 0.5rem; }
+.vu__label {
+  display: block; font-family: var(--font-display); text-transform: uppercase;
+  letter-spacing: 0.07em; font-size: 0.6rem; color: var(--text-dim); margin-bottom: 0.5rem;
+}
+.vu-strip { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; align-items: end; }
+.vu-chan { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 0; }
+.vu-track {
+  width: 100%; height: 104px; border-radius: 4px; position: relative; overflow: hidden;
+  background: rgba(255, 255, 255, 0.025); border: 1px solid var(--line);
+}
+.vu-track.is-unmapped { opacity: 0.3; }
+.vu-fill {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 0;
+  background: var(--volt); border-radius: 3px 3px 0 0;
+  box-shadow: 0 0 10px -1px rgba(255, 255, 255, 0.25);
+  transition: height 0.16s ease-out;
+}
+.vu-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-mute); }
+
+// live multiplier faders (ontime / duty)
+.player-faders { display: flex; flex-wrap: wrap; gap: 0.8rem 1.3rem; padding: 0.5rem 1rem 0.8rem; }
+.fader { flex: 1 1 150px; display: flex; flex-direction: column; gap: 0.35rem; }
+.fader__top { display: flex; justify-content: space-between; align-items: baseline; }
+.fader__key { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.62rem; color: var(--text-dim); }
+.fader__val { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); }
+.fader__range { width: 100%; accent-color: var(--volt); }
+.fader__range:disabled { opacity: 0.4; }
+
+.player-transport { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.4rem 1rem 1rem; }
+.player-transport .btn { flex: 1 1 auto; justify-content: center; min-width: 4.5rem; }
 .midi-lib__empty { color: var(--text-mute); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.4rem 0; }
 .midi-lib__item {
   display: flex; align-items: center; gap: 0.6rem;

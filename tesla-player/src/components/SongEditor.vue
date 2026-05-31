@@ -8,10 +8,10 @@ import CoilConfigCard from './CoilConfigCard.vue';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 import SearchableSelect from './SearchableSelect.vue';
 
-const props = defineProps<{ song?: Song | null }>();
+const props = defineProps<{ song?: Song | null; locked?: boolean }>();
 const emit = defineEmits<{
   (e: 'saved', song: Song): void;
-  (e: 'preview', song: Song): void;
+  (e: 'change', song: Song): void;
 }>();
 
 const midiStore = useMidiStore();
@@ -105,7 +105,8 @@ async function save(): Promise<void> {
   emit('saved', data);
 }
 
-function preview(): void {
+// Reflect every edit into the embedded debug player (no manual "load" step).
+function emitChange(): void {
   const midiFile = midiStore.midiFileList.find((f) => f.id === draft.midiFileId) ?? null;
   const song: Song = {
     id: draft.id ?? 0,
@@ -116,8 +117,9 @@ function preview(): void {
     output2Mask: draft.output2Mask,
     coils: coilsPayload(),
   };
-  emit('preview', song);
+  emit('change', song);
 }
+watch(draft, () => emitChange(), { deep: true });
 
 // --- MIDI library / upload modal (drag-and-drop + searchable list) ---------
 const showLibrary = ref(false);
@@ -212,7 +214,13 @@ function closeLibrary(): void {
 </script>
 
 <template>
-  <div class="editor">
+  <div class="editor" :class="{ 'is-locked': locked }">
+    <div v-if="locked" class="editor-lock">
+      <span class="editor-lock__msg">
+        <span class="icon"><i class="fas fa-lock"></i></span>{{ $t('label.stopToEdit') }}
+      </span>
+    </div>
+
     <div class="editor-meta">
       <div class="field-block field-block--wide">
         <label class="field-label" for="song-name">{{ $t('label.songName') }}</label>
@@ -272,10 +280,6 @@ function closeLibrary(): void {
       <button class="btn btn--volt" type="button" @click="save">
         <span class="icon"><i class="fas fa-floppy-disk"></i></span>
         {{ draft.id ? $t('label.update') : $t('label.save') }}
-      </button>
-      <button class="btn" type="button" :disabled="!draft.midiFileId" @click="preview">
-        <span class="icon"><i class="fas fa-play"></i></span>
-        {{ $t('label.loadInPlayer') }}
       </button>
     </div>
 
