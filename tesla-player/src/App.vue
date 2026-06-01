@@ -43,6 +43,13 @@
               <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
             </select>
           </div>
+          <!-- manual latency offset to align the 2nd output with the 1st (hardware calibration) -->
+          <div v-if="selectedOutput2Id" class="sidebar-offset" :title="$t('label.output2OffsetHint')">
+            <label class="sidebar-offset__label" for="out2-offset">{{ $t('label.output2Offset') }}</label>
+            <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
+              v-model.number="output2Offset">
+            <span class="sidebar-offset__val">{{ output2Offset > 0 ? '+' : '' }}{{ output2Offset }} ms</span>
+          </div>
         </div>
       </section>
 
@@ -117,6 +124,11 @@ export default {
     isSynthSelected() { return this.selectedOutputId === SYNTH_OUTPUT_ID },
     outputs() {
       return this.midiStore.midiOutputList || []
+    },
+    // manual 2nd-output timing offset (ms), persisted per-machine in the store
+    output2Offset: {
+      get() { return this.midiStore.output2OffsetMs },
+      set(v) { this.midiStore.setOutput2Offset(Number(v)) }
     }
   },
   methods: {

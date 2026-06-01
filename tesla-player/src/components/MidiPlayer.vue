@@ -133,11 +133,19 @@ interface SmfPlayerInstance {
   finished: boolean;
   /** Wall-clock origin (performance.now) the player schedules output against. */
   startTime: number;
+  /** Manual timing offset (ms) added to the 2nd output (hardware calibration). */
+  output2Offset: number;
   dispEventMonitor: (msg: unknown[], type: unknown) => void;
 }
 let smfPlayer: SmfPlayerInstance | null = null;
 const PLAY_LATENCY_MS = 800; // output look-ahead passed to the SmfPlayer
 let finishedTimer: ReturnType<typeof setInterval> | null = null;
+// natural end-of-song: when the player reports `finished` (nominal end), wait one
+// look-ahead so the events scheduled PLAY_LATENCY_MS ahead actually play out (and
+// the playhead reaches the end) before we stop. Null = not yet finished.
+let finishedAt: number | null = null;
+// apply 2nd-output calibration live (takes effect on events scheduled after the change)
+watch(() => midiStore.output2OffsetMs, (v) => { if (smfPlayer) smfPlayer.output2Offset = v; });
 let loadedPath: string | null = null;
 // set by playSong() when a song must auto-start as soon as its MIDI is parsed
 let pendingAutoplay = false;
@@ -174,11 +182,15 @@ function seedPrograms(): void {
   if (!a) return;
   for (const ch of a.channels) channelProgram[ch] = a.programByChannel[ch] ?? 0;
 }
-// playhead: MIDI plays in real time, so wall-clock since start ≈ song position
+// Playhead = the song position currently HEARD. Output is scheduled PLAY_LATENCY_MS
+// ahead of the nominal clock (look-ahead buffer), so the audio of song-position X is
+// heard at startTime + X + latency. We therefore offset the playhead by the latency so
+// the progress bar / VU / cursor line up with the sound (for the synth and real MIDI
+// alike) instead of running ~latency ahead. It sits at 0 until the first sound is heard.
 function startPlayhead(): void {
-  playStart = performance.now();
+  playStart = smfPlayer?.startTime ?? performance.now();
   const tick = (): void => {
-    playheadMs.value = performance.now() - playStart;
+    playheadMs.value = Math.max(0, performance.now() - playStart - PLAY_LATENCY_MS);
     updateLevels();
     rafId = requestAnimationFrame(tick);
   };
@@ -318,17 +330,24 @@ function play(): void {
   const ch2 = maskToChannels(song.value?.output2Mask ?? 0);
   smfPlayer = new SmfPlayer(midiStore.midiOutput, midiStore.midiOutput2, ch1, ch2) as unknown as SmfPlayerInstance;
   smfPlayer.dispEventMonitor = dispEventMonitor;
+  smfPlayer.output2Offset = midiStore.output2OffsetMs; // hardware calibration for output 2
   smfPlayer.init(parsedMidiFile.value, PLAY_LATENCY_MS, 0);
   smfPlayer.startPlay();
+  finishedAt = null;
   startPlayhead();
   scheduleCoilEvents();
   finishedTimer = setInterval(() => {
-    if (smfPlayer?.finished) {
-      // stop() FIRST (clears this timer) so a re-entrant playSong() from the
-      // songFinished handler — e.g. repeat='one' — keeps its fresh timer.
-      stop();
-      emit('songFinished');
-    }
+    if (!smfPlayer?.finished) return;
+    // The player reports `finished` at the NOMINAL end, but events are scheduled one
+    // look-ahead later, so the tail is still sounding. Wait that long before stopping
+    // (otherwise stop()'s output flush would cut the last PLAY_LATENCY_MS of audio and
+    // the bar would never reach the end).
+    if (finishedAt == null) { finishedAt = performance.now(); return; }
+    if (performance.now() - finishedAt < PLAY_LATENCY_MS) return;
+    // stop() FIRST (clears this timer) so a re-entrant playSong() from the
+    // songFinished handler — e.g. repeat='one' — keeps its fresh timer.
+    stop();
+    emit('songFinished');
   }, 100);
 }
 
@@ -340,6 +359,7 @@ function clearOutput(out: typeof midiStore.midiOutput): void {
 
 function stop(): void {
   pendingAutoplay = false; // an explicit stop cancels any in-flight auto-start
+  finishedAt = null;
   if (finishedTimer) { clearInterval(finishedTimer); finishedTimer = null; }
   if (isPlaying.value) emit('playingChange', false);
   isPlaying.value = false;

@@ -816,6 +816,10 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .sidebar-output { padding: 0 0.4rem 0.55rem; }
 .sidebar-output__label { display: block; font-size: 0.64rem; color: var(--text-dim); margin-bottom: 0.28rem; font-family: var(--font-mono); }
+.sidebar-offset { margin-top: 0.4rem; }
+.sidebar-offset__label { display: block; font-size: 0.6rem; color: var(--text-mute); margin-bottom: 0.2rem; font-family: var(--font-mono); }
+.sidebar-offset__range { width: 100%; accent-color: var(--volt); }
+.sidebar-offset__val { display: block; text-align: right; font-size: 0.62rem; color: var(--text-dim); font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .select-field.is-synth select { border-color: var(--volt); color: var(--volt); }
 .output-emul {
   display: flex; align-items: center; gap: 0.3rem; margin-top: 0.32rem;

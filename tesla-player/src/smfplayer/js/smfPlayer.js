@@ -16,6 +16,9 @@ var SmfPlayer = function(output, output2, channelOn1, channelOn2) {
     this.mChOn2=channelOn2;
     this.nsx1Mode=false;
     this.rsrv=[];
+    // manual timing offset (ms) added to the 2nd output only, to compensate a
+    // hardware latency difference between interfaces (per-machine calibration).
+    this.output2Offset=0;
 };
 
 SmfPlayer.prototype={
@@ -250,7 +253,8 @@ SmfPlayer.prototype={
         }
         if (playCh2==true) {
             if (this.mOut2 != null) {
-                this.mOut2.send(msg, {time: `${time+this.latency}`});
+                // 2nd output carries an optional manual offset for hardware calibration
+                this.mOut2.send(msg, {time: `${time+this.latency+(this.output2Offset||0)}`});
             }
         }
     },

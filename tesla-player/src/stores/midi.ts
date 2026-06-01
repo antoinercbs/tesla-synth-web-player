@@ -18,8 +18,16 @@ interface MidiState {
   midiSongList: Song[];
   /** Auto-start a track on select / when the previous one ends (persisted). */
   autoplay: boolean;
+  /** Manual timing offset (ms) applied to the 2nd output to compensate a hardware
+   *  latency difference between interfaces. Per-machine calibration (persisted). */
+  output2OffsetMs: number;
   /** Global operator config (coil names + default coil count). */
   appConfig: AppConfig;
+}
+
+/** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
+function clampOffset(ms: number): number {
+  return Number.isFinite(ms) ? Math.max(-200, Math.min(200, Math.round(ms))) : 0;
 }
 
 export const useMidiStore = defineStore('midi', {
@@ -30,6 +38,7 @@ export const useMidiStore = defineStore('midi', {
     midiFileList: [],
     midiSongList: [],
     autoplay: localStorage.getItem('autoplay') === '1', // default OFF
+    output2OffsetMs: clampOffset(Number(localStorage.getItem('midiOutput2Offset'))),
     appConfig: { coilNames: [], defaultCoilCount: 3 },
   }),
   getters: {
@@ -54,6 +63,10 @@ export const useMidiStore = defineStore('midi', {
     },
     setMidiOutput2(output: Output | null) {
       this.midiOutput2 = output;
+    },
+    setOutput2Offset(ms: number) {
+      this.output2OffsetMs = clampOffset(ms);
+      localStorage.setItem('midiOutput2Offset', String(this.output2OffsetMs));
     },
     setMidiOutputList(list: Output[]) {
       this.midiOutputList = list;

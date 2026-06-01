@@ -233,10 +233,32 @@ export class TeslaSynthOutput implements MidiSink {
   }
 
   // --- internals -----------------------------------------------------------
+  /**
+   * Map a `performance.now()`-domain timestamp (as a real WebMIDI output uses in
+   * `send(msg, {time})`) to the audio clock so the SOUND reaches the speakers AT
+   * that timestamp — i.e. in lock-step with a real MIDI output scheduled at the
+   * same time and with the visual playhead. The naive `currentTime + (ms - now)`
+   * ignores the output latency (the gap between an `AudioContext` time and the
+   * speaker), so the synth would lag by ~10-40 ms (more over Bluetooth).
+   *
+   * `getOutputTimestamp()` returns the contextTime↔performanceTime pair AT THE
+   * OUTPUT, which already folds in that latency; recomputing it per event also
+   * prevents the audio and performance clocks from drifting apart over a long
+   * song. Fall back to subtracting `outputLatency`/`baseLatency` if unavailable.
+   */
   private toAudioTime(time?: number | string): number {
     const ms = time != null ? Number(time) : NaN;
     if (!Number.isFinite(ms)) return this.ctx.currentTime;
-    return this.ctx.currentTime + Math.max(0, (ms - performance.now()) / 1000);
+    const ts = this.ctx.getOutputTimestamp?.();
+    let when: number;
+    if (ts && typeof ts.contextTime === 'number' && ts.contextTime > 0 &&
+        typeof ts.performanceTime === 'number') {
+      when = ts.contextTime + (ms - ts.performanceTime) / 1000;
+    } else {
+      const lat = this.ctx.outputLatency || this.ctx.baseLatency || 0;
+      when = this.ctx.currentTime + (ms - performance.now()) / 1000 - lat;
+    }
+    return Math.max(this.ctx.currentTime, when);
   }
 
   private applyFrame(frame: number[], when: number): void {
