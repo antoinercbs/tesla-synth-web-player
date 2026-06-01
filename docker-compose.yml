@@ -1,11 +1,13 @@
-version: '3'
 services:
   tesla-player:
-    build : .
-    environment:
-      - APP_BASE_URL=http://localhost:5000 # <-- The URL must be the external URL of the application (as seen in the browser)
-    volumes:
-      - ./uploads:/python-docker/uploads
+    build: .
     ports:
+      # host:container — change the host port to put the app behind a reverse proxy
       - "5000:5000"
+    environment:
+      - PORT=5000
+      - DATA_ROOT=/data
+    volumes:
+      # persists the SQLite database and the uploaded MIDI files across rebuilds
+      - ./data:/data
     restart: unless-stopped

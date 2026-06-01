@@ -1,7 +1,7 @@
 # tesla-player-backend (NestJS)
 
-NestJS + TypeScript replacement for the original Flask backend (`../flask-backend`).
-Uses TypeORM over SQLite and reproduces the full API surface with validated DTOs.
+The project's backend: NestJS + TypeScript over TypeORM/SQLite. Serves the REST
+API under `/api` with validated DTOs, and (in production) the built front-end.
 
 ## Run
 
@@ -28,42 +28,38 @@ By default the SQLite database and the `uploads/` folder are read from the
 - `UPLOADS_DIR` — explicit uploads folder (default: `<DATA_ROOT>/uploads`)
 
 `init:db` uses `CREATE TABLE IF NOT EXISTS`, so running it against the existing
-database is a no-op and never touches existing rows.
+database is a no-op and never touches existing rows. TypeORM migrations run
+automatically on app start (`migrationsRun`).
 
 ## API
 
 All routes are under the global `/api` prefix.
 
-| Method | Route                  | Notes |
-|--------|------------------------|-------|
-| GET    | `/api/ping`            | `{ "ping": "pong" }` |
-| GET    | `/api/songs`           | full nested representation |
-| POST   | `/api/songs`           | returns the created song |
-| PUT    | `/api/songs/:id`       | id in the path (RESTful) |
-| DELETE | `/api/songs/:id`       | cascades sysex + playlist entries |
-| GET    | `/api/midi`            | |
-| POST   | `/api/midi`            | multipart `file` field |
-| DELETE | `/api/midi/:id`        | also deletes the file on disk |
-| GET    | `/api/playlists`       | |
-| POST   | `/api/playlists`       | |
-| PUT    | `/api/playlists/:id`   | id in the path (RESTful) |
-| DELETE | `/api/playlists/:id`   | |
-| POST   | `/api/translate-sysex` | `{ "sysexCommand": "..." }` -> hex string |
+| Method | Route                    | Notes |
+|--------|--------------------------|-------|
+| GET    | `/api/ping`              | `{ "ping": "pong" }` |
+| GET    | `/api/songs`             | full nested representation (coils + events) |
+| POST   | `/api/songs`             | returns the created song |
+| PUT    | `/api/songs/:id`         | id in the path (RESTful) |
+| DELETE | `/api/songs/:id`         | cascades coils + playlist entries |
+| GET    | `/api/midi`              | |
+| POST   | `/api/midi`              | multipart `file` field |
+| PATCH  | `/api/midi/:id/programs` | rewrites the file's per-channel instruments (affects every song using it) |
+| DELETE | `/api/midi/:id`          | also deletes the file on disk |
+| GET    | `/api/playlists`         | |
+| POST   | `/api/playlists`         | |
+| PUT    | `/api/playlists/:id`     | id in the path (RESTful) |
+| DELETE | `/api/playlists/:id`     | |
+| GET    | `/api/settings`          | operator config (coil names, default coil count) |
+| PUT    | `/api/settings`          | update the operator config |
 
-### Differences from the Flask backend (intentional)
+### Design notes
 
 - **RESTful item routes.** `PUT`/`DELETE` take the id in the path
-  (`/api/songs/:id`) instead of a query param / body id. The v2 front already
-  moved to `PUT /api/songs/:id`. The front's *playlist* CRUD and *delete* calls
-  still need to be (re)wired to these routes — see the migration notes.
-- **Foreign keys are enforced.** TypeORM turns on `PRAGMA foreign_keys = ON`
-  (the Python `sqlite3` driver had it off). Deletes therefore cascade cleanly via
-  the `ON DELETE CASCADE` / `SET NULL` clauses in `schema.sql`, instead of
-  leaving dangling rows.
-- **Syfoh is invoked safely.** `SyfohService` calls the Python CLI with an
-  argument array (no shell), so it is not exposed to the command injection the
-  Flask version had. Configure with `PYTHON_BIN` and `SYFOH_SCRIPT`
-  (default: `../flask-backend/Syfoh/Syfoh.py`).
-
-The long-term plan is to drop the Syfoh CLI call entirely and do the sysex
-conversion in the front; that work is isolated to `src/syfoh/`.
+  (`/api/songs/:id`) instead of a query param / body id.
+- **Foreign keys are enforced.** TypeORM turns on `PRAGMA foreign_keys = ON`, so
+  deletes cascade cleanly via the `ON DELETE CASCADE` / `SET NULL` clauses in
+  `schema.sql` instead of leaving dangling rows.
+- **SysEx is compiled in the browser.** The per-coil song model is turned into
+  Syntherrupter SysEx frames on the front (`tesla-player/src/sysex/`); the
+  backend only stores the structured config — there is no server-side sysex/CLI.

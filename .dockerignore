@@ -1,5 +1,10 @@
-*/__pycache__
-*/database.db
-*/node_modules
-*/uploads
-*/.git
+**/node_modules
+**/dist
+**/.git
+database.db
+*.bak
+uploads
+data
+illustrations
+**/.env.local
+**/.env.*.local

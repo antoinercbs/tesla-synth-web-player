@@ -1,8 +1,10 @@
-/__pycache__
 database.db
+*.bak
 uploads
+/data
 node_modules
+dist
 *.zip
-/flask-backend/build/*
-/electron-app/TeslaPlayer*
 .env.production
+.env.local
+.env.*.local
