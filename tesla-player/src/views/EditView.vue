@@ -30,7 +30,8 @@
     </header>
     <div class="edit-body">
       <div class="edit-body__editor">
-        <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" @deleted="onDeleted" />
+        <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" @deleted="onDeleted"
+          @instruments-saved="onInstrumentsSaved" />
       </div>
       <aside class="edit-body__dock">
         <midi-player ref="player" :show-autoplay="false" :compact-graph="true" @playing-change="playing = $event" />
@@ -106,6 +107,11 @@ export default {
     },
     onChange(song) {
       this.$refs.player?.loadSong(song)
+    },
+    onInstrumentsSaved() {
+      // the selected file was rewritten on disk → force the embedded player to
+      // re-fetch + re-parse so playback uses the new instruments.
+      this.$refs.player?.reloadMidi()
     },
     onDeleted() {
       // song removed from the store by the editor → back to the chooser

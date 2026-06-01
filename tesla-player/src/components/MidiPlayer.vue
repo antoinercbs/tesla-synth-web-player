@@ -391,10 +391,28 @@ function resetPower(): void {
   applyLive();
 }
 
-function loadMidiFile(path: string): Promise<ArrayBuffer> {
-  return axios
-    .get(path.replace(/^\./, ''), { responseType: 'arraybuffer' })
-    .then((r) => r.data as ArrayBuffer);
+function loadMidiFile(path: string, bust = false): Promise<ArrayBuffer> {
+  // `bust` defeats HTTP caching after the file was rewritten on disk (instrument edit)
+  const url = path.replace(/^\./, '') + (bust ? `?t=${Date.now()}` : '');
+  return axios.get(url, { responseType: 'arraybuffer' }).then((r) => r.data as ArrayBuffer);
+}
+
+/**
+ * Re-fetch + re-parse the currently loaded MIDI file, bypassing the path-equality
+ * short-circuit. Used after the file's instruments were edited on disk so the
+ * embedded player reflects the change without a full reload.
+ */
+function reloadMidi(): void {
+  const path = loadedPath;
+  if (!path || !song.value?.midiFile) return;
+  loadMidiFile(path, true)
+    .then((buffer) => {
+      const parser = new SmfParser();
+      parsedMidiFile.value = parser.parse(arrayBufferToString(buffer));
+      analysis.value = analyzeMidi(parsedMidiFile.value);
+      seedPrograms();
+    })
+    .catch((err) => console.error('Failed to reload MIDI file', path, err));
 }
 
 /** Status byte of a SMF event (handles numeric or "0xNN" string forms). */
@@ -425,7 +443,7 @@ function arrayBufferToString(buffer: ArrayBuffer): string {
 
 onBeforeUnmount(() => stop()); // stop playback + clear timers if the player unmounts
 
-defineExpose({ loadSong, playSong, stop });
+defineExpose({ loadSong, playSong, stop, reloadMidi });
 </script>
 
 <template>

@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { promises as fs } from 'fs';
 import { basename, join } from 'path';
 import { IsNull, Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
 import { computeDurationMs } from './midi-duration';
+import { setMidiPrograms, type ProgramSetting } from './midi-programs';
 import { MidiFile } from './entities/midi-file.entity';
 
 /** JSON shape returned to the front, identical to the original Flask output. */
@@ -66,6 +72,37 @@ export class MidiService implements OnModuleInit {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Rewrite the on-disk MIDI file so each given channel plays the chosen
+   * instrument (program) from the start. This edits the FILE itself, so it
+   * affects every song that references it. Returns the (unchanged-metadata)
+   * file record.
+   */
+  async setPrograms(
+    id: number,
+    programs: ProgramSetting[],
+  ): Promise<MidiFileResponse> {
+    const midiFile = await this.midiFileRepository.findOne({ where: { id } });
+    if (!midiFile) {
+      throw new NotFoundException(`MIDI file ${id} not found`);
+    }
+    const filePath = join(UPLOADS_DIR, basename(midiFile.path));
+    let buffer: Buffer;
+    try {
+      buffer = await fs.readFile(filePath);
+    } catch {
+      throw new NotFoundException(`MIDI file ${id} is missing on disk`);
+    }
+    let rewritten: Buffer;
+    try {
+      rewritten = setMidiPrograms(buffer, programs);
+    } catch {
+      throw new BadRequestException('Could not parse/rewrite the MIDI file');
+    }
+    await fs.writeFile(filePath, rewritten);
+    return this.toResponse(midiFile);
   }
 
   async remove(id: number): Promise<void> {

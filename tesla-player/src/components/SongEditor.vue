@@ -11,6 +11,7 @@ import CoilConfigCard from './CoilConfigCard.vue';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 import SearchableSelect from './SearchableSelect.vue';
 import ConfirmModal from './ConfirmModal.vue';
+import MidiInstrumentsModal from './MidiInstrumentsModal.vue';
 import MidiPreview from './play/MidiPreview.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   (e: 'saved', song: Song): void;
   (e: 'change', song: Song): void;
   (e: 'deleted', id: number): void;
+  (e: 'instruments-saved', file: MidiFile): void;
 }>();
 
 const midiStore = useMidiStore();
@@ -144,18 +146,37 @@ function bufferToString(buffer: ArrayBuffer): string {
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   try { return decodeURIComponent(escape(binary)); } catch { return binary; }
 }
-async function refreshPreview(): Promise<void> {
+async function refreshPreview(bust = false): Promise<void> {
   const file = midiStore.midiFileList.find((f) => f.id === draft.midiFileId);
   if (!file) { analysis.value = null; return; }
   try {
-    const { data } = await axios.get(file.path.replace(/^\./, ''), { responseType: 'arraybuffer' });
+    // `bust` forces a fresh fetch after the file was rewritten (instrument edit)
+    const url = file.path.replace(/^\./, '') + (bust ? `?t=${Date.now()}` : '');
+    const { data } = await axios.get(url, { responseType: 'arraybuffer' });
     const parser = new SmfParser();
     analysis.value = analyzeMidi(parser.parse(bufferToString(data as ArrayBuffer)));
   } catch {
     analysis.value = null;
   }
 }
-watch(() => draft.midiFileId, refreshPreview, { immediate: true });
+watch(() => draft.midiFileId, () => refreshPreview(), { immediate: true });
+
+// --- per-channel instrument editor (edits the MIDI FILE, affects all songs) ----
+const instrumentsFile = ref<MidiFile | null>(null);
+const showInstruments = ref(false);
+const selectedFile = computed(() => midiStore.midiFileList.find((f) => f.id === draft.midiFileId) ?? null);
+function openInstruments(file: MidiFile): void {
+  instrumentsFile.value = file;
+  showInstruments.value = true;
+}
+function onInstrumentsSaved(file: MidiFile): void {
+  // the file on disk changed → re-read the preview if it's the one in the editor,
+  // and tell the embedded player to re-fetch so playback isn't stale.
+  if (file.id === draft.midiFileId) {
+    refreshPreview(true);
+    emit('instruments-saved', file);
+  }
+}
 
 // Reflect every edit into the embedded debug player (no manual "load" step).
 function emitChange(): void {
@@ -291,6 +312,10 @@ function closeLibrary(): void {
             :clear-label="$t('label.noAssociatedMidiFile')"
             clearable
           />
+          <button class="field-btn" type="button" :disabled="!selectedFile"
+            :title="$t('label.editInstruments')" @click="selectedFile && openInstruments(selectedFile)">
+            <i class="fas fa-guitar"></i>
+          </button>
           <button class="field-btn" type="button" :title="$t('title.midiFileManager')" @click="showLibrary = true">
             <i class="fas fa-folder-open"></i>
           </button>
@@ -416,6 +441,9 @@ function closeLibrary(): void {
             >
               <span class="midi-lib__item-name">{{ f.name }}</span>
               <span class="midi-lib__item-dur">{{ formatDuration(f.durationMs) }}</span>
+              <button class="midi-lib__dl" type="button" :title="$t('label.editInstruments')" @click="openInstruments(f)">
+                <i class="fas fa-guitar"></i>
+              </button>
               <button class="midi-lib__dl" type="button" :title="$t('label.download')" @click="downloadFile(f)">
                 <i class="fas fa-download"></i>
               </button>
@@ -427,5 +455,8 @@ function closeLibrary(): void {
         </div>
       </div>
     </Teleport>
+
+    <MidiInstrumentsModal :open="showInstruments" :file="instrumentsFile"
+      @close="showInstruments = false" @saved="onInstrumentsSaved" />
   </div>
 </template>
