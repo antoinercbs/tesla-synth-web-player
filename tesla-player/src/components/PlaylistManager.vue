@@ -5,6 +5,7 @@ import { useMidiStore } from '@/stores/midi';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
+import { notify } from '@/utils/toast';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { Playlist, Song } from '@/types/domain';
 
@@ -105,6 +106,7 @@ async function savePlaylist(): Promise<void> {
     : await axios.post<Playlist>('/api/playlists', body);
   draft.value = { ...data, songIds: [...(data.songIds ?? [])] };
   emit('saved', data);
+  notify('label.playlistSaved');
 }
 function doDelete(): void {
   const id = draft.value.id;

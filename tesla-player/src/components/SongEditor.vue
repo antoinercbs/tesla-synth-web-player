@@ -6,6 +6,7 @@ import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { CoilConfig, CoilEvent, CoilParam, MidiFile, Song } from '@/types/domain';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { formatDuration } from '@/utils/format';
+import { notify } from '@/utils/toast';
 import CoilConfigCard from './CoilConfigCard.vue';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 import SearchableSelect from './SearchableSelect.vue';
@@ -118,6 +119,7 @@ async function save(): Promise<void> {
   else midiStore.addMidiSongToList(data);
   draft.id = data.id;
   emit('saved', data);
+  notify('label.songSaved');
 }
 
 const confirmDeleteSong = ref(false);

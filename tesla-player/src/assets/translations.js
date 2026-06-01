@@ -121,6 +121,9 @@ export const messages = {
       preview: "Preview",
       timeline: "Timeline",
       addEvent: "Click to add a point · drag to move · right-click to remove",
+      songSaved: "Song saved",
+      playlistSaved: "Playlist saved",
+      settingsSaved: "Settings saved",
       speakers: "Speakers",
       selectOutputHint:
         "Select a MIDI output in the sidebar to enable playback.",
@@ -274,6 +277,9 @@ export const messages = {
       preview: "Aperçu",
       timeline: "Chronologie",
       addEvent: "Clic pour ajouter un point · glisser pour déplacer · clic droit pour supprimer",
+      songSaved: "Morceau sauvegardé",
+      playlistSaved: "Playlist sauvegardée",
+      settingsSaved: "Paramètres enregistrés",
       speakers: "Enceintes",
       selectOutputHint:
         "Sélectionne une sortie MIDI dans la barre latérale pour activer la lecture.",

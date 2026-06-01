@@ -12,4 +12,19 @@ const router = createRouter({
   routes,
 });
 
+// On a fresh page load (F5 / direct URL), the edit & playlist screens open on
+// their chooser rather than resuming a transient editing state. Only the first
+// navigation after boot is rewritten; in-app navigation (e.g. "edit this song")
+// is untouched.
+let firstNav = true;
+router.beforeEach((to) => {
+  if (firstNav) {
+    firstNav = false;
+    if ((to.name === 'edit' || to.name === 'playlists') && to.params.id != null) {
+      return { name: to.name, params: {} };
+    }
+  }
+  return true;
+});
+
 export default router;

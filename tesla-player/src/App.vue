@@ -83,6 +83,7 @@
 
     <general-config-modal :open="configOpen" :config="midiStore.appConfig"
       @save="saveConfig" @cancel="configOpen = false" />
+    <app-toaster />
   </div>
 </template>
 
@@ -91,11 +92,13 @@ import { mapStores } from 'pinia'
 import { WebMidi } from 'webmidi'
 import { useMidiStore } from '@/stores/midi'
 import { coilColor } from '@/ui/coil-colors'
+import { notify } from '@/utils/toast'
 import GeneralConfigModal from '@/components/GeneralConfigModal.vue'
+import AppToaster from '@/components/AppToaster.vue'
 
 export default {
   name: 'App',
-  components: { GeneralConfigModal },
+  components: { GeneralConfigModal, AppToaster },
   data() {
     return {
       isConnected: false,
@@ -115,7 +118,7 @@ export default {
     coilColor,
     saveConfig(config) {
       this.axios.put('/api/settings', config)
-        .then(r => this.midiStore.setAppConfig(r.data))
+        .then(r => { this.midiStore.setAppConfig(r.data); notify('label.settingsSaved') })
         .catch(err => console.error('Save config failed', err))
         .finally(() => { this.configOpen = false })
     },
