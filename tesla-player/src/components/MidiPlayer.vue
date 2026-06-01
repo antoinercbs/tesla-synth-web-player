@@ -605,7 +605,7 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
       <button class="btn btn--volt" type="button" :disabled="!canPlay" @click="play">
         <span class="icon"><i class="fas fa-play"></i></span>Play
       </button>
-      <button class="btn" type="button" :disabled="!canStop" @click="stop">
+      <button class="btn" :class="{ 'btn--danger': isPlaying }" type="button" :disabled="!canStop" @click="stop">
         <span class="icon"><i class="fas fa-stop"></i></span>Stop
       </button>
       <button class="btn" type="button" :disabled="!canPanic" @click="panic">

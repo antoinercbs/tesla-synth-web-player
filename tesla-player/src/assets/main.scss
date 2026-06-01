@@ -276,7 +276,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 
 // the embedded player is a visually distinct, sticky "bench" docked to the side
 .edit-body__dock {
-  flex: 0 0 360px; width: 360px;
+  flex: 0 0 400px; width: 400px;
   align-self: flex-start;
   position: sticky; top: 4.2rem;
   // fill the viewport beside the (scrolling) editor; leave a small bottom gap so
@@ -371,7 +371,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 .segmented button:hover { color: var(--text); }
 .segmented button.is-active {
   color: #06090f; background: var(--volt);
-  box-shadow: 0 0 14px -3px var(--volt); font-weight: 600;
+  box-shadow: 0 0 9px -4px var(--volt); font-weight: 600;
 }
 .segmented button:disabled { opacity: 0.38; cursor: not-allowed; }
 .segmented--fill { display: flex; width: 100%; }
@@ -427,7 +427,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   content: ""; position: absolute; top: -46px; right: -46px;
   width: 130px; height: 130px;
   background: radial-gradient(circle, var(--coil, var(--volt)), transparent 70%);
-  opacity: 0.16; pointer-events: none;
+  opacity: 0.1; pointer-events: none;
 }
 @for $i from 1 through 6 { .coil-card:nth-child(#{$i}) { animation-delay: #{$i * 0.05}s; } }
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } }
@@ -438,7 +438,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   display: grid; place-items: center;
   font-family: var(--font-display); font-weight: 700; font-size: 0.95rem;
   color: #06090f; background: var(--coil, var(--volt));
-  box-shadow: 0 0 15px -2px var(--coil, var(--volt));
+  box-shadow: 0 0 9px -3px var(--coil, var(--volt));
 }
 .coil-card__title { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.07em; font-size: 0.92rem; }
 .coil-card__count { margin-left: auto; font-family: var(--font-mono); color: var(--text-dim); font-size: 0.74rem; }
@@ -454,7 +454,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 .chan-cell.is-on {
   color: #06090f; font-weight: 600;
   background: var(--cell, var(--volt)); border-color: transparent;
-  box-shadow: 0 0 13px -2px var(--cell, var(--volt));
+  box-shadow: 0 0 8px -3px var(--cell, var(--volt));
 }
 // channel absent from the MIDI → not selectable
 .chan-cell:disabled, .chan-cell.is-unavail {
@@ -482,7 +482,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   color: var(--text); font-family: var(--font-mono); font-size: 1.06rem; padding: 0.45rem 0;
 }
 .readout__field i { font-style: normal; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.8rem; padding-left: 0.3rem; }
-.readout__field:focus-within { border-color: var(--coil, var(--volt)); box-shadow: 0 0 0 1px var(--coil, var(--volt)), 0 0 18px -8px var(--coil, var(--volt)); }
+.readout__field:focus-within { border-color: var(--coil, var(--volt)); box-shadow: 0 0 0 1px var(--coil, var(--volt)), 0 0 12px -9px var(--coil, var(--volt)); }
 input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 
 // section blocks inside the editor
@@ -507,11 +507,11 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .btn:hover { border-color: var(--text-dim); color: #fff; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.btn--volt { background: var(--volt); border-color: var(--volt); color: #06090f; box-shadow: 0 0 18px -4px var(--volt); }
-.btn--volt:hover { color: #06090f; filter: brightness(1.08); }
+.btn--volt { background: var(--volt); border-color: var(--volt); color: #06090f; box-shadow: 0 0 10px -6px var(--volt); }
+.btn--volt:hover { color: #06090f; filter: brightness(1.04); }
 .btn--ghost { background: transparent; }
 .btn--danger { background: var(--danger); border-color: var(--danger); color: #fff; }
-.btn--danger:hover { color: #fff; filter: brightness(1.08); }
+.btn--danger:hover { color: #fff; filter: brightness(1.04); }
 
 // MIDI file field: combobox + a button to open the library/upload modal
 .midi-field { display: flex; gap: 0.5rem; align-items: stretch; }
@@ -612,7 +612,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .coil-legend__chip {
   width: 1.4rem; height: 1.4rem; border-radius: 5px; display: grid; place-items: center;
   font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
-  color: #06090f; background: var(--c, var(--volt)); box-shadow: 0 0 8px -2px var(--c, var(--volt));
+  color: #06090f; background: var(--c, var(--volt)); box-shadow: 0 0 5px -3px var(--c, var(--volt));
 }
 
 .player-hint {
@@ -735,7 +735,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .editor-preview__views button .icon { color: var(--text); }
 .player-viz__tabs button.is-active .icon,
 .editor-preview__views button.is-active .icon { color: #06090f; }
-.player-viz__body { flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden; }
+.player-viz__body { flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden; padding: 0 1rem 0.7rem; }
 
 // per-channel instruments (envelopes) heard, shown as chips under the VU
 .vu-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem 0.7rem; border-top: 1px solid var(--line); }
@@ -763,12 +763,12 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .player-coil {
   display: inline-flex; align-items: center; gap: 0.45rem;
   padding: 0.3rem 0.55rem; border-radius: 8px;
-  background: var(--bg-2); border: 1px solid var(--line); border-left: 3px solid var(--c, var(--volt));
+  background: var(--bg-2); border: 1px solid var(--line);
 }
 .player-coil__chip {
   width: 1.3rem; height: 1.3rem; border-radius: 5px; display: grid; place-items: center;
   font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
-  color: #06090f; background: var(--c, var(--volt)); box-shadow: 0 0 8px -2px var(--c, var(--volt));
+  color: #06090f; background: var(--c, var(--volt)); box-shadow: 0 0 5px -3px var(--c, var(--volt));
 }
 .player-coil__readouts { display: flex; gap: 0.5rem; }
 .player-coil__readout { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); }
@@ -787,7 +787,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
   width: calc(1.2rem - 4px); height: calc(1.2rem - 4px); border-radius: 50%;
   background: var(--text-mute); transition: 0.15s;
 }
-.switch input:checked + .switch__track { background: var(--volt); border-color: var(--volt); box-shadow: 0 0 12px -3px var(--volt); }
+.switch input:checked + .switch__track { background: var(--volt); border-color: var(--volt); box-shadow: 0 0 8px -4px var(--volt); }
 .switch input:checked + .switch__track::after { transform: translateX(1rem); background: #06090f; }
 .switch input:focus-visible + .switch__track { box-shadow: 0 0 0 2px var(--volt); }
 .switch__text {
