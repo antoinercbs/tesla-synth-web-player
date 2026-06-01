@@ -706,7 +706,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;
   font-size: 0.6rem; color: var(--text-dim);
 }
-.vu-legend__label .icon { color: var(--volt); }
+.vu-legend__label .icon { color: var(--volt); font-size: 1.05rem; }
 .env-chip {
   display: inline-flex; align-items: center; gap: 0.35rem;
   padding: 0.2rem 0.5rem; border-radius: 7px;

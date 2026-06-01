@@ -142,15 +142,6 @@ watch(() => props.playheadMs, () => {
 
 <template>
   <div class="preview">
-    <div class="preview__legend">
-      <span v-for="c in coilCount" :key="c - 1" class="preview__coil" :style="{ '--c': coilColor(c - 1) }">
-        <span class="preview__dot"></span>{{ c - 1 }}
-      </span>
-      <span v-if="hasSpeaker" class="preview__coil" :style="{ '--c': SPEAKER }" :title="$t('label.speakers')">
-        <span class="preview__dot"></span><span class="icon"><i class="fas fa-volume-high"></i></span>
-      </span>
-    </div>
-
     <div ref="scrollEl" class="preview__scroll">
       <svg v-if="hasData" :width="widthPx" :height="heightPx" class="preview__svg">
         <defs>
@@ -177,12 +168,6 @@ watch(() => props.playheadMs, () => {
 
 <style scoped>
 .preview { display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 auto; gap: 0.4rem; padding: 0.5rem 1rem 0.7rem; }
-.preview__legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; flex: 0 0 auto; }
-.preview__coil {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-dim);
-}
-.preview__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px -1px var(--c); }
 .preview__time { margin-left: auto; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-mute); }
 
 .preview__scroll {

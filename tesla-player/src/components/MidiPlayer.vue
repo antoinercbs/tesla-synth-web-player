@@ -397,15 +397,7 @@ defineExpose({ loadSong, playSong, stop });
     <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
     <div v-if="song && envelopesInUse.length" class="vu-legend">
       <span class="vu-legend__label">
-        <span class="icon">
-          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"
-            stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
-            <rect x="3" y="6" width="18" height="12" rx="1.5" />
-            <path d="M9 6v6M15 6v6" stroke-linecap="round" />
-            <rect x="7.1" y="6" width="2" height="5" rx="0.5" fill="currentColor" stroke="none" />
-            <rect x="13.7" y="6" width="2" height="5" rx="0.5" fill="currentColor" stroke="none" />
-          </svg>
-        </span>
+        <span class="icon"><i class="fas fa-guitar"></i></span>
         <span class="vu-legend__label-text">{{ $t('label.instruments') }}</span>
       </span>
       <span v-for="e in envelopesInUse" :key="e.program" class="env-chip"
