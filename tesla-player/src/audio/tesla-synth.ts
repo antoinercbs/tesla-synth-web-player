@@ -258,7 +258,8 @@ export class TeslaSynthOutput implements MidiSink {
     }
     const { ontime, duty } = this.channelParams(ch, when);
     const energy = TeslaSynthOutput.energy(ontime, duty);
-    const velScale = 0.3 + 0.7 * (vel / 127);
+    // Linear in velocity, matching the Syntherrupter firmware (ontime ∝ velocity/127).
+    const velScale = vel / 127;
     const program = this.channelProgram[ch] ?? 0;
     const ctx = this.ctx;
 

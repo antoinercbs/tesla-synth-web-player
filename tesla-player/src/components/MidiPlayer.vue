@@ -78,7 +78,10 @@ function updateLevels(): void {
       if (t < note.startMs || t >= note.endMs + RELEASE_TAIL_MS) continue;
       const program = channelProgram[note.channel] ?? 0;
       const releaseMs = t >= note.endMs ? note.endMs - note.startMs : null;
-      const amp = envelopeAmplitude(program, t - note.startMs, releaseMs);
+      // The Syntherrupter scales a note's ontime linearly with velocity
+      // (ontimeUS = velocity/127 × envelopeVolume × … × maxOntime), so the VU
+      // must weight the envelope by velocity to reflect actual coil output.
+      const amp = envelopeAmplitude(program, t - note.startMs, releaseMs) * (note.velocity / 127);
       if (amp > chMax[note.channel]) chMax[note.channel] = amp;
     }
   }

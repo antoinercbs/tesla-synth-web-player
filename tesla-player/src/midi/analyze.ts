@@ -28,6 +28,9 @@ export interface MidiNote {
   note: number;
   startMs: number;
   endMs: number;
+  /** MIDI note-on velocity (0..127). The Syntherrupter scales coil ontime
+   *  linearly with this (ontime ∝ velocity/127), so it drives output power. */
+  velocity: number;
 }
 export interface MidiAnalysis {
   durationMs: number;
@@ -90,7 +93,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
 
   // 3. walk events: pair note-on/off, capture first program per channel
   const notes: MidiNote[] = [];
-  const active = new Map<string, number>(); // "ch:note" -> start tick
+  const active = new Map<string, { tick: number; velocity: number }>(); // "ch:note" -> start
   const programByChannel: Record<number, number> = {};
   let maxTick = 0;
 
@@ -98,12 +101,12 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
     maxTick = Math.max(maxTick, e.tick);
     if (e.type !== 'channel' || e.channel == null) continue;
     if (e.subtype === 'noteOn' && e.noteNumber != null) {
-      active.set(`${e.channel}:${e.noteNumber}`, e.tick);
+      active.set(`${e.channel}:${e.noteNumber}`, { tick: e.tick, velocity: e.velocity ?? 127 });
     } else if (e.subtype === 'noteOff' && e.noteNumber != null) {
       const key = `${e.channel}:${e.noteNumber}`;
       const start = active.get(key);
       if (start != null) {
-        notes.push({ channel: e.channel, note: e.noteNumber, startMs: t2ms(start), endMs: t2ms(e.tick) });
+        notes.push({ channel: e.channel, note: e.noteNumber, startMs: t2ms(start.tick), endMs: t2ms(e.tick), velocity: start.velocity });
         active.delete(key);
       }
     } else if (e.subtype === 'programChange' && e.programNumber != null) {
@@ -113,7 +116,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
   // close any notes left hanging at the end of the file
   for (const [key, start] of active) {
     const [ch, note] = key.split(':').map(Number);
-    notes.push({ channel: ch, note, startMs: t2ms(start), endMs: t2ms(maxTick) });
+    notes.push({ channel: ch, note, startMs: t2ms(start.tick), endMs: t2ms(maxTick), velocity: start.velocity });
   }
 
   const channels = [...new Set(notes.map((n) => n.channel))].sort((a, b) => a - b);
