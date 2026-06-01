@@ -14,7 +14,7 @@ export interface SongResponse {
   coilCount: number;
   mode: PlaybackMode;
   output2Mask: number;
-  midiFile: { id: number; name: string; path: string } | null;
+  midiFile: { id: number; name: string; path: string; durationMs: number | null } | null;
   coils: {
     coilIndex: number;
     channelMask: number;
@@ -127,6 +127,7 @@ export class SongsService {
             id: song.midiFile.id,
             name: song.midiFile.name,
             path: song.midiFile.path,
+            durationMs: song.midiFile.durationMs,
           }
         : null,
       coils: [...(song.coils ?? [])]

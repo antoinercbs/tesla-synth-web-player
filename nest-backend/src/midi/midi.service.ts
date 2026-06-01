@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { promises as fs } from 'fs';
 import { basename, join } from 'path';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
+import { computeDurationMs } from './midi-duration';
 import { MidiFile } from './entities/midi-file.entity';
 
 /** JSON shape returned to the front, identical to the original Flask output. */
@@ -11,14 +12,28 @@ export interface MidiFileResponse {
   id: number;
   name: string;
   path: string;
+  durationMs: number | null;
 }
 
 @Injectable()
-export class MidiService {
+export class MidiService implements OnModuleInit {
   constructor(
     @InjectRepository(MidiFile)
     private readonly midiFileRepository: Repository<MidiFile>,
   ) {}
+
+  /** Back-fill the play length for any file uploaded before the column existed. */
+  async onModuleInit(): Promise<void> {
+    const pending = await this.midiFileRepository.find({
+      where: { durationMs: IsNull() },
+    });
+    for (const file of pending) {
+      const durationMs = await this.durationOf(basename(file.path));
+      if (durationMs != null) {
+        await this.midiFileRepository.update(file.id, { durationMs });
+      }
+    }
+  }
 
   async findAll(): Promise<MidiFileResponse[]> {
     const files = await this.midiFileRepository.find();
@@ -37,9 +52,20 @@ export class MidiService {
     const midiFile = this.midiFileRepository.create({
       name: originalName,
       path: `./uploads/${storedName}`,
+      durationMs: await this.durationOf(storedName),
     });
     const saved = await this.midiFileRepository.save(midiFile);
     return this.toResponse(saved);
+  }
+
+  /** Play length (ms) of an uploaded file by its on-disk name, or null on failure. */
+  private async durationOf(filename: string): Promise<number | null> {
+    try {
+      const buffer = await fs.readFile(join(UPLOADS_DIR, filename));
+      return computeDurationMs(buffer);
+    } catch {
+      return null;
+    }
   }
 
   async remove(id: number): Promise<void> {
@@ -60,6 +86,11 @@ export class MidiService {
   }
 
   private toResponse(midiFile: MidiFile): MidiFileResponse {
-    return { id: midiFile.id, name: midiFile.name, path: midiFile.path };
+    return {
+      id: midiFile.id,
+      name: midiFile.name,
+      path: midiFile.path,
+      durationMs: midiFile.durationMs,
+    };
   }
 }

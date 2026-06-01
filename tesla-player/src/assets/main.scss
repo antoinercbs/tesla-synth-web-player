@@ -764,6 +764,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .midi-lib__item.is-current { border-color: var(--volt); }
 .midi-lib__item-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9rem; }
+.midi-lib__item-dur { flex: 0 0 auto; color: var(--text-mute); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
 .midi-lib__pick, .midi-lib__del { background: none; border: 0; cursor: pointer; padding: 0.35rem 0.5rem; border-radius: 6px; }
 .midi-lib__pick { color: var(--text-dim); }
 .midi-lib__pick:hover { color: var(--volt); }

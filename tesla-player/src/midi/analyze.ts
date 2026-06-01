@@ -118,7 +118,11 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
 
   const channels = [...new Set(notes.map((n) => n.channel))].sort((a, b) => a - b);
   const pitches = notes.map((n) => n.note);
-  const durationMs = notes.reduce((m, n) => Math.max(m, n.endMs), t2ms(maxTick));
+  // Song length = the last note's end. NOT t2ms(maxTick): some files pad the
+  // track with a huge trailing gap (e.g. 2^28 ticks) long after the music stops.
+  const durationMs = notes.length
+    ? notes.reduce((m, n) => Math.max(m, n.endMs), 0)
+    : t2ms(maxTick);
 
   return {
     durationMs,

@@ -13,6 +13,7 @@
       <li class="songlist-row" v-for="song in filteredSongs" :key="song.id">
         <span class="songlist-row__icon"><i class="fas fa-music"></i></span>
         <span class="songlist-row__name">{{ song.name }}</span>
+        <span class="songlist-row__dur" v-if="song.midiFile">{{ fmtDur(song.midiFile.durationMs) }}</span>
         <div class="songlist-row__actions">
           <button class="icon-action" type="button" @click="playSong(song)">
             <i class="fas fa-play"></i>
@@ -68,6 +69,7 @@
 <script>
 import { mapStores } from 'pinia'
 import { useMidiStore } from '@/stores/midi'
+import { formatDuration } from '@/utils/format'
 
 export default {
     data: function() {
@@ -92,6 +94,7 @@ export default {
         }
     },
     methods: {
+        fmtDur: formatDuration,
         editSong(song) {
             this.$emit('editSong', song);
         },
@@ -172,6 +175,10 @@ export default {
 .songlist-row__name {
     flex: 1 1 auto; min-width: 0; font-weight: 500;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.songlist-row__dur {
+    flex: 0 0 auto; color: var(--text-mute);
+    font-size: 0.8rem; font-variant-numeric: tabular-nums;
 }
 
 /* --- compact action buttons ----------------------------------------------- */

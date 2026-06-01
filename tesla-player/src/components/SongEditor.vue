@@ -5,6 +5,7 @@ import { useMidiStore } from '@/stores/midi';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { CoilConfig, MidiFile, Song } from '@/types/domain';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
+import { formatDuration } from '@/utils/format';
 import CoilConfigCard from './CoilConfigCard.vue';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 import SearchableSelect from './SearchableSelect.vue';
@@ -409,6 +410,7 @@ function closeLibrary(): void {
               :class="{ 'is-current': f.id === draft.midiFileId }"
             >
               <span class="midi-lib__item-name">{{ f.name }}</span>
+              <span class="midi-lib__item-dur">{{ formatDuration(f.durationMs) }}</span>
               <button class="midi-lib__dl" type="button" :title="$t('label.download')" @click="downloadFile(f)">
                 <i class="fas fa-download"></i>
               </button>

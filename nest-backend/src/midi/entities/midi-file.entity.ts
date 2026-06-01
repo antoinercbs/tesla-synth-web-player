@@ -11,4 +11,8 @@ export class MidiFile {
 
   @Column({ name: 'path', type: 'text', nullable: true })
   path!: string;
+
+  /** Total play length in milliseconds (computed from the MIDI file). */
+  @Column({ name: 'durationMs', type: 'integer', nullable: true })
+  durationMs!: number | null;
 }

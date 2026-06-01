@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import ConfirmModal from '@/components/ConfirmModal.vue';
 import { coilColor } from '@/ui/coil-colors';
+import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { Playlist, Song } from '@/types/domain';
 
@@ -40,6 +41,14 @@ function songById(id: number): Song | undefined {
 function isCompatible(coilCount: number | undefined): boolean {
   return coilCount === draft.value.coilCount;
 }
+// total play length of the draft playlist ("~" if any track's length is unknown)
+const playlistSongs = computed<Song[]>(
+  () => draft.value.songIds.map(songById).filter((s): s is Song => s != null),
+);
+const playlistTotalLabel = computed(() => {
+  const label = formatDuration(totalDurationMs(playlistSongs.value));
+  return hasUnknownDuration(playlistSongs.value) ? `~${label}` : label;
+});
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
 
 // LEFT pane: the whole library, filtered by search and (optionally) coil count
@@ -145,6 +154,7 @@ function doDelete(): void {
             draggable="true" @dragstart="onLibDragStart(s.id)" @dragend="onDragEnd">
             <span class="pl-row__grip"><i class="fas fa-grip-vertical"></i></span>
             <span class="pl-row__name">{{ s.name }}</span>
+            <span class="pl-row__dur">{{ formatDuration(s.midiFile?.durationMs) }}</span>
             <span v-if="!isCompatible(s.coilCount)" class="incompat-flag"
               :title="$t('label.incompatibleCoils', { n: s.coilCount })">
               <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ s.coilCount }}
@@ -166,6 +176,7 @@ function doDelete(): void {
         <header class="pl-pane__head">
           <span class="icon"><i class="fas fa-list"></i></span>{{ $t('label.currentPlaylist') }}
           <span class="pl-pane__count">{{ draft.songIds.length }}</span>
+          <span class="pl-pane__total" v-if="draft.songIds.length">{{ playlistTotalLabel }}</span>
         </header>
         <ul class="pl-list pl-list--drop" :class="{ 'is-drop': draggingLib }" @dragover.prevent @drop.prevent="onDropOnList">
           <li v-for="(songId, idx) in draft.songIds" :key="`${songId}-${idx}`" class="pl-row pl-row--queue"
@@ -176,6 +187,7 @@ function doDelete(): void {
             <span class="pl-row__idx">{{ idx + 1 }}</span>
             <span class="pl-row__name" v-if="songById(songId)">{{ songById(songId)!.name }}</span>
             <span class="pl-row__name pl-row__name--unknown" v-else>{{ $t('label.unknownSong') }}</span>
+            <span class="pl-row__dur" v-if="songById(songId)">{{ formatDuration(songById(songId)!.midiFile?.durationMs) }}</span>
             <span v-if="songById(songId) && !isCompatible(songById(songId)!.coilCount)" class="incompat-flag"
               :title="$t('label.incompatibleCoils', { n: songById(songId)!.coilCount })">
               <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ songById(songId)!.coilCount }}
@@ -251,6 +263,10 @@ function doDelete(): void {
   color: var(--text-dim); background: var(--bg-2); border: 1px solid var(--line-strong);
   border-radius: 999px; padding: 0.05rem 0.55rem;
 }
+.pl-pane__total {
+  font-family: var(--font-mono); font-size: 0.78rem; text-transform: none;
+  letter-spacing: 0; color: var(--text-mute); font-variant-numeric: tabular-nums;
+}
 
 /* search + coil filter toggle */
 .pl-search { display: flex; gap: 0.5rem; padding: 0.7rem 1rem; flex: 0 0 auto; }
@@ -287,6 +303,7 @@ function doDelete(): void {
 .pl-row__idx { flex: 0 0 auto; width: 1.4rem; text-align: right; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.8rem; }
 .pl-row__name { flex: 1 1 auto; min-width: 0; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pl-row__name--unknown { color: var(--text-mute); font-style: italic; }
+.pl-row__dur { flex: 0 0 auto; color: var(--text-mute); font-size: 0.78rem; font-variant-numeric: tabular-nums; }
 .pl-row__actions { flex: 0 0 auto; display: flex; gap: 0.3rem; }
 
 .coil-dots { display: inline-flex; gap: 3px; flex: 0 0 auto; }

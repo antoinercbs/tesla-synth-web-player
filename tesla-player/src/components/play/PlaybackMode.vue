@@ -6,6 +6,7 @@ import { useMidiStore } from '@/stores/midi';
 import MidiPlayer from '@/components/MidiPlayer.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
 import { coilColor } from '@/ui/coil-colors';
+import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import type { Song, Playlist } from '@/types/domain';
 
 const router = useRouter();
@@ -83,6 +84,11 @@ const hasPrev = computed(() => pos.value > 0 || repeat.value === 'all');
 const hasNext = computed(
   () => pos.value < order.value.length - 1 || repeat.value === 'all',
 );
+// total play length of the whole queue ("~" prefix if any track's length is unknown)
+const queueTotalLabel = computed(() => {
+  const label = formatDuration(totalDurationMs(queue.value));
+  return hasUnknownDuration(queue.value) ? `~${label}` : label;
+});
 
 function shuffledOrder(n: number, first: number): number[] {
   const rest = Array.from({ length: n }, (_, i) => i).filter((i) => i !== first);
@@ -242,6 +248,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
                 <i class="fas fa-plus"></i>
               </button>
               <span class="play-row__name">{{ song.name }}</span>
+              <span class="play-row__dur">{{ formatDuration(song.midiFile?.durationMs) }}</span>
               <span class="coil-dots">
                 <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot" :style="{ '--c': coilColor(i) }"></span>
               </span>
@@ -307,6 +314,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
         <header class="play-panel__head queue-head">
           <span class="queue-head__title">
             <span class="icon"><i class="fas fa-list-ol"></i></span>{{ $t('label.upNext') }}
+            <span class="queue-head__total">{{ queueTotalLabel }}</span>
           </span>
           <div class="queue-toggles">
             <button class="row-btn" type="button" :class="{ 'is-active': shuffle }" @click="toggleShuffle"
@@ -343,6 +351,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
             <span class="queue-item__grip"><i class="fas fa-grip-vertical"></i></span>
             <span class="queue-item__idx">{{ opos + 1 }}</span>
             <span class="queue-item__name">{{ queue[qi]?.name }}</span>
+            <span class="queue-item__dur">{{ formatDuration(queue[qi]?.midiFile?.durationMs) }}</span>
             <span v-if="opos === pos" class="icon queue-item__live"><i class="fas fa-volume-high"></i></span>
             <button class="row-btn queue-item__remove" type="button" @click.stop="removeAt(opos)" :title="$t('label.delete')">
               <i class="fas fa-xmark"></i>
@@ -424,6 +433,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .play-row.is-current .play-row__name { color: var(--volt); }
+.play-row__dur { flex: 0 0 auto; color: var(--text-mute); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 
 /* coil colour dots */
 .coil-dots { display: inline-flex; gap: 3px; flex: 0 0 auto; }
@@ -459,6 +469,11 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
   letter-spacing: 0.06em; font-size: 0.8rem; color: var(--text);
 }
 .queue-head__title .icon { color: var(--volt); }
+.queue-head__total {
+  font-family: var(--font-mono); font-size: 0.72rem; font-weight: 400;
+  letter-spacing: 0; text-transform: none; color: var(--text-mute);
+  font-variant-numeric: tabular-nums;
+}
 .queue-toggles { display: flex; gap: 0.4rem; }
 .queue-nav {
   display: flex; align-items: center; gap: 0.8rem; flex: 0 0 auto;
@@ -486,6 +501,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
 .queue-item__grip { flex: 0 0 auto; color: var(--text-mute); font-size: 0.8rem; cursor: grab; }
 .queue-item__idx { flex: 0 0 auto; width: 1.4rem; text-align: right; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.8rem; }
 .queue-item__name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-item__dur { flex: 0 0 auto; color: var(--text-mute); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
 .queue-item.is-current .queue-item__name { color: var(--volt); font-weight: 600; }
 .queue-item__live { color: var(--volt); flex: 0 0 auto; }
 .queue-item__remove { width: 1.7rem; height: 1.7rem; font-size: 0.7rem; }

@@ -30,6 +30,8 @@ export interface MidiFile {
   name: string;
   /** Server path, e.g. "/uploads/foo.mid". */
   path: string;
+  /** Total play length in ms, computed server-side. Null/undefined if unknown. */
+  durationMs?: number | null;
 }
 
 /** Configuration of a single Tesla coil within a song. */
