@@ -5,7 +5,7 @@ import { coilColor } from '@/ui/coil-colors';
 import { ENVELOPES } from '@/sysex/envelopes';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 
-const props = defineProps<{ index: number; showEnvelope?: boolean }>();
+const props = defineProps<{ index: number; showEnvelope?: boolean; availableChannels?: number[] | null }>();
 const coil = defineModel<CoilConfig>({ required: true });
 
 const color = computed(() => coilColor(props.index));
@@ -47,7 +47,8 @@ const program = computed<number | null>({
     </header>
 
     <span class="readout-label">{{ $t('label.midiChannels') }}</span>
-    <ChannelMaskSelector v-model="channelMask" :color="color" :label="`${$t('label.coil')} ${index} — ${$t('label.midiChannels')}`" />
+    <ChannelMaskSelector v-model="channelMask" :color="color" :available-channels="availableChannels"
+      :label="`${$t('label.coil')} ${index} — ${$t('label.midiChannels')}`" />
 
     <div class="readout-row">
       <div class="readout">

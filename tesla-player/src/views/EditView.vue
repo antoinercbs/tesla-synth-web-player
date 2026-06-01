@@ -22,7 +22,7 @@
 
   <!-- A song (or "new") is selected: the editor + embedded debug player -->
   <div v-else class="screen">
-    <header class="screen-head">
+    <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle }}</h1>
       <button class="icon-btn" type="button" :title="$t('label.closeEditor')" :aria-label="$t('label.closeEditor')" @click="close">
         <i class="fas fa-xmark"></i>
@@ -50,10 +50,18 @@ export default {
   name: 'EditView',
   components: { SongEditor, MidiPlayer, SearchableSelect },
   data() {
-    return { playing: false }
+    return { playing: false, headerScrolled: false, scrollEl: null }
   },
   mounted() {
     this.syncPlayer()
+    this.scrollEl = this.$el?.closest?.('.app-main') || document.querySelector('.app-main')
+    if (this.scrollEl) {
+      this.scrollEl.addEventListener('scroll', this.onScroll, { passive: true })
+      this.onScroll()
+    }
+  },
+  beforeUnmount() {
+    if (this.scrollEl) this.scrollEl.removeEventListener('scroll', this.onScroll)
   },
   watch: {
     currentSong() {
@@ -102,6 +110,9 @@ export default {
     onDeleted() {
       // song removed from the store by the editor → back to the chooser
       this.$router.push({ name: 'edit', params: {} })
+    },
+    onScroll() {
+      this.headerScrolled = (this.scrollEl?.scrollTop ?? 0) > 6
     },
     // Preload the embedded player with the current song (refs ready on nextTick).
     syncPlayer() {

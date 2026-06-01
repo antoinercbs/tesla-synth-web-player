@@ -181,17 +181,20 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 // ===========================================================================
 //  SONG EDITOR
 // ===========================================================================
-.editor { display: flex; flex-direction: column; gap: 1.4rem; padding-bottom: 0.5rem; position: relative; }
+// no padding-bottom: any space below the sticky footer makes it "release" a few
+// px above the viewport bottom at the end of the scroll.
+.editor { display: flex; flex-direction: column; gap: 1.4rem; position: relative; }
 
 // editing is blocked while the embedded player is playing
+// dim overlay over the (tall) editor. No backdrop-filter: it would create a
+// containing block and break the fixed-centred message below.
 .editor-lock {
   position: absolute; inset: 0; z-index: 20;
-  display: flex; align-items: center; justify-content: center; padding: 1.5rem;
-  background: rgba(8, 11, 17, 0.6);
-  -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
-  border-radius: var(--radius);
+  background: rgba(8, 11, 17, 0.62); border-radius: var(--radius);
 }
+// fixed → always centred in the viewport, whatever the scroll position
 .editor-lock__msg {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 21;
   display: flex; flex-direction: column; align-items: center; gap: 0.7rem; text-align: center;
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.07em;
   font-size: 1.05rem; font-weight: 600;
@@ -235,10 +238,15 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   position: sticky; top: 0; z-index: 11;
   display: flex; align-items: center; justify-content: space-between;
   margin: 0; padding: 0.9rem 2rem;
-  background: transparent;
+  background: transparent; transition: background 0.2s, backdrop-filter 0.2s;
   pointer-events: none;          // transparent zone lets clicks reach content
 }
 .screen-head > * { pointer-events: auto; }
+// slightly opaque + blurred once the content scrolls beneath it (set by EditView)
+.screen-head.is-scrolled {
+  background: linear-gradient(180deg, rgba(8, 11, 17, 0.9), rgba(8, 11, 17, 0.45));
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+}
 .screen-body { padding: 1.3rem 2rem 2rem; }
 // variant: body fills the remaining viewport height so columns can stretch and
 // scroll internally (used by the Play screen so the player fills its column).
@@ -253,16 +261,16 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 
 // align-items:flex-start so the editor column height is NOT coupled to the dock
 // (a tall dock must not inflate the editor and float the footer mid-pane).
-.edit-body { display: flex; flex: 1; align-items: flex-start; min-height: 0; padding: 1.3rem 2rem 0; }
+// flex: 1 0 auto → grows to fill when the editor is short (footer stays pinned),
+// but takes its content height when tall, giving the sticky dock a real range so
+// the player stays put while the editor scrolls.
+// no top padding here: the dock's natural top then sits at/above its sticky
+// threshold, so it stays clamped (no downward jump at the very top of scroll).
+.edit-body { display: flex; flex: 1 0 auto; align-items: flex-start; padding: 0 2rem 0; }
 // the editor column explicitly stretches to full height; right edge = divider
 .edit-body__editor {
   flex: 1; min-width: 0; min-height: 0; align-self: stretch;
-  padding-right: 1.8rem; display: flex; flex-direction: column;
-  position: relative; border-right: 1px solid var(--line-strong);
-}
-.edit-body__editor::after {
-  content: ""; position: absolute; right: -1px; top: 0; bottom: 0; width: 1px;
-  background: linear-gradient(180deg, transparent, var(--volt), transparent); opacity: 0.45;
+  padding: 1.3rem 1.8rem 0 0; display: flex; flex-direction: column; position: relative;
 }
 .edit-body__editor .editor { flex: 1; min-height: 0; }
 
@@ -275,9 +283,22 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   // the player bottom lines up with the sticky save button.
   height: calc(100vh - 4.2rem - 3.3rem);
   display: flex; flex-direction: column;
-  padding-left: 1.8rem;
+  padding-left: 1.8rem; border-left: 1px solid var(--line-strong);
+}
+// divider accent rides with the sticky dock (so it stays fixed, no vertical overflow)
+.edit-body__dock::before {
+  content: ""; position: absolute; left: -1px; top: 0; bottom: 0; width: 1px;
+  background: linear-gradient(180deg, transparent, var(--volt), transparent); opacity: 0.45;
 }
 .edit-body__dock .player-panel { flex: 1 1 auto; min-height: 0; }
+// the docked player is narrow (360px): trim the top legend + transport a touch
+.edit-body__dock .player-transport { gap: 0.4rem; padding: 0.4rem 0.8rem 0.8rem; }
+.edit-body__dock .player-transport .btn { padding: 0.45rem 0.7rem; font-size: 0.68rem; min-width: 3.4rem; }
+.edit-body__dock .player-coils { gap: 0.35rem; }
+.edit-body__dock .player-coil { padding: 0.22rem 0.45rem; gap: 0.35rem; }
+.edit-body__dock .player-coil__chip { width: 1.1rem; height: 1.1rem; font-size: 0.62rem; }
+.edit-body__dock .player-coil__readout { font-size: 0.74rem; }
+.edit-body__dock .player-coil__readout i { font-size: 0.62rem; }
 .dock-head {
   display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem;
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.12em;
@@ -296,15 +317,21 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 }
 .editor-footer__delete { margin-right: auto; } // delete left, save stays right
 
+// MIDI preview in the editor (view toggle on the section title)
+.editor-preview__views { margin-left: auto; }
+.editor-preview__views button { display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0; padding: 0.3rem 0.6rem; font-size: 0.72rem; white-space: nowrap; }
+.editor-preview { display: flex; min-width: 0; height: 300px; margin-top: 0.9rem; }
+
 // Below this width the side dock would crush the editor: stack it underneath.
 @media (max-width: 1100px) {
   .edit-body { flex-direction: column; }
-  .edit-body__editor { padding-right: 0; border-right: 0; }
-  .edit-body__editor::after { display: none; }
+  .edit-body__editor { padding-right: 0; }
   .edit-body__dock {
     position: static; width: auto; flex: 1 1 auto;
     height: auto; padding-left: 0; margin-top: 1.5rem;
+    border-left: 0;
   }
+  .edit-body__dock::before { display: none; }
 }
 .field-block { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
 .field-block--wide { grid-column: 1 / -1; }
@@ -427,6 +454,11 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   background: var(--cell, var(--volt)); border-color: transparent;
   box-shadow: 0 0 13px -2px var(--cell, var(--volt));
 }
+// channel absent from the MIDI → not selectable
+.chan-cell:disabled, .chan-cell.is-unavail {
+  opacity: 0.25; cursor: not-allowed; box-shadow: none;
+}
+.chan-cell.is-unavail:hover { border-color: var(--line); color: var(--text-dim); }
 
 // numeric readouts (ontime / duty)
 .readout-label {
@@ -546,6 +578,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
   display: flex; flex-direction: column; // sections stack; the VU grows to fill
+  container-type: inline-size; // faders switch slider↔input based on player width
 }
 .player-panel__head {
   display: flex; align-items: center; gap: 0.5rem;
@@ -583,7 +616,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 // channel activity — vertical "VU" bars, lit in each channel's coil colour.
 // The strip grows to fill whatever height the player is given (responsive).
 .vu {
-  padding: 0.7rem 1rem 0.6rem; flex: 1 1 auto; min-height: 150px;
+  padding: 0.4rem 1rem 0.6rem; flex: 1 1 auto; min-height: 110px; min-width: 0;
   display: flex; flex-direction: column;
 }
 .vu__label {
@@ -616,15 +649,58 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .fader__val { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); }
 .fader__range { width: 100%; accent-color: var(--volt); }
 .fader__range:disabled { opacity: 0.4; }
+// number-input variant, shown instead of the slider when the player is narrow
+.fader__field { display: none; align-items: baseline; gap: 0.2rem; }
+.fader__field i { font-style: normal; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.78rem; }
+.fader__num {
+  width: 100%; min-width: 0; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px;
+  color: var(--text); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.4rem 0.5rem; outline: none;
+}
+.fader__num:focus { border-color: var(--volt); box-shadow: 0 0 0 1px var(--volt); }
+.fader__num:disabled { opacity: 0.4; }
+@container (max-width: 380px) {
+  .player-faders { flex-wrap: nowrap; gap: 0.7rem; }
+  .player-faders .fader { flex: 1 1 0; }
+  .fader__range, .fader__val { display: none; }
+  .fader__field { display: flex; }
+  // compact instrument chips in the narrow (docked) player: drop the instrument
+  // NAME and shrink, leaving "P{n} ch …" (the full name stays in the wide player)
+  .vu-legend { gap: 0.3rem; padding: 0.45rem 1rem; }
+  .vu-legend__label-text { display: none; } // keep the icon, drop the word
+  .env-chip { padding: 0.12rem 0.4rem; font-size: 0.66rem; gap: 0.22rem; }
+  .env-chip__name { display: none; }
+  .env-chip__chs { font-size: 0.62rem; }
+}
 
 .player-transport { display: flex; flex-wrap: wrap; gap: 0.5rem; padding: 0.4rem 1rem 1rem; }
 .player-transport .btn { flex: 1 1 auto; justify-content: center; min-width: 4.5rem; }
 
-// only the VU flexes; every other player section keeps its natural height
-.player-song, .player-hint, .player-options, .player-faders, .player-transport, .vu-legend { flex: 0 0 auto; }
+// the visualisation block (VU / score / occupancy) flexes; others keep height
+.player-song, .player-hint, .player-progress, .player-options, .player-faders, .player-transport, .vu-legend { flex: 0 0 auto; }
+
+// playback progress under the song title
+.player-progress { display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem 0.6rem; }
+.player-progress__bar { flex: 1 1 auto; height: 4px; background: var(--bg-2); border-radius: 999px; overflow: hidden; }
+.player-progress__fill { height: 100%; background: var(--volt); box-shadow: 0 0 8px var(--volt); transition: width 0.08s linear; }
+.player-progress__time { flex: 0 0 auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-mute); }
+
+.player-viz { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+// display:flex (not width:100%) so the full-width tabs don't overflow with margins
+.player-viz__tabs { display: flex; margin: 0.3rem 1rem 0.5rem; flex: 0 0 auto; }
+.player-viz__tabs button {
+  flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
+  gap: 0.3rem; padding: 0.35rem 0.4rem; font-size: 0.72rem; white-space: nowrap;
+}
+.player-viz__tabs .icon { font-size: 0.74rem; }
+// view-toggle icons follow the selection: white when idle, near-black when active
+.player-viz__tabs button .icon,
+.editor-preview__views button .icon { color: var(--text); }
+.player-viz__tabs button.is-active .icon,
+.editor-preview__views button.is-active .icon { color: #06090f; }
+.player-viz__body { flex: 1 1 auto; min-height: 0; display: flex; overflow: hidden; }
 
 // per-channel instruments (envelopes) heard, shown as chips under the VU
-.vu-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.2rem 1rem 0.7rem; }
+.vu-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem 0.7rem; border-top: 1px solid var(--line); }
 .vu-legend__label {
   display: inline-flex; align-items: center; gap: 0.4rem;
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;

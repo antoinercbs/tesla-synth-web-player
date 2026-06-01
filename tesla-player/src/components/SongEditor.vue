@@ -4,10 +4,13 @@ import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { CoilConfig, MidiFile, Song } from '@/types/domain';
+import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import CoilConfigCard from './CoilConfigCard.vue';
 import ChannelMaskSelector from './ChannelMaskSelector.vue';
 import SearchableSelect from './SearchableSelect.vue';
 import ConfirmModal from './ConfirmModal.vue';
+import MidiPreview from './play/MidiPreview.vue';
+import SmfParser from '@/smfplayer/js/smfParser.js';
 
 const props = defineProps<{ song?: Song | null; locked?: boolean }>();
 const emit = defineEmits<{
@@ -117,6 +120,31 @@ function doDelete(): void {
     emit('deleted', id);
   });
 }
+
+// --- MIDI preview: analyse the selected file, recolour live -------------------
+const previewView = ref<'roll' | 'lanes'>('roll');
+const analysis = ref<MidiAnalysis | null>(null);
+// channels actually present in the selected MIDI (null = no file → allow all)
+const availableChannels = computed(() => (analysis.value ? analysis.value.channels : null));
+
+function bufferToString(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+  try { return decodeURIComponent(escape(binary)); } catch { return binary; }
+}
+async function refreshPreview(): Promise<void> {
+  const file = midiStore.midiFileList.find((f) => f.id === draft.midiFileId);
+  if (!file) { analysis.value = null; return; }
+  try {
+    const { data } = await axios.get(file.path.replace(/^\./, ''), { responseType: 'arraybuffer' });
+    const parser = new SmfParser();
+    analysis.value = analyzeMidi(parser.parse(bufferToString(data as ArrayBuffer)));
+  } catch {
+    analysis.value = null;
+  }
+}
+watch(() => draft.midiFileId, refreshPreview, { immediate: true });
 
 // Reflect every edit into the embedded debug player (no manual "load" step).
 function emitChange(): void {
@@ -278,6 +306,7 @@ function closeLibrary(): void {
         :key="i - 1"
         v-model="draft.coils[i - 1]"
         :index="i - 1"
+        :available-channels="availableChannels"
       />
     </div>
 
@@ -286,7 +315,27 @@ function closeLibrary(): void {
         <span class="icon"><i class="fas fa-volume-high"></i></span>
         {{ $t('label.secondOutputChannels') }}
       </h2>
-      <ChannelMaskSelector v-model="draft.output2Mask" color="var(--plasma)" :label="$t('label.secondOutputChannels')" />
+      <ChannelMaskSelector v-model="draft.output2Mask" color="var(--plasma)" :available-channels="availableChannels"
+        :label="$t('label.secondOutputChannels')" />
+    </section>
+
+    <!-- MIDI preview, coloured live by the current channel→coil mapping -->
+    <section class="editor-section">
+      <h2 class="editor-section__title">
+        <span class="icon"><i class="fas fa-chart-simple"></i></span>{{ $t('label.preview') }}
+        <div class="segmented editor-preview__views">
+          <button type="button" :class="{ 'is-active': previewView === 'roll' }" @click="previewView = 'roll'">
+            <span class="icon"><i class="fas fa-music"></i></span>{{ $t('label.viewScore') }}
+          </button>
+          <button type="button" :class="{ 'is-active': previewView === 'lanes' }" @click="previewView = 'lanes'">
+            <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.viewCoils') }}
+          </button>
+        </div>
+      </h2>
+      <div class="editor-preview">
+        <MidiPreview :analysis="analysis" :coils="draft.coils" :coil-count="draft.coilCount"
+          :output2-mask="draft.output2Mask" :view="previewView" />
+      </div>
     </section>
 
     <div class="editor-footer">

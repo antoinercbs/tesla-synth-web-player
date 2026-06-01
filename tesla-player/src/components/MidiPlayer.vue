@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { compileCoilConfig, maskToChannels } from '@/sysex/syntherrupter';
-import { envelope, envelopeIcon } from '@/sysex/envelopes';
+import { envelope } from '@/sysex/envelopes';
+import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { Song } from '@/types/domain';
+import MidiPreview from '@/components/play/MidiPreview.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 
@@ -22,13 +24,54 @@ const midiStore = useMidiStore();
 const song = ref<Song | null>(null);
 const parsedMidiFile = ref<unknown>(null);
 const isPlaying = ref(false);
+// MIDI analysis + visualisation (VU / score / coil occupancy tabs)
+const analysis = ref<MidiAnalysis | null>(null);
+const playheadMs = ref(0);
+type Viz = 'vu' | 'roll' | 'lanes';
+const viz = ref<Viz>((localStorage.getItem('playerViz') as Viz) || 'vu');
+watch(viz, (v) => localStorage.setItem('playerViz', v));
+let rafId: number | null = null;
+let playStart = 0;
 const ontimeRatio = ref(100);
 const dutyRatio = ref(100);
-// per-channel "lit" flag (note activity, with a short decay) — drives the LEDs
-const litChannels = reactive<boolean[]>(Array(MIDI_CHANNEL_COUNT).fill(false));
-const ledTimers: Array<ReturnType<typeof setTimeout> | null> = Array(MIDI_CHANNEL_COUNT).fill(null);
+// VU: held = notes currently down per channel; level = displayed bar 0..1 driven
+// by note on/off, the note rate (attack kicks) and the coil's ontime×duty energy.
+const held = reactive<number[]>(Array(MIDI_CHANNEL_COUNT).fill(0));
+const level = reactive<number[]>(Array(MIDI_CHANNEL_COUNT).fill(0));
 // per-channel envelope ("instrument"), tracked live from the MIDI Program Changes
 const channelProgram = reactive<(number | null)[]>(Array(MIDI_CHANNEL_COUNT).fill(null));
+
+/** Is the channel mirrored to the 2nd (speaker) output? */
+function inSpeaker(ch: number): boolean {
+  return ((song.value?.output2Mask ?? 0) & (1 << ch)) !== 0;
+}
+/** Relative energy of the coil a channel feeds: ontime × duty (× live faders).
+ *  Speaker-only channels (no coil) still light at a fixed level so the 2nd output
+ *  is visible on the VU. */
+function channelEnergy(ch: number): number {
+  const c = (song.value?.coils ?? []).find((co) => (co.channelMask & (1 << ch)) !== 0);
+  if (!c) return inSpeaker(ch) ? 0.6 : 0;
+  const ot = (c.ontimeUs * ontimeRatio.value) / 100;
+  const dt = (c.duty * dutyRatio.value) / 100;
+  return Math.min(1, (ot * dt) / 4);
+}
+/** Ease each bar toward its target (held → energy, released → 0): fast attack, slow release. */
+function updateLevels(): void {
+  for (let ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
+    const target = held[ch] > 0 ? channelEnergy(ch) : 0;
+    level[ch] += (target - level[ch]) * (level[ch] < target ? 0.6 : 0.12);
+    if (level[ch] < 0.002) level[ch] = 0;
+  }
+}
+
+const durationMs = computed(() => analysis.value?.durationMs ?? 0);
+const progressPct = computed(() =>
+  durationMs.value ? Math.min(100, (playheadMs.value / durationMs.value) * 100) : 0,
+);
+function fmt(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
 
 interface SmfPlayerInstance {
   init(midi: unknown, latency: number, eventNo: number): void;
@@ -67,6 +110,28 @@ const envelopesInUse = computed(() => {
 function resetPrograms(): void {
   for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) channelProgram[i] = null;
 }
+// initial instrument detection from the whole-file analysis (channels with notes
+// but no explicit program default to 0 = constant). Live program changes still override.
+function seedPrograms(): void {
+  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) channelProgram[i] = null;
+  const a = analysis.value;
+  if (!a) return;
+  for (const ch of a.channels) channelProgram[ch] = a.programByChannel[ch] ?? 0;
+}
+// playhead: MIDI plays in real time, so wall-clock since start ≈ song position
+function startPlayhead(): void {
+  playStart = performance.now();
+  const tick = (): void => {
+    playheadMs.value = performance.now() - playStart;
+    updateLevels();
+    rafId = requestAnimationFrame(tick);
+  };
+  rafId = requestAnimationFrame(tick);
+}
+function stopPlayhead(): void {
+  if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
+  playheadMs.value = 0;
+}
 /** duty fraction (0..1) → percentage with up to 2 decimals. */
 function dutyPct(duty: number): number {
   return Math.round(duty * 1e4) / 100;
@@ -83,11 +148,13 @@ function onAutoplayToggle(e: Event): void {
   midiStore.setAutoplay((e.target as HTMLInputElement).checked);
 }
 
-/** All coil colours a channel feeds (a channel can drive several coils at once). */
+/** All destination colours a channel feeds: its coils + the speaker output. */
 function channelColors(ch: number): string[] {
-  return (song.value?.coils ?? [])
+  const cols = (song.value?.coils ?? [])
     .filter((c) => (c.channelMask & (1 << ch)) !== 0)
     .map((c) => coilColor(c.coilIndex));
+  if (inSpeaker(ch)) cols.push('var(--plasma)');
+  return cols;
 }
 /** Bar fill: solid colour, or horizontal colour bands per coil fed, with a
  *  short soft blend at each junction (mostly distinct, slightly feathered). */
@@ -108,15 +175,11 @@ function channelBackground(ch: number): string {
   return `linear-gradient(90deg, ${stops})`;
 }
 function channelMapped(ch: number): boolean {
-  return (song.value?.coils ?? []).some((c) => (c.channelMask & (1 << ch)) !== 0);
+  return (song.value?.coils ?? []).some((c) => (c.channelMask & (1 << ch)) !== 0) || inSpeaker(ch);
 }
 
 function resetNotes(): void {
-  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) {
-    litChannels[i] = false;
-    const t = ledTimers[i];
-    if (t) { clearTimeout(t); ledTimers[i] = null; }
-  }
+  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) { held[i] = 0; level[i] = 0; }
 }
 
 function loadSong(s: Song): void {
@@ -127,6 +190,7 @@ function loadSong(s: Song): void {
   stop();
   loadedPath = newPath;
   parsedMidiFile.value = null;
+  analysis.value = null;
   resetNotes();
   resetPrograms();
   if (!newPath) return; // config-only song: nothing to stream
@@ -134,6 +198,8 @@ function loadSong(s: Song): void {
     .then((buffer) => {
       const parser = new SmfParser();
       parsedMidiFile.value = parser.parse(arrayBufferToString(buffer));
+      analysis.value = analyzeMidi(parsedMidiFile.value);
+      seedPrograms(); // show detected instruments before playing
       if (pendingAutoplay) { pendingAutoplay = false; play(); }
     })
     .catch((err) => {
@@ -164,7 +230,7 @@ function play(): void {
   isPlaying.value = true;
   emit('playingChange', true);
   resetNotes();
-  resetPrograms();
+  seedPrograms();
   executeConfig();
   const coilUnion = (song.value?.coils ?? []).reduce((m, c) => m | c.channelMask, 0);
   const ch1 = maskToChannels(coilUnion);
@@ -173,6 +239,7 @@ function play(): void {
   smfPlayer.dispEventMonitor = dispEventMonitor;
   smfPlayer.init(parsedMidiFile.value, 800, 0);
   smfPlayer.startPlay();
+  startPlayhead();
   finishedTimer = setInterval(() => {
     if (smfPlayer?.finished) {
       // stop() FIRST (clears this timer) so a re-entrant playSong() from the
@@ -189,6 +256,7 @@ function stop(): void {
   if (isPlaying.value) emit('playingChange', false);
   isPlaying.value = false;
   if (smfPlayer) smfPlayer.stopPlay();
+  stopPlayhead();
   resetNotes();
 }
 
@@ -216,17 +284,19 @@ function statusByte(m0: unknown): number {
   if (typeof m0 === 'string') return parseInt(m0.replace(/^0x/i, ''), 16) || 0;
   return 0;
 }
-function flashChannel(ch: number): void {
-  litChannels[ch] = true;
-  const t = ledTimers[ch];
-  if (t) clearTimeout(t);
-  ledTimers[ch] = setTimeout(() => { litChannels[ch] = false; ledTimers[ch] = null; }, 220);
-}
 function dispEventMonitor(msg: unknown[], type: unknown): void {
   if (type === 'input') return;
   const st = statusByte(msg[0]);
-  if ((st & 0xf0) === 0x90) flashChannel(st & 0x0f); // note-on → flash the channel
-  else if ((st & 0xf0) === 0xc0) channelProgram[st & 0x0f] = statusByte(msg[1]); // program change → envelope
+  const ch = st & 0x0f;
+  const kind = st & 0xf0;
+  if (kind === 0x90 && statusByte(msg[2]) > 0) {
+    held[ch]++;
+    level[ch] = Math.min(1, channelEnergy(ch) + 0.3); // attack kick (note-on)
+  } else if (kind === 0x80 || (kind === 0x90 && statusByte(msg[2]) === 0)) {
+    held[ch] = Math.max(0, held[ch] - 1); // note-off → release
+  } else if (kind === 0xc0) {
+    channelProgram[ch] = statusByte(msg[1]); // program change → envelope
+  }
 }
 
 function arrayBufferToString(buffer: ArrayBuffer): string {
@@ -249,7 +319,7 @@ defineExpose({ loadSong, playSong, stop });
 <template>
   <article class="player-panel">
     <header class="player-panel__head">
-      <span class="player-panel__title"><span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('title.player') }}</span>
+      <span class="player-panel__title"><span class="icon"><i class="fas fa-compact-disc"></i></span>{{ $t('title.player') }}</span>
       <label v-if="props.showAutoplay" class="switch player-panel__autoplay">
         <input type="checkbox" :checked="midiStore.autoplay" @change="onAutoplayToggle" />
         <span class="switch__track"></span>
@@ -274,6 +344,12 @@ defineExpose({ loadSong, playSong, stop });
       </div>
     </div>
 
+    <!-- playback progress, right under the song title -->
+    <div v-if="song" class="player-progress">
+      <div class="player-progress__bar"><div class="player-progress__fill" :style="{ width: progressPct + '%' }"></div></div>
+      <span class="player-progress__time">{{ fmt(playheadMs) }} / {{ fmt(durationMs) }}</span>
+    </div>
+
     <p v-if="!midiStore.midiOutput" class="player-hint">
       <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.selectOutputHint') }}
     </p>
@@ -281,25 +357,46 @@ defineExpose({ loadSong, playSong, stop });
       <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.loadSongHint') }}
     </p>
 
-    <div class="vu">
-      <span class="vu__label">{{ $t('label.channels') }}</span>
-      <div class="vu-strip">
-        <div v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" class="vu-chan">
-          <div class="vu-track" :class="{ 'is-unmapped': !channelMapped(i - 1) }">
-            <div class="vu-fill"
-              :style="{ height: litChannels[i - 1] ? '100%' : '0%', background: channelBackground(i - 1) }"></div>
+    <div class="player-viz">
+      <div class="segmented player-viz__tabs">
+        <button type="button" :class="{ 'is-active': viz === 'vu' }" @click="viz = 'vu'">
+          <span class="icon"><i class="fas fa-chart-simple"></i></span>{{ $t('label.viewVu') }}
+        </button>
+        <button type="button" :class="{ 'is-active': viz === 'roll' }" @click="viz = 'roll'">
+          <span class="icon"><i class="fas fa-music"></i></span>{{ $t('label.viewScore') }}
+        </button>
+        <button type="button" :class="{ 'is-active': viz === 'lanes' }" @click="viz = 'lanes'">
+          <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.viewCoils') }}
+        </button>
+      </div>
+
+      <div class="player-viz__body">
+        <div v-show="viz === 'vu'" class="vu">
+          <span class="vu__label">{{ $t('label.channels') }}</span>
+          <div class="vu-strip">
+            <div v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" class="vu-chan">
+              <div class="vu-track" :class="{ 'is-unmapped': !channelMapped(i - 1) }">
+                <div class="vu-fill"
+                  :style="{ height: (level[i - 1] * 100) + '%', background: channelBackground(i - 1) }"></div>
+              </div>
+              <span class="vu-num">{{ i - 1 }}</span>
+            </div>
           </div>
-          <span class="vu-num">{{ i - 1 }}</span>
         </div>
+        <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="song?.coils ?? []"
+          :coil-count="song?.coilCount ?? 0" :output2-mask="song?.output2Mask ?? 0"
+          :view="viz === 'lanes' ? 'lanes' : 'roll'" :playhead-ms="playheadMs" :playing="isPlaying" />
       </div>
     </div>
 
     <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
     <div v-if="song && envelopesInUse.length" class="vu-legend">
-      <span class="vu-legend__label"><span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('label.instruments') }}</span>
+      <span class="vu-legend__label">
+        <span class="icon"><i class="fas fa-keyboard"></i></span>
+        <span class="vu-legend__label-text">{{ $t('label.instruments') }}</span>
+      </span>
       <span v-for="e in envelopesInUse" :key="e.program" class="env-chip"
         :title="`${$t('label.instrument')}: ${e.env.name}`">
-        <span class="icon"><i class="fas" :class="envelopeIcon(e.program)"></i></span>
         <span class="env-chip__pn">P{{ e.program }}</span>
         <span class="env-chip__name">{{ e.env.name }}</span>
         <span class="env-chip__chs">ch {{ e.chs.join(', ') }}</span>
@@ -314,6 +411,10 @@ defineExpose({ loadSong, playSong, stop });
         </span>
         <input class="fader__range" type="range" min="0" max="200" step="1" v-model.number="ontimeRatio"
           :disabled="!song" :title="$t('label.ontimeRatio')" @change="onOntimeRatioChange">
+        <span class="fader__field">
+          <input class="fader__num" type="number" min="0" max="200" step="1" v-model.number="ontimeRatio"
+            :disabled="!song" :title="$t('label.ontimeRatio')" @change="onOntimeRatioChange"><i>%</i>
+        </span>
       </label>
       <label class="fader">
         <span class="fader__top">
@@ -322,6 +423,10 @@ defineExpose({ loadSong, playSong, stop });
         </span>
         <input class="fader__range" type="range" min="0" max="200" step="1" v-model.number="dutyRatio" :disabled="!song"
           :title="$t('label.dutyRatio')" @change="onDutyRatioChange">
+        <span class="fader__field">
+          <input class="fader__num" type="number" min="0" max="200" step="1" v-model.number="dutyRatio"
+            :disabled="!song" :title="$t('label.dutyRatio')" @change="onDutyRatioChange"><i>%</i>
+        </span>
       </label>
     </div>
 

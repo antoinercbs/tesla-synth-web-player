@@ -6,15 +6,25 @@ import { MIDI_CHANNEL_COUNT } from '@/types/domain';
  * light up in `color` (a coil colour, or the default electric accent).
  */
 const mask = defineModel<number>({ required: true });
-withDefaults(defineProps<{ color?: string; label?: string }>(), {
+const props = withDefaults(defineProps<{
+  color?: string;
+  label?: string;
+  /** channels selectable (e.g. those present in the MIDI). null = all selectable. */
+  availableChannels?: number[] | null;
+}>(), {
   color: 'var(--volt)',
   label: 'MIDI channels',
+  availableChannels: null,
 });
 
+function available(channel: number): boolean {
+  return props.availableChannels == null || props.availableChannels.includes(channel);
+}
 function isOn(channel: number): boolean {
   return (mask.value & (1 << channel)) !== 0;
 }
 function toggle(channel: number): void {
+  if (!available(channel)) return;
   mask.value = mask.value ^ (1 << channel);
 }
 </script>
@@ -26,9 +36,10 @@ function toggle(channel: number): void {
       :key="i - 1"
       type="button"
       class="chan-cell"
-      :class="{ 'is-on': isOn(i - 1) }"
+      :class="{ 'is-on': isOn(i - 1), 'is-unavail': !available(i - 1) }"
       :style="isOn(i - 1) ? { '--cell': color } : undefined"
       :aria-pressed="isOn(i - 1)"
+      :disabled="!available(i - 1)"
       @click="toggle(i - 1)"
     >
       {{ i - 1 }}

@@ -7,8 +7,8 @@ import FixedMode from '@/components/play/FixedMode.vue';
 type PlayMode = 'playback' | 'live' | 'fixed';
 
 const MODES: { id: PlayMode; icon: string; key: string }[] = [
-  { id: 'playback', icon: 'fa-list-ul', key: 'label.modePlayback' },
-  { id: 'live', icon: 'fa-bolt', key: 'label.modeLive' },
+  { id: 'playback', icon: 'fa-play', key: 'label.modePlayback' },
+  { id: 'live', icon: 'fa-tower-broadcast', key: 'label.modeLive' },
   { id: 'fixed', icon: 'fa-wave-square', key: 'label.modeFixed' },
 ];
 const STORAGE_KEY = 'playMode';
