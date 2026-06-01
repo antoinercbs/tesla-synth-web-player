@@ -41,8 +41,36 @@ const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
 });
 let rafId: number | null = null;
 let playStart = 0;
-const ontimeRatio = ref(100);
-const dutyRatio = ref(100);
+// LIVE POWER: a GLOBAL ⇄ ADVANCED toggle.
+//  • Global  — one "Power" knob scaling ontime AND duty for ALL coils (the quick "turn
+//    it down/up" control a performer reaches for).
+//  • Advanced — per-coil Ontime & Duty multipliers, for fine-tuning each coil.
+// Effective ratio sent to a coil (percent, 100 = as configured): global → masterPower
+// for both params; advanced → that coil's own ontime/duty.
+type PowerScope = 'global' | 'advanced';
+const powerScope = ref<PowerScope>((localStorage.getItem('playerPowerScope') as PowerScope) || 'global');
+watch(powerScope, (v) => localStorage.setItem('playerPowerScope', v));
+const masterPower = ref(100);
+// per-coil ontime & duty (%, default 100, keyed by coilIndex). Seeded per song.
+const coilOntime = reactive<Record<number, number>>({});
+const coilDuty = reactive<Record<number, number>>({});
+watch(() => song.value?.id, () => {
+  for (const c of song.value?.coils ?? []) { coilOntime[c.coilIndex] = 100; coilDuty[c.coilIndex] = 100; }
+}, { immediate: true });
+function effRatioOntime(i: number): number {
+  return powerScope.value === 'advanced' ? (coilOntime[i] ?? 100) : masterPower.value;
+}
+function effRatioDuty(i: number): number {
+  return powerScope.value === 'advanced' ? (coilDuty[i] ?? 100) : masterPower.value;
+}
+const powerBoost = computed(() => masterPower.value > 100); // global readout: past "nominal"
+const masterDirty = computed(() => {
+  if (powerScope.value === 'advanced') {
+    return (song.value?.coils ?? []).some((c) =>
+      (coilOntime[c.coilIndex] ?? 100) !== 100 || (coilDuty[c.coilIndex] ?? 100) !== 100);
+  }
+  return masterPower.value !== 100;
+});
 // VU: at each frame we look up which notes sound at the playhead (from the static
 // MIDI analysis), run each through its channel's Syntherrupter envelope, and set
 // the bar = amplitude × the coil's ontime×duty energy. Driving it off the playhead
@@ -64,8 +92,8 @@ function inSpeaker(ch: number): boolean {
 function channelEnergy(ch: number): number {
   const c = (song.value?.coils ?? []).find((co) => (co.channelMask & (1 << ch)) !== 0);
   if (!c) return inSpeaker(ch) ? 0.6 : 0;
-  const ot = (c.ontimeUs * ontimeRatio.value) / 100;
-  const dt = (c.duty * dutyRatio.value) / 100;
+  const ot = (c.ontimeUs * effRatioOntime(c.coilIndex)) / 100;
+  const dt = (c.duty * effRatioDuty(c.coilIndex)) / 100;
   return Math.min(1, (ot * dt) / 4);
 }
 /** Per frame: bar level = (max envelope amplitude of notes sounding now) × coil energy. */
@@ -164,15 +192,15 @@ function stopPlayhead(): void {
 function dutyPct(duty: number): number {
   return Math.round(duty * 1e4) / 100;
 }
-// legend shows the EFFECTIVE values = base × the live faders × the active
-// automation ratio at the playhead, so it tracks both the sliders and events.
+// legend shows the EFFECTIVE values = base × the live power (master × bias) × the
+// active automation ratio at the playhead, so it tracks both the faders and events.
 function effOntime(c: CoilConfig): number {
   const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'ontime', playheadMs.value);
-  return Math.round((c.ontimeUs * r * ontimeRatio.value) / 100);
+  return Math.round((c.ontimeUs * r * effRatioOntime(c.coilIndex)) / 100);
 }
 function effDutyPct(c: CoilConfig): number {
   const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'duty', playheadMs.value);
-  return dutyPct((c.duty * r * dutyRatio.value) / 100);
+  return dutyPct((c.duty * r * effRatioDuty(c.coilIndex)) / 100);
 }
 function onAutoplayToggle(e: Event): void {
   midiStore.setAutoplay((e.target as HTMLInputElement).checked);
@@ -331,11 +359,36 @@ function panic(): void {
   midiStore.midiOutput2?.sendAllSoundOff();
 }
 
-function onOntimeRatioChange(): void {
-  midiStore.sendLiveOntimeAdjust({ coils: song.value?.coils ?? [], ratio: ontimeRatio.value });
+// One live update: re-send each coil's ontime AND duty at its own effective ratio
+// (master × bias × that coil's trim). Per-coil so individual trims take effect; only
+// fires on @change (drag end), so ≤2·coils SysEx frames — no per-frame flooding.
+function applyLive(): void {
+  for (const c of song.value?.coils ?? []) {
+    midiStore.sendLiveOntimeAdjust({ coils: [c], ratio: effRatioOntime(c.coilIndex) });
+    midiStore.sendLiveDutyAdjust({ coils: [c], ratio: effRatioDuty(c.coilIndex) });
+  }
 }
-function onDutyRatioChange(): void {
-  midiStore.sendLiveDutyAdjust({ coils: song.value?.coils ?? [], ratio: dutyRatio.value });
+function onPowerChange(): void {
+  if (Math.abs(masterPower.value - 100) <= 3) masterPower.value = 100; // snap to unity ("home")
+  applyLive();
+}
+// Switching to Advanced INHERITS the current global power into each coil's ontime & duty
+// (so nothing jumps); switching back to Global re-asserts the single power across all coils.
+function setScope(next: PowerScope): void {
+  if (next === powerScope.value) return;
+  if (next === 'advanced') {
+    for (const c of song.value?.coils ?? []) {
+      coilOntime[c.coilIndex] = masterPower.value;
+      coilDuty[c.coilIndex] = masterPower.value;
+    }
+  }
+  powerScope.value = next;
+  applyLive();
+}
+function resetPower(): void {
+  masterPower.value = 100;
+  for (const c of song.value?.coils ?? []) { coilOntime[c.coilIndex] = 100; coilDuty[c.coilIndex] = 100; }
+  applyLive();
 }
 
 function loadMidiFile(path: string): Promise<ArrayBuffer> {
@@ -467,31 +520,47 @@ defineExpose({ loadSong, playSong, stop });
       </span>
     </div>
 
-    <div class="player-faders">
-      <label class="fader">
-        <span class="fader__top">
-          <span class="fader__key">{{ $t('label.ontime') }}</span>
-          <span class="fader__val">{{ ontimeRatio }}%</span>
-        </span>
-        <input class="fader__range" type="range" min="0" max="200" step="1" v-model.number="ontimeRatio"
-          :disabled="!song" :title="$t('label.ontimeRatio')" @change="onOntimeRatioChange">
-        <span class="fader__field">
-          <input class="fader__num" type="number" min="0" max="200" step="1" v-model.number="ontimeRatio"
-            :disabled="!song" :title="$t('label.ontimeRatio')" @change="onOntimeRatioChange"><i>%</i>
-        </span>
-      </label>
-      <label class="fader">
-        <span class="fader__top">
-          <span class="fader__key">{{ $t('label.duty') }}</span>
-          <span class="fader__val">{{ dutyRatio }}%</span>
-        </span>
-        <input class="fader__range" type="range" min="0" max="200" step="1" v-model.number="dutyRatio" :disabled="!song"
-          :title="$t('label.dutyRatio')" @change="onDutyRatioChange">
-        <span class="fader__field">
-          <input class="fader__num" type="number" min="0" max="200" step="1" v-model.number="dutyRatio"
-            :disabled="!song" :title="$t('label.dutyRatio')" @change="onDutyRatioChange"><i>%</i>
-        </span>
-      </label>
+    <!-- LIVE POWER: a GLOBAL ⇄ ADVANCED toggle. Global = one Power fader (ontime+duty,
+         all coils); Advanced = per-coil ontime/duty sliders for fine-tuning. -->
+    <div class="player-power">
+      <div class="power-head">
+        <span class="power-head__key"><span class="icon"><i class="fas fa-gauge-high"></i></span>{{ $t('label.power') }}</span>
+        <div class="segmented power-scope">
+          <button type="button" :class="{ 'is-active': powerScope === 'global' }" @click="setScope('global')">{{ $t('label.scopeGlobal') }}</button>
+          <button type="button" :class="{ 'is-active': powerScope === 'advanced' }" @click="setScope('advanced')">{{ $t('label.scopeAdvanced') }}</button>
+        </div>
+        <span v-if="powerScope === 'global'" class="power-head__val" :class="{ 'is-boost': powerBoost }">{{ masterPower }}%</span>
+        <button class="power-head__reset" type="button" :disabled="!song || !masterDirty" @click="resetPower"
+          :title="$t('label.resetPower')"><i class="fas fa-rotate-left"></i></button>
+      </div>
+
+      <!-- GLOBAL: one hero power fader (tri-zone track) -->
+      <template v-if="powerScope === 'global'">
+        <input class="power-range" type="range" min="0" max="200" step="1" v-model.number="masterPower"
+          :disabled="!song" :title="$t('label.powerHint')" @change="onPowerChange">
+        <div class="power-zones">
+          <span>{{ $t('label.zoneSoft') }}</span>
+          <span class="power-zones__mid">{{ $t('label.zoneNominal') }} · 100%</span>
+          <span class="power-zones__over">{{ $t('label.zoneOver') }}</span>
+        </div>
+      </template>
+
+      <!-- ADVANCED: per-coil ontime + duty -->
+      <div v-else-if="song" class="power-coils">
+        <div v-for="c in legendCoils" :key="c.coilIndex" class="coil-bias" :style="{ '--c': coilColor(c.coilIndex) }">
+          <span class="coil-bias__chip">{{ c.coilIndex }}</span>
+          <label class="coil-bias__item">
+            <span class="coil-bias__key">{{ $t('label.ontime') }}</span>
+            <input class="bias__range" type="range" min="0" max="200" step="1" v-model.number="coilOntime[c.coilIndex]" @change="applyLive">
+            <span class="coil-bias__val">{{ coilOntime[c.coilIndex] }}%</span>
+          </label>
+          <label class="coil-bias__item">
+            <span class="coil-bias__key">{{ $t('label.duty') }}</span>
+            <input class="bias__range" type="range" min="0" max="200" step="1" v-model.number="coilDuty[c.coilIndex]" @change="applyLive">
+            <span class="coil-bias__val">{{ coilDuty[c.coilIndex] }}%</span>
+          </label>
+        </div>
+      </div>
     </div>
 
     <div class="player-transport">

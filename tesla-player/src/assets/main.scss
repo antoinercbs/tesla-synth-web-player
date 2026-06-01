@@ -649,28 +649,55 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .vu-num { font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-mute); }
 
-// live multiplier faders (ontime / duty)
-.player-faders { display: flex; flex-wrap: wrap; gap: 0.8rem 1.3rem; padding: 0.5rem 1rem 0.8rem; }
-.fader { flex: 1 1 150px; display: flex; flex-direction: column; gap: 0.35rem; }
-.fader__top { display: flex; justify-content: space-between; align-items: baseline; }
-.fader__key { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.62rem; color: var(--text-dim); }
-.fader__val { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); }
-.fader__range { width: 100%; accent-color: var(--volt); }
-.fader__range:disabled { opacity: 0.4; }
-// number-input variant, shown instead of the slider when the player is narrow
-.fader__field { display: none; align-items: baseline; gap: 0.2rem; }
-.fader__field i { font-style: normal; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.78rem; }
-.fader__num {
-  width: 100%; min-width: 0; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px;
-  color: var(--text); font-family: var(--font-mono); font-size: 0.85rem; padding: 0.4rem 0.5rem; outline: none;
+// live master power: one "intensity" knob driving ontime+duty, per-coil drive dots,
+// and an advanced ontime/duty bias drawer.
+.player-power { display: flex; flex-direction: column; gap: 0.4rem; padding: 0.5rem 1rem 0.7rem; }
+.power-head { display: flex; align-items: center; gap: 0.6rem; }
+.power-head__key { display: inline-flex; align-items: center; gap: 0.45rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.66rem; color: var(--text-dim); }
+.power-head__key .icon { color: var(--volt); font-size: 1.15rem; }
+.power-scope { margin-right: auto; flex: 0 0 auto; }
+.power-scope button { padding: 0.22rem 0.6rem; font-size: 0.68rem; }
+.power-head__val { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; color: var(--text); font-variant-numeric: tabular-nums; }
+.power-head__val.is-boost { color: var(--danger); }
+.power-head__reset {
+  width: 1.8rem; height: 1.8rem; border-radius: 7px; flex: 0 0 auto; display: grid; place-items: center; cursor: pointer;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line-strong); color: var(--text-dim); font-size: 0.72rem; transition: 0.13s;
 }
-.fader__num:focus { border-color: var(--volt); box-shadow: 0 0 0 1px var(--volt); }
-.fader__num:disabled { opacity: 0.4; }
+.power-head__reset:hover:not(:disabled) { color: var(--volt); border-color: var(--volt); }
+.power-head__reset:disabled { opacity: 0.35; cursor: default; }
+// hero range with a tri-zone track (safe cyan → amber → red) and a big thumb
+.power-range { width: 100%; height: 1.3rem; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+.power-range:disabled { opacity: 0.4; cursor: default; }
+.power-range::-webkit-slider-runnable-track {
+  height: 8px; border-radius: 5px; opacity: 0.85;
+  background: linear-gradient(90deg, var(--volt) 0 50%, #e0a93b 50% 75%, var(--danger) 75% 100%);
+}
+.power-range::-moz-range-track {
+  height: 8px; border-radius: 5px; opacity: 0.85;
+  background: linear-gradient(90deg, var(--volt) 0 50%, #e0a93b 50% 75%, var(--danger) 75% 100%);
+}
+.power-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; margin-top: -6px;
+  width: 20px; height: 20px; border-radius: 50%; background: var(--text); border: 3px solid var(--volt); box-shadow: 0 0 7px -1px var(--volt);
+}
+.power-range::-moz-range-thumb {
+  width: 20px; height: 20px; border-radius: 50%; background: var(--text); border: 3px solid var(--volt); box-shadow: 0 0 7px -1px var(--volt);
+}
+.power-zones { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-mute); }
+.power-zones__mid { color: var(--text-dim); }
+.power-zones__over { color: var(--danger); opacity: 0.85; }
+// ADVANCED scope: one row per coil with ontime + duty sub-sliders (coil-coloured)
+.power-coils { display: flex; flex-direction: column; gap: 0.4rem; padding-top: 0.1rem; }
+.coil-bias { display: grid; grid-template-columns: 1.2rem 1fr 1fr; align-items: center; gap: 0.35rem 0.7rem; }
+.coil-bias__chip { font-family: var(--font-mono); font-size: 0.74rem; font-weight: 700; color: var(--c); text-align: center; }
+.coil-bias__item { display: grid; grid-template-columns: auto 1fr 2.4rem; align-items: center; gap: 0.3rem; min-width: 0; }
+.coil-bias__key { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.04em; font-size: 0.56rem; color: var(--text-dim); }
+.coil-bias__val { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text); text-align: right; font-variant-numeric: tabular-nums; }
+.bias__range { width: 100%; min-width: 0; accent-color: var(--c); }
 @container (max-width: 380px) {
-  .player-faders { flex-wrap: nowrap; gap: 0.7rem; }
-  .player-faders .fader { flex: 1 1 0; }
-  .fader__range, .fader__val { display: none; }
-  .fader__field { display: flex; }
+  .power-zones span:not(.power-zones__mid) { display: none; }
+  .coil-bias { grid-template-columns: 1rem 1fr; }
+  .coil-bias__chip { grid-row: span 2; }
   // compact instrument chips in the narrow (docked) player: drop the instrument
   // NAME and shrink, leaving "P{n} ch …" (the full name stays in the wide player)
   .vu-legend { gap: 0.3rem; padding: 0.45rem 1rem; }
@@ -684,7 +711,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .player-transport .btn { flex: 1 1 auto; justify-content: center; min-width: 4.5rem; }
 
 // the visualisation block (VU / score / occupancy) flexes; others keep height
-.player-song, .player-hint, .player-progress, .player-options, .player-faders, .player-transport, .vu-legend { flex: 0 0 auto; }
+.player-song, .player-hint, .player-progress, .player-options, .player-power, .player-transport, .vu-legend { flex: 0 0 auto; }
 
 // playback progress under the song title
 .player-progress { display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem 0.6rem; }
