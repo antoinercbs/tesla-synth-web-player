@@ -223,7 +223,7 @@ function staircase(coilIdx: number): string {
   return pts.join(' ');
 }
 const autoCurves = computed(() =>
-  showLanes.value ? Array.from({ length: props.coilCount }, (_, c) => ({
+  showLanes.value && showAutomation.value ? Array.from({ length: props.coilCount }, (_, c) => ({
     coilIdx: c, points: staircase(c), baseY: valueY(c, 1), color: coilColor(c),
   })) : []);
 const handles = computed(() => {
@@ -302,7 +302,11 @@ function removeEvent(i: number, e: Event): void {
 
 const playheadX = computed(() => (props.playheadMs / 1000) * PX_PER_SEC);
 const hasData = computed(() => (props.analysis?.notes.length ?? 0) > 0);
-const showParam = computed(() => showLanes.value && props.coilCount > 0);
+const hasEvents = computed(() => props.events.length > 0);
+// In read-only playback the param tabs + automation curves are only meaningful
+// once events exist; without any, they're flat-line clutter, so hide them.
+const showAutomation = computed(() => props.editable || hasEvents.value);
+const showParam = computed(() => showLanes.value && props.coilCount > 0 && showAutomation.value);
 
 const scrollEl = ref<HTMLElement | null>(null);
 watch(() => props.playheadMs, () => {
