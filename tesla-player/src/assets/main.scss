@@ -373,6 +373,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   color: #06090f; background: var(--volt);
   box-shadow: 0 0 14px -3px var(--volt); font-weight: 600;
 }
+.segmented button:disabled { opacity: 0.38; cursor: not-allowed; }
 .segmented--fill { display: flex; width: 100%; }
 .segmented--fill button { flex: 1; }
 
@@ -589,6 +590,12 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .player-panel__head .icon { color: var(--volt); }
 .player-panel__title { display: inline-flex; align-items: center; gap: 0.5rem; }
+.player-synth-badge {
+  display: inline-flex; align-items: center; gap: 0.3rem;
+  padding: 0.12rem 0.5rem; border-radius: 999px;
+  font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.04em; text-transform: none;
+  color: var(--volt); border: 1px solid var(--volt); background: rgba(70, 224, 255, 0.08);
+}
 .player-panel__autoplay { margin-left: auto; } // autoplay toggle pinned right
 
 .player-song { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.6rem; padding: 0.9rem 1rem 0.5rem; min-width: 0; }
@@ -781,6 +788,12 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 }
 .sidebar-output { padding: 0 0.4rem 0.55rem; }
 .sidebar-output__label { display: block; font-size: 0.64rem; color: var(--text-dim); margin-bottom: 0.28rem; font-family: var(--font-mono); }
+.select-field.is-synth select { border-color: var(--volt); color: var(--volt); }
+.output-emul {
+  display: flex; align-items: center; gap: 0.3rem; margin-top: 0.32rem;
+  font-family: var(--font-mono); font-size: 0.58rem; letter-spacing: 0.03em; color: var(--volt); opacity: 0.85;
+}
+.output-emul .icon { font-size: 0.66rem; }
 
 // framed sidebar sections (output selection + coils)
 .sidebar-card {

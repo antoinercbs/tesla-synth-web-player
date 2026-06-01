@@ -82,7 +82,8 @@ function updateLevels(): void {
       if (amp > chMax[note.channel]) chMax[note.channel] = amp;
     }
   }
-  for (let ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) level[ch] = chMax[ch] * channelEnergy(ch);
+  // envelope amplitude can exceed 1 (attack punch); clamp the displayed bar height
+  for (let ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) level[ch] = Math.min(1, chMax[ch] * channelEnergy(ch));
 }
 
 const durationMs = computed(() => analysis.value?.durationMs ?? 0);
@@ -274,6 +275,7 @@ function scheduleCoilEvents(): void {
 
 function play(): void {
   if (!parsedMidiFile.value || !midiStore.midiOutput) return;
+  midiStore.midiOutput.resume?.(); // unlock the synth's AudioContext (play is a gesture)
   stop();
   isPlaying.value = true;
   emit('playingChange', true);
@@ -374,6 +376,7 @@ defineExpose({ loadSong, playSong, stop });
   <article class="player-panel">
     <header class="player-panel__head">
       <span class="player-panel__title"><span class="icon"><i class="fas fa-compact-disc"></i></span>{{ $t('title.player') }}</span>
+      <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{ $t('label.synthActive') }}</span>
       <label v-if="props.showAutoplay" class="switch player-panel__autoplay">
         <input type="checkbox" :checked="midiStore.autoplay" @change="onAutoplayToggle" />
         <span class="switch__track"></span>

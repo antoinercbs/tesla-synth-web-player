@@ -6,10 +6,12 @@ import {
   sendLiveDutyAdjust as helperSendLiveDutyAdjust,
   type SysexOutput,
 } from '@/utils/live-sysex-helper';
+import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
 import type { AppConfig, CoilConfig, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
-  midiOutput: Output | null;
+  /** Output 1 (coils): a real WebMidi output or the built-in Tesla synth. */
+  midiOutput: MidiSink | null;
   midiOutput2: Output | null;
   midiOutputList: Output[] | null;
   midiFileList: MidiFile[];
@@ -33,6 +35,8 @@ export const useMidiStore = defineStore('midi', {
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
     coilName: (state) => (index: number): string => state.appConfig.coilNames[index] ?? '',
+    /** True when output 1 is the built-in emulated synth (no real hardware). */
+    isSynthOutput: (state): boolean => state.midiOutput?.id === SYNTH_OUTPUT_ID,
   },
   actions: {
     setAppConfig(config: AppConfig) {
@@ -45,7 +49,7 @@ export const useMidiStore = defineStore('midi', {
       this.autoplay = value;
       localStorage.setItem('autoplay', value ? '1' : '0');
     },
-    setMidiOutput(output: Output | null) {
+    setMidiOutput(output: MidiSink | null) {
       this.midiOutput = output;
     },
     setMidiOutput2(output: Output | null) {

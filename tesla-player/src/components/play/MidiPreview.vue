@@ -368,6 +368,10 @@ watch(() => props.playheadMs, () => {
                 :fill="h.color" @pointerdown.stop="onHandlePointerDown(h.i, $event)" @contextmenu="removeEvent(h.i, $event)" />
             </g>
 
+            <!-- combined editor: only the coil lanes are editable, so the score area keeps the default cursor -->
+            <rect v-if="editable && view === 'combined'" :x="0" :y="0" :width="widthPx" :height="lanesTopY"
+              class="preview__noedit" />
+
             <line v-if="playing" class="preview__playhead" :x1="playheadX" :x2="playheadX" :y1="0" :y2="heightPx" />
           </svg>
           <div v-else class="preview__empty">{{ $t('label.noMidiData') }}</div>
@@ -392,6 +396,7 @@ watch(() => props.playheadMs, () => {
 .preview__scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; }
 .preview__svg { display: block; }
 .preview__svg.is-editable { cursor: crosshair; }
+.preview__noedit { fill: transparent; pointer-events: all; cursor: default; }
 
 .preview__rail { flex: 0 0 auto; border-right: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); }
 .preview__rail-head { border-bottom: 1px solid var(--line); }

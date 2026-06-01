@@ -27,12 +27,13 @@
         <div class="sidebar-card__title">{{ $t('title.outputSelection') }}</div>
         <div class="sidebar-output">
           <label class="sidebar-output__label">{{ $t('label.firstOutput') }}</label>
-          <div class="select-field">
+          <div class="select-field" :class="{ 'is-synth': isSynthSelected }">
             <select v-model="selectedOutputId" @change="onOutputChange">
-              <option :value="null">—</option>
+              <option :value="synthId">⚡ {{ $t('label.builtinSynth') }}</option>
               <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
             </select>
           </div>
+          <span v-if="isSynthSelected" class="output-emul"><span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('label.emulationHint') }}</span>
         </div>
         <div class="sidebar-output">
           <label class="sidebar-output__label">{{ $t('label.secondOutput') }}</label>
@@ -93,6 +94,7 @@ import { WebMidi } from 'webmidi'
 import { useMidiStore } from '@/stores/midi'
 import { coilColor } from '@/ui/coil-colors'
 import { notify } from '@/utils/toast'
+import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import GeneralConfigModal from '@/components/GeneralConfigModal.vue'
 import AppToaster from '@/components/AppToaster.vue'
 
@@ -104,12 +106,15 @@ export default {
       isConnected: false,
       pingTimer: null,
       configOpen: false,
-      selectedOutputId: localStorage.getItem('midiOutput1Id') || null,
+      synthId: SYNTH_OUTPUT_ID,
+      // default to the built-in synth until a real output is explicitly chosen
+      selectedOutputId: localStorage.getItem('midiOutput1Id') || SYNTH_OUTPUT_ID,
       selectedOutput2Id: localStorage.getItem('midiOutput2Id') || null
     }
   },
   computed: {
     ...mapStores(useMidiStore),
+    isSynthSelected() { return this.selectedOutputId === SYNTH_OUTPUT_ID },
     outputs() {
       return this.midiStore.midiOutputList || []
     }
@@ -122,10 +127,15 @@ export default {
         .catch(err => console.error('Save config failed', err))
         .finally(() => { this.configOpen = false })
     },
-    // Resolve the store's Output instances from the selected ids. WebMidi
+    // Resolve the store's outputs from the selected ids. Output 1 falls back to
+    // the built-in synth whenever no real output is chosen/connected. WebMidi
     // rebuilds Output objects on (dis)connection, so we always look up by id.
     resolveOutputs() {
-      this.midiStore.setMidiOutput(this.outputs.find(o => o.id === this.selectedOutputId) || null)
+      let out1 = this.selectedOutputId === SYNTH_OUTPUT_ID
+        ? null
+        : (this.outputs.find(o => o.id === this.selectedOutputId) || null)
+      if (!out1) { out1 = getTeslaSynth(); this.selectedOutputId = SYNTH_OUTPUT_ID }
+      this.midiStore.setMidiOutput(out1)
       this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null)
     },
     refreshOutputs() {
@@ -139,9 +149,14 @@ export default {
       this.resolveOutputs() // restore the persisted output selection
     },
     onOutputChange() {
-      if (this.selectedOutputId) localStorage.setItem('midiOutput1Id', this.selectedOutputId)
-      else localStorage.removeItem('midiOutput1Id')
-      this.midiStore.setMidiOutput(this.outputs.find(o => o.id === this.selectedOutputId) || null)
+      localStorage.setItem('midiOutput1Id', this.selectedOutputId || SYNTH_OUTPUT_ID)
+      if (this.selectedOutputId === SYNTH_OUTPUT_ID) {
+        const synth = getTeslaSynth()
+        synth.resume() // selection is a user gesture → unlock the AudioContext
+        this.midiStore.setMidiOutput(synth)
+      } else {
+        this.resolveOutputs()
+      }
     },
     onOutput2Change() {
       if (this.selectedOutput2Id) localStorage.setItem('midiOutput2Id', this.selectedOutput2Id)
@@ -158,6 +173,7 @@ export default {
     }
   },
   mounted() {
+    this.resolveOutputs() // built-in synth available immediately, even before/without WebMIDI
     WebMidi.enable({ sysex: true }).then(this.onEnabled).catch(err => console.error('WebMIDI:', err))
     this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => {})
     this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => {})

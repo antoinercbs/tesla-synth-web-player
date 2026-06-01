@@ -224,7 +224,10 @@ onBeforeUnmount(() => {
     <!-- channel activity monitor -->
     <article class="live-monitor">
       <div class="vu">
-        <span class="vu__label">{{ $t('label.channels') }}</span>
+        <div class="vu__head">
+          <span class="vu__label">{{ $t('label.channels') }}</span>
+          <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{ $t('label.synthActive') }}</span>
+        </div>
         <div class="vu-strip">
           <div v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" class="vu-chan">
             <div class="vu-track" :class="{ 'is-unmapped': !channelMapped(i - 1) }">
@@ -291,6 +294,8 @@ onBeforeUnmount(() => {
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
 }
+.vu__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+.vu__head .vu__label { margin-bottom: 0; }
 
 /* coil mapping section */
 .live-section__head {
