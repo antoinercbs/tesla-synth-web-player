@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { compileCoilConfig, maskToChannels } from '@/sysex/syntherrupter';
-import { envelope } from '@/sysex/envelopes';
+import { envelope, envelopeAmplitude } from '@/sysex/envelopes';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
@@ -34,9 +34,13 @@ let rafId: number | null = null;
 let playStart = 0;
 const ontimeRatio = ref(100);
 const dutyRatio = ref(100);
-// VU: held = notes currently down per channel; level = displayed bar 0..1 driven
-// by note on/off, the note rate (attack kicks) and the coil's ontime×duty energy.
-const held = reactive<number[]>(Array(MIDI_CHANNEL_COUNT).fill(0));
+// VU: at each frame we look up which notes sound at the playhead (from the static
+// MIDI analysis), run each through its channel's Syntherrupter envelope, and set
+// the bar = amplitude × the coil's ontime×duty energy. Driving it off the playhead
+// (not live MIDI events) keeps it in sync with the score/coil views and immune to
+// the player's look-ahead event scheduling (which fires note-off right after
+// note-on, collapsing long notes to a flash).
+const RELEASE_TAIL_MS = 260; // keep a note in the VU this long after its note-off
 const level = reactive<number[]>(Array(MIDI_CHANNEL_COUNT).fill(0));
 // per-channel envelope ("instrument"), tracked live from the MIDI Program Changes
 const channelProgram = reactive<(number | null)[]>(Array(MIDI_CHANNEL_COUNT).fill(null));
@@ -55,13 +59,21 @@ function channelEnergy(ch: number): number {
   const dt = (c.duty * dutyRatio.value) / 100;
   return Math.min(1, (ot * dt) / 4);
 }
-/** Ease each bar toward its target (held → energy, released → 0): fast attack, slow release. */
+/** Per frame: bar level = (max envelope amplitude of notes sounding now) × coil energy. */
 function updateLevels(): void {
-  for (let ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
-    const target = held[ch] > 0 ? channelEnergy(ch) : 0;
-    level[ch] += (target - level[ch]) * (level[ch] < target ? 0.6 : 0.12);
-    if (level[ch] < 0.002) level[ch] = 0;
+  const a = analysis.value;
+  const t = playheadMs.value;
+  const chMax = new Array<number>(MIDI_CHANNEL_COUNT).fill(0);
+  if (a) {
+    for (const note of a.notes) {
+      if (t < note.startMs || t >= note.endMs + RELEASE_TAIL_MS) continue;
+      const program = channelProgram[note.channel] ?? 0;
+      const releaseMs = t >= note.endMs ? note.endMs - note.startMs : null;
+      const amp = envelopeAmplitude(program, t - note.startMs, releaseMs);
+      if (amp > chMax[note.channel]) chMax[note.channel] = amp;
+    }
   }
+  for (let ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) level[ch] = chMax[ch] * channelEnergy(ch);
 }
 
 const durationMs = computed(() => analysis.value?.durationMs ?? 0);
@@ -179,7 +191,7 @@ function channelMapped(ch: number): boolean {
 }
 
 function resetNotes(): void {
-  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) { held[i] = 0; level[i] = 0; }
+  for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) level[i] = 0;
 }
 
 function loadSong(s: Song): void {
@@ -284,19 +296,12 @@ function statusByte(m0: unknown): number {
   if (typeof m0 === 'string') return parseInt(m0.replace(/^0x/i, ''), 16) || 0;
   return 0;
 }
+// The VU reads notes from the analysis at the playhead, so we only watch program
+// changes here to keep the per-channel instrument legend up to date.
 function dispEventMonitor(msg: unknown[], type: unknown): void {
   if (type === 'input') return;
   const st = statusByte(msg[0]);
-  const ch = st & 0x0f;
-  const kind = st & 0xf0;
-  if (kind === 0x90 && statusByte(msg[2]) > 0) {
-    held[ch]++;
-    level[ch] = Math.min(1, channelEnergy(ch) + 0.3); // attack kick (note-on)
-  } else if (kind === 0x80 || (kind === 0x90 && statusByte(msg[2]) === 0)) {
-    held[ch] = Math.max(0, held[ch] - 1); // note-off → release
-  } else if (kind === 0xc0) {
-    channelProgram[ch] = statusByte(msg[1]); // program change → envelope
-  }
+  if ((st & 0xf0) === 0xc0) channelProgram[st & 0x0f] = statusByte(msg[1]);
 }
 
 function arrayBufferToString(buffer: ArrayBuffer): string {
@@ -392,7 +397,15 @@ defineExpose({ loadSong, playSong, stop });
     <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
     <div v-if="song && envelopesInUse.length" class="vu-legend">
       <span class="vu-legend__label">
-        <span class="icon"><i class="fas fa-keyboard"></i></span>
+        <span class="icon">
+          <svg viewBox="0 0 24 24" width="1em" height="1em" fill="none" stroke="currentColor"
+            stroke-width="1.7" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="6" width="18" height="12" rx="1.5" />
+            <path d="M9 6v6M15 6v6" stroke-linecap="round" />
+            <rect x="7.1" y="6" width="2" height="5" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="13.7" y="6" width="2" height="5" rx="0.5" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
         <span class="vu-legend__label-text">{{ $t('label.instruments') }}</span>
       </span>
       <span v-for="e in envelopesInUse" :key="e.program" class="env-chip"
