@@ -57,3 +57,11 @@ CREATE TABLE IF NOT EXISTS CoilEvent (
 	value			REAL NOT NULL,
 	FOREIGN KEY (song_id) REFERENCES Song(id) ON DELETE CASCADE
 );
+
+-- Global operator config (singleton row id=1): per-coil names + default coil count.
+CREATE TABLE IF NOT EXISTS AppConfig (
+	id 				INTEGER PRIMARY KEY AUTOINCREMENT,
+	coilNames		TEXT,
+	defaultCoilCount INTEGER NOT NULL DEFAULT 3
+);
+INSERT OR IGNORE INTO AppConfig (id, coilNames, defaultCoilCount) VALUES (1, '[]', 3);

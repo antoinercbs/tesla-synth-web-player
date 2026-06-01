@@ -34,6 +34,14 @@ export interface MidiFile {
   durationMs?: number | null;
 }
 
+/** Global operator configuration (one row server-side). */
+export interface AppConfig {
+  /** Operator name of each physical coil, indexed by coil number (0..5). */
+  coilNames: string[];
+  /** Default coil count pre-filled for new songs/playlists (1..6). */
+  defaultCoilCount: number;
+}
+
 /** Configuration of a single Tesla coil within a song. */
 export interface CoilConfig {
   /** 0-based coil index (0..5). */

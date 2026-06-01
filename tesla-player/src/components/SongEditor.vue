@@ -68,8 +68,9 @@ function resetNew(): void {
   draft.name = '';
   draft.midiFileId = null;
   draft.output2Mask = 0;
-  draft.coilCount = 3;
-  draft.coils = [defaultCoil(0), defaultCoil(1), defaultCoil(2)];
+  const count = midiStore.appConfig.defaultCoilCount || 3;
+  draft.coilCount = count;
+  draft.coils = Array.from({ length: count }, (_, i) => defaultCoil(i));
 }
 
 // Reload only when actually switching to a different song. This avoids the

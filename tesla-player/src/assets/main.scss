@@ -779,6 +779,44 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .sidebar-output { padding: 0 0.4rem 0.55rem; }
 .sidebar-output__label { display: block; font-size: 0.64rem; color: var(--text-dim); margin-bottom: 0.28rem; font-family: var(--font-mono); }
 
+// framed sidebar sections (output selection + coils)
+.sidebar-card {
+  margin: 0 0.5rem 0.7rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.55rem 0.6rem 0.5rem;
+}
+.sidebar-card__title {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.4rem;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 0.6rem; color: var(--text-mute); margin: 0 0.1rem 0.5rem;
+}
+.sidebar-card .sidebar-output { padding: 0 0 0.5rem; }
+.sidebar-card .sidebar-output:last-child { padding-bottom: 0; }
+.sidebar-card__cfg {
+  background: none; border: 0; cursor: pointer; color: var(--text-mute);
+  padding: 0.1rem 0.25rem; border-radius: 6px; font-size: 0.82rem; line-height: 1;
+  transition: color 0.13s, background 0.13s;
+}
+.sidebar-card__cfg:hover { color: var(--volt); background: rgba(70, 224, 255, 0.08); }
+
+.sidebar-coils { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.22rem; }
+.sidebar-coil { display: flex; align-items: center; gap: 0.5rem; padding: 0.1rem 0.15rem; min-width: 0; }
+.sidebar-coil__dot {
+  width: 0.62rem; height: 0.62rem; border-radius: 50%; flex: 0 0 auto;
+  background: var(--c); box-shadow: 0 0 7px -1px var(--c);
+}
+.sidebar-coil__idx {
+  font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-mute);
+  width: 0.9rem; text-align: center; flex: 0 0 auto;
+}
+.sidebar-coil__name {
+  font-size: 0.78rem; color: var(--text); min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.sidebar-coil__name.is-empty { color: var(--text-mute); font-style: italic; }
+
 // ===========================================================================
 //  BULMA OVERRIDES for the relocated PLAY / PLAYLIST components
 // ===========================================================================

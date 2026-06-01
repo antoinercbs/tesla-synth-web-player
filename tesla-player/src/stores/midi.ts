@@ -6,7 +6,7 @@ import {
   sendLiveDutyAdjust as helperSendLiveDutyAdjust,
   type SysexOutput,
 } from '@/utils/live-sysex-helper';
-import type { CoilConfig, MidiFile, Song } from '@/types/domain';
+import type { AppConfig, CoilConfig, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
   midiOutput: Output | null;
@@ -16,6 +16,8 @@ interface MidiState {
   midiSongList: Song[];
   /** Auto-start a track on select / when the previous one ends (persisted). */
   autoplay: boolean;
+  /** Global operator config (coil names + default coil count). */
+  appConfig: AppConfig;
 }
 
 export const useMidiStore = defineStore('midi', {
@@ -26,8 +28,19 @@ export const useMidiStore = defineStore('midi', {
     midiFileList: [],
     midiSongList: [],
     autoplay: localStorage.getItem('autoplay') === '1', // default OFF
+    appConfig: { coilNames: [], defaultCoilCount: 3 },
   }),
+  getters: {
+    /** Operator name for a coil index, or '' if unnamed. */
+    coilName: (state) => (index: number): string => state.appConfig.coilNames[index] ?? '',
+  },
   actions: {
+    setAppConfig(config: AppConfig) {
+      this.appConfig = {
+        coilNames: Array.isArray(config.coilNames) ? config.coilNames : [],
+        defaultCoilCount: config.defaultCoilCount || 3,
+      };
+    },
     setAutoplay(value: boolean) {
       this.autoplay = value;
       localStorage.setItem('autoplay', value ? '1' : '0');

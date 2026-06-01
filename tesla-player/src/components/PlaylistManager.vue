@@ -15,7 +15,7 @@ const midiStore = useMidiStore();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
 
 function blankDraft(): Playlist {
-  return { id: 0, name: 'Untitled playlist', coilCount: 3, songIds: [] };
+  return { id: 0, name: 'Untitled playlist', coilCount: midiStore.appConfig.defaultCoilCount || 3, songIds: [] };
 }
 const draft = ref<Playlist>(blankDraft());
 const confirmDelete = ref(false);

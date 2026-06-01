@@ -6,6 +6,7 @@ import { dataSourceOptions } from './database/data-source';
 import { HealthModule } from './health/health.module';
 import { MidiModule } from './midi/midi.module';
 import { PlaylistsModule } from './playlists/playlists.module';
+import { SettingsModule } from './settings/settings.module';
 import { SongsModule } from './songs/songs.module';
 
 @Module({
@@ -29,6 +30,7 @@ import { SongsModule } from './songs/songs.module';
     SongsModule,
     MidiModule,
     PlaylistsModule,
+    SettingsModule,
   ],
 })
 export class AppModule {}

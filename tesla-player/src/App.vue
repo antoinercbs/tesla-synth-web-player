@@ -23,25 +23,46 @@
 
       <div class="sidebar__spacer"></div>
 
-      <div class="sidebar__section-title">{{ $t('title.outputSelection') }}</div>
-      <div class="sidebar-output">
-        <label class="sidebar-output__label">{{ $t('label.firstOutput') }}</label>
-        <div class="select-field">
-          <select v-model="selectedOutputId" @change="onOutputChange">
-            <option :value="null">—</option>
-            <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
+      <section class="sidebar-card">
+        <div class="sidebar-card__title">{{ $t('title.outputSelection') }}</div>
+        <div class="sidebar-output">
+          <label class="sidebar-output__label">{{ $t('label.firstOutput') }}</label>
+          <div class="select-field">
+            <select v-model="selectedOutputId" @change="onOutputChange">
+              <option :value="null">—</option>
+              <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+          </div>
         </div>
-      </div>
-      <div class="sidebar-output">
-        <label class="sidebar-output__label">{{ $t('label.secondOutput') }}</label>
-        <div class="select-field">
-          <select v-model="selectedOutput2Id" @change="onOutput2Change">
-            <option :value="null">—</option>
-            <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
+        <div class="sidebar-output">
+          <label class="sidebar-output__label">{{ $t('label.secondOutput') }}</label>
+          <div class="select-field">
+            <select v-model="selectedOutput2Id" @change="onOutput2Change">
+              <option :value="null">—</option>
+              <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <section class="sidebar-card">
+        <div class="sidebar-card__title">
+          {{ $t('title.coils') }}
+          <button class="sidebar-card__cfg" type="button" :title="$t('label.generalConfig')"
+            @click="configOpen = true">
+            <i class="fas fa-gear"></i>
+          </button>
+        </div>
+        <ul class="sidebar-coils">
+          <li v-for="n in midiStore.appConfig.defaultCoilCount" :key="n - 1" class="sidebar-coil">
+            <span class="sidebar-coil__dot" :style="{ '--c': coilColor(n - 1) }"></span>
+            <span class="sidebar-coil__idx">{{ n - 1 }}</span>
+            <span class="sidebar-coil__name" :class="{ 'is-empty': !midiStore.coilName(n - 1) }">
+              {{ midiStore.coilName(n - 1) || $t('label.unnamedCoil') }}
+            </span>
+          </li>
+        </ul>
+      </section>
 
       <div class="sidebar__foot">
         <div class="conn" :class="{ 'is-up': isConnected }">
@@ -59,6 +80,9 @@
     <main class="app-main">
       <router-view />
     </main>
+
+    <general-config-modal :open="configOpen" :config="midiStore.appConfig"
+      @save="saveConfig" @cancel="configOpen = false" />
   </div>
 </template>
 
@@ -66,13 +90,17 @@
 import { mapStores } from 'pinia'
 import { WebMidi } from 'webmidi'
 import { useMidiStore } from '@/stores/midi'
+import { coilColor } from '@/ui/coil-colors'
+import GeneralConfigModal from '@/components/GeneralConfigModal.vue'
 
 export default {
   name: 'App',
+  components: { GeneralConfigModal },
   data() {
     return {
       isConnected: false,
       pingTimer: null,
+      configOpen: false,
       selectedOutputId: localStorage.getItem('midiOutput1Id') || null,
       selectedOutput2Id: localStorage.getItem('midiOutput2Id') || null
     }
@@ -84,6 +112,13 @@ export default {
     }
   },
   methods: {
+    coilColor,
+    saveConfig(config) {
+      this.axios.put('/api/settings', config)
+        .then(r => this.midiStore.setAppConfig(r.data))
+        .catch(err => console.error('Save config failed', err))
+        .finally(() => { this.configOpen = false })
+    },
     // Resolve the store's Output instances from the selected ids. WebMidi
     // rebuilds Output objects on (dis)connection, so we always look up by id.
     resolveOutputs() {
@@ -123,6 +158,7 @@ export default {
     WebMidi.enable({ sysex: true }).then(this.onEnabled).catch(err => console.error('WebMIDI:', err))
     this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => {})
     this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => {})
+    this.axios.get('/api/settings').then(r => this.midiStore.setAppConfig(r.data)).catch(() => {})
     this.ping()
     this.pingTimer = setInterval(this.ping, 10000)
   },
