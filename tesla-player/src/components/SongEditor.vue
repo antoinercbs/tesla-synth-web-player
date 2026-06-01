@@ -3,7 +3,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
-import type { CoilConfig, MidiFile, Song } from '@/types/domain';
+import type { CoilConfig, CoilEvent, CoilParam, MidiFile, Song } from '@/types/domain';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { formatDuration } from '@/utils/format';
 import CoilConfigCard from './CoilConfigCard.vue';
@@ -38,7 +38,10 @@ const draft = reactive({
   coilCount: 3,
   output2Mask: 0,
   coils: [defaultCoil(0), defaultCoil(1), defaultCoil(2)] as CoilConfig[],
+  events: [] as CoilEvent[],
 });
+// which automation parameter the timeline edits (coils view)
+const editParam = ref<CoilParam>('ontime');
 
 const midiFileItems = computed(() =>
   midiStore.midiFileList.map((f) => ({ id: f.id, label: f.name })),
@@ -57,6 +60,7 @@ function load(song: Song | null | undefined): void {
   draft.name = song.name ?? '';
   draft.midiFileId = song.midiFile ? song.midiFile.id : null;
   draft.output2Mask = song.output2Mask ?? 0;
+  draft.events = (song.events ?? []).map((e) => ({ ...e }));
   draft.coils = (song.coils ?? []).map((c) => ({ ...c }));
   draft.coilCount = song.coilCount ?? (draft.coils.length || 1);
   while (draft.coils.length < draft.coilCount) draft.coils.push(defaultCoil(draft.coils.length));
@@ -71,6 +75,7 @@ function resetNew(): void {
   const count = midiStore.appConfig.defaultCoilCount || 3;
   draft.coilCount = count;
   draft.coils = Array.from({ length: count }, (_, i) => defaultCoil(i));
+  draft.events = [];
 }
 
 // Reload only when actually switching to a different song. This avoids the
@@ -98,6 +103,9 @@ function buildPayload() {
     mode: SONG_MODE,
     output2Mask: draft.output2Mask,
     coils: coilsPayload(),
+    events: draft.events
+      .filter((e) => e.coilIndex < draft.coilCount)
+      .map((e) => ({ coilIndex: e.coilIndex, atMs: Math.round(e.atMs), param: e.param, value: e.value })),
   };
 }
 
@@ -123,8 +131,7 @@ function doDelete(): void {
   });
 }
 
-// --- MIDI preview: analyse the selected file, recolour live -------------------
-const previewView = ref<'roll' | 'lanes'>('roll');
+// --- MIDI timeline: analyse the selected file, recolour live -------------------
 const analysis = ref<MidiAnalysis | null>(null);
 // channels actually present in the selected MIDI (null = no file → allow all)
 const availableChannels = computed(() => (analysis.value ? analysis.value.channels : null));
@@ -159,6 +166,7 @@ function emitChange(): void {
     mode: SONG_MODE,
     output2Mask: draft.output2Mask,
     coils: coilsPayload(),
+    events: draft.events.filter((e) => e.coilIndex < draft.coilCount),
   };
   emit('change', song);
 }
@@ -321,22 +329,16 @@ function closeLibrary(): void {
         :label="$t('label.secondOutputChannels')" />
     </section>
 
-    <!-- MIDI preview, coloured live by the current channel→coil mapping -->
+    <!-- Timeline: notes coloured live by the channel→coil mapping + editable coil automation -->
     <section class="editor-section">
       <h2 class="editor-section__title">
-        <span class="icon"><i class="fas fa-chart-simple"></i></span>{{ $t('label.preview') }}
-        <div class="segmented editor-preview__views">
-          <button type="button" :class="{ 'is-active': previewView === 'roll' }" @click="previewView = 'roll'">
-            <span class="icon"><i class="fas fa-music"></i></span>{{ $t('label.viewScore') }}
-          </button>
-          <button type="button" :class="{ 'is-active': previewView === 'lanes' }" @click="previewView = 'lanes'">
-            <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.viewCoils') }}
-          </button>
-        </div>
+        <span class="icon"><i class="fas fa-chart-simple"></i></span>{{ $t('label.timeline') }}
       </h2>
       <div class="editor-preview">
         <MidiPreview :analysis="analysis" :coils="draft.coils" :coil-count="draft.coilCount"
-          :output2-mask="draft.output2Mask" :view="previewView" />
+          :output2-mask="draft.output2Mask" view="combined"
+          :events="draft.events" editable v-model:edit-param="editParam"
+          @update:events="draft.events = $event" />
       </div>
     </section>
 

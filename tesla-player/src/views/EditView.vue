@@ -33,7 +33,7 @@
         <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" @deleted="onDeleted" />
       </div>
       <aside class="edit-body__dock">
-        <midi-player ref="player" :show-autoplay="false" @playing-change="playing = $event" />
+        <midi-player ref="player" :show-autoplay="false" :compact-graph="true" @playing-change="playing = $event" />
       </aside>
     </div>
   </div>

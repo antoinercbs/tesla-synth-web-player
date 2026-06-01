@@ -117,7 +117,10 @@ export const messages = {
       viewVu: "VU",
       viewScore: "Score",
       viewCoils: "Coils",
+      viewCombined: "Combined",
       preview: "Preview",
+      timeline: "Timeline",
+      addEvent: "Click to add a point · drag to move · right-click to remove",
       speakers: "Speakers",
       selectOutputHint:
         "Select a MIDI output in the sidebar to enable playback.",
@@ -267,7 +270,10 @@ export const messages = {
       viewVu: "VU",
       viewScore: "Partition",
       viewCoils: "Occupation",
+      viewCombined: "Combiné",
       preview: "Aperçu",
+      timeline: "Chronologie",
+      addEvent: "Clic pour ajouter un point · glisser pour déplacer · clic droit pour supprimer",
       speakers: "Enceintes",
       selectOutputHint:
         "Sélectionne une sortie MIDI dans la barre latérale pour activer la lecture.",

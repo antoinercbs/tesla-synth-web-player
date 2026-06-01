@@ -318,9 +318,10 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 .editor-footer__delete { margin-right: auto; } // delete left, save stays right
 
 // MIDI preview in the editor (view toggle on the section title)
-.editor-preview__views { margin-left: auto; }
+.editor-preview__toolbar { margin-left: auto; display: flex; align-items: center; gap: 0.5rem; }
 .editor-preview__views button { display: inline-flex; align-items: center; gap: 0.35rem; min-width: 0; padding: 0.3rem 0.6rem; font-size: 0.72rem; white-space: nowrap; }
-.editor-preview { display: flex; min-width: 0; height: 300px; margin-top: 0.9rem; }
+.editor-preview__param button { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
+.editor-preview { display: flex; min-width: 0; height: clamp(280px, 42vh, 560px); margin-top: 0.9rem; }
 
 // Below this width the side dock would crush the editor: stack it underneath.
 @media (max-width: 1100px) {
@@ -687,6 +688,8 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 .player-viz { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 // display:flex (not width:100%) so the full-width tabs don't overflow with margins
 .player-viz__tabs { display: flex; margin: 0.3rem 1rem 0.5rem; flex: 0 0 auto; }
+.player-viz__param { margin: 0 1rem 0.5rem; align-self: flex-start; flex: 0 0 auto; }
+.player-viz__param button { padding: 0.3rem 0.7rem; font-size: 0.72rem; }
 .player-viz__tabs button {
   flex: 1 1 0; min-width: 0; display: inline-flex; align-items: center; justify-content: center;
   gap: 0.3rem; padding: 0.35rem 0.4rem; font-size: 0.72rem; white-space: nowrap;

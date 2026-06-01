@@ -145,6 +145,21 @@ export function encodeDuty(
   return buildFrame({ pn: PN.DUTY, coil, mode, value: duty, isFloat: true });
 }
 
+/**
+ * SysEx frame for a single mid-song coil parameter change (a CoilEvent):
+ * ontime (µs, integer) or duty (fraction, IEEE-754 float), targeting one coil.
+ */
+export function coilEventFrame(
+  coilIndex: number,
+  param: 'ontime' | 'duty',
+  value: number,
+  mode: number = MODE_BYTE.midi,
+): number[] {
+  return param === 'duty'
+    ? encodeDuty(coilIndex, value, mode)
+    : encodeOntime(coilIndex, value, mode);
+}
+
 /** Firing frequency in Hz (integer, like Syfoh sends for whole-number values). */
 export function encodeBps(
   coil: number,

@@ -2,12 +2,13 @@
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import { compileCoilConfig, maskToChannels } from '@/sysex/syntherrupter';
+import { compileCoilConfig, coilEventFrame, maskToChannels } from '@/sysex/syntherrupter';
 import { envelope, envelopeAmplitude } from '@/sysex/envelopes';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
+import { effectiveRatio } from '@/midi/automation';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
-import type { Song } from '@/types/domain';
+import type { CoilConfig, CoilParam, Song } from '@/types/domain';
 import MidiPreview from '@/components/play/MidiPreview.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
@@ -16,8 +17,9 @@ const emit = defineEmits<{
   (e: 'songFinished'): void;
   (e: 'playingChange', value: boolean): void;
 }>();
-const props = withDefaults(defineProps<{ showAutoplay?: boolean }>(), {
+const props = withDefaults(defineProps<{ showAutoplay?: boolean; compactGraph?: boolean }>(), {
   showAutoplay: true,
+  compactGraph: false,
 });
 const midiStore = useMidiStore();
 
@@ -27,9 +29,16 @@ const isPlaying = ref(false);
 // MIDI analysis + visualisation (VU / score / coil occupancy tabs)
 const analysis = ref<MidiAnalysis | null>(null);
 const playheadMs = ref(0);
-type Viz = 'vu' | 'roll' | 'lanes';
+type Viz = 'vu' | 'roll' | 'lanes' | 'combined';
 const viz = ref<Viz>((localStorage.getItem('playerViz') as Viz) || 'vu');
 watch(viz, (v) => localStorage.setItem('playerViz', v));
+// which automation parameter the read-only coils view overlays
+const playerParam = ref<CoilParam>('ontime');
+// MidiPreview view: the combined (score+coils) mode is only offered when not compact
+const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
+  if (viz.value === 'combined') return props.compactGraph ? 'lanes' : 'combined';
+  return viz.value === 'lanes' ? 'lanes' : 'roll';
+});
 let rafId: number | null = null;
 let playStart = 0;
 const ontimeRatio = ref(100);
@@ -90,9 +99,12 @@ interface SmfPlayerInstance {
   startPlay(): void;
   stopPlay(): void;
   finished: boolean;
+  /** Wall-clock origin (performance.now) the player schedules output against. */
+  startTime: number;
   dispEventMonitor: (msg: unknown[], type: unknown) => void;
 }
 let smfPlayer: SmfPlayerInstance | null = null;
+const PLAY_LATENCY_MS = 800; // output look-ahead passed to the SmfPlayer
 let finishedTimer: ReturnType<typeof setInterval> | null = null;
 let loadedPath: string | null = null;
 // set by playSong() when a song must auto-start as soon as its MIDI is parsed
@@ -148,13 +160,15 @@ function stopPlayhead(): void {
 function dutyPct(duty: number): number {
   return Math.round(duty * 1e4) / 100;
 }
-// legend shows the EFFECTIVE values = base × the live multiplier faders, so it
-// updates as the user drags the ontime/duty sliders.
-function effOntime(us: number): number {
-  return Math.round((us * ontimeRatio.value) / 100);
+// legend shows the EFFECTIVE values = base × the live faders × the active
+// automation ratio at the playhead, so it tracks both the sliders and events.
+function effOntime(c: CoilConfig): number {
+  const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'ontime', playheadMs.value);
+  return Math.round((c.ontimeUs * r * ontimeRatio.value) / 100);
 }
-function effDutyPct(duty: number): number {
-  return dutyPct((duty * dutyRatio.value) / 100);
+function effDutyPct(c: CoilConfig): number {
+  const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'duty', playheadMs.value);
+  return dutyPct((c.duty * r * dutyRatio.value) / 100);
 }
 function onAutoplayToggle(e: Event): void {
   midiStore.setAutoplay((e.target as HTMLInputElement).checked);
@@ -236,6 +250,28 @@ function executeConfig(): void {
   }
 }
 
+/**
+ * Schedule every mid-song coil change (CoilEvent) as a SysEx frame on the same
+ * timestamped output queue as the notes, so it lands exactly in sync with the
+ * audio. `smfPlayer.startTime` is the wall-clock origin the player schedules
+ * against; `+ PLAY_LATENCY_MS` matches the look-ahead applied to the notes.
+ */
+function scheduleCoilEvents(): void {
+  const out = midiStore.midiOutput;
+  const events = song.value?.events ?? [];
+  const coils = song.value?.coils ?? [];
+  if (!out || !smfPlayer || events.length === 0) return;
+  for (const ev of events) {
+    const coil = coils.find((c) => c.coilIndex === ev.coilIndex);
+    if (!coil) continue;
+    // ev.value is a RATIO of the coil's configured value (1.0 = 100%)
+    const base = ev.param === 'duty' ? coil.duty : coil.ontimeUs;
+    out.send(coilEventFrame(ev.coilIndex, ev.param, base * ev.value), {
+      time: smfPlayer.startTime + ev.atMs + PLAY_LATENCY_MS,
+    });
+  }
+}
+
 function play(): void {
   if (!parsedMidiFile.value || !midiStore.midiOutput) return;
   stop();
@@ -249,9 +285,10 @@ function play(): void {
   const ch2 = maskToChannels(song.value?.output2Mask ?? 0);
   smfPlayer = new SmfPlayer(midiStore.midiOutput, midiStore.midiOutput2, ch1, ch2) as unknown as SmfPlayerInstance;
   smfPlayer.dispEventMonitor = dispEventMonitor;
-  smfPlayer.init(parsedMidiFile.value, 800, 0);
+  smfPlayer.init(parsedMidiFile.value, PLAY_LATENCY_MS, 0);
   smfPlayer.startPlay();
   startPlayhead();
+  scheduleCoilEvents();
   finishedTimer = setInterval(() => {
     if (smfPlayer?.finished) {
       // stop() FIRST (clears this timer) so a re-entrant playSong() from the
@@ -262,12 +299,24 @@ function play(): void {
   }, 100);
 }
 
+/** Flush an output's scheduled-but-unsent messages, if the browser supports it. */
+function clearOutput(out: typeof midiStore.midiOutput): void {
+  const o = out as unknown as { clear?: () => void } | null;
+  if (o && typeof o.clear === 'function') o.clear();
+}
+
 function stop(): void {
   pendingAutoplay = false; // an explicit stop cancels any in-flight auto-start
   if (finishedTimer) { clearInterval(finishedTimer); finishedTimer = null; }
   if (isPlaying.value) emit('playingChange', false);
   isPlaying.value = false;
   if (smfPlayer) smfPlayer.stopPlay();
+  // drop anything still scheduled ahead (note tail + future coil-event SysEx)…
+  clearOutput(midiStore.midiOutput);
+  clearOutput(midiStore.midiOutput2);
+  // …then silence whatever is sounding right now.
+  midiStore.midiOutput?.sendAllSoundOff();
+  midiStore.midiOutput2?.sendAllSoundOff();
   stopPlayhead();
   resetNotes();
 }
@@ -342,8 +391,8 @@ defineExpose({ loadSong, playSong, stop });
         <div v-for="c in legendCoils" :key="c.coilIndex" class="player-coil" :style="{ '--c': coilColor(c.coilIndex) }">
           <span class="player-coil__chip">{{ c.coilIndex }}</span>
           <span class="player-coil__readouts">
-            <span class="player-coil__readout">{{ effOntime(c.ontimeUs) }}<i>µs</i></span>
-            <span class="player-coil__readout">{{ effDutyPct(c.duty) }}<i>%</i></span>
+            <span class="player-coil__readout">{{ effOntime(c) }}<i>µs</i></span>
+            <span class="player-coil__readout">{{ effDutyPct(c) }}<i>%</i></span>
           </span>
         </div>
       </div>
@@ -373,6 +422,9 @@ defineExpose({ loadSong, playSong, stop });
         <button type="button" :class="{ 'is-active': viz === 'lanes' }" @click="viz = 'lanes'">
           <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.viewCoils') }}
         </button>
+        <button v-if="!compactGraph" type="button" :class="{ 'is-active': viz === 'combined' }" @click="viz = 'combined'">
+          <span class="icon"><i class="fas fa-layer-group"></i></span>{{ $t('label.viewCombined') }}
+        </button>
       </div>
 
       <div class="player-viz__body">
@@ -390,7 +442,8 @@ defineExpose({ loadSong, playSong, stop });
         </div>
         <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="song?.coils ?? []"
           :coil-count="song?.coilCount ?? 0" :output2-mask="song?.output2Mask ?? 0"
-          :view="viz === 'lanes' ? 'lanes' : 'roll'" :playhead-ms="playheadMs" :playing="isPlaying" />
+          :view="previewView" :playhead-ms="playheadMs" :playing="isPlaying"
+          :events="song?.events ?? []" v-model:edit-param="playerParam" :compact="compactGraph" />
       </div>
     </div>
 

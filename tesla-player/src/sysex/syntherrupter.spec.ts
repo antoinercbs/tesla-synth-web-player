@@ -17,6 +17,7 @@ import {
   unpack7,
   maskToChannels,
   channelsToMask,
+  coilEventFrame,
 } from './syntherrupter';
 
 /*
@@ -166,6 +167,11 @@ describe('Syntherrupter encoder — byte-exact against the production DB', () =>
     expect(ch[1]).toBe(false);
     expect(ch[2]).toBe(true);
     expect(ch[15]).toBe(false);
+  });
+
+  it('coilEventFrame matches the per-param encoders (mid-song change)', () => {
+    expect(coilEventFrame(2, 'ontime', 40)).toEqual(encodeOntime(2, 40, MODE_BYTE.midi));
+    expect(coilEventFrame(0, 'duty', 0.05)).toEqual(encodeDuty(0, 0.05, MODE_BYTE.midi));
   });
 
   it('hex helpers are inverse', () => {
