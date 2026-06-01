@@ -14,7 +14,7 @@
           <span class="icon"><i class="fas fa-play"></i></span>{{ $t('nav.play') }}
         </router-link>
         <router-link class="nav-item" :to="{ name: 'edit' }">
-          <span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('nav.edit') }}
+          <span class="icon"><i class="fas fa-pencil"></i></span>{{ $t('nav.edit') }}
         </router-link>
         <router-link class="nav-item" :to="{ name: 'playlists' }">
           <span class="icon"><i class="fas fa-list-ul"></i></span>{{ $t('nav.playlists') }}
