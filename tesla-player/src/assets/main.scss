@@ -716,9 +716,18 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 
 // playback progress under the song title
 .player-progress { display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem 0.6rem; }
-.player-progress__bar { flex: 1 1 auto; height: 4px; background: var(--bg-2); border-radius: 999px; overflow: hidden; }
-.player-progress__fill { height: 100%; background: var(--volt); box-shadow: 0 0 8px var(--volt); transition: width 0.08s linear; }
-.player-progress__time { flex: 0 0 auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-mute); }
+.player-progress__bar { position: relative; flex: 1 1 auto; height: 5px; background: var(--bg-2); border-radius: 999px; cursor: pointer; touch-action: none; }
+// taller invisible hit area so the thin bar is easy to grab without changing layout
+.player-progress__bar::before { content: ""; position: absolute; inset: -8px 0; }
+.player-progress__fill { height: 100%; background: var(--volt); border-radius: 999px; box-shadow: 0 0 6px -1px var(--volt); transition: width 0.08s linear; pointer-events: none; }
+.player-progress__knob {
+  position: absolute; top: 50%; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--volt); transform: translate(-50%, -50%); box-shadow: 0 0 6px -1px var(--volt);
+  pointer-events: none; opacity: 0; transition: opacity 0.12s;
+}
+.player-progress__bar:hover .player-progress__knob,
+.player-progress__bar.is-scrubbing .player-progress__knob { opacity: 1; }
+.player-progress__time { flex: 0 0 auto; font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-mute); font-variant-numeric: tabular-nums; }
 
 .player-viz { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 // display:flex (not width:100%) so the full-width tabs don't overflow with margins

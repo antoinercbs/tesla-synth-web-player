@@ -15,6 +15,8 @@ const props = withDefaults(defineProps<{
   output2Mask?: number;
   playheadMs?: number;
   playing?: boolean;
+  /** Paused = keep the playhead cursor visible (frozen) but don't auto-scroll. */
+  paused?: boolean;
   /** Mid-song coil automation points. value = RATIO of the coil's configured value (1 = 100%). */
   events?: CoilEvent[];
   editable?: boolean;
@@ -22,7 +24,7 @@ const props = withDefaults(defineProps<{
   /** Compact rail: number + ontime/duty only, no coil name. */
   compact?: boolean;
 }>(), {
-  output2Mask: 0, playheadMs: 0, playing: false,
+  output2Mask: 0, playheadMs: 0, playing: false, paused: false,
   events: () => [], editable: false, editParam: 'ontime', compact: false,
 });
 
@@ -376,7 +378,7 @@ watch(() => props.playheadMs, () => {
             <rect v-if="editable && view === 'combined'" :x="0" :y="0" :width="widthPx" :height="lanesTopY"
               class="preview__noedit" />
 
-            <line v-if="playing" class="preview__playhead" :x1="playheadX" :x2="playheadX" :y1="0" :y2="heightPx" />
+            <line v-if="playing || paused" class="preview__playhead" :x1="playheadX" :x2="playheadX" :y1="0" :y2="heightPx" />
           </svg>
           <div v-else class="preview__empty">{{ $t('label.noMidiData') }}</div>
         </div>

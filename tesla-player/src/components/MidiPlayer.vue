@@ -130,9 +130,14 @@ interface SmfPlayerInstance {
   init(midi: unknown, latency: number, eventNo: number): void;
   startPlay(): void;
   stopPlay(): void;
+  /** Reposition the event cursor to `targetMs` (no output); sets `eventTime`. */
+  seek(targetMs: number): void;
+  setGM(): void;
   finished: boolean;
   /** Wall-clock origin (performance.now) the player schedules output against. */
   startTime: number;
+  /** Cumulative song position (ms) of the cursor — set by seek / advanced by playback. */
+  eventTime: number;
   /** Manual timing offset (ms) added to the 2nd output (hardware calibration). */
   output2Offset: number;
   dispEventMonitor: (msg: unknown[], type: unknown) => void;
@@ -150,8 +155,10 @@ let loadedPath: string | null = null;
 // set by playSong() when a song must auto-start as soon as its MIDI is parsed
 let pendingAutoplay = false;
 
-const canPlay = computed(() => !!parsedMidiFile.value && !!midiStore.midiOutput && !isPlaying.value);
-const canStop = computed(() => isPlaying.value);
+// `paused` = frozen at a position (cued), not sounding. `isPlaying` = actively sounding.
+const paused = ref(false);
+const canTransport = computed(() => !!parsedMidiFile.value && !!midiStore.midiOutput);
+const canStop = computed(() => isPlaying.value || paused.value);
 const canPanic = computed(() => !!midiStore.midiOutput);
 const canSysex = computed(() => !!song.value && !!midiStore.midiOutput);
 
@@ -195,10 +202,6 @@ function startPlayhead(): void {
     rafId = requestAnimationFrame(tick);
   };
   rafId = requestAnimationFrame(tick);
-}
-function stopPlayhead(): void {
-  if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; }
-  playheadMs.value = 0;
 }
 /** duty fraction (0..1) → percentage with up to 2 decimals. */
 function dutyPct(duty: number): number {
@@ -300,12 +303,13 @@ function executeConfig(): void {
  * audio. `smfPlayer.startTime` is the wall-clock origin the player schedules
  * against; `+ PLAY_LATENCY_MS` matches the look-ahead applied to the notes.
  */
-function scheduleCoilEvents(): void {
+function scheduleCoilEvents(fromMs = 0): void {
   const out = midiStore.midiOutput;
   const events = song.value?.events ?? [];
   const coils = song.value?.coils ?? [];
   if (!out || !smfPlayer || events.length === 0) return;
   for (const ev of events) {
+    if (ev.atMs < fromMs) continue; // past events: applied immediately via applyCoilStateAt
     const coil = coils.find((c) => c.coilIndex === ev.coilIndex);
     if (!coil) continue;
     // ev.value is a RATIO of the coil's configured value (1.0 = 100%)
@@ -316,39 +320,154 @@ function scheduleCoilEvents(): void {
   }
 }
 
-function play(): void {
-  if (!parsedMidiFile.value || !midiStore.midiOutput) return;
-  midiStore.midiOutput.resume?.(); // unlock the synth's AudioContext (play is a gesture)
-  stop();
-  isPlaying.value = true;
-  emit('playingChange', true);
-  resetNotes();
-  seedPrograms();
-  executeConfig();
+/** Apply each coil's automation level at song-position `ms` immediately, so a jump
+ *  leaves the coils where the events would have without replaying them. */
+function applyCoilStateAt(ms: number): void {
+  const out = midiStore.midiOutput;
+  if (!out) return;
+  for (const coil of song.value?.coils ?? []) {
+    const ro = effectiveRatio(song.value?.events ?? [], coil.coilIndex, 'ontime', ms);
+    const rd = effectiveRatio(song.value?.events ?? [], coil.coilIndex, 'duty', ms);
+    out.send(coilEventFrame(coil.coilIndex, 'ontime', coil.ontimeUs * ro));
+    out.send(coilEventFrame(coil.coilIndex, 'duty', coil.duty * rd));
+  }
+}
+
+/** Build a fresh SmfPlayer for the current song/outputs (cursor at the start). */
+function buildPlayer(): SmfPlayerInstance {
   const coilUnion = (song.value?.coils ?? []).reduce((m, c) => m | c.channelMask, 0);
   const ch1 = maskToChannels(coilUnion);
   const ch2 = maskToChannels(song.value?.output2Mask ?? 0);
-  smfPlayer = new SmfPlayer(midiStore.midiOutput, midiStore.midiOutput2, ch1, ch2) as unknown as SmfPlayerInstance;
-  smfPlayer.dispEventMonitor = dispEventMonitor;
-  smfPlayer.output2Offset = midiStore.output2OffsetMs; // hardware calibration for output 2
-  smfPlayer.init(parsedMidiFile.value, PLAY_LATENCY_MS, 0);
-  smfPlayer.startPlay();
+  const p = new SmfPlayer(midiStore.midiOutput, midiStore.midiOutput2, ch1, ch2) as unknown as SmfPlayerInstance;
+  p.dispEventMonitor = dispEventMonitor;
+  p.output2Offset = midiStore.output2OffsetMs; // hardware calibration for output 2
+  p.init(parsedMidiFile.value, PLAY_LATENCY_MS, 0);
+  return p;
+}
+
+function startFinishedTimer(): void {
   finishedAt = null;
-  startPlayhead();
-  scheduleCoilEvents();
   finishedTimer = setInterval(() => {
     if (!smfPlayer?.finished) return;
     // The player reports `finished` at the NOMINAL end, but events are scheduled one
     // look-ahead later, so the tail is still sounding. Wait that long before stopping
-    // (otherwise stop()'s output flush would cut the last PLAY_LATENCY_MS of audio and
-    // the bar would never reach the end).
+    // (otherwise the output flush would cut the last PLAY_LATENCY_MS of audio and the
+    // bar would never reach the end).
     if (finishedAt == null) { finishedAt = performance.now(); return; }
     if (performance.now() - finishedAt < PLAY_LATENCY_MS) return;
-    // stop() FIRST (clears this timer) so a re-entrant playSong() from the
-    // songFinished handler — e.g. repeat='one' — keeps its fresh timer.
     stop();
     emit('songFinished');
   }, 100);
+}
+
+/** Tear down the live engine: timers, scheduled output, sounding notes, playhead loop.
+ *  Does NOT touch isPlaying/paused/playheadMs — callers set the resulting state. */
+function teardownPlayback(): void {
+  pendingAutoplay = false;
+  finishedAt = null;
+  if (finishedTimer) { clearInterval(finishedTimer); finishedTimer = null; }
+  if (smfPlayer) smfPlayer.stopPlay();
+  clearOutput(midiStore.midiOutput);
+  clearOutput(midiStore.midiOutput2);
+  midiStore.midiOutput?.sendAllSoundOff();
+  midiStore.midiOutput2?.sendAllSoundOff();
+  if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } // freeze the playhead in place
+  resetNotes();
+}
+
+/** Unified entry: (re)configure and play from song-position `fromMs` (0 = the start). */
+function playFrom(fromMs: number): void {
+  if (!parsedMidiFile.value || !midiStore.midiOutput) return;
+  midiStore.midiOutput.resume?.(); // unlock the synth's AudioContext (a play is a gesture)
+  const wasPlaying = isPlaying.value;
+  teardownPlayback();
+  seedPrograms();
+  executeConfig();
+  smfPlayer = buildPlayer();
+  if (fromMs > 0) smfPlayer.seek(fromMs); // position the cursor (eventTime ≈ fromMs)
+  else smfPlayer.setGM();
+  applyCoilStateAt(smfPlayer.eventTime); // coils → their automation level at this position
+  // map wall-now to this song position, then schedule notes (player) + future coil events
+  smfPlayer.startTime = performance.now() - smfPlayer.eventTime;
+  startPlayhead();
+  scheduleCoilEvents(smfPlayer.eventTime);
+  smfPlayer.startPlay();
+  isPlaying.value = true;
+  paused.value = false;
+  if (!wasPlaying) emit('playingChange', true);
+  startFinishedTimer();
+}
+
+function play(): void {
+  playFrom(0);
+}
+
+/** Freeze playback at the current position (cued). The cursor + playhead are kept;
+ *  pressing play resumes from here. */
+function pause(): void {
+  if (!isPlaying.value) return;
+  teardownPlayback();
+  isPlaying.value = false;
+  paused.value = true;
+  emit('playingChange', false);
+}
+
+function togglePlayPause(): void {
+  if (isPlaying.value) pause();
+  // Resume from playheadMs = the HEARD position (0 if stopped, else the frozen paused
+  // playhead). Correct because pause flushes the look-ahead, so the last sound heard was
+  // exactly playheadMs — restarting there replays the rest with no gap and no double-play.
+  else playFrom(playheadMs.value);
+}
+
+/** Jump to song-position `ms`. While playing → keep playing from there; otherwise
+ *  just move the playhead and stay silent (no surprise coil output). */
+function seek(ms: number): void {
+  if (!parsedMidiFile.value) return;
+  const target = Math.max(0, Math.min(ms, durationMs.value || 0));
+  if (isPlaying.value) {
+    playFrom(target);
+  } else {
+    playheadMs.value = target;
+    paused.value = true; // cued at the new position
+    updateLevels();
+  }
+}
+
+// --- progress-bar scrubbing (click / drag to seek) ----------------------------
+const seekBar = ref<HTMLElement | null>(null);
+const scrubbing = ref(false);
+const scrubMs = ref(0);
+// the fill/knob follow the drag preview while scrubbing, otherwise the playhead
+const seekPct = computed(() => {
+  const d = durationMs.value;
+  if (scrubbing.value) return d ? Math.min(100, (scrubMs.value / d) * 100) : 0;
+  return progressPct.value;
+});
+function seekMsFromEvent(e: PointerEvent): number {
+  const el = seekBar.value;
+  if (!el) return 0;
+  const r = el.getBoundingClientRect();
+  const frac = r.width > 0 ? Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) : 0;
+  return frac * (durationMs.value || 0);
+}
+function onSeekDown(e: PointerEvent): void {
+  if (scrubbing.value || !song.value || !durationMs.value) return; // ignore re-entrant pointerdown
+  scrubbing.value = true;
+  scrubMs.value = seekMsFromEvent(e);
+  window.addEventListener('pointermove', onSeekMove);
+  window.addEventListener('pointerup', onSeekUp);
+}
+function onSeekMove(e: PointerEvent): void {
+  if (scrubbing.value) scrubMs.value = seekMsFromEvent(e);
+}
+function onSeekUp(): void {
+  window.removeEventListener('pointermove', onSeekMove);
+  window.removeEventListener('pointerup', onSeekUp);
+  if (!scrubbing.value) return;
+  const target = scrubMs.value;
+  scrubbing.value = false;
+  seek(target); // commit on release (each seek rebuilds the engine → avoid per-move churn)
 }
 
 /** Flush an output's scheduled-but-unsent messages, if the browser supports it. */
@@ -358,20 +477,12 @@ function clearOutput(out: typeof midiStore.midiOutput): void {
 }
 
 function stop(): void {
-  pendingAutoplay = false; // an explicit stop cancels any in-flight auto-start
-  finishedAt = null;
-  if (finishedTimer) { clearInterval(finishedTimer); finishedTimer = null; }
-  if (isPlaying.value) emit('playingChange', false);
+  const wasPlaying = isPlaying.value;
+  teardownPlayback();
   isPlaying.value = false;
-  if (smfPlayer) smfPlayer.stopPlay();
-  // drop anything still scheduled ahead (note tail + future coil-event SysEx)…
-  clearOutput(midiStore.midiOutput);
-  clearOutput(midiStore.midiOutput2);
-  // …then silence whatever is sounding right now.
-  midiStore.midiOutput?.sendAllSoundOff();
-  midiStore.midiOutput2?.sendAllSoundOff();
-  stopPlayhead();
-  resetNotes();
+  paused.value = false;
+  if (wasPlaying) emit('playingChange', false);
+  playheadMs.value = 0;
 }
 
 function panic(): void {
@@ -495,10 +606,14 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
       </div>
     </div>
 
-    <!-- playback progress, right under the song title -->
+    <!-- playback progress (click / drag to seek), right under the song title -->
     <div v-if="song" class="player-progress">
-      <div class="player-progress__bar"><div class="player-progress__fill" :style="{ width: progressPct + '%' }"></div></div>
-      <span class="player-progress__time">{{ fmt(playheadMs) }} / {{ fmt(durationMs) }}</span>
+      <div class="player-progress__bar" :class="{ 'is-scrubbing': scrubbing }" ref="seekBar"
+        @pointerdown="onSeekDown" :title="$t('label.seek')">
+        <div class="player-progress__fill" :style="{ width: seekPct + '%' }"></div>
+        <div class="player-progress__knob" :style="{ left: seekPct + '%' }"></div>
+      </div>
+      <span class="player-progress__time">{{ fmt(scrubbing ? scrubMs : playheadMs) }} / {{ fmt(durationMs) }}</span>
     </div>
 
     <p v-if="!midiStore.midiOutput" class="player-hint">
@@ -539,7 +654,7 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
         </div>
         <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="song?.coils ?? []"
           :coil-count="song?.coilCount ?? 0" :output2-mask="song?.output2Mask ?? 0"
-          :view="previewView" :playhead-ms="playheadMs" :playing="isPlaying"
+          :view="previewView" :playhead-ms="playheadMs" :playing="isPlaying" :paused="paused"
           :events="song?.events ?? []" v-model:edit-param="playerParam" :compact="compactGraph" />
       </div>
     </div>
@@ -602,8 +717,8 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
     </div>
 
     <div class="player-transport">
-      <button class="btn btn--volt" type="button" :disabled="!canPlay" @click="play">
-        <span class="icon"><i class="fas fa-play"></i></span>Play
+      <button class="btn btn--volt" type="button" :disabled="!canTransport" @click="togglePlayPause">
+        <span class="icon"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></span>{{ isPlaying ? 'Pause' : 'Play' }}
       </button>
       <button class="btn" :class="{ 'btn--danger': isPlaying }" type="button" :disabled="!canStop" @click="stop">
         <span class="icon"><i class="fas fa-stop"></i></span>Stop

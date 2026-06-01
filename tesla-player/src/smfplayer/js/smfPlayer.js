@@ -100,6 +100,28 @@ SmfPlayer.prototype={
             this.startPlay();
         }
     },
+    // Reposition the event cursor to the first event at/after `targetMs`, accumulating
+    // eventTime through the tempo map WITHOUT emitting anything (for a progress-bar seek).
+    // The caller then sets startTime = now - eventTime to resume from this position.
+    seek: function(targetMs) {
+        this.posMoving = true;          // belt-and-suspenders: suppress any output
+        this.getFirstEvent();           // rewind cursor to the very start
+        this.eventTime = 0;
+        this.finished = false;
+        // 120 BPM until the first setTempo (matches the front-end analyzeMidi tempo map)
+        this.interval = (500000 / 1000) / this.ticksPerBeat;
+        while (this.nextEventInfo != null) {
+            var info = this.nextEventInfo;
+            var next = this.eventTime + info.ticksToEvent * this.interval;
+            if (next > targetMs) break; // the next event is past the target → stop here
+            this.eventTime = next;
+            if (info.event.type === 'meta' && info.event.subtype === 'setTempo') {
+                this.interval = (info.event.microsecondsPerBeat / 1000) / this.ticksPerBeat;
+            }
+            this._getNextEvent();
+        }
+        this.posMoving = false;
+    },
     _getNextEvent: function () {
         this.eventNo++;
  		    var ticksToNextEvent = null;
