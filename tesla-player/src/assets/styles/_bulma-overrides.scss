@@ -1,0 +1,67 @@
+// ===========================================================================
+//  BULMA OVERRIDES for the relocated PLAY / PLAYLIST components
+// ===========================================================================
+.has-background-light { background: transparent !important; }
+
+.panel {
+  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+}
+.panel-heading {
+  background: var(--volt-06) !important; color: var(--text) !important;
+  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em;
+  font-size: 0.82rem !important; border-bottom: 1px solid var(--line);
+}
+.panel-block { color: var(--text); border-color: var(--line) !important; }
+.panel-block:hover { background: var(--line-005); }
+.panel-icon { color: var(--text-dim); }
+
+.button {
+  font-family: var(--font-display); letter-spacing: 0.02em; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03); border-color: var(--line-strong); color: var(--text);
+}
+.button:hover { border-color: var(--text-dim); color: #fff; }
+.button.is-warning { background: var(--coil-1); border-color: var(--coil-1); color: var(--ink); }
+.button.is-danger { background: var(--danger); border-color: var(--danger); color: #fff; }
+.button.is-link { background: var(--volt); border-color: var(--volt); color: var(--ink); }
+.button.is-dark { background: var(--panel-2); border-color: var(--line-strong); }
+.button[disabled] { opacity: 0.4; }
+
+.input, .textarea, .select select {
+  background: var(--bg-2); border-color: var(--line); color: var(--text); border-radius: 8px;
+}
+.input:focus, .select select:focus { border-color: var(--volt); box-shadow: 0 0 0 1px var(--volt); }
+.input::placeholder { color: var(--text-mute); }
+
+.pagination-link { color: var(--text); border-color: var(--line); }
+.pagination-link.is-current { background: var(--volt); border-color: var(--volt); color: var(--ink); }
+
+// slider (bulma-slider) accent
+input[type="range"].slider.is-warning::-webkit-slider-thumb { background: var(--volt) !important; }
+input[type="range"].slider:focus { outline: none; }
+
+// web build: discreet "download desktop app" link at the very bottom (no box)
+.sidebar__action {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%; margin-top: 0.1rem; padding: 0.45rem 0.4rem;
+  background: none; border: none; cursor: pointer;
+  font-size: 0.78rem; color: var(--text-mute);
+}
+.sidebar__action:hover { color: var(--volt); }
+
+// desktop app foot: a prominent Sync button + a row of server-config + language
+.sidebar-foot-el {
+  margin-top: 0.5rem; padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.sidebar-foot-el__sync { width: 100%; justify-content: center; gap: 0.5rem; }
+.sidebar-foot-el__row { display: flex; align-items: center; gap: 0.5rem; }
+.sidebar-foot-el__cfg {
+  flex: 1 1 auto; justify-content: center; gap: 0.45rem;
+  font-size: 0.72rem; padding: 0.45rem 0.6rem;
+}
+.sidebar-foot-el__row .select-field { flex: 0 0 auto; width: auto; }
+.sidebar-foot-el__row .select-field select {
+  padding: 0.35rem 1.6rem 0.35rem 0.55rem; font-size: 0.8rem;
+}

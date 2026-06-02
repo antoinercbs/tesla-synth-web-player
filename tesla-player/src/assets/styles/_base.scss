@@ -1,0 +1,28 @@
+
+html { background: var(--bg); }
+
+body {
+  font-family: var(--font-body);
+  color: var(--text);
+  background:
+    radial-gradient(1200px 620px at 78% -12%, var(--volt-10), transparent 60%),
+    radial-gradient(900px 520px at -10% 115%, rgba(177, 92, 255, 0.09), transparent 55%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+#app { position: relative; z-index: 1; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--line-022);
+  border-radius: 6px; border: 2px solid transparent; background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--line-040); background-clip: padding-box; }
+
+// --- typography ------------------------------------------------------------
+h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
+.mono { font-family: var(--font-mono); }
+

@@ -1,0 +1,76 @@
+// ===========================================================================
+//  "HIGH-VOLTAGE LAB" THEME — layered over Bulma
+// ===========================================================================
+// Colour tints are derived from rgb-channel triplets via `rgb(var(--x-rgb) / α)`
+// so each colour has a SINGLE source of truth and any opacity is one token away.
+// `rgb(R G B / α)` is the exact equivalent of the old `rgba(R, G, B, α)`.
+:root {
+  // surfaces
+  --bg:        #080b11;
+  --bg-2:      #0c111a;
+  --panel:     #0f1620;
+  --panel-2:   #131c28;
+
+  // channel triplets (source of truth for the tints below)
+  --volt-rgb: 70 224 255;
+  --line-rgb: 120 160 205;
+  --bg-rgb:   8 11 17;
+
+  // hairlines / borders (were rgba(120,160,205,α))
+  --line:        rgb(var(--line-rgb) / 0.12);
+  --line-strong: rgb(var(--line-rgb) / 0.24);
+  --line-005:    rgb(var(--line-rgb) / 0.05);
+  --line-006:    rgb(var(--line-rgb) / 0.06);
+  --line-018:    rgb(var(--line-rgb) / 0.18);
+  --line-022:    rgb(var(--line-rgb) / 0.22);
+  --line-040:    rgb(var(--line-rgb) / 0.40);
+
+  // text + near-black ink (on volt/coil fills)
+  --text:      #cdd9e6;
+  --text-dim:  #7e90a6;
+  --text-mute: #55657d;
+  --ink:       #06090f;
+
+  // accents
+  --volt:      #46e0ff;   // electric cyan — the "energized" accent
+  --volt-deep: #1597c4;
+  --plasma:    #b15cff;   // violet secondary
+  --danger:    #ff4d62;
+  --ok:        #3ddc97;
+  --amber:     #e0a93b;   // power-range mid / overdrive zone
+
+  // volt tints (were rgba(70,224,255,α))
+  --volt-05: rgb(var(--volt-rgb) / 0.05);
+  --volt-06: rgb(var(--volt-rgb) / 0.06);
+  --volt-08: rgb(var(--volt-rgb) / 0.08);
+  --volt-10: rgb(var(--volt-rgb) / 0.10);
+  --volt-16: rgb(var(--volt-rgb) / 0.16);
+  --volt-30: rgb(var(--volt-rgb) / 0.30);
+  --volt-50: rgb(var(--volt-rgb) / 0.50);
+  --volt-55: rgb(var(--volt-rgb) / 0.55);
+  --volt-70: rgb(var(--volt-rgb) / 0.70);
+  --volt-95: rgb(var(--volt-rgb) / 0.95);
+
+  // scrims (were rgba(8,11,17,α))
+  --scrim-45: rgb(var(--bg-rgb) / 0.45);
+  --scrim-62: rgb(var(--bg-rgb) / 0.62);
+  --scrim-72: rgb(var(--bg-rgb) / 0.72);
+  --scrim-90: rgb(var(--bg-rgb) / 0.90);
+
+  // Per-coil identity colours (mirrored in src/ui/coil-colors.ts)
+  --coil-0: #ff4d6d;
+  --coil-1: #ffd23f;
+  --coil-2: #3ddc97;
+  --coil-3: #4cc9f0;
+  --coil-4: #b15cff;
+  --coil-5: #ff8c42;
+
+  // radii
+  --radius:      11px;
+  --radius-sm:   9px;
+  --radius-pill: 999px;
+
+  --font-display: "Chakra Petch", system-ui, sans-serif;
+  --font-body:    "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono:    "IBM Plex Mono", ui-monospace, monospace;
+}

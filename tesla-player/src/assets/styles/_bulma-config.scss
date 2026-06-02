@@ -1,0 +1,28 @@
+
+// ---------------------------------------------------------------------------
+// Bulma base, tuned dark so its compiled components are not white. Most of the
+// real theming lives in the CSS-variable layer after the import.
+// ---------------------------------------------------------------------------
+$my-text-color: #cdd9e6;
+$my-hover-color: #7488a0;
+$my-hover-background-color: #182230;
+$my-background-color: #080b11;
+
+$warning: #ffd23f;
+$danger: #ff4d62;
+$light: #131c28;
+
+$body-background-color: $my-background-color;
+$text: $my-text-color;
+$link: #46e0ff;
+$link-hover: #8af0ff;
+
+$panel-heading-size: 1em;
+$panel-block-color: $my-text-color;
+$panel-icon-color: $my-hover-color;
+$input-color: $my-text-color;
+$input-background-color: #0c111a;
+$input-border-color: var(--line-018);
+$button-color: $my-text-color;
+$pagination-color: $my-text-color;
+
