@@ -16,9 +16,9 @@ contextBridge.exposeInMainWorld('teslaElectron', {
   previewSync: () => ipcRenderer.invoke('sync:preview'),
   applySync: (selections: unknown) => ipcRenderer.invoke('sync:apply', selections),
 
-  /** Subscribe to sync progress messages. Returns an unsubscribe function. */
-  onSyncProgress: (cb: (message: string) => void) => {
-    const listener = (_e: IpcRendererEvent, message: string) => cb(message);
+  /** Subscribe to sync progress steps (i18n key + params). Returns unsubscribe. */
+  onSyncProgress: (cb: (p: unknown) => void) => {
+    const listener = (_e: IpcRendererEvent, p: unknown): void => cb(p);
     ipcRenderer.on('sync:progress', listener);
     return () => ipcRenderer.removeListener('sync:progress', listener);
   },

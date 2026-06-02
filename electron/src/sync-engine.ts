@@ -32,6 +32,9 @@ export interface DiffItem {
   localUpdatedAt: number | null;
   remoteUpdatedAt: number | null;
   defaultChoice: Choice;
+  /** The same content/name exists on the other side under a DIFFERENT uuid —
+   *  syncing it would create a duplicate, so it defaults to skip. */
+  duplicate?: boolean;
 }
 
 export interface SyncDiff {
@@ -62,7 +65,13 @@ export interface SyncContext {
   remote: RemoteConfig;
 }
 
-type Progress = (message: string) => void;
+/** A progress step: an i18n key (under `desktop.prog`) + optional params. The
+ *  renderer translates it, so the message respects the UI language. */
+export interface SyncProgress {
+  key: string;
+  params?: Record<string, string | number>;
+}
+type Progress = (p: SyncProgress) => void;
 
 interface Peer {
   base: string;
@@ -129,6 +138,8 @@ function peersOf(ctx: SyncContext): { local: Peer; remote: Peer } {
 const manifestOf = (peer: Peer): Promise<Manifest> =>
   fetchJson<Manifest>(`${peer.base}/api/sync/manifest`, { headers: peer.headers });
 
+const norm = (s: string): string => s.trim().toLowerCase();
+
 function diffType(
   type: EntityType,
   local: ManifestEntry[],
@@ -137,11 +148,13 @@ function diffType(
   const lm = new Map(local.map((e) => [e.uuid, e]));
   const rm = new Map(remote.map((e) => [e.uuid, e]));
   const items: DiffItem[] = [];
+  const onlyLocal: ManifestEntry[] = [];
+  const onlyRemote: ManifestEntry[] = [];
   for (const uuid of new Set([...lm.keys(), ...rm.keys()])) {
     const l = lm.get(uuid);
     const r = rm.get(uuid);
     if (l && r) {
-      if (l.contentHash === r.contentHash) continue; // in sync
+      if (l.contentHash === r.contentHash) continue; // in sync (same uuid + hash)
       items.push({
         type,
         uuid,
@@ -152,26 +165,50 @@ function diffType(
         defaultChoice: l.updatedAt >= r.updatedAt ? 'local' : 'remote',
       });
     } else if (l) {
-      items.push({
-        type,
-        uuid,
-        name: l.name,
-        status: 'only-local',
-        localUpdatedAt: l.updatedAt,
-        remoteUpdatedAt: null,
-        defaultChoice: 'local',
-      });
+      onlyLocal.push(l);
     } else if (r) {
-      items.push({
-        type,
-        uuid,
-        name: r.name,
-        status: 'only-remote',
-        localUpdatedAt: null,
-        remoteUpdatedAt: r.updatedAt,
-        defaultChoice: 'remote',
-      });
+      onlyRemote.push(r);
     }
+  }
+
+  // Likely-duplicate detection: an only-local and an only-remote item sharing the
+  // same content hash, or the same (trimmed, case-insensitive) name, are almost
+  // certainly the same logical item created independently on each side with
+  // different uuids. Propagating one would add a SECOND copy on the other side,
+  // so flag it and default to skip — the user can still override per row.
+  const rHash = new Set(onlyRemote.map((e) => e.contentHash).filter(Boolean));
+  const rName = new Set(onlyRemote.map((e) => norm(e.name)).filter(Boolean));
+  const lHash = new Set(onlyLocal.map((e) => e.contentHash).filter(Boolean));
+  const lName = new Set(onlyLocal.map((e) => norm(e.name)).filter(Boolean));
+  const isDup = (e: ManifestEntry, hashes: Set<string>, names: Set<string>): boolean =>
+    (!!e.contentHash && hashes.has(e.contentHash)) ||
+    (!!norm(e.name) && names.has(norm(e.name)));
+
+  for (const l of onlyLocal) {
+    const dup = isDup(l, rHash, rName);
+    items.push({
+      type,
+      uuid: l.uuid,
+      name: l.name,
+      status: 'only-local',
+      localUpdatedAt: l.updatedAt,
+      remoteUpdatedAt: null,
+      defaultChoice: dup ? 'skip' : 'local',
+      duplicate: dup,
+    });
+  }
+  for (const r of onlyRemote) {
+    const dup = isDup(r, lHash, lName);
+    items.push({
+      type,
+      uuid: r.uuid,
+      name: r.name,
+      status: 'only-remote',
+      localUpdatedAt: null,
+      remoteUpdatedAt: r.updatedAt,
+      defaultChoice: dup ? 'skip' : 'remote',
+      duplicate: dup,
+    });
   }
   return items;
 }
@@ -181,7 +218,7 @@ export async function previewSync(
   onProgress?: Progress,
 ): Promise<SyncDiff> {
   const { local, remote } = peersOf(ctx);
-  onProgress?.('Fetching manifests…');
+  onProgress?.({ key: 'comparing' });
   const [localM, remoteM] = await Promise.all([
     manifestOf(local),
     manifestOf(remote),
@@ -260,7 +297,7 @@ async function transfer(
   sel: Selected,
   warnings: string[],
   onProgress: Progress | undefined,
-  label: string,
+  direction: 'pull' | 'push',
 ): Promise<number> {
   // 1) Pull selected playlists to learn their member songs.
   const playlistPayloads = sel.playlists.size
@@ -294,16 +331,20 @@ async function transfer(
     }
     const tgt = targetMidi.get(uuid);
     if (tgt && tgt.contentHash === src.contentHash) continue; // already there
-    onProgress?.(`${label}: file ${src.name}`);
+    onProgress?.({
+      key: direction === 'push' ? 'sendFile' : 'recvFile',
+      params: { name: src.name },
+    });
     await transferFile(source, target, src);
     fileCount += 1;
   }
 
   // 5) Upsert songs then playlists on the target (apply orders them internally).
   if (songPayloads.length || playlistPayloads.length) {
-    onProgress?.(
-      `${label}: ${songPayloads.length} song(s), ${playlistPayloads.length} playlist(s)`,
-    );
+    onProgress?.({
+      key: direction === 'push' ? 'sendItems' : 'recvItems',
+      params: { songs: songPayloads.length, playlists: playlistPayloads.length },
+    });
     const res = await fetchJson<{ warnings?: string[] }>(
       `${target.base}/api/sync/apply`,
       {
@@ -324,7 +365,7 @@ export async function applySync(
   onProgress?: Progress,
 ): Promise<ApplyOutcome> {
   const { local, remote } = peersOf(ctx);
-  onProgress?.('Refreshing manifests…');
+  onProgress?.({ key: 'comparing' });
   let localM = await manifestOf(local);
   let remoteM = await manifestOf(remote);
 
@@ -344,7 +385,7 @@ export async function applySync(
       toPull,
       warnings,
       onProgress,
-      'Pulling',
+      'pull',
     );
   }
 
@@ -364,7 +405,7 @@ export async function applySync(
       toPush,
       warnings,
       onProgress,
-      'Pushing',
+      'push',
     );
   }
 

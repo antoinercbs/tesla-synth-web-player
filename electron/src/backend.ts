@@ -75,7 +75,8 @@ function runInitDb(opts: StartOptions): Promise<void> {
 }
 
 async function waitForReady(port: number, timeoutMs = 30000): Promise<void> {
-  const deadline = Date.now() + timeoutMs;
+  const start = Date.now();
+  const deadline = start + timeoutMs;
   let lastErr: unknown;
   while (Date.now() < deadline) {
     try {
@@ -84,7 +85,8 @@ async function waitForReady(port: number, timeoutMs = 30000): Promise<void> {
     } catch (err) {
       lastErr = err;
     }
-    await delay(150);
+    // Tight poll for the first second (boot is usually <0.5s), then back off.
+    await delay(Date.now() - start < 1000 ? 25 : 150);
   }
   throw new Error(
     `Backend not ready on :${port} after ${timeoutMs}ms${
@@ -95,13 +97,17 @@ async function waitForReady(port: number, timeoutMs = 30000): Promise<void> {
 
 /**
  * Forks the compiled NestJS backend (the same dist/main.js Docker runs) as an
- * Electron utility process, waits for /api/ping, and returns a stop() handle.
+ * Electron utility process. Resolves as soon as the backend signals readiness
+ * over the utilityProcess IPC channel (or, as a fallback, when /api/ping
+ * responds). Returns a stop() handle.
  */
 export async function startBackend(opts: StartOptions): Promise<BackendHandle> {
   const t0 = Date.now();
   const ms = (): number => Date.now() - t0;
-  await fs.mkdir(join(opts.dataRoot, 'uploads'), { recursive: true });
-  await fs.mkdir(join(opts.dataRoot, 'electron'), { recursive: true });
+  await Promise.all([
+    fs.mkdir(join(opts.dataRoot, 'uploads'), { recursive: true }),
+    fs.mkdir(join(opts.dataRoot, 'electron'), { recursive: true }),
+  ]);
 
   if (!existsSync(join(opts.dataRoot, 'database.db'))) {
     console.log(`[startup +${ms()}ms] first run — initialising database…`);
@@ -118,7 +124,17 @@ export async function startBackend(opts: StartOptions): Promise<BackendHandle> {
   proc.stdout?.on('data', (b: Buffer) => process.stdout.write(`[backend] ${b}`));
   proc.stderr?.on('data', (b: Buffer) => process.stderr.write(`[backend] ${b}`));
 
-  await waitForReady(opts.port);
+  // The backend posts {type:'ready'} the instant it starts listening; that beats
+  // HTTP polling (no quantization, no dependency on a route). waitForReady is the
+  // fallback and also the timeout guard if the backend crashes before listening.
+  const readySignal = new Promise<void>((resolve) => {
+    proc.on('message', (m: unknown) => {
+      if (m && typeof m === 'object' && (m as { type?: string }).type === 'ready') {
+        resolve();
+      }
+    });
+  });
+  await Promise.race([readySignal, waitForReady(opts.port)]);
   console.log(`[startup +${ms()}ms] backend ready`);
 
   const stop = (): Promise<void> =>

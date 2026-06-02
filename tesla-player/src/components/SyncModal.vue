@@ -6,6 +6,7 @@ import type {
   TeslaSyncChoice,
   TeslaSyncDiff,
   TeslaSyncDiffItem,
+  TeslaSyncProgress,
   TeslaSyncSelection,
 } from '@/types/electron';
 
@@ -14,7 +15,7 @@ const emit = defineEmits<{ (e: 'close'): void; (e: 'applied'): void }>();
 
 const loading = ref(false);
 const applying = ref(false);
-const progress = ref('');
+const progress = ref<TeslaSyncProgress | null>(null);
 const error = ref('');
 const diff = ref<TeslaSyncDiff | null>(null);
 const result = ref<TeslaApplyOutcome | null>(null);
@@ -47,7 +48,7 @@ async function preview(): Promise<void> {
   loading.value = true;
   error.value = '';
   result.value = null;
-  progress.value = '';
+  progress.value = null;
   try {
     const d = await window.teslaElectron!.previewSync();
     diff.value = d;
@@ -69,7 +70,7 @@ async function apply(): Promise<void> {
   if (!diff.value) return;
   applying.value = true;
   error.value = '';
-  progress.value = '';
+  progress.value = null;
   try {
     const selections: TeslaSyncSelection[] = diff.value.items.map((i) => ({
       type: i.type,
@@ -123,8 +124,8 @@ watch(
 
 onMounted(() => {
   unsubscribe =
-    window.teslaElectron?.onSyncProgress((msg) => {
-      progress.value = msg;
+    window.teslaElectron?.onSyncProgress((p) => {
+      progress.value = p;
     }) ?? null;
 });
 
@@ -144,6 +145,19 @@ onUnmounted(() => {
           <button class="icon-btn" type="button" :aria-label="$t('label.cancel')" @click="emit('close')">
             <i class="fas fa-xmark"></i>
           </button>
+        </div>
+
+        <!-- What sync does -->
+        <div v-if="!result" class="sync-callout">
+          <div class="sync-callout__title">
+            <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('desktop.syncIntroTitle') }}
+          </div>
+          <ul class="sync-callout__list">
+            <li>{{ $t('desktop.syncBullet1') }}</li>
+            <li>{{ $t('desktop.syncBullet2') }}</li>
+            <li>{{ $t('desktop.syncBullet3') }}</li>
+            <li>{{ $t('desktop.syncBullet4') }}</li>
+          </ul>
         </div>
 
         <!-- No server configured -->
@@ -188,6 +202,8 @@ onUnmounted(() => {
                 <div class="sync-row__info">
                   <span class="sync-row__name">{{ it.name || it.uuid }}</span>
                   <span class="sync-row__badge" :class="'is-' + it.status">{{ $t(statusKey(it.status)) }}</span>
+                  <span v-if="it.duplicate" class="sync-row__badge is-duplicate"
+                    :title="$t('desktop.duplicateHint')">{{ $t('desktop.duplicate') }}</span>
                   <span v-if="it.status === 'conflict'" class="sync-row__times">
                     {{ $t('desktop.thisComputer') }}: {{ fmt(it.localUpdatedAt) }} ·
                     {{ $t('desktop.server') }}: {{ fmt(it.remoteUpdatedAt) }}
@@ -203,7 +219,9 @@ onUnmounted(() => {
             </section>
           </div>
 
-          <p v-if="progress" class="sync-modal__progress">{{ progress }}</p>
+          <p v-if="progress" class="sync-modal__progress">
+            {{ $t('desktop.prog.' + progress.key, progress.params || {}) }}
+          </p>
 
           <div class="sync-modal__actions">
             <button class="btn btn--ghost" type="button" :disabled="applying" @click="emit('close')">
@@ -222,6 +240,19 @@ onUnmounted(() => {
 
 <style scoped>
 .sync-modal { max-width: 640px; width: 100%; }
+.sync-callout {
+  background: rgba(255, 209, 77, 0.08);
+  border: 1px solid rgba(255, 209, 77, 0.3);
+  border-left: 3px solid #ffd24d;
+  border-radius: 8px; padding: 0.7rem 0.9rem 0.75rem; margin: 0 0 1.2rem;
+}
+.sync-callout__title {
+  display: flex; align-items: center; gap: 0.45rem;
+  font-weight: 600; font-size: 0.85rem; color: #ffd966; margin-bottom: 0.45rem;
+}
+.sync-callout__title .icon { color: #ffd24d; }
+.sync-callout__list { margin: 0; padding-left: 1.15rem; color: var(--text-mute); font-size: 0.8rem; line-height: 1.5; }
+.sync-callout__list li { margin: 0.12rem 0; }
 .sync-modal__note { color: var(--text-mute); display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0; }
 .sync-modal__error { color: var(--danger, #ff6b6b); padding: 0.6rem 0; }
 .sync-modal__body { display: flex; flex-direction: column; gap: 1.1rem; max-height: 52vh; overflow-y: auto; margin-bottom: 1rem; }
@@ -238,6 +269,7 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.06); color: var(--text-mute);
 }
 .sync-row__badge.is-conflict { color: #ffb454; }
+.sync-row__badge.is-duplicate { color: #ff8c69; background: rgba(255, 140, 105, 0.12); }
 .sync-row__times { font-size: 0.68rem; color: var(--text-mute); }
 .sync-row__choice { flex: 0 0 auto; }
 .sync-modal__progress { font-size: 0.78rem; color: var(--text-mute); margin: 0 0 0.6rem; }

@@ -18,6 +18,9 @@ export interface TeslaSyncDiffItem {
   localUpdatedAt: number | null;
   remoteUpdatedAt: number | null;
   defaultChoice: TeslaSyncChoice;
+  /** Same content/name exists on the other side under a different id — syncing
+   *  would create a duplicate (defaults to skip). */
+  duplicate?: boolean;
 }
 
 export interface TeslaSyncDiff {
@@ -37,6 +40,12 @@ export interface TeslaApplyOutcome {
   warnings: string[];
 }
 
+/** A sync progress step: an i18n key (under `desktop.prog`) + optional params. */
+export interface TeslaSyncProgress {
+  key: string;
+  params?: Record<string, string | number>;
+}
+
 export interface TeslaElectronBridge {
   isElectron: true;
   getServerConfig(): Promise<TeslaServerConfigPublic>;
@@ -47,7 +56,7 @@ export interface TeslaElectronBridge {
   }): Promise<TeslaServerConfigPublic>;
   previewSync(): Promise<TeslaSyncDiff>;
   applySync(selections: TeslaSyncSelection[]): Promise<TeslaApplyOutcome>;
-  onSyncProgress(cb: (message: string) => void): () => void;
+  onSyncProgress(cb: (p: TeslaSyncProgress) => void): () => void;
   onOpenServerConfig(cb: () => void): () => void;
 }
 

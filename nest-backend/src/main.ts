@@ -28,6 +28,14 @@ async function bootstrap(): Promise<void> {
   // HOST=127.0.0.1 so the embedded backend is not exposed on the LAN.
   const host = process.env.HOST || '0.0.0.0';
   await app.listen(port, host);
+
+  // When forked by the Electron desktop app (utilityProcess), signal readiness
+  // over the IPC channel so the host can reveal the window the instant we start
+  // listening — faster and more reliable than HTTP polling. No-op elsewhere.
+  const parentPort = (
+    process as unknown as { parentPort?: { postMessage: (m: unknown) => void } }
+  ).parentPort;
+  parentPort?.postMessage({ type: 'ready' });
 }
 
 void bootstrap();
