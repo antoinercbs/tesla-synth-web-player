@@ -2,8 +2,8 @@
 import { computed, reactive, watch } from 'vue';
 import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS, type AppConfig } from '@/types/domain';
-import BaseModal from './ui/BaseModal.vue';
-import SegmentedControl from './ui/SegmentedControl.vue';
+import BaseModal from '@/components/ui/BaseModal.vue';
+import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
 const props = defineProps<{ open: boolean; config: AppConfig }>();
 const emit = defineEmits<{ (e: 'save', config: AppConfig): void; (e: 'close'): void }>();

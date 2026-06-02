@@ -138,11 +138,11 @@ import { useMidiStore } from '@/stores/midi'
 import { coilColor } from '@/ui/coil-colors'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
-import GeneralConfigModal from '@/components/GeneralConfigModal.vue'
-import ServerConfigModal from '@/components/ServerConfigModal.vue'
-import SyncModal from '@/components/SyncModal.vue'
-import DownloadModal from '@/components/DownloadModal.vue'
-import AppToaster from '@/components/AppToaster.vue'
+import GeneralConfigModal from '@/components/settings/GeneralConfigModal.vue'
+import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
+import SyncModal from '@/components/desktop/SyncModal.vue'
+import DownloadModal from '@/components/desktop/DownloadModal.vue'
+import AppToaster from '@/components/ui/AppToaster.vue'
 
 export default {
   name: 'App',

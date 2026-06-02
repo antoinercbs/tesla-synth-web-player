@@ -3,8 +3,8 @@ import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import SearchableSelect from '@/components/SearchableSelect.vue';
-import PlaylistManager from '@/components/PlaylistManager.vue';
+import SearchableSelect from '@/components/ui/SearchableSelect.vue';
+import PlaylistManager from '@/components/playlists/PlaylistManager.vue';
 import type { Playlist } from '@/types/domain';
 
 const route = useRoute();

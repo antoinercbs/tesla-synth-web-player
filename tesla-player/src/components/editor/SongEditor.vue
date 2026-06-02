@@ -7,12 +7,12 @@ import type { CoilConfig, CoilEvent, CoilParam, MidiFile, Song } from '@/types/d
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { formatDuration } from '@/utils/format';
 import { notify } from '@/utils/toast';
-import CoilConfigCard from './CoilConfigCard.vue';
-import ChannelMaskSelector from './ChannelMaskSelector.vue';
-import SearchableSelect from './SearchableSelect.vue';
-import ConfirmModal from './ConfirmModal.vue';
-import MidiInstrumentsModal from './MidiInstrumentsModal.vue';
-import MidiPreview from './play/MidiPreview.vue';
+import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
+import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
+import SearchableSelect from '@/components/ui/SearchableSelect.vue';
+import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import MidiInstrumentsModal from '@/components/settings/MidiInstrumentsModal.vue';
+import MidiPreview from '@/components/player/MidiPreview.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 

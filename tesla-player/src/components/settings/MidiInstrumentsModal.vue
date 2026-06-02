@@ -6,7 +6,7 @@ import { ENVELOPES, envelope, envelopeIcon } from '@/sysex/envelopes';
 import { notify } from '@/utils/toast';
 import type { MidiFile } from '@/types/domain';
 import SmfParser from '@/smfplayer/js/smfParser.js';
-import BaseModal from './ui/BaseModal.vue';
+import BaseModal from '@/components/ui/BaseModal.vue';
 
 const props = defineProps<{ open: boolean; file: MidiFile | null }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved', file: MidiFile): void }>();

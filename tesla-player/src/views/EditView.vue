@@ -45,10 +45,10 @@
 <script>
 import { mapStores } from 'pinia'
 import { useMidiStore } from '@/stores/midi'
-import SongEditor from '@/components/SongEditor.vue'
-import MidiPlayer from '@/components/MidiPlayer.vue'
-import SearchableSelect from '@/components/SearchableSelect.vue'
-import ResizeHandle from '@/components/ResizeHandle.vue'
+import SongEditor from '@/components/editor/SongEditor.vue'
+import MidiPlayer from '@/components/player/MidiPlayer.vue'
+import SearchableSelect from '@/components/ui/SearchableSelect.vue'
+import ResizeHandle from '@/components/ui/ResizeHandle.vue'
 
 const DOCK_MIN = 300
 const DOCK_MAX = 760

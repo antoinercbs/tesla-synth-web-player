@@ -7,7 +7,7 @@ import { programChange } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS, MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig } from '@/types/domain';
-import CoilConfigCard from '@/components/CoilConfigCard.vue';
+import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
 const midiStore = useMidiStore();

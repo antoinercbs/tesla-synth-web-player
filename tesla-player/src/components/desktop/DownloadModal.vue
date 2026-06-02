@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import axios from 'axios';
-import BaseModal from './ui/BaseModal.vue';
+import BaseModal from '@/components/ui/BaseModal.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: 'close'): void }>();

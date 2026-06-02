@@ -9,7 +9,7 @@ import { effectiveRatio } from '@/midi/automation';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig, CoilParam, Song } from '@/types/domain';
-import MidiPreview from '@/components/play/MidiPreview.vue';
+import MidiPreview from '@/components/player/MidiPreview.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 

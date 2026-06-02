@@ -9,8 +9,8 @@ import type {
   TeslaSyncProgress,
   TeslaSyncSelection,
 } from '@/types/electron';
-import BaseModal from './ui/BaseModal.vue';
-import SegmentedControl from './ui/SegmentedControl.vue';
+import BaseModal from '@/components/ui/BaseModal.vue';
+import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'applied'): void }>();

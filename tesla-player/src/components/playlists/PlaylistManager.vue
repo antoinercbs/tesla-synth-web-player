@@ -2,7 +2,7 @@
 import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import ConfirmModal from '@/components/ConfirmModal.vue';
+import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import { notify } from '@/utils/toast';

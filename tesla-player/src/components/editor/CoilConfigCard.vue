@@ -4,7 +4,7 @@ import type { CoilConfig } from '@/types/domain';
 import { coilColor } from '@/ui/coil-colors';
 import { ENVELOPES } from '@/sysex/envelopes';
 import { useMidiStore } from '@/stores/midi';
-import ChannelMaskSelector from './ChannelMaskSelector.vue';
+import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 
 const props = defineProps<{ index: number; showEnvelope?: boolean; availableChannels?: number[] | null }>();
 const coil = defineModel<CoilConfig>({ required: true });

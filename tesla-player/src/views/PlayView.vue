@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { useMidiStore } from '@/stores/midi';
-import PlaybackMode from '@/components/play/PlaybackMode.vue';
-import LiveMode from '@/components/play/LiveMode.vue';
-import FixedMode from '@/components/play/FixedMode.vue';
+import PlaybackMode from '@/components/player/PlaybackMode.vue';
+import LiveMode from '@/components/player/LiveMode.vue';
+import FixedMode from '@/components/player/FixedMode.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
 type PlayMode = 'playback' | 'live' | 'fixed';

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import BaseModal from './ui/BaseModal.vue';
+import BaseModal from '@/components/ui/BaseModal.vue';
 
 defineProps<{
   open: boolean;

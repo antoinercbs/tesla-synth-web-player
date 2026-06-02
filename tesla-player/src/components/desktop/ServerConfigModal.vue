@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, watch } from 'vue';
-import BaseModal from './ui/BaseModal.vue';
-import FormField from './ui/FormField.vue';
+import BaseModal from '@/components/ui/BaseModal.vue';
+import FormField from '@/components/ui/FormField.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved'): void }>();
