@@ -6,6 +6,9 @@ import { UPLOADS_DIR } from '../config/paths';
 
 const ALLOWED_EXTENSIONS = ['mid', 'midi'];
 
+/** A MIDI file this size is already enormous; cap uploads to bound disk/DoS. */
+const MAX_UPLOAD_BYTES = 16 * 1024 * 1024;
+
 /** Strips path separators and unusual characters, à la werkzeug secure_filename. */
 function secureFilename(name: string): string {
   return name
@@ -35,4 +38,6 @@ export const midiUploadOptions: MulterOptions = {
     }
     cb(null, true);
   },
+  // Bound a single upload (covers POST /api/midi and POST /api/sync/file).
+  limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
 };

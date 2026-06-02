@@ -21,6 +21,7 @@ The main features of this tool are:
 - A second-output channel filter (e.g. to drive monitor speakers in parallel of the coils), with a manual latency offset to align it with the coils
 - A playlist editor
 - A MIDI file manager (upload / download / delete) with a **per-channel instrument editor** that rewrites the MIDI file's program changes
+- A standalone **desktop app** (Electron, Linux/Windows) that embeds the backend for fully offline use, with optional one-click **synchronization** to a remote server (choose, per item, which side to keep)
 - Available in English and French
 
 ## Documentation
@@ -77,9 +78,27 @@ docker compose up --build
 
 Open http://localhost:5000. To put it behind a reverse proxy / change the port, edit the `ports` mapping in `docker-compose.yml`. The database (`/data/database.db`) is created automatically on first boot; TypeORM migrations run on every start.
 
-### Authentication (advices)
+### Desktop app (Electron)
 
-To add authentication in front of the hosted instance, put it behind a reverse proxy that handles auth — e.g. Traefik's basic-auth middleware, or a Keycloak gatekeeper if you run a Keycloak SSO.
+`electron/` packages a standalone desktop build that **embeds the NestJS backend** (its own SQLite database + uploads under your user profile), so it runs **fully offline** — no server required. It can optionally **synchronize** songs, MIDI files and playlists with a remote Tesla Player server: a button opens a diff of what differs between this computer and the server and lets you choose, per item, which side to keep (**add/update only — sync never deletes**). The remote URL and optional HTTP basic-auth credentials are set from *File ▸ Server configuration* (the password is stored encrypted via Electron `safeStorage`, never in the page).
+
+**Build the binaries (on a Linux host):**
+
+```bash
+cd electron
+npm install                 # downloads Electron + electron-builder
+npm run build:electron      # builds front + back, rebuilds sqlite3 for Electron, then packages
+```
+
+Artifacts land in `electron/dist-electron/` (a Linux `*.AppImage` and a Windows `*.exe`). Building the Windows `.exe` from Linux requires **Wine**; without it, only the Linux AppImage is produced.
+
+**Offer the downloads from the hosted web app:** drop the built artifacts into the server's `data/electron/` folder (i.e. `{DATA_ROOT}/electron`, already mounted by `docker-compose.yml`). The web build then shows a *Download desktop app* button at the bottom of the sidebar listing whichever platforms are present (a missing platform is simply hidden). The sync / server-config UI appears **only** in the desktop app; the download button appears **only** in the web build.
+
+> The Electron artifacts are built locally and dropped into the data volume — they are **not** built inside the Docker image (cross-building Electron/Wine in the slim runtime image is not feasible).
+
+### Authentication (important)
+
+The REST API has **no built-in authentication** and binds all interfaces by default. The endpoints under `/api/songs`, `/api/midi`, `/api/playlists` and `/api/sync/*` mutate state, so for any networked deployment you **must** put the container behind a reverse proxy that enforces auth — e.g. Traefik's basic-auth middleware (the desktop app sends those same basic-auth credentials when syncing), or a Keycloak gatekeeper if you run a Keycloak SSO. The desktop app's embedded backend binds only `127.0.0.1`, so it is never exposed on the LAN.
 
 ## Internationalization
 

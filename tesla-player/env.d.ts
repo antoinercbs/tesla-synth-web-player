@@ -7,3 +7,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+// The Electron bridge types + the `window.teslaElectron` augmentation live in
+// src/types/electron.ts (an importable module).

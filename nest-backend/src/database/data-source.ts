@@ -11,6 +11,7 @@ import { CoilModel1717200000000 } from './migrations/1717200000000-CoilModel';
 import { PlaylistCoilCount1717300000000 } from './migrations/1717300000000-PlaylistCoilCount';
 import { MidiFileDuration1717400000000 } from './migrations/1717400000000-MidiFileDuration';
 import { AppConfig1717500000000 } from './migrations/1717500000000-AppConfig';
+import { AddSyncColumns1717600000000 } from './migrations/1717600000000-AddSyncColumns';
 
 /**
  * Shared TypeORM configuration, used both by the Nest app (app.module) and the
@@ -27,6 +28,7 @@ export const dataSourceOptions: DataSourceOptions = {
     PlaylistCoilCount1717300000000,
     MidiFileDuration1717400000000,
     AppConfig1717500000000,
+    AddSyncColumns1717600000000,
   ],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,

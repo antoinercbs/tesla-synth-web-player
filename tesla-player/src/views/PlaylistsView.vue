@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
+import { useMidiStore } from '@/stores/midi';
 import SearchableSelect from '@/components/SearchableSelect.vue';
 import PlaylistManager from '@/components/PlaylistManager.vue';
 import type { Playlist } from '@/types/domain';
 
 const route = useRoute();
 const router = useRouter();
+const midiStore = useMidiStore();
 const playlists = ref<Playlist[]>([]);
 
 const routeId = computed(() => route.params.id as string | undefined);
@@ -21,12 +23,17 @@ const headTitle = computed(() => {
   return p ? p.name : '';
 });
 
-axios.get('/api/playlists').then((r) => {
-  playlists.value = (r.data as Playlist[]).map((p) => ({
-    ...p,
-    songIds: (p.songIds ?? []).filter((id) => id != null),
-  }));
-});
+function loadPlaylists(): void {
+  axios.get('/api/playlists').then((r) => {
+    playlists.value = (r.data as Playlist[]).map((p) => ({
+      ...p,
+      songIds: (p.songIds ?? []).filter((id) => id != null),
+    }));
+  });
+}
+loadPlaylists();
+// Re-read after a desktop sync may have changed playlists locally.
+watch(() => midiStore.dataRevision, loadPlaylists);
 
 // picking in the chooser navigates to the editor (getter stays null so it resets)
 const chooserPick = computed<number | null>({

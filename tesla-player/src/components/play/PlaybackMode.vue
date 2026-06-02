@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import MidiPlayer from '@/components/MidiPlayer.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
+import ResizeHandle from '@/components/ResizeHandle.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import type { Song, Playlist } from '@/types/domain';
@@ -13,6 +14,37 @@ const router = useRouter();
 const midiStore = useMidiStore();
 const player = ref<InstanceType<typeof MidiPlayer> | null>(null);
 const isPlaying = ref(false); // mirrors the player; lets the queue keep chaining
+
+/* ----- resizable split between the source/queue (left) and the player (right) ----- */
+const leftEl = ref<HTMLElement | null>(null);
+// null until the user first drags — keeps the default 5:7 proportion.
+const leftWidth = ref<number | null>(
+  Number(localStorage.getItem('playLeftWidth')) || null,
+);
+const leftStyle = computed(() =>
+  leftWidth.value != null
+    ? { flex: `0 0 ${leftWidth.value}px`, minWidth: '0' }
+    : { flex: '5 1 0', minWidth: '0' },
+);
+const rightStyle = computed(() =>
+  leftWidth.value != null
+    ? { flex: '1 1 0', minWidth: '0' }
+    : { flex: '7 1 0', minWidth: '0' },
+);
+function onLeftResizeStart(): void {
+  if (leftWidth.value == null && leftEl.value) {
+    leftWidth.value = leftEl.value.offsetWidth; // seed from the current render
+  }
+}
+function onLeftResize(dx: number): void {
+  if (leftWidth.value == null) return;
+  leftWidth.value = Math.max(320, Math.min(900, leftWidth.value + dx));
+}
+function saveLeftWidth(): void {
+  if (leftWidth.value != null) {
+    localStorage.setItem('playLeftWidth', String(leftWidth.value));
+  }
+}
 
 function editSong(song: Song): void {
   router.push({ name: 'edit', params: { id: String(song.id) } });
@@ -63,9 +95,15 @@ const compatibleSongs = computed<Song[]>(() =>
   playlistEntries.value.filter((e) => e.compatible).map((e) => e.song),
 );
 
-axios.get('/api/playlists').then((r) => {
-  playlists.value = r.data as Playlist[];
-});
+function loadPlaylists(): void {
+  axios.get('/api/playlists').then((r) => {
+    playlists.value = r.data as Playlist[];
+  });
+}
+loadPlaylists();
+// Re-read after a desktop sync may have changed playlists locally (songs/MIDI
+// come from the store, which App refreshes directly).
+watch(() => midiStore.dataRevision, loadPlaylists);
 
 /* --------------------------------- queue ---------------------------------- */
 type Repeat = 'off' | 'all' | 'one';
@@ -210,9 +248,9 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
 </script>
 
 <template>
-  <div class="columns playback">
+  <div class="playback">
     <!-- LEFT: source (songs / playlists) + the up-next queue -->
-    <div class="column is-5 playback-left">
+    <div class="playback-left" ref="leftEl" :style="leftStyle">
       <article class="play-panel source-panel">
         <header class="play-panel__head">
           <div class="segmented segmented--fill">
@@ -361,19 +399,30 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
       </article>
     </div>
 
+    <resize-handle class="playback__split" @resize-start="onLeftResizeStart"
+      @resize="onLeftResize" @resize-end="saveLeftWidth" />
+
     <!-- RIGHT: the player, alone, filling the column -->
-    <div class="column is-7 playback-right">
+    <div class="playback-right" :style="rightStyle">
       <midi-player ref="player" @songFinished="onSongFinished" @playing-change="isPlaying = $event" />
     </div>
   </div>
 </template>
 
 <style scoped>
-/* full-height two-column layout: left = source + queue, right = player */
-.playback { flex: 1 1 auto; min-height: 0; align-items: stretch; }
+/* full-height two-column layout: left = source + queue, right = player.
+   A draggable ResizeHandle sits between them; widths come from inline styles. */
+.playback { display: flex; flex: 1 1 auto; min-height: 0; align-items: stretch; }
 .playback-left { display: flex; flex-direction: column; gap: 1.1rem; min-height: 0; }
 .playback-right { display: flex; flex-direction: column; min-height: 0; }
 .playback-right :deep(.player-panel) { flex: 1 1 auto; min-height: 0; }
+
+/* narrow screens: stack and drop the divider (override the inline flex) */
+@media (max-width: 900px) {
+  .playback { flex-direction: column; }
+  .playback-left, .playback-right { flex: 1 1 auto !important; }
+  .playback__split { display: none; }
+}
 
 /* panel shell — mirrors .player-panel */
 .play-panel {

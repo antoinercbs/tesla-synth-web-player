@@ -29,11 +29,13 @@
       </button>
     </header>
     <div class="edit-body">
-      <div class="edit-body__editor">
+      <div class="edit-body__editor" :style="editorStyle">
         <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" @deleted="onDeleted"
           @instruments-saved="onInstrumentsSaved" />
       </div>
-      <aside class="edit-body__dock">
+      <resize-handle class="edit-body__split" @resize-start="onDockResizeStart" @resize="onDockResize"
+        @resize-end="saveDockWidth" />
+      <aside class="edit-body__dock" ref="dockEl" :style="dockStyle">
         <midi-player ref="player" :show-autoplay="false" :compact-graph="true" @playing-change="playing = $event" />
       </aside>
     </div>
@@ -46,12 +48,23 @@ import { useMidiStore } from '@/stores/midi'
 import SongEditor from '@/components/SongEditor.vue'
 import MidiPlayer from '@/components/MidiPlayer.vue'
 import SearchableSelect from '@/components/SearchableSelect.vue'
+import ResizeHandle from '@/components/ResizeHandle.vue'
+
+const DOCK_MIN = 300
+const DOCK_MAX = 760
 
 export default {
   name: 'EditView',
-  components: { SongEditor, MidiPlayer, SearchableSelect },
+  components: { SongEditor, MidiPlayer, SearchableSelect, ResizeHandle },
   data() {
-    return { playing: false, headerScrolled: false, scrollEl: null }
+    return {
+      playing: false,
+      headerScrolled: false,
+      scrollEl: null,
+      // Player dock width (px), drag-resizable + persisted. null = use the
+      // default 2:1 proportion (editor 2/3, player 1/3) until the user drags.
+      dockWidth: Number(localStorage.getItem('editDockWidth')) || null,
+    }
   },
   mounted() {
     this.syncPlayer()
@@ -91,9 +104,32 @@ export default {
     chooserPick: {
       get() { return null },
       set(id) { if (id) this.$router.push({ name: 'edit', params: { id: String(id) } }) }
+    },
+    // editor : player = 2 : 1 by default; once dragged, editor fills the rest.
+    editorStyle() {
+      return this.dockWidth == null ? { flex: '2 1 0', minWidth: 0 } : { flex: '1 1 0', minWidth: 0 }
+    },
+    dockStyle() {
+      return this.dockWidth == null
+        ? { flex: '1 1 0', minWidth: 0 }
+        : { flex: `0 0 ${this.dockWidth}px`, width: `${this.dockWidth}px` }
     }
   },
   methods: {
+    // Seed the px width from the current render on the first drag (keeps the 2:1 default).
+    onDockResizeStart() {
+      if (this.dockWidth == null) {
+        this.dockWidth = this.$refs.dockEl?.offsetWidth || 400
+      }
+    },
+    // Drag the divider: moving right shrinks the dock (it sits on the right).
+    onDockResize(dx) {
+      if (this.dockWidth == null) return
+      this.dockWidth = Math.min(DOCK_MAX, Math.max(DOCK_MIN, this.dockWidth - dx))
+    },
+    saveDockWidth() {
+      if (this.dockWidth != null) localStorage.setItem('editDockWidth', String(this.dockWidth))
+    },
     newSong() {
       this.$router.push({ name: 'edit', params: { id: 'new' } })
     },

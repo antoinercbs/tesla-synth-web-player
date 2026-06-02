@@ -23,6 +23,9 @@ interface MidiState {
   output2OffsetMs: number;
   /** Global operator config (coil names + default coil count). */
   appConfig: AppConfig;
+  /** Bumped after a desktop sync so views holding ad-hoc data (e.g. playlists,
+   *  which are not in this store) know to re-read from the API. */
+  dataRevision: number;
 }
 
 /** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
@@ -40,6 +43,7 @@ export const useMidiStore = defineStore('midi', {
     autoplay: localStorage.getItem('autoplay') === '1', // default OFF
     output2OffsetMs: clampOffset(Number(localStorage.getItem('midiOutput2Offset'))),
     appConfig: { coilNames: [], defaultCoilCount: 3 },
+    dataRevision: 0,
   }),
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
@@ -48,6 +52,10 @@ export const useMidiStore = defineStore('midi', {
     isSynthOutput: (state): boolean => state.midiOutput?.id === SYNTH_OUTPUT_ID,
   },
   actions: {
+    /** Signal that server-side data may have changed (e.g. after a sync). */
+    bumpDataRevision() {
+      this.dataRevision += 1;
+    },
     setAppConfig(config: AppConfig) {
       this.appConfig = {
         coilNames: Array.isArray(config.coilNames) ? config.coilNames : [],

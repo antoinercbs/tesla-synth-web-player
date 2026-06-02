@@ -2,10 +2,14 @@
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <span class="brand__bolt"><i class="fas fa-bolt"></i></span>
-        <div>
-          <div>Tesla Player</div>
-          <div class="brand__sub">Clubelek</div>
+        <router-link class="brand__emblem" :to="{ name: 'play' }" aria-label="Tesla Player"
+          :style="{ '--emblem-src': 'url(' + emblemSrc + ')' }" />
+        <div class="brand__text">
+          <router-link class="brand__app" :to="{ name: 'play' }">Tesla Player</router-link>
+          <a class="brand__label-link" href="https://clubelek.fr" target="_blank" rel="noopener"
+            title="clubelek.fr">
+            <img class="brand__label" :src="labelSrc" alt="Clubelek" />
+          </a>
         </div>
       </div>
 
@@ -72,17 +76,42 @@
         </ul>
       </section>
 
-      <div class="sidebar__foot">
-        <div class="conn" :class="{ 'is-up': isConnected }">
-          <span class="conn__dot"></span>
-          {{ isConnected ? 'online' : 'offline' }}
+      <!-- Desktop app: a prominent Sync button, then server config + language.
+           No online/offline (the backend is local). -->
+      <section v-if="isElectron" class="sidebar-foot-el">
+        <button class="btn btn--volt sidebar-foot-el__sync" type="button" @click="syncOpen = true">
+          <span class="icon"><i class="fas fa-rotate"></i></span>{{ $t('desktop.sync') }}
+        </button>
+        <div class="sidebar-foot-el__row">
+          <button class="btn btn--ghost sidebar-foot-el__cfg" type="button"
+            :title="$t('desktop.serverConfig')" @click="serverOpen = true">
+            <span class="icon"><i class="fas fa-server"></i></span>{{ $t('desktop.serverConfig') }}
+          </button>
+          <div class="select-field">
+            <select v-model="$i18n.locale" @change="onLanguageChange">
+              <option v-for="locale in $i18n.availableLocales" :key="locale" :value="locale">{{ locale }}</option>
+            </select>
+          </div>
         </div>
-        <div class="select-field">
-          <select v-model="$i18n.locale" @change="onLanguageChange">
-            <option v-for="locale in $i18n.availableLocales" :key="locale" :value="locale">{{ locale }}</option>
-          </select>
+      </section>
+
+      <!-- Web: online/offline + language, then a discreet "download app" link -->
+      <template v-else>
+        <div class="sidebar__foot">
+          <div class="conn" :class="{ 'is-up': isConnected }">
+            <span class="conn__dot"></span>
+            {{ isConnected ? 'online' : 'offline' }}
+          </div>
+          <div class="select-field">
+            <select v-model="$i18n.locale" @change="onLanguageChange">
+              <option v-for="locale in $i18n.availableLocales" :key="locale" :value="locale">{{ locale }}</option>
+            </select>
+          </div>
         </div>
-      </div>
+        <button class="sidebar__action" type="button" @click="downloadOpen = true">
+          <span class="icon"><i class="fas fa-download"></i></span>{{ $t('desktop.downloadApp') }}
+        </button>
+      </template>
     </aside>
 
     <main class="app-main">
@@ -91,6 +120,11 @@
 
     <general-config-modal :open="configOpen" :config="midiStore.appConfig"
       @save="saveConfig" @cancel="configOpen = false" />
+    <server-config-modal v-if="isElectron" :open="serverOpen"
+      @close="serverOpen = false" @saved="onServerSaved" />
+    <sync-modal v-if="isElectron" :open="syncOpen"
+      @close="syncOpen = false" @applied="onSyncApplied" />
+    <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
     <app-toaster />
   </div>
 </template>
@@ -98,21 +132,35 @@
 <script>
 import { mapStores } from 'pinia'
 import { WebMidi } from 'webmidi'
+import emblemSrc from '@/assets/emblem_high_black.svg'
+import labelSrc from '@/assets/label_high_black.svg'
 import { useMidiStore } from '@/stores/midi'
 import { coilColor } from '@/ui/coil-colors'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import GeneralConfigModal from '@/components/GeneralConfigModal.vue'
+import ServerConfigModal from '@/components/ServerConfigModal.vue'
+import SyncModal from '@/components/SyncModal.vue'
+import DownloadModal from '@/components/DownloadModal.vue'
 import AppToaster from '@/components/AppToaster.vue'
 
 export default {
   name: 'App',
-  components: { GeneralConfigModal, AppToaster },
+  components: { GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, AppToaster },
   data() {
     return {
+      emblemSrc,
+      labelSrc,
       isConnected: false,
       pingTimer: null,
       configOpen: false,
+      // Electron desktop bridge (absent in the web build).
+      isElectron: typeof window !== 'undefined' && window.teslaElectron?.isElectron === true,
+      serverOpen: false,
+      syncOpen: false,
+      unsubServerConfig: null,
+      // Web-only: desktop-app download modal.
+      downloadOpen: false,
       synthId: SYNTH_OUTPUT_ID,
       // default to the built-in synth until a real output is explicitly chosen
       selectedOutputId: localStorage.getItem('midiOutput1Id') || SYNTH_OUTPUT_ID,
@@ -178,6 +226,17 @@ export default {
     onLanguageChange() {
       localStorage.setItem('locale', this.$i18n.locale)
     },
+    // --- Desktop app (Electron-only sync/server) ---
+    onServerSaved() {
+      notify('label.settingsSaved')
+    },
+    onSyncApplied() {
+      // A pull may have changed the local DB — refresh the cached lists, and
+      // bump the data revision so views that fetch ad-hoc (playlists) re-read.
+      this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => {})
+      this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => {})
+      this.midiStore.bumpDataRevision()
+    },
     ping() {
       this.axios.get('/api/ping')
         .then(() => { this.isConnected = true })
@@ -192,9 +251,14 @@ export default {
     this.axios.get('/api/settings').then(r => this.midiStore.setAppConfig(r.data)).catch(() => {})
     this.ping()
     this.pingTimer = setInterval(this.ping, 10000)
+    // Native menu "Server configuration…" opens the modal.
+    if (this.isElectron && window.teslaElectron) {
+      this.unsubServerConfig = window.teslaElectron.onOpenServerConfig(() => { this.serverOpen = true })
+    }
   },
   beforeUnmount() {
     if (this.pingTimer) clearInterval(this.pingTimer)
+    if (this.unsubServerConfig) this.unsubServerConfig()
     if (WebMidi.enabled) {
       WebMidi.removeListener('connected', this.refreshOutputs)
       WebMidi.removeListener('disconnected', this.refreshOutputs)

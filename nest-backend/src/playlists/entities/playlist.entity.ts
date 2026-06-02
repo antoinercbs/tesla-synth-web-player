@@ -20,4 +20,20 @@ export class Playlist {
     eager: true,
   })
   playlistSongs!: PlaylistSong[];
+
+  /**
+   * Sync identity (see SyncModule). Stable across instances: generated once on
+   * create, preserved on apply. The UNIQUE index is created by the
+   * AddSyncColumns migration (nullable here to match the ALTER path).
+   */
+  @Column({ name: 'uuid', type: 'text', nullable: true })
+  uuid!: string;
+
+  /** Epoch ms of the last content change. Default "newer wins" hint for sync. */
+  @Column({ name: 'updatedAt', type: 'integer', nullable: true })
+  updatedAt!: number;
+
+  /** sha256 of the normalized aggregate (name + coilCount + ordered song uuids). */
+  @Column({ name: 'contentHash', type: 'text', nullable: true })
+  contentHash!: string;
 }

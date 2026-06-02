@@ -1,6 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { randomUUID } from 'crypto';
+import { In, Repository } from 'typeorm';
+import { Song } from '../songs/entities/song.entity';
+import { hashPlaylist } from '../sync/content-hash';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { PlaylistSong } from './entities/playlist-song.entity';
 import { Playlist } from './entities/playlist.entity';
@@ -18,6 +21,8 @@ export class PlaylistsService {
   constructor(
     @InjectRepository(Playlist)
     private readonly playlistRepository: Repository<Playlist>,
+    @InjectRepository(Song)
+    private readonly songRepository: Repository<Song>,
   ) {}
 
   async findAll(): Promise<PlaylistResponse[]> {
@@ -27,6 +32,8 @@ export class PlaylistsService {
 
   async create(dto: CreatePlaylistDto): Promise<PlaylistResponse> {
     const playlist = this.fromDto(new Playlist(), dto);
+    playlist.uuid = randomUUID();
+    await this.stampSync(playlist);
     const saved = await this.playlistRepository.save(playlist);
     return this.toResponse(saved);
   }
@@ -43,6 +50,8 @@ export class PlaylistsService {
       [id],
     );
     this.fromDto(playlist, dto);
+    // uuid is preserved (loaded with the row); only the change signal is bumped.
+    await this.stampSync(playlist);
     const saved = await this.playlistRepository.save(playlist);
     return this.toResponse(saved);
   }
@@ -69,6 +78,38 @@ export class PlaylistsService {
       return playlistSong;
     });
     return playlist;
+  }
+
+  /** Stamps the sync change-signal (updatedAt + contentHash). The hash references
+   *  member songs by their stable uuid, so it matches across instances. */
+  private async stampSync(playlist: Playlist): Promise<void> {
+    playlist.updatedAt = Date.now();
+    const songUuids = await this.resolveSongUuids(playlist.playlistSongs ?? []);
+    playlist.contentHash = hashPlaylist({
+      name: playlist.name,
+      coilCount: playlist.coilCount ?? 3,
+      songUuids,
+    });
+  }
+
+  /** Maps the playlist's ordered song ids to their uuids, dropping any that no
+   *  longer resolve (kept consistent with SyncService.applyPlaylist). */
+  private async resolveSongUuids(
+    playlistSongs: PlaylistSong[],
+  ): Promise<string[]> {
+    const ordered = [...playlistSongs].sort((a, b) => a.idx - b.idx);
+    const ids = ordered.map((ps) => ps.songId);
+    if (ids.length === 0) {
+      return [];
+    }
+    const rows = await this.songRepository.find({
+      where: { id: In(ids) },
+      select: { id: true, uuid: true },
+    });
+    const byId = new Map(rows.map((r) => [r.id, r.uuid]));
+    return ids
+      .map((id) => byId.get(id))
+      .filter((u): u is string => typeof u === 'string');
   }
 
   private toResponse(playlist: Playlist): PlaylistResponse {

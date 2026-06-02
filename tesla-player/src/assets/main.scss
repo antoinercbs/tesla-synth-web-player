@@ -117,12 +117,41 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   letter-spacing: 0.05em; font-size: 1.15rem;
   padding: 0.2rem 0.5rem 1.3rem;
 }
-.brand__bolt {
-  color: var(--volt);
-  filter: drop-shadow(0 0 6px var(--volt));
-  font-size: 1.3rem;
+// Clubelek emblem: the black SVG painted in volt via a CSS mask (shape only,
+// holes stay transparent). Links to the home (Play) view; softly irradiates a
+// volt halo (pulsing), intensifying on hover.
+.brand__emblem {
+  width: 58px; height: 56px; flex: 0 0 auto; display: inline-block;
+  background-color: var(--volt);
+  -webkit-mask: var(--emblem-src) no-repeat center / contain;
+  mask: var(--emblem-src) no-repeat center / contain;
+  mask-mode: alpha;
+  transition: transform 0.18s ease;
+  animation: emblem-irradiate 2.8s ease-in-out infinite alternate;
 }
-.brand__sub { color: var(--text-mute); font-size: 0.62rem; letter-spacing: 0.22em; text-transform: uppercase; }
+.brand__emblem:hover {
+  transform: scale(1.06);
+  animation-name: emblem-irradiate-strong;
+}
+@keyframes emblem-irradiate {
+  from { filter: drop-shadow(0 0 4px rgba(70, 224, 255, 0.3)); }
+  to   { filter: drop-shadow(0 0 12px rgba(70, 224, 255, 0.7)); }
+}
+@keyframes emblem-irradiate-strong {
+  from { filter: drop-shadow(0 0 8px rgba(70, 224, 255, 0.55)); }
+  to   { filter: drop-shadow(0 0 17px rgba(70, 224, 255, 0.95)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .brand__emblem { animation: none; filter: drop-shadow(0 0 8px rgba(70, 224, 255, 0.5)); }
+}
+.brand__text { display: flex; flex-direction: column; align-items: flex-start; gap: 0.28rem; min-width: 0; }
+// "Tesla Player" — also a link home; keeps the brand font, no underline
+.brand__app { line-height: 1; color: inherit; text-decoration: none; transition: color 0.15s ease; }
+.brand__app:hover { color: var(--volt); }
+// Clubelek wordmark (links to clubelek.fr), left-aligned under "Tesla Player"
+.brand__label-link { display: inline-flex; }
+.brand__label { height: 18px; width: auto; display: block; opacity: 0.85; filter: invert(1); }
+.brand__label-link:hover .brand__label { opacity: 1; }
 
 .nav { display: flex; flex-direction: column; gap: 0.35rem; }
 .nav-item {
@@ -276,6 +305,7 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
 
 // the embedded player is a visually distinct, sticky "bench" docked to the side
 .edit-body__dock {
+  // width is set inline (drag-resizable via the divider); these are fallbacks.
   flex: 0 0 400px; width: 400px;
   align-self: flex-start;
   position: sticky; top: 4.2rem;
@@ -283,12 +313,13 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   // the player bottom lines up with the sticky save button.
   height: calc(100vh - 4.2rem - 3.3rem);
   display: flex; flex-direction: column;
-  padding-left: 1.8rem; border-left: 1px solid var(--line-strong);
+  padding-left: 1rem;
 }
-// divider accent rides with the sticky dock (so it stays fixed, no vertical overflow)
-.edit-body__dock::before {
-  content: ""; position: absolute; left: -1px; top: 0; bottom: 0; width: 1px;
-  background: linear-gradient(180deg, transparent, var(--volt), transparent); opacity: 0.45;
+// the draggable divider rides with the sticky dock (stays fixed while the editor scrolls)
+.edit-body__split {
+  position: sticky; top: 4.2rem;
+  height: calc(100vh - 4.2rem - 3.3rem);
+  align-self: flex-start;
 }
 .edit-body__dock .player-panel { flex: 1 1 auto; min-height: 0; }
 // the docked player is narrow (360px): trim the top legend + transport a touch
@@ -328,11 +359,11 @@ h1, h2, h3, .title { font-family: var(--font-display); color: var(--text); }
   .edit-body { flex-direction: column; }
   .edit-body__editor { padding-right: 0; }
   .edit-body__dock {
-    position: static; width: auto; flex: 1 1 auto;
+    // !important to beat the inline drag-width when stacked
+    position: static; width: auto !important; flex: 1 1 auto !important;
     height: auto; padding-left: 0; margin-top: 1.5rem;
-    border-left: 0;
   }
-  .edit-body__dock::before { display: none; }
+  .edit-body__split { display: none; }
 }
 .field-block { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
 .field-block--wide { grid-column: 1 / -1; }
@@ -915,3 +946,29 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.35; }
 // slider (bulma-slider) accent
 input[type="range"].slider.is-warning::-webkit-slider-thumb { background: var(--volt) !important; }
 input[type="range"].slider:focus { outline: none; }
+
+// web build: discreet "download desktop app" link at the very bottom (no box)
+.sidebar__action {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  width: 100%; margin-top: 0.1rem; padding: 0.45rem 0.4rem;
+  background: none; border: none; cursor: pointer;
+  font-size: 0.78rem; color: var(--text-mute);
+}
+.sidebar__action:hover { color: var(--volt); }
+
+// desktop app foot: a prominent Sync button + a row of server-config + language
+.sidebar-foot-el {
+  margin-top: 0.5rem; padding-top: 0.75rem;
+  border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.sidebar-foot-el__sync { width: 100%; justify-content: center; gap: 0.5rem; }
+.sidebar-foot-el__row { display: flex; align-items: center; gap: 0.5rem; }
+.sidebar-foot-el__cfg {
+  flex: 1 1 auto; justify-content: center; gap: 0.45rem;
+  font-size: 0.72rem; padding: 0.45rem 0.6rem;
+}
+.sidebar-foot-el__row .select-field { flex: 0 0 auto; width: auto; }
+.sidebar-foot-el__row .select-field select {
+  padding: 0.35rem 1.6rem 0.35rem 0.55rem; font-size: 0.8rem;
+}

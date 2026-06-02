@@ -1,0 +1,36 @@
+appId: org.clubelek.teslaplayer
+productName: Tesla Player
+directories:
+  output: dist-electron
+# App code (compiled main + preload) goes inside the asar. The backend tree and
+# the front-end bundle ride along as extraResources (OUTSIDE the asar): a forked
+# process cannot exec a file inside an asar, and a native .node cannot be
+# dlopen'd from inside one.
+files:
+  - build/**/*
+  - "!**/*.map"
+extraResources:
+  - from: resources/backend
+    to: backend
+  - from: resources/public
+    to: public
+asar: true
+# Safety net only: the backend (incl. native sqlite3) ships via extraResources
+# above, so it already lives OUTSIDE the asar and loads from there — nothing in
+# the asar needs unpacking today. This keeps any future in-asar native dep
+# loadable.
+asarUnpack:
+  - "**/*.node"
+linux:
+  target:
+    - AppImage
+  category: Audio
+  artifactName: ${productName}-${version}.${ext}
+win:
+  target:
+    - nsis
+  artifactName: ${productName}-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true

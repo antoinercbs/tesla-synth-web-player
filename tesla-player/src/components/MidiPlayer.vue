@@ -34,9 +34,9 @@ const viz = ref<Viz>((localStorage.getItem('playerViz') as Viz) || 'vu');
 watch(viz, (v) => localStorage.setItem('playerViz', v));
 // which automation parameter the read-only coils view overlays
 const playerParam = ref<CoilParam>('ontime');
-// MidiPreview view: the combined (score+coils) mode is only offered when not compact
+// MidiPreview view (combined = score + coils, available in compact too)
 const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
-  if (viz.value === 'combined') return props.compactGraph ? 'lanes' : 'combined';
+  if (viz.value === 'combined') return 'combined';
   return viz.value === 'lanes' ? 'lanes' : 'roll';
 });
 let rafId: number | null = null;
@@ -634,7 +634,7 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
         <button type="button" :class="{ 'is-active': viz === 'lanes' }" @click="viz = 'lanes'">
           <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.viewCoils') }}
         </button>
-        <button v-if="!compactGraph" type="button" :class="{ 'is-active': viz === 'combined' }" @click="viz = 'combined'">
+        <button type="button" :class="{ 'is-active': viz === 'combined' }" @click="viz = 'combined'">
           <span class="icon"><i class="fas fa-layer-group"></i></span>{{ $t('label.viewCombined') }}
         </button>
       </div>

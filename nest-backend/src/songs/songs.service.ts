@@ -1,7 +1,9 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
 import { MidiFile } from '../midi/entities/midi-file.entity';
+import { hashSong } from '../sync/content-hash';
 import { CreateSongDto } from './dto/create-song.dto';
 import { Coil } from './entities/coil.entity';
 import { CoilEvent } from './entities/coil-event.entity';
@@ -45,6 +47,8 @@ export class SongsService {
 
   async create(dto: CreateSongDto): Promise<SongResponse> {
     const song = await this.fromDto(new Song(), dto);
+    song.uuid = randomUUID();
+    this.stampSync(song);
     const saved = await this.songRepository.save(song);
     return this.findOneOrThrow(saved.id);
   }
@@ -59,6 +63,8 @@ export class SongsService {
     await this.songRepository.query('DELETE FROM "Coil" WHERE song_id = ?', [id]);
     await this.songRepository.query('DELETE FROM "CoilEvent" WHERE song_id = ?', [id]);
     await this.fromDto(song, dto);
+    // uuid is preserved (loaded with the row); only the change signal is bumped.
+    this.stampSync(song);
     await this.songRepository.save(song);
     return this.findOneOrThrow(id);
   }
@@ -113,6 +119,21 @@ export class SongsService {
     });
 
     return song;
+  }
+
+  /** Stamps the sync change-signal (updatedAt + contentHash) from the in-memory
+   *  aggregate. Call after fromDto has resolved midiFile/coils/events. */
+  private stampSync(song: Song): void {
+    song.updatedAt = Date.now();
+    song.contentHash = hashSong({
+      name: song.name,
+      coilCount: song.coilCount,
+      mode: song.mode,
+      output2Mask: song.output2Mask,
+      midiFileUuid: song.midiFile?.uuid ?? null,
+      coils: song.coils ?? [],
+      events: song.events ?? [],
+    });
   }
 
   private toResponse(song: Song): SongResponse {

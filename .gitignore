@@ -8,3 +8,8 @@ dist
 .env.production
 .env.local
 .env.*.local
+
+# electron desktop app: staged + built artifacts
+electron/build
+electron/resources
+electron/dist-electron

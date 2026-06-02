@@ -5,10 +5,12 @@ import {
   OnModuleInit,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomUUID } from 'crypto';
 import { promises as fs } from 'fs';
 import { basename, join } from 'path';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
+import { hashBytes } from '../sync/content-hash';
 import { computeDurationMs } from './midi-duration';
 import { setMidiPrograms, type ProgramSetting } from './midi-programs';
 import { MidiFile } from './entities/midi-file.entity';
@@ -28,15 +30,29 @@ export class MidiService implements OnModuleInit {
     private readonly midiFileRepository: Repository<MidiFile>,
   ) {}
 
-  /** Back-fill the play length for any file uploaded before the column existed. */
+  /**
+   * Back-fill, at boot, anything missing on existing rows: the play length
+   * (column added later), and the sync identity (uuid/updatedAt/contentHash).
+   * Acts as a safety net beyond the AddSyncColumns migration — e.g. a file that
+   * was unreadable when the migration ran but is present now.
+   */
   async onModuleInit(): Promise<void> {
-    const pending = await this.midiFileRepository.find({
-      where: { durationMs: IsNull() },
-    });
-    for (const file of pending) {
-      const durationMs = await this.durationOf(basename(file.path));
-      if (durationMs != null) {
-        await this.midiFileRepository.update(file.id, { durationMs });
+    const files = await this.midiFileRepository.find();
+    for (const file of files) {
+      const patch: Partial<MidiFile> = {};
+      const needDuration = file.durationMs == null;
+      const needHash = !file.contentHash;
+      if (needDuration || needHash) {
+        const buffer = await this.readUpload(basename(file.path));
+        if (buffer) {
+          if (needDuration) patch.durationMs = this.durationFromBuffer(buffer);
+          if (needHash) patch.contentHash = hashBytes(buffer);
+        }
+      }
+      if (!file.uuid) patch.uuid = randomUUID();
+      if (file.updatedAt == null) patch.updatedAt = Date.now();
+      if (Object.keys(patch).length > 0) {
+        await this.midiFileRepository.update(file.id, patch);
       }
     }
   }
@@ -55,19 +71,32 @@ export class MidiService implements OnModuleInit {
     originalName: string,
     storedName: string,
   ): Promise<MidiFileResponse> {
+    const buffer = await this.readUpload(storedName);
     const midiFile = this.midiFileRepository.create({
       name: originalName,
       path: `./uploads/${storedName}`,
-      durationMs: await this.durationOf(storedName),
+      durationMs: this.durationFromBuffer(buffer),
+      uuid: randomUUID(),
+      updatedAt: Date.now(),
+      contentHash: buffer ? hashBytes(buffer) : undefined,
     });
     const saved = await this.midiFileRepository.save(midiFile);
     return this.toResponse(saved);
   }
 
-  /** Play length (ms) of an uploaded file by its on-disk name, or null on failure. */
-  private async durationOf(filename: string): Promise<number | null> {
+  /** Reads an uploaded file's bytes by on-disk name, or null if unreadable. */
+  private async readUpload(filename: string): Promise<Buffer | null> {
     try {
-      const buffer = await fs.readFile(join(UPLOADS_DIR, filename));
+      return await fs.readFile(join(UPLOADS_DIR, filename));
+    } catch {
+      return null;
+    }
+  }
+
+  /** Play length (ms) from an in-memory buffer, or null on failure. */
+  private durationFromBuffer(buffer: Buffer | null): number | null {
+    if (!buffer) return null;
+    try {
       return computeDurationMs(buffer);
     } catch {
       return null;
@@ -102,7 +131,12 @@ export class MidiService implements OnModuleInit {
       throw new BadRequestException('Could not parse/rewrite the MIDI file');
     }
     await fs.writeFile(filePath, rewritten);
-    return this.toResponse(midiFile);
+    // The file bytes changed → its sync identity must change too, otherwise two
+    // peers would carry different bytes while reporting the same contentHash.
+    midiFile.contentHash = hashBytes(rewritten);
+    midiFile.updatedAt = Date.now();
+    const saved = await this.midiFileRepository.save(midiFile);
+    return this.toResponse(saved);
   }
 
   async remove(id: number): Promise<void> {

@@ -140,6 +140,17 @@ const analysis = ref<MidiAnalysis | null>(null);
 // channels actually present in the selected MIDI (null = no file → allow all)
 const availableChannels = computed(() => (analysis.value ? analysis.value.channels : null));
 
+// Number of channels mirrored to the 2nd output (popcount of the mask).
+const output2Count = computed(() => {
+  let m = draft.output2Mask >>> 0;
+  let n = 0;
+  while (m) {
+    n += m & 1;
+    m >>>= 1;
+  }
+  return n;
+});
+
 function bufferToString(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -347,14 +358,15 @@ function closeLibrary(): void {
       />
     </div>
 
-    <section class="editor-section">
-      <h2 class="editor-section__title">
-        <span class="icon"><i class="fas fa-volume-high"></i></span>
-        {{ $t('label.secondOutputChannels') }}
-      </h2>
+    <article class="coil-card output2-card" :style="{ '--coil': 'var(--plasma)' }">
+      <header class="coil-card__head">
+        <span class="coil-card__badge"><i class="fas fa-volume-high"></i></span>
+        <h3 class="coil-card__title">{{ $t('label.secondOutputChannels') }}</h3>
+        <span class="coil-card__count">{{ output2Count }} ch</span>
+      </header>
       <ChannelMaskSelector v-model="draft.output2Mask" color="var(--plasma)" :available-channels="availableChannels"
         :label="$t('label.secondOutputChannels')" />
-    </section>
+    </article>
 
     <!-- Timeline: notes coloured live by the channel→coil mapping + editable coil automation -->
     <section class="editor-section">

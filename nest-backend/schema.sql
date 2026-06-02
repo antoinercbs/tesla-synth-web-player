@@ -5,7 +5,10 @@
 CREATE TABLE IF NOT EXISTS Playlist (
 	id INTEGER PRIMARY KEY AUTOINCREMENT,
 	name TEXT,
-	coilCount INTEGER NOT NULL DEFAULT 3
+	coilCount INTEGER NOT NULL DEFAULT 3,
+	uuid TEXT,
+	updatedAt INTEGER,
+	contentHash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS PlaylistSong(
@@ -21,7 +24,10 @@ CREATE TABLE IF NOT EXISTS MidiFile (
 	id 				INTEGER PRIMARY KEY AUTOINCREMENT,
 	name 			TEXT,
 	path 			TEXT,
-	durationMs		INTEGER
+	durationMs		INTEGER,
+	uuid			TEXT,
+	updatedAt		INTEGER,
+	contentHash		TEXT
 );
 
 CREATE TABLE IF NOT EXISTS Song (
@@ -31,8 +37,18 @@ CREATE TABLE IF NOT EXISTS Song (
 	coilCount		INTEGER NOT NULL DEFAULT 1,
 	mode			TEXT NOT NULL DEFAULT 'midi',
 	output2Mask		INTEGER NOT NULL DEFAULT 0,
+	uuid			TEXT,
+	updatedAt		INTEGER,
+	contentHash		TEXT,
 	FOREIGN KEY (midiFile_id) REFERENCES MidiFile(id) ON DELETE SET NULL
 );
+
+-- Sync identity uniqueness. Partial (over non-null uuids) and named identically
+-- to the AddSyncColumns migration, so a fresh DB and a migrated DB share the
+-- exact same structure (and the migration's CREATE ... IF NOT EXISTS is a no-op).
+CREATE UNIQUE INDEX IF NOT EXISTS UQ_song_uuid     ON Song(uuid)     WHERE uuid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS UQ_playlist_uuid ON Playlist(uuid) WHERE uuid IS NOT NULL;
+CREATE UNIQUE INDEX IF NOT EXISTS UQ_midifile_uuid ON MidiFile(uuid) WHERE uuid IS NOT NULL;
 
 -- Per-song, per-coil configuration. Replaces the old opaque SysexCommand list:
 -- the browser compiles these rows into Syntherrupter SysEx on demand.
