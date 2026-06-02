@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import axios from 'axios';
+import BaseModal from './ui/BaseModal.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: 'close'): void }>();
@@ -57,45 +58,32 @@ function fmtSize(bytes?: number): string {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="open" class="modal-overlay" @click.self="emit('close')">
-      <div class="modal-card dl-modal">
-        <div class="modal-card__head">
-          <span class="modal-card__title">
-            <span class="icon"><i class="fas fa-download"></i></span>{{ $t('desktop.downloadApp') }}
-          </span>
-          <button class="icon-btn" type="button" :aria-label="$t('label.cancel')" @click="emit('close')">
-            <i class="fas fa-xmark"></i>
-          </button>
-        </div>
+  <BaseModal :open="open" :title="$t('desktop.downloadApp')" icon="fa-download" card-class="dl-modal"
+    :close-label="$t('label.cancel')" @close="emit('close')">
+    <p class="dl-modal__hint">{{ $t('desktop.downloadHint') }}</p>
 
-        <p class="dl-modal__hint">{{ $t('desktop.downloadHint') }}</p>
+    <p v-if="loading" class="dl-modal__note">
+      <span class="icon"><i class="fas fa-circle-notch fa-spin"></i></span>{{ $t('label.loading') }}
+    </p>
+    <p v-else-if="failed || !targets.length" class="dl-modal__note">{{ $t('desktop.noBuild') }}</p>
 
-        <p v-if="loading" class="dl-modal__note">
-          <span class="icon"><i class="fas fa-circle-notch fa-spin"></i></span>{{ $t('label.loading') }}
-        </p>
-        <p v-else-if="failed || !targets.length" class="dl-modal__note">{{ $t('desktop.noBuild') }}</p>
-
-        <div v-else class="dl-modal__options">
-          <a v-for="t in targets" :key="t.os" class="dl-option" :href="hrefFor(t.os)" :download="''"
-            @click="emit('close')">
-            <span class="dl-option__icon"><i :class="osIcon(t.os)"></i></span>
-            <span class="dl-option__label">{{ $t('desktop.' + t.os) }}</span>
-            <span class="dl-option__size">{{ fmtSize(t.size) }}</span>
-            <span class="dl-option__go"><i class="fas fa-download"></i></span>
-          </a>
-        </div>
-
-        <div class="dl-modal__actions">
-          <button class="btn btn--ghost" type="button" @click="emit('close')">{{ $t('label.cancel') }}</button>
-        </div>
-      </div>
+    <div v-else class="dl-modal__options">
+      <a v-for="t in targets" :key="t.os" class="dl-option" :href="hrefFor(t.os)" :download="''"
+        @click="emit('close')">
+        <span class="dl-option__icon"><i :class="osIcon(t.os)"></i></span>
+        <span class="dl-option__label">{{ $t('desktop.' + t.os) }}</span>
+        <span class="dl-option__size">{{ fmtSize(t.size) }}</span>
+        <span class="dl-option__go"><i class="fas fa-download"></i></span>
+      </a>
     </div>
-  </Teleport>
+
+    <template #actions>
+      <button class="btn btn--ghost" type="button" @click="emit('close')">{{ $t('label.cancel') }}</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.dl-modal { max-width: 440px; width: 100%; }
 .dl-modal__hint { color: var(--text-mute); font-size: 0.85rem; margin: 0 0 1.1rem; }
 .dl-modal__note { color: var(--text-mute); display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0 1rem; }
 .dl-modal__options { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.2rem; }
@@ -109,5 +97,4 @@ function fmtSize(bytes?: number): string {
 .dl-option__label { flex: 1 1 auto; }
 .dl-option__size { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-mute); }
 .dl-option__go { color: var(--text-mute); }
-.dl-modal__actions { display: flex; justify-content: flex-end; }
 </style>

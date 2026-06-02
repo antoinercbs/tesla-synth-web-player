@@ -5,6 +5,7 @@ import { compileSimpleConfig, compileSimpleStop } from '@/sysex/syntherrupter';
 import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { SimpleCoil } from '@/types/domain';
+import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
 const midiStore = useMidiStore();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
@@ -132,10 +133,8 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         <span class="fixed-section__title">
           <span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('label.fixedOutput') }}
         </span>
-        <div class="segmented" role="group" :aria-label="$t('label.coilCount')">
-          <button v-for="n in coilRange" :key="n" type="button" :aria-pressed="cfg.coilCount === n"
-            :class="{ 'is-active': cfg.coilCount === n }" @click="cfg.coilCount = n">{{ n }}</button>
-        </div>
+        <segmented-control v-model="cfg.coilCount" pressed :aria-label="$t('label.coilCount')"
+          :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />
       </header>
 
       <div class="coils-grid">

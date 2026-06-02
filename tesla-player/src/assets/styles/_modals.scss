@@ -1,0 +1,14 @@
+// ===========================================================================
+//  MODAL CARD VARIANTS
+// ===========================================================================
+// The shared modal shell markup lives in components/ui/BaseModal.vue, Teleported
+// to <body>. So these card-level width/variant tweaks must be GLOBAL: a child
+// modal's scoped styles can't reach BaseModal's .modal-card across the teleport.
+// (Body content passed through the slot keeps its own scoped styles as usual.)
+.modal-card--confirm { max-width: 440px; }
+.modal-card--confirm .modal-card__title .icon { color: var(--danger); }
+.modal-card--instruments { max-width: 540px; width: 100%; }
+.srv-modal  { max-width: 460px; width: 100%; }
+.cfg-modal  { max-width: 460px; width: 100%; }
+.dl-modal   { max-width: 440px; width: 100%; }
+.sync-modal { max-width: 640px; width: 100%; }

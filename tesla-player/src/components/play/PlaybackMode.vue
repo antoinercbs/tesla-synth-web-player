@@ -6,6 +6,7 @@ import { useMidiStore } from '@/stores/midi';
 import MidiPlayer from '@/components/MidiPlayer.vue';
 import SearchableSelect from '@/components/SearchableSelect.vue';
 import ResizeHandle from '@/components/ResizeHandle.vue';
+import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import type { Song, Playlist } from '@/types/domain';
@@ -253,14 +254,10 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
     <div class="playback-left" ref="leftEl" :style="leftStyle">
       <article class="play-panel source-panel">
         <header class="play-panel__head">
-          <div class="segmented segmented--fill">
-            <button type="button" :class="{ 'is-active': source === 'songs' }" @click="source = 'songs'">
-              <span class="icon"><i class="fas fa-music"></i></span>{{ $t('label.sourceSongs') }}
-            </button>
-            <button type="button" :class="{ 'is-active': source === 'playlists' }" @click="source = 'playlists'">
-              <span class="icon"><i class="fas fa-list"></i></span>{{ $t('label.sourcePlaylists') }}
-            </button>
-          </div>
+          <segmented-control v-model="source" fill :options="[
+            { value: 'songs', label: $t('label.sourceSongs'), icon: 'fa-music' },
+            { value: 'playlists', label: $t('label.sourcePlaylists'), icon: 'fa-list' },
+          ]" />
         </header>
 
         <!-- songs library -->

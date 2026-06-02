@@ -9,6 +9,8 @@ import type {
   TeslaSyncProgress,
   TeslaSyncSelection,
 } from '@/types/electron';
+import BaseModal from './ui/BaseModal.vue';
+import SegmentedControl from './ui/SegmentedControl.vue';
 
 const props = defineProps<{ open: boolean }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'applied'): void }>();
@@ -135,19 +137,9 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="open" class="modal-overlay" @click.self="emit('close')">
-      <div class="modal-card sync-modal">
-        <div class="modal-card__head">
-          <span class="modal-card__title">
-            <span class="icon"><i class="fas fa-rotate"></i></span>{{ $t('desktop.syncTitle') }}
-          </span>
-          <button class="icon-btn" type="button" :aria-label="$t('label.cancel')" @click="emit('close')">
-            <i class="fas fa-xmark"></i>
-          </button>
-        </div>
-
-        <!-- What sync does -->
+  <BaseModal :open="open" :title="$t('desktop.syncTitle')" icon="fa-rotate" card-class="sync-modal"
+    :close-label="$t('label.cancel')" @close="emit('close')">
+    <!-- What sync does -->
         <div v-if="!result" class="sync-callout">
           <div class="sync-callout__title">
             <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('desktop.syncIntroTitle') }}
@@ -209,12 +201,8 @@ onUnmounted(() => {
                     {{ $t('desktop.server') }}: {{ fmt(it.remoteUpdatedAt) }}
                   </span>
                 </div>
-                <div class="segmented sync-row__choice">
-                  <button v-for="c in choicesFor(it.status)" :key="c" type="button"
-                    :class="{ 'is-active': choices[it.uuid] === c }" @click="choices[it.uuid] = c">
-                    {{ $t(choiceLabel(c)) }}
-                  </button>
-                </div>
+                <segmented-control v-model="choices[it.uuid]" class="sync-row__choice"
+                  :options="choicesFor(it.status).map((c) => ({ value: c, label: $t(choiceLabel(c)) }))" />
               </div>
             </section>
           </div>
@@ -233,13 +221,10 @@ onUnmounted(() => {
             </button>
           </div>
         </template>
-      </div>
-    </div>
-  </Teleport>
+  </BaseModal>
 </template>
 
 <style scoped>
-.sync-modal { max-width: 640px; width: 100%; }
 .sync-callout {
   background: rgba(255, 209, 77, 0.08);
   border: 1px solid rgba(255, 209, 77, 0.3);

@@ -4,6 +4,7 @@ import { useMidiStore } from '@/stores/midi';
 import PlaybackMode from '@/components/play/PlaybackMode.vue';
 import LiveMode from '@/components/play/LiveMode.vue';
 import FixedMode from '@/components/play/FixedMode.vue';
+import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
 type PlayMode = 'playback' | 'live' | 'fixed';
 
@@ -39,20 +40,12 @@ const activeComponent = computed(
   <div class="screen">
     <header class="screen-head">
       <h1 class="view-head__title">{{ $t('nav.play') }}</h1>
-      <div class="segmented mode-switch">
-        <button
-          v-for="m in MODES"
-          :key="m.id"
-          type="button"
-          :class="{ 'is-active': mode === m.id }"
-          :disabled="modeDisabled(m.id)"
-          :title="modeDisabled(m.id) ? $t('label.fixedNeedsHardware') : ''"
-          @click="mode = m.id"
-        >
-          <span class="icon"><i class="fas" :class="m.icon"></i></span>
-          <span class="mode-switch__label">{{ $t(m.key) }}</span>
-        </button>
-      </div>
+      <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label"
+        :options="MODES.map((m) => ({
+          value: m.id, label: $t(m.key), icon: m.icon,
+          disabled: modeDisabled(m.id),
+          title: modeDisabled(m.id) ? $t('label.fixedNeedsHardware') : '',
+        }))" />
     </header>
 
     <div class="screen-body" :class="{ 'screen-body--fill': mode === 'playback' }">

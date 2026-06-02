@@ -6,6 +6,7 @@ import { ENVELOPES, envelope, envelopeIcon } from '@/sysex/envelopes';
 import { notify } from '@/utils/toast';
 import type { MidiFile } from '@/types/domain';
 import SmfParser from '@/smfplayer/js/smfParser.js';
+import BaseModal from './ui/BaseModal.vue';
 
 const props = defineProps<{ open: boolean; file: MidiFile | null }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved', file: MidiFile): void }>();
@@ -80,57 +81,44 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="open" class="modal-overlay" @click.self="emit('close')">
-      <div class="modal-card modal-card--instruments">
-        <div class="modal-card__head">
-          <span class="modal-card__title">
-            <span class="icon"><i class="fas fa-guitar"></i></span>{{ $t('title.editInstruments') }}
-          </span>
-          <button class="icon-btn" type="button" :aria-label="$t('label.cancel')" @click="emit('close')">
-            <i class="fas fa-xmark"></i>
-          </button>
-        </div>
+  <BaseModal :open="open" :title="$t('title.editInstruments')" icon="fa-guitar"
+    card-class="modal-card--instruments" :close-label="$t('label.cancel')" @close="emit('close')">
+    <p v-if="file" class="instr-file"><i class="fas fa-file-audio"></i> {{ file.name }}</p>
 
-        <p v-if="file" class="instr-file"><i class="fas fa-file-audio"></i> {{ file.name }}</p>
+    <p class="instr-warning" role="alert">
+      <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>
+      {{ $t('label.instrumentsFileWarning') }}
+    </p>
 
-        <p class="instr-warning" role="alert">
-          <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>
-          {{ $t('label.instrumentsFileWarning') }}
-        </p>
-
-        <div class="instr-body">
-          <div v-if="loading" class="instr-state">{{ $t('label.loading') }}…</div>
-          <div v-else-if="error" class="instr-state is-error">
-            <i class="fas fa-circle-exclamation"></i> {{ $t('label.instrumentsLoadError') }}
+    <div class="instr-body">
+      <div v-if="loading" class="instr-state">{{ $t('label.loading') }}…</div>
+      <div v-else-if="error" class="instr-state is-error">
+        <i class="fas fa-circle-exclamation"></i> {{ $t('label.instrumentsLoadError') }}
+      </div>
+      <div v-else-if="rows.length === 0" class="instr-state">{{ $t('label.noChannelsInFile') }}</div>
+      <div v-else class="instr-list">
+        <div v-for="row in rows" :key="row.channel" class="instr-row" :class="{ 'is-changed': row.current !== row.original }">
+          <span class="instr-row__ch">{{ $t('label.channel') }} {{ row.channel }}</span>
+          <span class="instr-row__icon"><i class="fas" :class="envelopeIcon(row.current)"></i></span>
+          <div class="select-field instr-row__select">
+            <select v-model.number="row.current" :aria-label="`${$t('label.channel')} ${row.channel}`">
+              <option v-for="o in optionsFor(row)" :key="o.value" :value="o.value">{{ o.label }}</option>
+            </select>
           </div>
-          <div v-else-if="rows.length === 0" class="instr-state">{{ $t('label.noChannelsInFile') }}</div>
-          <div v-else class="instr-list">
-            <div v-for="row in rows" :key="row.channel" class="instr-row" :class="{ 'is-changed': row.current !== row.original }">
-              <span class="instr-row__ch">{{ $t('label.channel') }} {{ row.channel }}</span>
-              <span class="instr-row__icon"><i class="fas" :class="envelopeIcon(row.current)"></i></span>
-              <div class="select-field instr-row__select">
-                <select v-model.number="row.current" :aria-label="`${$t('label.channel')} ${row.channel}`">
-                  <option v-for="o in optionsFor(row)" :key="o.value" :value="o.value">{{ o.label }}</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="instr-actions">
-          <button class="btn btn--ghost" type="button" @click="emit('close')">{{ $t('label.cancel') }}</button>
-          <button class="btn btn--volt" type="button" :disabled="!dirty || saving || loading" @click="save">
-            <span class="icon"><i class="fas fa-floppy-disk"></i></span>{{ $t('label.save') }}
-          </button>
         </div>
       </div>
     </div>
-  </Teleport>
+
+    <template #actions>
+      <button class="btn btn--ghost" type="button" @click="emit('close')">{{ $t('label.cancel') }}</button>
+      <button class="btn btn--volt" type="button" :disabled="!dirty || saving || loading" @click="save">
+        <span class="icon"><i class="fas fa-floppy-disk"></i></span>{{ $t('label.save') }}
+      </button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.modal-card--instruments { max-width: 540px; width: 100%; }
 .instr-file {
   margin: -0.4rem 0 0.8rem; font-family: var(--font-mono); font-size: 0.82rem; color: var(--text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -150,9 +138,8 @@ async function save(): Promise<void> {
   display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 0.6rem;
   padding: 0.4rem 0.5rem; border: 1px solid var(--line); border-radius: 8px;
 }
-.instr-row.is-changed { border-color: var(--volt); background: rgba(70, 224, 255, 0.05); }
+.instr-row.is-changed { border-color: var(--volt); background: var(--volt-05); }
 .instr-row__ch { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text-dim); white-space: nowrap; }
 .instr-row__icon { color: var(--volt); width: 1.1rem; text-align: center; }
 .instr-row__select select { width: 100%; }
-.instr-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 1.2rem; }
 </style>

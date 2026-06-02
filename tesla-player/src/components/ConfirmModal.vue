@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import BaseModal from './ui/BaseModal.vue';
+
 defineProps<{
   open: boolean;
   title: string;
@@ -6,34 +8,20 @@ defineProps<{
   confirmLabel: string;
   cancelLabel: string;
 }>();
-const emit = defineEmits<{ (e: 'confirm'): void; (e: 'cancel'): void }>();
+const emit = defineEmits<{ (e: 'confirm'): void; (e: 'close'): void }>();
 </script>
 
 <template>
-  <Teleport to="body">
-    <div v-if="open" class="modal-overlay" @click.self="emit('cancel')">
-      <div class="modal-card modal-card--confirm">
-        <div class="modal-card__head">
-          <span class="modal-card__title">
-            <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ title }}
-          </span>
-          <button class="icon-btn" type="button" :aria-label="cancelLabel" @click="emit('cancel')">
-            <i class="fas fa-xmark"></i>
-          </button>
-        </div>
-        <p class="confirm-modal__msg">{{ message }}</p>
-        <div class="confirm-modal__actions">
-          <button class="btn btn--ghost" type="button" @click="emit('cancel')">{{ cancelLabel }}</button>
-          <button class="btn btn--danger" type="button" @click="emit('confirm')">{{ confirmLabel }}</button>
-        </div>
-      </div>
-    </div>
-  </Teleport>
+  <BaseModal :open="open" :title="title" icon="fa-triangle-exclamation"
+    card-class="modal-card--confirm" :close-label="cancelLabel" @close="emit('close')">
+    <p class="confirm-modal__msg">{{ message }}</p>
+    <template #actions>
+      <button class="btn btn--ghost" type="button" @click="emit('close')">{{ cancelLabel }}</button>
+      <button class="btn btn--danger" type="button" @click="emit('confirm')">{{ confirmLabel }}</button>
+    </template>
+  </BaseModal>
 </template>
 
 <style scoped>
-.modal-card--confirm { max-width: 440px; }
-.modal-card--confirm .modal-card__title .icon { color: var(--danger); }
 .confirm-modal__msg { color: var(--text-dim); margin: 0 0 1.4rem; line-height: 1.5; }
-.confirm-modal__actions { display: flex; justify-content: flex-end; gap: 0.6rem; }
 </style>

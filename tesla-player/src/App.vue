@@ -119,7 +119,7 @@
     </main>
 
     <general-config-modal :open="configOpen" :config="midiStore.appConfig"
-      @save="saveConfig" @cancel="configOpen = false" />
+      @save="saveConfig" @close="configOpen = false" />
     <server-config-modal v-if="isElectron" :open="serverOpen"
       @close="serverOpen = false" @saved="onServerSaved" />
     <sync-modal v-if="isElectron" :open="syncOpen"

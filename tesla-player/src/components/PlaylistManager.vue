@@ -226,7 +226,7 @@ function doDelete(): void {
     <confirm-modal :open="confirmDelete" :title="$t('label.delete')"
       :message="`${$t('label.deleteQuestion')} « ${draft.name} » ?`"
       :confirm-label="$t('label.confirm')" :cancel-label="$t('label.cancel')"
-      @confirm="doDelete" @cancel="confirmDelete = false" />
+      @confirm="doDelete" @close="confirmDelete = false" />
   </article>
 </template>
 

@@ -13,4 +13,5 @@
 @import 'styles/layout';           // app shell, sidebar, brand/nav, view scaffolding
 @import 'styles/editor';           // song editor (forms, coil cards, readouts, modal, dropzone)
 @import 'styles/player';           // player, VU, power, transport, viz, sidebar outputs
+@import 'styles/modals';           // modal card variants (shell markup is in ui/BaseModal.vue)
 @import 'styles/bulma-overrides';  // Bulma component overrides (must win → last)

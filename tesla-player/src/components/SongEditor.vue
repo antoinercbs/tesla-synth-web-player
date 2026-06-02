@@ -13,6 +13,7 @@ import SearchableSelect from './SearchableSelect.vue';
 import ConfirmModal from './ConfirmModal.vue';
 import MidiInstrumentsModal from './MidiInstrumentsModal.vue';
 import MidiPreview from './play/MidiPreview.vue';
+import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 
 const props = defineProps<{ song?: Song | null; locked?: boolean }>();
@@ -335,16 +336,8 @@ function closeLibrary(): void {
 
       <div class="field-block">
         <span class="field-label" id="coilcount-label">{{ $t('label.coilCount') }}</span>
-        <div class="segmented segmented--fill" role="group" aria-labelledby="coilcount-label">
-          <button
-            v-for="n in coilRange"
-            :key="n"
-            type="button"
-            :aria-pressed="draft.coilCount === n"
-            :class="{ 'is-active': draft.coilCount === n }"
-            @click="draft.coilCount = n"
-          >{{ n }}</button>
-        </div>
+        <segmented-control v-model="draft.coilCount" fill pressed aria-labelledby="coilcount-label"
+          :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />
       </div>
     </div>
 
@@ -394,7 +387,7 @@ function closeLibrary(): void {
     <ConfirmModal :open="confirmDeleteSong" :title="$t('label.deleteSong')"
       :message="`${$t('label.deleteQuestion')} « ${draft.name || ('#' + draft.id)} » ?`"
       :confirm-label="$t('label.confirm')" :cancel-label="$t('label.cancel')"
-      @confirm="doDelete" @cancel="confirmDeleteSong = false" />
+      @confirm="doDelete" @close="confirmDeleteSong = false" />
 
     <!-- MIDI library / upload modal (teleported so it never affects the editor flex layout) -->
     <Teleport to="body">
