@@ -5,6 +5,7 @@ const routes: RouteRecordRaw[] = [
   { path: '/play', name: 'play', component: () => import('@/views/PlayView.vue') },
   { path: '/edit/:id?', name: 'edit', component: () => import('@/views/EditView.vue') },
   { path: '/playlists/:id?', name: 'playlists', component: () => import('@/views/PlaylistsView.vue') },
+  { path: '/midi', name: 'midi', component: () => import('@/views/MidiFilesView.vue') },
 ];
 
 const router = createRouter({

@@ -4,6 +4,7 @@ export const messages = {
       play: "Play",
       edit: "Edit",
       playlists: "Playlists",
+      midi: "MIDI files",
     },
     title: {
       midiFileManager: "MIDI File Manager",
@@ -240,6 +241,7 @@ export const messages = {
       play: "Lecture",
       edit: "Édition",
       playlists: "Playlists",
+      midi: "Fichiers MIDI",
     },
     title: {
       midiFileManager: "Gestionnaire de fichier MIDI",

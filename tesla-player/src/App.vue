@@ -23,6 +23,9 @@
         <router-link class="nav-item" :to="{ name: 'playlists' }">
           <span class="icon"><i class="fas fa-list-ul"></i></span>{{ $t('nav.playlists') }}
         </router-link>
+        <router-link class="nav-item" :to="{ name: 'midi' }">
+          <span class="icon"><i class="fas fa-folder-open"></i></span>{{ $t('nav.midi') }}
+        </router-link>
       </nav>
 
       <div class="sidebar__spacer"></div>
