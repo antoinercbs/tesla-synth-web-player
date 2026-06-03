@@ -80,6 +80,8 @@ loadPlaylists();
 watch(() => midiStore.dataRevision, loadPlaylists);
 
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
+/** Does the song mirror any channel to the 2nd (speaker) output? */
+function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0; }
 </script>
 
 <template>
@@ -117,6 +119,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
           <span class="play-row__dur">{{ formatDuration(song.midiFile?.durationMs) }}</span>
           <span class="coil-dots">
             <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot" :style="{ '--c': coilColor(i) }"></span>
+            <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i class="fas fa-volume-high"></i></span>
           </span>
           <button class="row-btn" type="button" @click="emit('edit', song)" :title="$t('nav.edit')">
             <i class="fas fa-pen"></i>
@@ -159,6 +162,7 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
             <span v-else class="coil-dots">
               <span v-for="i in coilChips(entry.song.coilCount)" :key="i" class="coil-dot"
                 :style="{ '--c': coilColor(i) }"></span>
+              <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i class="fas fa-volume-high"></i></span>
             </span>
             <button class="row-btn" type="button" @click="emit('edit', entry.song)" :title="$t('nav.edit')">
               <i class="fas fa-pen"></i>
@@ -195,8 +199,10 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
 .row-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .row-btn:disabled:hover { color: var(--text-dim); border-color: var(--line-strong); }
 .row-btn--play:hover { color: var(--plasma); border-color: var(--plasma); }
-.coil-dots { display: inline-flex; gap: 3px; flex: 0 0 auto; }
+.coil-dots { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
 .coil-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px -1px var(--c); }
+/* speaker (2nd output) indicator — matches the plasma colour used for the speaker lane elsewhere */
+.speaker-flag { display: inline-flex; align-items: center; margin-left: 2px; color: var(--plasma); font-size: 0.7rem; }
 
 /* search row */
 .play-pick { display: flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1rem; flex: 0 0 auto; }
