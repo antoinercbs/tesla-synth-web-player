@@ -73,7 +73,16 @@ const minLaneH = computed(() => (props.editable ? 56 : 30));
 const avail = computed(() => Math.max(120, containerH.value) - RULER_H);
 const rollRow = computed(() => {
   if (!showRoll.value) return 0;
-  if (props.view === 'combined') return Math.max(3, Math.min(ROLL_MAX_ROW, (avail.value * 0.42) / pitchSpan.value));
+  if (props.view === 'combined') {
+    // Combined shares the height between the score (top) and the coil lanes (bottom).
+    // Aim for ~42% for the score, but NEVER take so much that the lanes fall below
+    // their minimum — a wide pitch span would otherwise push the lanes off the bottom
+    // (cropped, and only reachable by scrolling the score out of view). Reserving the
+    // lanes' minimum keeps the whole view fitting the container; the score rows just go
+    // thinner (it's an overview — the dedicated Score tab is there for detail).
+    const rollBudget = Math.min(avail.value * 0.42, Math.max(0, avail.value - minLaneH.value * laneCount.value));
+    return Math.min(ROLL_MAX_ROW, rollBudget / pitchSpan.value);
+  }
   return Math.max(3, avail.value / pitchSpan.value);
 });
 const rollH = computed(() => rollRow.value * pitchSpan.value);

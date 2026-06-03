@@ -8,6 +8,7 @@ dist
 .env.production
 .env.local
 .env.*.local
+.playwright-mcp
 
 # electron desktop app: staged + built artifacts
 electron/build

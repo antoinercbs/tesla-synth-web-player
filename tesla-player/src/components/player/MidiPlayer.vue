@@ -9,7 +9,9 @@ import { effectiveRatio } from '@/midi/automation';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig, CoilParam, Song } from '@/types/domain';
-import MidiPreview from '@/components/player/MidiPreview.vue';
+import CoilLegend from '@/components/player/CoilLegend.vue';
+import VizTabs from '@/components/player/VizTabs.vue';
+import PowerControlPanel from '@/components/player/PowerControlPanel.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 
@@ -34,11 +36,6 @@ const viz = ref<Viz>((localStorage.getItem('playerViz') as Viz) || 'vu');
 watch(viz, (v) => localStorage.setItem('playerViz', v));
 // which automation parameter the read-only coils view overlays
 const playerParam = ref<CoilParam>('ontime');
-// MidiPreview view (combined = score + coils, available in compact too)
-const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
-  if (viz.value === 'combined') return 'combined';
-  return viz.value === 'lanes' ? 'lanes' : 'roll';
-});
 let rafId: number | null = null;
 let playStart = 0;
 // LIVE POWER: a GLOBAL ⇄ ADVANCED toggle.
@@ -217,6 +214,16 @@ function effDutyPct(c: CoilConfig): number {
   const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'duty', playheadMs.value);
   return dutyPct((c.duty * r * effRatioDuty(c.coilIndex)) / 100);
 }
+// legend rows for <coil-legend>: colour + effective ontime/duty (recomputed each
+// frame via playheadMs, so the readouts track the faders and automation events).
+const legendRows = computed(() =>
+  legendCoils.value.map((c) => ({
+    coilIndex: c.coilIndex,
+    color: coilColor(c.coilIndex),
+    ontime: effOntime(c),
+    duty: effDutyPct(c),
+  })),
+);
 function onAutoplayToggle(e: Event): void {
   midiStore.setAutoplay((e.target as HTMLInputElement).checked);
 }
@@ -250,6 +257,14 @@ function channelBackground(ch: number): string {
 function channelMapped(ch: number): boolean {
   return (song.value?.coils ?? []).some((c) => (c.channelMask & (1 << ch)) !== 0) || inSpeaker(ch);
 }
+// per-channel VU colour + mapped flag (recomputed on song change, not per frame) →
+// fed to <viz-tabs> alongside the reactive `level` array it updates each frame.
+const vuBackgrounds = computed(() =>
+  Array.from({ length: MIDI_CHANNEL_COUNT }, (_, ch) => channelBackground(ch)),
+);
+const vuMapped = computed(() =>
+  Array.from({ length: MIDI_CHANNEL_COUNT }, (_, ch) => channelMapped(ch)),
+);
 
 function resetNotes(): void {
   for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) level[i] = 0;
@@ -521,6 +536,21 @@ function resetPower(): void {
   for (const c of song.value?.coils ?? []) { coilOntime[c.coilIndex] = 100; coilDuty[c.coilIndex] = 100; }
   applyLive();
 }
+// per-coil rows for <power-control-panel> (advanced sliders). The panel is
+// controlled: it streams drag values back via @coil-input (we store them here,
+// the readout follows) and fires @coil-change on release (→ applyLive).
+const powerCoilRows = computed(() =>
+  legendCoils.value.map((c) => ({
+    coilIndex: c.coilIndex,
+    color: coilColor(c.coilIndex),
+    ontime: coilOntime[c.coilIndex] ?? 100,
+    duty: coilDuty[c.coilIndex] ?? 100,
+  })),
+);
+function onCoilInput(coilIndex: number, param: CoilParam, value: number): void {
+  if (param === 'ontime') coilOntime[coilIndex] = value;
+  else coilDuty[coilIndex] = value;
+}
 
 function loadMidiFile(path: string, bust = false): Promise<ArrayBuffer> {
   // `bust` defeats HTTP caching after the file was rewritten on disk (instrument edit)
@@ -595,15 +625,7 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
       <span v-else class="player-song__empty">{{ $t('label.noSongLoaded') }}</span>
       <!-- per-coil legend (colour + ontime + duty): same line as the name if it
            fits, otherwise wraps full-width onto the line below -->
-      <div v-if="song && legendCoils.length" class="player-coils">
-        <div v-for="c in legendCoils" :key="c.coilIndex" class="player-coil" :style="{ '--c': coilColor(c.coilIndex) }">
-          <span class="player-coil__chip">{{ c.coilIndex }}</span>
-          <span class="player-coil__readouts">
-            <span class="player-coil__readout">{{ effOntime(c) }}<i>µs</i></span>
-            <span class="player-coil__readout">{{ effDutyPct(c) }}<i>%</i></span>
-          </span>
-        </div>
-      </div>
+      <coil-legend v-if="song" :rows="legendRows" />
     </div>
 
     <!-- playback progress (click / drag to seek), right under the song title -->
@@ -623,41 +645,10 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
       <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.loadSongHint') }}
     </p>
 
-    <div class="player-viz">
-      <div class="segmented player-viz__tabs">
-        <button type="button" :class="{ 'is-active': viz === 'vu' }" @click="viz = 'vu'">
-          <span class="icon"><i class="fas fa-chart-simple"></i></span>{{ $t('label.viewVu') }}
-        </button>
-        <button type="button" :class="{ 'is-active': viz === 'roll' }" @click="viz = 'roll'">
-          <span class="icon"><i class="fas fa-music"></i></span>{{ $t('label.viewScore') }}
-        </button>
-        <button type="button" :class="{ 'is-active': viz === 'lanes' }" @click="viz = 'lanes'">
-          <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.viewCoils') }}
-        </button>
-        <button type="button" :class="{ 'is-active': viz === 'combined' }" @click="viz = 'combined'">
-          <span class="icon"><i class="fas fa-layer-group"></i></span>{{ $t('label.viewCombined') }}
-        </button>
-      </div>
-
-      <div class="player-viz__body">
-        <div v-show="viz === 'vu'" class="vu">
-          <span class="vu__label">{{ $t('label.channels') }}</span>
-          <div class="vu-strip">
-            <div v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" class="vu-chan">
-              <div class="vu-track" :class="{ 'is-unmapped': !channelMapped(i - 1) }">
-                <div class="vu-fill"
-                  :style="{ height: (level[i - 1] * 100) + '%', background: channelBackground(i - 1) }"></div>
-              </div>
-              <span class="vu-num">{{ i - 1 }}</span>
-            </div>
-          </div>
-        </div>
-        <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="song?.coils ?? []"
-          :coil-count="song?.coilCount ?? 0" :output2-mask="song?.output2Mask ?? 0"
-          :view="previewView" :playhead-ms="playheadMs" :playing="isPlaying" :paused="paused"
-          :events="song?.events ?? []" v-model:edit-param="playerParam" :compact="compactGraph" />
-      </div>
-    </div>
+    <viz-tabs v-model:viz="viz" v-model:edit-param="playerParam" :level="level" :backgrounds="vuBackgrounds"
+      :mapped="vuMapped" :analysis="analysis" :coils="song?.coils ?? []" :coil-count="song?.coilCount ?? 0"
+      :output2-mask="song?.output2Mask ?? 0" :playhead-ms="playheadMs" :playing="isPlaying" :paused="paused"
+      :events="song?.events ?? []" :compact="compactGraph" />
 
     <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
     <div v-if="song && envelopesInUse.length" class="vu-legend">
@@ -675,46 +666,10 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
 
     <!-- LIVE POWER: a GLOBAL ⇄ ADVANCED toggle. Global = one Power fader (ontime+duty,
          all coils); Advanced = per-coil ontime/duty sliders for fine-tuning. -->
-    <div class="player-power">
-      <div class="power-head">
-        <span class="power-head__key"><span class="icon"><i class="fas fa-gauge-high"></i></span>{{ $t('label.power') }}</span>
-        <div class="segmented power-scope">
-          <button type="button" :class="{ 'is-active': powerScope === 'global' }" @click="setScope('global')">{{ $t('label.scopeGlobal') }}</button>
-          <button type="button" :class="{ 'is-active': powerScope === 'advanced' }" @click="setScope('advanced')">{{ $t('label.scopeAdvanced') }}</button>
-        </div>
-        <span v-if="powerScope === 'global'" class="power-head__val" :class="{ 'is-boost': powerBoost }">{{ masterPower }}%</span>
-        <button class="power-head__reset" type="button" :disabled="!song || !masterDirty" @click="resetPower"
-          :title="$t('label.resetPower')"><i class="fas fa-rotate-left"></i></button>
-      </div>
-
-      <!-- GLOBAL: one hero power fader (tri-zone track) -->
-      <template v-if="powerScope === 'global'">
-        <input class="power-range" type="range" min="0" max="200" step="1" v-model.number="masterPower"
-          :disabled="!song" :title="$t('label.powerHint')" @change="onPowerChange">
-        <div class="power-zones">
-          <span>{{ $t('label.zoneSoft') }}</span>
-          <span class="power-zones__mid">{{ $t('label.zoneNominal') }} · 100%</span>
-          <span class="power-zones__over">{{ $t('label.zoneOver') }}</span>
-        </div>
-      </template>
-
-      <!-- ADVANCED: per-coil ontime + duty -->
-      <div v-else-if="song" class="power-coils">
-        <div v-for="c in legendCoils" :key="c.coilIndex" class="coil-bias" :style="{ '--c': coilColor(c.coilIndex) }">
-          <span class="coil-bias__chip">{{ c.coilIndex }}</span>
-          <label class="coil-bias__item">
-            <span class="coil-bias__key">{{ $t('label.ontime') }}</span>
-            <input class="bias__range" type="range" min="0" max="200" step="1" v-model.number="coilOntime[c.coilIndex]" @change="applyLive">
-            <span class="coil-bias__val">{{ coilOntime[c.coilIndex] }}%</span>
-          </label>
-          <label class="coil-bias__item">
-            <span class="coil-bias__key">{{ $t('label.duty') }}</span>
-            <input class="bias__range" type="range" min="0" max="200" step="1" v-model.number="coilDuty[c.coilIndex]" @change="applyLive">
-            <span class="coil-bias__val">{{ coilDuty[c.coilIndex] }}%</span>
-          </label>
-        </div>
-      </div>
-    </div>
+    <power-control-panel v-model:master-power="masterPower" :scope="powerScope" :coil-rows="powerCoilRows"
+      :boost="powerBoost" :dirty="masterDirty" :has-song="!!song"
+      @set-scope="setScope" @power-change="onPowerChange" @coil-input="onCoilInput" @coil-change="applyLive"
+      @reset="resetPower" />
 
     <div class="player-transport">
       <button class="btn btn--volt" type="button" :disabled="!canTransport" @click="togglePlayPause">
