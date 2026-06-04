@@ -9,6 +9,7 @@ import {
   Post,
   Put,
 } from '@nestjs/common';
+import { EditorName } from '../auth/editor-name.decorator';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { PlaylistResponse, PlaylistsService } from './playlists.service';
 
@@ -22,16 +23,20 @@ export class PlaylistsController {
   }
 
   @Post()
-  create(@Body() dto: CreatePlaylistDto): Promise<PlaylistResponse> {
-    return this.playlistsService.create(dto);
+  create(
+    @Body() dto: CreatePlaylistDto,
+    @EditorName() editorName: string | null,
+  ): Promise<PlaylistResponse> {
+    return this.playlistsService.create(dto, editorName);
   }
 
   @Put(':id')
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreatePlaylistDto,
+    @EditorName() editorName: string | null,
   ): Promise<PlaylistResponse> {
-    return this.playlistsService.update(id, dto);
+    return this.playlistsService.update(id, dto, editorName);
   }
 
   @Delete(':id')

@@ -14,6 +14,8 @@ export interface PlaylistResponse {
   name: string;
   coilCount: number;
   songIds: number[];
+  /** Who last edited this (server-stamped from the OIDC token), or null. */
+  editorName: string | null;
 }
 
 @Injectable()
@@ -30,15 +32,22 @@ export class PlaylistsService {
     return playlists.map((playlist) => this.toResponse(playlist));
   }
 
-  async create(dto: CreatePlaylistDto): Promise<PlaylistResponse> {
+  async create(
+    dto: CreatePlaylistDto,
+    editorName: string | null = null,
+  ): Promise<PlaylistResponse> {
     const playlist = this.fromDto(new Playlist(), dto);
     playlist.uuid = randomUUID();
-    await this.stampSync(playlist);
+    await this.stampSync(playlist, editorName);
     const saved = await this.playlistRepository.save(playlist);
     return this.toResponse(saved);
   }
 
-  async update(id: number, dto: CreatePlaylistDto): Promise<PlaylistResponse> {
+  async update(
+    id: number,
+    dto: CreatePlaylistDto,
+    editorName: string | null = null,
+  ): Promise<PlaylistResponse> {
     const playlist = await this.playlistRepository.findOne({ where: { id } });
     if (!playlist) {
       throw new NotFoundException(`Playlist ${id} not found`);
@@ -51,7 +60,7 @@ export class PlaylistsService {
     );
     this.fromDto(playlist, dto);
     // uuid is preserved (loaded with the row); only the change signal is bumped.
-    await this.stampSync(playlist);
+    await this.stampSync(playlist, editorName);
     const saved = await this.playlistRepository.save(playlist);
     return this.toResponse(saved);
   }
@@ -80,15 +89,21 @@ export class PlaylistsService {
     return playlist;
   }
 
-  /** Stamps the sync change-signal (updatedAt + contentHash). The hash references
-   *  member songs by their stable uuid, so it matches across instances. */
-  private async stampSync(playlist: Playlist): Promise<void> {
+  /** Stamps the sync change-signal (updatedAt + contentHash) plus the
+   *  server-authoritative editorName. The hash references member songs by their
+   *  stable uuid, so it matches across instances. */
+  private async stampSync(
+    playlist: Playlist,
+    editorName: string | null,
+  ): Promise<void> {
     playlist.updatedAt = Date.now();
+    playlist.editorName = editorName;
     const songUuids = await this.resolveSongUuids(playlist.playlistSongs ?? []);
     playlist.contentHash = hashPlaylist({
       name: playlist.name,
       coilCount: playlist.coilCount ?? 3,
       songUuids,
+      editorName: playlist.editorName,
     });
   }
 
@@ -116,6 +131,12 @@ export class PlaylistsService {
     const songIds = [...(playlist.playlistSongs ?? [])]
       .sort((a, b) => a.idx - b.idx)
       .map((playlistSong) => playlistSong.songId);
-    return { id: playlist.id, name: playlist.name, coilCount: playlist.coilCount ?? 3, songIds };
+    return {
+      id: playlist.id,
+      name: playlist.name,
+      coilCount: playlist.coilCount ?? 3,
+      songIds,
+      editorName: playlist.editorName ?? null,
+    };
   }
 }

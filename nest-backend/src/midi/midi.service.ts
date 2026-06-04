@@ -21,6 +21,8 @@ export interface MidiFileResponse {
   name: string;
   path: string;
   durationMs: number | null;
+  /** Who last uploaded/edited this (server-stamped from the OIDC token), or null. */
+  editorName: string | null;
 }
 
 @Injectable()
@@ -70,6 +72,7 @@ export class MidiService implements OnModuleInit {
   async create(
     originalName: string,
     storedName: string,
+    editorName: string | null = null,
   ): Promise<MidiFileResponse> {
     const buffer = await this.readUpload(storedName);
     const midiFile = this.midiFileRepository.create({
@@ -79,6 +82,8 @@ export class MidiService implements OnModuleInit {
       uuid: randomUUID(),
       updatedAt: Date.now(),
       contentHash: buffer ? hashBytes(buffer) : undefined,
+      // Column only — NOT part of contentHash (byte-identity dedupe stays pure).
+      editorName,
     });
     const saved = await this.midiFileRepository.save(midiFile);
     return this.toResponse(saved);
@@ -112,6 +117,7 @@ export class MidiService implements OnModuleInit {
   async setPrograms(
     id: number,
     programs: ProgramSetting[],
+    editorName: string | null = null,
   ): Promise<MidiFileResponse> {
     const midiFile = await this.midiFileRepository.findOne({ where: { id } });
     if (!midiFile) {
@@ -135,6 +141,7 @@ export class MidiService implements OnModuleInit {
     // peers would carry different bytes while reporting the same contentHash.
     midiFile.contentHash = hashBytes(rewritten);
     midiFile.updatedAt = Date.now();
+    midiFile.editorName = editorName;
     const saved = await this.midiFileRepository.save(midiFile);
     return this.toResponse(saved);
   }
@@ -162,6 +169,7 @@ export class MidiService implements OnModuleInit {
       name: midiFile.name,
       path: midiFile.path,
       durationMs: midiFile.durationMs,
+      editorName: midiFile.editorName ?? null,
     };
   }
 }

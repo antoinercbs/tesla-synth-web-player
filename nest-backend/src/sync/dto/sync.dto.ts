@@ -39,6 +39,8 @@ export class SongPayloadDto {
   @IsIn(['midi', 'simple']) mode!: PlaybackMode;
   @IsInt() output2Mask!: number;
   @IsOptional() @IsString() midiFileUuid!: string | null;
+  /** Authorship travels with the entity; apply preserves it (not re-stamped). */
+  @IsOptional() @IsString() editorName?: string | null;
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -57,6 +59,8 @@ export class PlaylistPayloadDto {
   @IsString() contentHash!: string;
   @IsOptional() @IsString() name!: string;
   @IsInt() coilCount!: number;
+  /** Authorship travels with the entity; apply preserves it (not re-stamped). */
+  @IsOptional() @IsString() editorName?: string | null;
 
   @IsArray()
   @IsString({ each: true })
@@ -82,6 +86,8 @@ export class UploadFileDto {
   @IsOptional() @IsString() contentHash?: string;
   // Multipart form fields arrive as strings; coerce to a number.
   @IsOptional() @Type(() => Number) @IsInt() updatedAt?: number;
+  /** Authorship rides along (not part of the byte hash). */
+  @IsOptional() @IsString() editorName?: string;
 }
 
 /** Batch upsert. MIDI bytes are transferred separately via /sync/file first. */

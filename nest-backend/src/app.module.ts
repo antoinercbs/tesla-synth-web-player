@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
 import { PUBLIC_DIR, UPLOADS_DIR_ABS } from './config/paths';
 import { dataSourceOptions } from './database/data-source';
 import { DownloadsModule } from './downloads/downloads.module';
@@ -33,6 +34,9 @@ import { SyncModule } from './sync/sync.module';
     ServeStaticModule.forRoot({
       rootPath: PUBLIC_DIR,
     }),
+    // AuthModule registers the global OIDC guard (a no-op unless OIDC_ISSUER is
+    // set), so it must be present for every other module's routes to be gated.
+    AuthModule,
     HealthModule,
     SongsModule,
     MidiModule,

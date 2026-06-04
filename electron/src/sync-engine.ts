@@ -56,8 +56,9 @@ export interface ApplyOutcome {
 
 export interface RemoteConfig {
   url: string;
-  username: string;
-  password: string;
+  /** OIDC access token resolved (and refreshed) by oidc-auth before the sync;
+   *  absent when the remote server requires no auth (then no header is sent). */
+  bearer?: string;
 }
 
 export interface SyncContext {
@@ -87,6 +88,8 @@ interface SongPayload {
   mode: string;
   output2Mask: number;
   midiFileUuid: string | null;
+  // Authorship travels with the entity; passed straight through to apply.
+  editorName?: string | null;
   coils: unknown[];
   events: unknown[];
 }
@@ -96,6 +99,7 @@ interface PlaylistPayload {
   contentHash: string;
   name: string;
   coilCount: number;
+  editorName?: string | null;
   songUuids: string[];
 }
 interface PullResponse {
@@ -107,11 +111,7 @@ interface PullResponse {
 const trimSlash = (s: string): string => s.replace(/\/+$/, '');
 
 function authHeaders(remote: RemoteConfig): Record<string, string> {
-  if (!remote.username) return {};
-  const token = Buffer.from(`${remote.username}:${remote.password}`).toString(
-    'base64',
-  );
-  return { Authorization: `Basic ${token}` };
+  return remote.bearer ? { Authorization: `Bearer ${remote.bearer}` } : {};
 }
 
 async function fetchJson<T>(

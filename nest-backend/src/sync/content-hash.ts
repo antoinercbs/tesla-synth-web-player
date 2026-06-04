@@ -11,6 +11,13 @@ import { createHash } from 'crypto';
  *  - cross-entity references use the partner's stable `uuid`, never its local id
  *    or on-disk path (both differ per machine);
  *  - floats are rounded to a fixed precision so JSON of doubles matches.
+ *
+ * editorName (who last edited, server-stamped from the OIDC token) is folded in
+ * ONLY when it is a non-empty string — see `withEditor` below. This is a
+ * load-bearing backward-compat invariant: a null/empty editor produces the
+ * EXACT same JSON as before this field existed, so auth-off instances and
+ * pre-feature rows hash identically and never surface as phantom sync conflicts.
+ * Do NOT "simplify" it to always include `editorName: null`.
  */
 
 export interface CoilHashInput {
@@ -36,6 +43,8 @@ export interface SongHashInput {
   midiFileUuid: string | null;
   coils: CoilHashInput[];
   events: CoilEventHashInput[];
+  /** Server-stamped "edited by" name. Folded into the hash only when non-empty. */
+  editorName?: string | null;
 }
 
 export interface PlaylistHashInput {
@@ -44,6 +53,8 @@ export interface PlaylistHashInput {
   /** RESOLVED song uuids in playlist order. Unresolved members are dropped by
    *  every caller before hashing, so the hash never carries null slots. */
   songUuids: string[];
+  /** Server-stamped "edited by" name. Folded into the hash only when non-empty. */
+  editorName?: string | null;
 }
 
 function sha256(input: string): string {
@@ -55,8 +66,24 @@ function num(n: number): number {
   return Number.isFinite(n) ? Number(n.toFixed(6)) : 0;
 }
 
+/**
+ * Appends `editorName` to an otherwise-finished canonical object ONLY when it is
+ * a non-empty string (see the module header). When absent, the returned JSON is
+ * byte-identical to the pre-editorName output — the invariant that keeps hashes
+ * stable across auth-off / pre-feature peers. Inserted last for deterministic
+ * key order.
+ */
+function withEditor(
+  canonical: Record<string, unknown>,
+  editorName: string | null | undefined,
+): Record<string, unknown> {
+  const editor = editorName?.trim();
+  if (editor) canonical.editorName = editor;
+  return canonical;
+}
+
 export function hashSong(input: SongHashInput): string {
-  const canonical = {
+  const canonical: Record<string, unknown> = {
     name: input.name ?? '',
     coilCount: input.coilCount,
     mode: input.mode,
@@ -84,16 +111,16 @@ export function hashSong(input: SongHashInput): string {
         value: num(e.value),
       })),
   };
-  return sha256(JSON.stringify(canonical));
+  return sha256(JSON.stringify(withEditor(canonical, input.editorName)));
 }
 
 export function hashPlaylist(input: PlaylistHashInput): string {
-  const canonical = {
+  const canonical: Record<string, unknown> = {
     name: input.name ?? '',
     coilCount: input.coilCount,
     songUuids: input.songUuids,
   };
-  return sha256(JSON.stringify(canonical));
+  return sha256(JSON.stringify(withEditor(canonical, input.editorName)));
 }
 
 /** Identity of a MIDI file = sha256 of its raw bytes (path/name excluded). */

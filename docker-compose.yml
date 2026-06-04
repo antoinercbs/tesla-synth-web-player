@@ -7,6 +7,17 @@ services:
     environment:
       - PORT=5000
       - DATA_ROOT=/data
+      # ---- Optional OIDC (Keycloak) authentication ---------------------------
+      # Leave OIDC_ISSUER empty/unset to keep the API fully open (default).
+      # Set it to a realm issuer URL to require a valid token on EVERY /api route
+      # (reads included); the web front + desktop app discover this via
+      # GET /api/auth/config. See the README "Authentication" section.
+      # - OIDC_ISSUER=https://keycloak.example.com/realms/master
+      # - OIDC_AUDIENCE=tesla-player-api      # expected `aud` (needs a KC audience mapper)
+      # - OIDC_CLIENT_ID=tesla-player-web     # public SPA client id
+      # - OIDC_NATIVE_CLIENT_ID=tesla-player-desktop  # public desktop (loopback) client id
+      # - OIDC_REQUIRED_ROLE=                 # optional: require this realm/client role
+      # - OIDC_CLOCK_TOLERANCE=30             # seconds of clock-skew tolerance
     volumes:
       # persists the SQLite database and the uploaded MIDI files across rebuilds
       - ./data:/data

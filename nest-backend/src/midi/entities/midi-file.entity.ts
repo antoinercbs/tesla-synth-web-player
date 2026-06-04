@@ -31,4 +31,9 @@ export class MidiFile {
   /** sha256 of the file BYTES — the file's identity for dedupe/transfer-skip. */
   @Column({ name: 'contentHash', type: 'text', nullable: true })
   contentHash!: string;
+
+  /** "prénom nom" of who last uploaded/edited this, stamped server-side from the
+   *  OIDC token. NOT part of contentHash (byte-identity dedupe stays pure-bytes). */
+  @Column({ name: 'editorName', type: 'text', nullable: true })
+  editorName!: string | null;
 }

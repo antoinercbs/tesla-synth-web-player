@@ -3,6 +3,7 @@ import { join } from 'path';
 import { startBackend, type BackendHandle } from './backend';
 import { registerIpc } from './ipc';
 import { setupMenu } from './menu';
+import { cancelPending } from './oidc-auth';
 import { findFreePort } from './port';
 
 // Disable Chromium's OS-level sandbox. In an AppImage the bundled chrome-sandbox
@@ -131,7 +132,10 @@ app
   .whenReady()
   .then(async () => {
     setupMenu(); // no native menu bar
-    registerIpc(() => localBase);
+    registerIpc(
+      () => localBase,
+      () => win,
+    );
     createWindow(); // splash appears right away
     try {
       await resolveBackend();
@@ -164,6 +168,7 @@ app.on('window-all-closed', () => {
 // Stop the forked backend cleanly before the app exits.
 let stopping = false;
 app.on('before-quit', (e) => {
+  cancelPending(); // tear down any in-flight loopback OIDC login
   if (backend && !stopping) {
     stopping = true;
     e.preventDefault();

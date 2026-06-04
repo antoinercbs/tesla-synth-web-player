@@ -44,6 +44,7 @@ export interface MidiFilePayload {
   contentHash: string;
   name: string;
   durationMs: number | null;
+  editorName: string | null;
 }
 
 export interface PullResponse {
@@ -155,6 +156,7 @@ export class SyncService {
       mode: song.mode,
       output2Mask: song.output2Mask,
       midiFileUuid: song.midiFile?.uuid ?? null,
+      editorName: song.editorName ?? null,
       coils: [...(song.coils ?? [])]
         .sort((a, b) => a.coilIndex - b.coilIndex)
         .map((c) => ({
@@ -196,6 +198,7 @@ export class SyncService {
       contentHash: playlist.contentHash ?? '',
       name: playlist.name ?? '',
       coilCount: playlist.coilCount ?? 3,
+      editorName: playlist.editorName ?? null,
       songUuids,
     };
   }
@@ -207,6 +210,7 @@ export class SyncService {
       contentHash: file.contentHash ?? '',
       name: file.name ?? '',
       durationMs: file.durationMs,
+      editorName: file.editorName ?? null,
     };
   }
 
@@ -274,6 +278,7 @@ export class SyncService {
         existing.durationMs = durationMs;
         existing.name = dto.name;
         existing.updatedAt = dto.updatedAt;
+        existing.editorName = dto.editorName ?? null;
         const saved = await this.midiFileRepository.save(existing);
         if (oldName !== storedName) {
           await fs.rm(join(UPLOADS_DIR, oldName), { force: true });
@@ -288,6 +293,7 @@ export class SyncService {
         contentHash: actualHash,
         durationMs,
         updatedAt: dto.updatedAt,
+        editorName: dto.editorName ?? null,
       });
       const saved = await this.midiFileRepository.save(created);
       return this.midiPayloadOf(saved);
@@ -375,6 +381,9 @@ export class SyncService {
     song.output2Mask = payload.output2Mask;
     song.midiFile = midiFile;
     song.updatedAt = payload.updatedAt;
+    // Preserve authorship from the payload (historical metadata) — NOT the
+    // syncing user's token.
+    song.editorName = payload.editorName ?? null;
 
     // De-dupe coils by index (keep last) to honor UNIQUE(song_id, coilIndex).
     const coilByIndex = new Map<number, Coil>();
@@ -407,6 +416,7 @@ export class SyncService {
       midiFileUuid: effectiveMidiUuid,
       coils: song.coils,
       events: song.events,
+      editorName: song.editorName,
     });
 
     await manager.save(song);
@@ -452,10 +462,14 @@ export class SyncService {
     playlist.name = payload.name ?? '';
     playlist.coilCount = payload.coilCount ?? 3;
     playlist.updatedAt = payload.updatedAt;
+    // Preserve authorship from the payload (historical metadata) — NOT the
+    // syncing user's token.
+    playlist.editorName = payload.editorName ?? null;
     playlist.contentHash = hashPlaylist({
       name: playlist.name,
       coilCount: playlist.coilCount,
       songUuids: resolvedUuids,
+      editorName: playlist.editorName,
     });
     playlist.playlistSongs = songIds.map((songId, idx) => {
       const ps = new PlaylistSong();

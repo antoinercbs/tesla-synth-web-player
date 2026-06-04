@@ -1,33 +1,53 @@
-import { ipcMain } from 'electron';
+import { BrowserWindow, ipcMain } from 'electron';
 import {
   getServerConfigPublic,
-  getServerConfigSecret,
-  setServerConfig,
+  setServerUrl,
   type ServerConfigInput,
 } from './config-store';
+import { getStatus, getValidAccessToken, login, logout } from './oidc-auth';
 import { applySync, previewSync, type SyncSelection } from './sync-engine';
 
 /**
- * Wires the preload bridge to the main-process logic. The remote credentials
- * never cross into the renderer: the sync HTTP calls run here, in main.
+ * Wires the preload bridge to the main-process logic. Tokens never cross into
+ * the renderer: the OIDC flow and the sync HTTP calls run here, in main.
  */
-export function registerIpc(getLocalBase: () => string): void {
+export function registerIpc(
+  getLocalBase: () => string,
+  getWindow: () => BrowserWindow | null,
+): void {
   ipcMain.handle('server-config:get', () => getServerConfigPublic());
   ipcMain.handle('server-config:set', (_e, cfg: ServerConfigInput) =>
-    setServerConfig(cfg),
+    setServerUrl(cfg),
   );
 
+  // --- OIDC sign-in (only relevant for sync against an auth-enabled server) ---
+  ipcMain.handle('auth:status', async () => {
+    const { url } = await getServerConfigPublic();
+    return getStatus(url);
+  });
+  ipcMain.handle('auth:login', async () => {
+    const { url } = await getServerConfigPublic();
+    const status = await login(url);
+    getWindow()?.focus(); // bring the app back to front after the browser detour
+    return status;
+  });
+  ipcMain.handle('auth:logout', () => logout());
+
   ipcMain.handle('sync:preview', async (e) => {
-    const remote = await getServerConfigSecret();
-    return previewSync({ localBase: getLocalBase(), remote }, (msg) =>
+    const { url } = await getServerConfigPublic();
+    const bearer = await getValidAccessToken(url);
+    return previewSync({ localBase: getLocalBase(), remote: { url, bearer } }, (msg) =>
       e.sender.send('sync:progress', msg),
     );
   });
 
   ipcMain.handle('sync:apply', async (e, selections: SyncSelection[]) => {
-    const remote = await getServerConfigSecret();
-    return applySync({ localBase: getLocalBase(), remote }, selections ?? [], (msg) =>
-      e.sender.send('sync:progress', msg),
+    const { url } = await getServerConfigPublic();
+    const bearer = await getValidAccessToken(url);
+    return applySync(
+      { localBase: getLocalBase(), remote: { url, bearer } },
+      selections ?? [],
+      (msg) => e.sender.send('sync:progress', msg),
     );
   });
 }

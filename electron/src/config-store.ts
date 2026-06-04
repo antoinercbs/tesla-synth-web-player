@@ -2,26 +2,30 @@ import { app, safeStorage } from 'electron';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
-/** What the renderer is allowed to see — never the raw password. */
+/** What the renderer is allowed to see (no tokens, ever). */
 export interface ServerConfigPublic {
   url: string;
-  username: string;
-  hasPassword: boolean;
-}
-
-/** What the main process keeps internally (password = base64 of encrypted). */
-interface StoredConfig {
-  url: string;
-  username: string;
-  password?: string;
 }
 
 /** What the renderer may send to update config. */
 export interface ServerConfigInput {
   url: string;
-  username: string;
-  /** Omit/empty to keep the existing password unchanged. */
-  password?: string;
+}
+
+/** OIDC tokens for sync — main-process only, refresh token encrypted at rest. */
+export interface StoredTokens {
+  accessToken: string;
+  refreshToken?: string;
+  /** Epoch ms when the access token expires. */
+  expiresAt: number;
+  /** Cached display name ("prénom nom") for the sign-in UI. */
+  displayName?: string;
+}
+
+/** On-disk shape. `tokens` is base64 of the encrypted StoredTokens JSON. */
+interface StoredConfig {
+  url: string;
+  tokens?: string;
 }
 
 const file = (): string => join(app.getPath('userData'), 'server-config.json');
@@ -30,57 +34,58 @@ async function read(): Promise<StoredConfig> {
   try {
     return JSON.parse(await fs.readFile(file(), 'utf8')) as StoredConfig;
   } catch {
-    return { url: '', username: '' };
+    return { url: '' };
   }
+}
+
+async function write(cfg: StoredConfig): Promise<void> {
+  await fs.writeFile(file(), JSON.stringify(cfg), 'utf8');
+}
+
+function encrypt(plain: string): string {
+  const buf = safeStorage.isEncryptionAvailable()
+    ? safeStorage.encryptString(plain)
+    : Buffer.from(plain, 'utf8');
+  return buf.toString('base64');
+}
+
+function decrypt(b64: string): string {
+  const buf = Buffer.from(b64, 'base64');
+  return safeStorage.isEncryptionAvailable()
+    ? safeStorage.decryptString(buf)
+    : buf.toString('utf8');
 }
 
 export async function getServerConfigPublic(): Promise<ServerConfigPublic> {
   const c = await read();
-  return {
-    url: c.url || '',
-    username: c.username || '',
-    hasPassword: Boolean(c.password),
-  };
+  return { url: c.url || '' };
 }
 
-/** Full config incl. decrypted password — main-process use only (sync calls). */
-export async function getServerConfigSecret(): Promise<{
-  url: string;
-  username: string;
-  password: string;
-}> {
-  const c = await read();
-  let password = '';
-  if (c.password) {
-    try {
-      const buf = Buffer.from(c.password, 'base64');
-      password = safeStorage.isEncryptionAvailable()
-        ? safeStorage.decryptString(buf)
-        : buf.toString('utf8');
-    } catch {
-      password = '';
-    }
-  }
-  return { url: c.url || '', username: c.username || '', password };
-}
-
-export async function setServerConfig(
+/** Sets the remote server URL, preserving any stored tokens. */
+export async function setServerUrl(
   input: ServerConfigInput,
 ): Promise<ServerConfigPublic> {
   const current = await read();
-  const next: StoredConfig = {
-    url: input.url ?? '',
-    username: input.username ?? '',
-  };
-  if (input.password) {
-    const enc = safeStorage.isEncryptionAvailable()
-      ? safeStorage.encryptString(input.password)
-      : Buffer.from(input.password, 'utf8');
-    next.password = enc.toString('base64');
-  } else {
-    // Empty/omitted password -> keep the existing one.
-    next.password = current.password;
-  }
-  await fs.writeFile(file(), JSON.stringify(next), 'utf8');
+  await write({ url: input.url ?? '', tokens: current.tokens });
   return getServerConfigPublic();
+}
+
+export async function getStoredTokens(): Promise<StoredTokens | null> {
+  const c = await read();
+  if (!c.tokens) return null;
+  try {
+    return JSON.parse(decrypt(c.tokens)) as StoredTokens;
+  } catch {
+    return null;
+  }
+}
+
+export async function setStoredTokens(tokens: StoredTokens): Promise<void> {
+  const current = await read();
+  await write({ url: current.url || '', tokens: encrypt(JSON.stringify(tokens)) });
+}
+
+export async function clearStoredTokens(): Promise<void> {
+  const current = await read();
+  await write({ url: current.url || '' });
 }

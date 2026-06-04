@@ -6,8 +6,16 @@ export type TeslaSyncChoice = 'local' | 'remote' | 'skip';
 
 export interface TeslaServerConfigPublic {
   url: string;
-  username: string;
-  hasPassword: boolean;
+}
+
+/** OIDC sign-in status of the desktop app against the configured server. */
+export interface TeslaAuthStatus {
+  /** True when the configured server requires login. */
+  enabled: boolean;
+  /** True when a valid/refreshable session exists for that server. */
+  signedIn: boolean;
+  /** Display name of the signed-in user, if known. */
+  displayName?: string;
 }
 
 export interface TeslaSyncDiffItem {
@@ -49,11 +57,11 @@ export interface TeslaSyncProgress {
 export interface TeslaElectronBridge {
   isElectron: true;
   getServerConfig(): Promise<TeslaServerConfigPublic>;
-  setServerConfig(cfg: {
-    url: string;
-    username: string;
-    password?: string;
-  }): Promise<TeslaServerConfigPublic>;
+  setServerConfig(cfg: { url: string }): Promise<TeslaServerConfigPublic>;
+  /** OIDC sign-in (loopback flow in the main process). */
+  getAuthStatus(): Promise<TeslaAuthStatus>;
+  login(): Promise<TeslaAuthStatus>;
+  logout(): Promise<void>;
   previewSync(): Promise<TeslaSyncDiff>;
   applySync(selections: TeslaSyncSelection[]): Promise<TeslaApplyOutcome>;
   onSyncProgress(cb: (p: TeslaSyncProgress) => void): () => void;

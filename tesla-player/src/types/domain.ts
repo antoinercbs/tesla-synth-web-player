@@ -32,6 +32,8 @@ export interface MidiFile {
   path: string;
   /** Total play length in ms, computed server-side. Null/undefined if unknown. */
   durationMs?: number | null;
+  /** Who last uploaded/edited this (server-stamped from the OIDC token), or null. */
+  editorName?: string | null;
 }
 
 /** Global operator configuration (one row server-side). */
@@ -100,6 +102,8 @@ export interface Song {
   coils: CoilConfig[];
   /** Mid-song parameter-change events (optional; future). */
   events?: CoilEvent[];
+  /** Who last edited this (server-stamped from the OIDC token), or null. */
+  editorName?: string | null;
 }
 
 export interface Playlist {
@@ -108,6 +112,8 @@ export interface Playlist {
   /** Tesla-coil count this playlist targets (1..6); only matching songs play. */
   coilCount: number;
   songIds: number[];
+  /** Who last edited this (server-stamped from the OIDC token), or null. */
+  editorName?: string | null;
 }
 
 export const MIN_COILS = 1;

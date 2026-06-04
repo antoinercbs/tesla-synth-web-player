@@ -16,6 +16,8 @@ export interface SongResponse {
   coilCount: number;
   mode: PlaybackMode;
   output2Mask: number;
+  /** Who last edited this (server-stamped from the OIDC token), or null. */
+  editorName: string | null;
   midiFile: { id: number; name: string; path: string; durationMs: number | null } | null;
   coils: {
     coilIndex: number;
@@ -45,15 +47,22 @@ export class SongsService {
     return songs.map((song) => this.toResponse(song));
   }
 
-  async create(dto: CreateSongDto): Promise<SongResponse> {
+  async create(
+    dto: CreateSongDto,
+    editorName: string | null = null,
+  ): Promise<SongResponse> {
     const song = await this.fromDto(new Song(), dto);
     song.uuid = randomUUID();
-    this.stampSync(song);
+    this.stampSync(song, editorName);
     const saved = await this.songRepository.save(song);
     return this.findOneOrThrow(saved.id);
   }
 
-  async update(id: number, dto: CreateSongDto): Promise<SongResponse> {
+  async update(
+    id: number,
+    dto: CreateSongDto,
+    editorName: string | null = null,
+  ): Promise<SongResponse> {
     const song = await this.songRepository.findOne({ where: { id } });
     if (!song) {
       throw new NotFoundException(`Song ${id} not found`);
@@ -64,7 +73,7 @@ export class SongsService {
     await this.songRepository.query('DELETE FROM "CoilEvent" WHERE song_id = ?', [id]);
     await this.fromDto(song, dto);
     // uuid is preserved (loaded with the row); only the change signal is bumped.
-    this.stampSync(song);
+    this.stampSync(song, editorName);
     await this.songRepository.save(song);
     return this.findOneOrThrow(id);
   }
@@ -122,9 +131,11 @@ export class SongsService {
   }
 
   /** Stamps the sync change-signal (updatedAt + contentHash) from the in-memory
-   *  aggregate. Call after fromDto has resolved midiFile/coils/events. */
-  private stampSync(song: Song): void {
+   *  aggregate, plus the server-authoritative editorName. Call after fromDto has
+   *  resolved midiFile/coils/events. */
+  private stampSync(song: Song, editorName: string | null): void {
     song.updatedAt = Date.now();
+    song.editorName = editorName;
     song.contentHash = hashSong({
       name: song.name,
       coilCount: song.coilCount,
@@ -133,6 +144,7 @@ export class SongsService {
       midiFileUuid: song.midiFile?.uuid ?? null,
       coils: song.coils ?? [],
       events: song.events ?? [],
+      editorName: song.editorName,
     });
   }
 
@@ -143,6 +155,7 @@ export class SongsService {
       coilCount: song.coilCount,
       mode: song.mode,
       output2Mask: song.output2Mask,
+      editorName: song.editorName ?? null,
       midiFile: song.midiFile
         ? {
             id: song.midiFile.id,

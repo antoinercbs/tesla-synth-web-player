@@ -1,5 +1,15 @@
 <template>
   <aside class="sidebar" :class="{ 'sidebar--compact': sidebarCompact }">
+    <!-- Signed-in identity + sign-out, at the very top (web, OIDC-enabled server). -->
+    <div v-if="authStore.enabled && authStore.authenticated && !sidebarCompact" class="sidebar-auth">
+      <span class="sidebar-auth__who" :title="authStore.displayName">
+        <i class="fas fa-user"></i><span class="sidebar-auth__name">{{ authStore.displayName || $t('auth.signedIn') }}</span>
+      </span>
+      <button class="sidebar-auth__out" type="button" :title="$t('auth.signOut')" @click="signOut">
+        <i class="fas fa-right-from-bracket"></i>
+      </button>
+    </div>
+
     <div class="brand">
       <router-link class="brand__emblem" :to="{ name: 'play' }" aria-label="Tesla Player"
         :style="{ '--emblem-src': 'url(' + emblemSrc + ')' }" />
@@ -207,6 +217,7 @@ import { WebMidi } from 'webmidi'
 import emblemSrc from '@/assets/emblem_high_black.svg'
 import labelSrc from '@/assets/label_high_black.svg'
 import { useMidiStore } from '@/stores/midi'
+import { useAuthStore } from '@/stores/auth'
 import { coilColor } from '@/ui/coil-colors'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
@@ -259,7 +270,7 @@ export default {
     }
   },
   computed: {
-    ...mapStores(useMidiStore),
+    ...mapStores(useMidiStore, useAuthStore),
     isSynthSelected() { return this.selectedOutputId === SYNTH_OUTPUT_ID },
     outputs() {
       return this.midiStore.midiOutputList || []
@@ -397,6 +408,9 @@ export default {
     onLanguageChange() {
       localStorage.setItem('locale', this.$i18n.locale)
     },
+    signOut() {
+      this.authStore.logout()
+    },
     toggleSidebar() {
       this.sidebarCompact = !this.sidebarCompact
       localStorage.setItem('sidebarCompact', this.sidebarCompact ? '1' : '0')
@@ -444,3 +458,41 @@ export default {
   }
 }
 </script>
+
+<style scoped>
+.sidebar-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.7rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  font-size: 0.72rem;
+  color: var(--text-mute);
+}
+.sidebar-auth__who {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  flex: 1;
+}
+.sidebar-auth__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-auth__out {
+  flex: 0 0 auto;
+  background: transparent;
+  border: none;
+  color: var(--text-mute);
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  border-radius: 4px;
+}
+.sidebar-auth__out:hover {
+  color: var(--volt, #ffd24d);
+  background: var(--line-005, rgba(255, 255, 255, 0.04));
+}
+</style>

@@ -8,11 +8,17 @@ import { contextBridge, ipcRenderer, type IpcRendererEvent } from 'electron';
 contextBridge.exposeInMainWorld('teslaElectron', {
   isElectron: true,
 
-  // Server configuration (URL + basic-auth). The raw password never comes back.
+  // Server configuration: just the remote URL now (no basic-auth fields).
   getServerConfig: () => ipcRenderer.invoke('server-config:get'),
   setServerConfig: (cfg: unknown) => ipcRenderer.invoke('server-config:set', cfg),
 
-  // Sync. The actual HTTP calls (incl. credentials) run in the main process.
+  // OIDC sign-in to the remote server (the loopback flow runs in main; tokens
+  // never reach the renderer). Only relevant when the server requires auth.
+  getAuthStatus: () => ipcRenderer.invoke('auth:status'),
+  login: () => ipcRenderer.invoke('auth:login'),
+  logout: () => ipcRenderer.invoke('auth:logout'),
+
+  // Sync. The actual HTTP calls (incl. the bearer token) run in the main process.
   previewSync: () => ipcRenderer.invoke('sync:preview'),
   applySync: (selections: unknown) => ipcRenderer.invoke('sync:apply', selections),
 

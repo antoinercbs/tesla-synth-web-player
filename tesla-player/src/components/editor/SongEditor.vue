@@ -223,6 +223,9 @@ const showLibrary = ref(false);
       <div class="field-block field-block--wide">
         <label class="field-label" for="song-name">{{ $t('label.songName') }}</label>
         <input id="song-name" class="text-field" v-model="draft.name" :placeholder="$t('label.songName')">
+        <span v-if="song && song.editorName" class="editor-meta__editor">
+          <i class="fas fa-user-pen"></i>{{ $t('auth.lastEditedBy', { name: song.editorName }) }}
+        </span>
       </div>
 
       <div class="field-block">
@@ -308,3 +311,14 @@ const showLibrary = ref(false);
       @close="showInstruments = false" @saved="onInstrumentsSaved" />
   </div>
 </template>
+
+<style scoped>
+.editor-meta__editor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--text-mute);
+}
+</style>

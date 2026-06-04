@@ -8,7 +8,8 @@ CREATE TABLE IF NOT EXISTS Playlist (
 	coilCount INTEGER NOT NULL DEFAULT 3,
 	uuid TEXT,
 	updatedAt INTEGER,
-	contentHash TEXT
+	contentHash TEXT,
+	editorName TEXT
 );
 
 CREATE TABLE IF NOT EXISTS PlaylistSong(
@@ -27,7 +28,8 @@ CREATE TABLE IF NOT EXISTS MidiFile (
 	durationMs		INTEGER,
 	uuid			TEXT,
 	updatedAt		INTEGER,
-	contentHash		TEXT
+	contentHash		TEXT,
+	editorName		TEXT
 );
 
 CREATE TABLE IF NOT EXISTS Song (
@@ -40,6 +42,7 @@ CREATE TABLE IF NOT EXISTS Song (
 	uuid			TEXT,
 	updatedAt		INTEGER,
 	contentHash		TEXT,
+	editorName		TEXT,
 	FOREIGN KEY (midiFile_id) REFERENCES MidiFile(id) ON DELETE SET NULL
 );
 

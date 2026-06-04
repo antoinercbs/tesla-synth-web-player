@@ -36,4 +36,9 @@ export class Playlist {
   /** sha256 of the normalized aggregate (name + coilCount + ordered song uuids). */
   @Column({ name: 'contentHash', type: 'text', nullable: true })
   contentHash!: string;
+
+  /** "prénom nom" of who last edited this, stamped server-side from the OIDC
+   *  token. Null when auth is off / no identity. Travels with the entity on sync. */
+  @Column({ name: 'editorName', type: 'text', nullable: true })
+  editorName!: string | null;
 }
