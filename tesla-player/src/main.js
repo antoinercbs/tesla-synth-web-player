@@ -8,7 +8,7 @@ import App from './App.vue'
 import router from './router'
 import { messages } from './assets/translations'
 import { useAuthStore } from '@/stores/auth'
-import { getAccessToken, isAuthEnabled } from '@/auth/oidc'
+import { getAccessToken, isAuthEnabled, tryRenew } from '@/auth/oidc'
 
 import '@/assets/main.scss'
 // CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
@@ -29,16 +29,25 @@ axios.interceptors.request.use((config) => {
   return config
 })
 
-// On 401 with auth enabled, the session is gone/expired → redirect straight to
-// the IdP to re-authenticate (seamless when the IdP SSO session is still alive).
-// The anti-loop guard in requestLogin falls back to the manual /login page if the
-// round-trip isn't yielding a usable session. Passes the error through so callers
-// still see the failure.
+// On 401 with auth enabled: first try a SILENT token renewal and retry the
+// request once — this recovers a mid-session token expiry in place, WITHOUT a
+// full-page re-login that would lose unsaved edits. Only if renewal fails (the
+// session is genuinely gone) do we redirect to the IdP. The anti-loop guard in
+// requestLogin falls back to the manual /login page if the round-trip isn't
+// yielding a usable session. Errors still propagate so callers see the failure.
 axios.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     const status = error && error.response && error.response.status
-    if (isAuthEnabled() && status === 401) {
+    const cfg = error && error.config
+    if (isAuthEnabled() && status === 401 && cfg && !cfg.__authRetried) {
+      cfg.__authRetried = true
+      const token = await tryRenew()
+      if (token) {
+        // Re-issue the original request; the request interceptor attaches the
+        // freshly-renewed token. No navigation, no lost state.
+        return axios(cfg)
+      }
       const auth = useAuthStore()
       auth.markExpired()
       const current = router.currentRoute.value

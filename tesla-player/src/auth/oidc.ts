@@ -84,15 +84,21 @@ export async function initOidc(cfg: AuthRuntimeConfig): Promise<void> {
     post_logout_redirect_uri: `${origin}/`,
     response_type: 'code',
     scope: 'openid profile',
-    // No refresh token in the browser and no silent-renew iframe (third-party
-    // cookies make it unreliable): an expired token degrades to a quick
-    // interactive redirect, which the live Keycloak SSO session makes seamless.
-    automaticSilentRenew: false,
+    // Renew the access token silently in the BACKGROUND shortly before it
+    // expires, using the refresh token Keycloak returns for the code grant (no
+    // iframe, no third-party cookies). This is what stops a mid-session 401 from
+    // bouncing through the IdP and reloading the SPA — which would lose unsaved
+    // edits. (Requires the Keycloak client to issue refresh tokens — the default
+    // for a Standard-flow client; if absent, it degrades to the 401 → re-login.)
+    automaticSilentRenew: true,
     userStore: new WebStorageStateStore({ store: window.localStorage }),
     loadUserInfo: true,
   });
   userManager.events.addUserLoaded((u) => emit(u));
   userManager.events.addUserUnloaded(() => emit(null));
+  userManager.events.addSilentRenewError((e) =>
+    console.warn('OIDC silent renew failed; will re-auth on the next 401', e),
+  );
   const existing = await userManager.getUser();
   emit(existing && !existing.expired ? existing : null);
 }
@@ -109,6 +115,32 @@ export function getCurrentUser(): User | null {
 export function getAccessToken(): string | null {
   if (!currentUser || currentUser.expired) return null;
   return currentUser.access_token ?? null;
+}
+
+let renewing: Promise<string | null> | null = null;
+
+/**
+ * Silently renews the access token via the refresh token — NO redirect, NO page
+ * reload. Concurrent callers share one in-flight renewal (refresh-token rotation
+ * means only a single refresh may be redeemed at a time). Returns the fresh
+ * token, or null if renewal failed (the session is genuinely gone → re-login).
+ */
+export function tryRenew(): Promise<string | null> {
+  if (!userManager) return Promise.resolve(null);
+  if (!renewing) {
+    const um = userManager;
+    renewing = um
+      .signinSilent()
+      .then((u) => {
+        emit(u && !u.expired ? u : null);
+        return getAccessToken();
+      })
+      .catch(() => null)
+      .finally(() => {
+        renewing = null;
+      });
+  }
+  return renewing;
 }
 
 /** Best display name from the OIDC profile, or '' if none. */
