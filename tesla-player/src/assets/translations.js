@@ -299,6 +299,7 @@ export const messages = {
       linux: "Linux (AppImage)",
       windows: "Windows (.exe)",
       noBuild: "No build available yet",
+      downloadFailed: "Download failed. Please try again.",
       serverConfig: "Server configuration",
       serverConfigHint:
         "Sync your songs, MIDI files and playlists with a remote Tesla Player server.",
@@ -655,6 +656,7 @@ export const messages = {
       linux: "Linux (AppImage)",
       windows: "Windows (.exe)",
       noBuild: "Aucune version disponible",
+      downloadFailed: "Échec du téléchargement. Réessayez.",
       serverConfig: "Configuration serveur",
       serverConfigHint:
         "Synchronise tes morceaux, fichiers MIDI et playlists avec un serveur Tesla Player distant.",
