@@ -142,7 +142,7 @@
     <!-- Desktop app: a prominent Sync button, then server config + language.
          No online/offline (the backend is local). -->
     <section v-if="isElectron" class="sidebar-foot-el">
-      <button class="btn btn--volt sidebar-foot-el__sync" type="button" @click="syncOpen = true">
+      <button v-if="serverConfigured" class="btn btn--volt sidebar-foot-el__sync" type="button" @click="syncOpen = true">
         <span class="icon"><i class="fas fa-rotate"></i></span>{{ $t('desktop.sync') }}
       </button>
       <div class="sidebar-foot-el__row">
@@ -255,6 +255,9 @@ export default {
       isElectron: typeof window !== 'undefined' && window.teslaElectron?.isElectron === true,
       serverOpen: false,
       syncOpen: false,
+      // Electron: whether a remote server URL is set. Sync is meaningless (and
+      // hidden) until one is configured.
+      serverConfigured: false,
       unsubServerConfig: null,
       // Web-only: desktop-app download modal.
       downloadOpen: false,
@@ -416,8 +419,19 @@ export default {
       localStorage.setItem('sidebarCompact', this.sidebarCompact ? '1' : '0')
     },
     // --- Desktop app (Electron-only sync/server) ---
+    // Reflect whether a remote server URL is set (drives the Sync button's visibility).
+    async refreshServerConfigured() {
+      if (!this.isElectron || !window.teslaElectron) return
+      try {
+        const cfg = await window.teslaElectron.getServerConfig()
+        this.serverConfigured = !!(cfg && cfg.url)
+      } catch {
+        this.serverConfigured = false
+      }
+    },
     onServerSaved() {
       notify('label.settingsSaved')
+      this.refreshServerConfigured() // a URL may have just been added/removed
     },
     onSyncApplied() {
       // A pull may have changed the local DB — refresh the cached lists, and
@@ -446,6 +460,7 @@ export default {
     // Native menu "Server configuration…" opens the modal.
     if (this.isElectron && window.teslaElectron) {
       this.unsubServerConfig = window.teslaElectron.onOpenServerConfig(() => { this.serverOpen = true })
+      this.refreshServerConfigured() // hide Sync until a server URL is set
     }
   },
   beforeUnmount() {

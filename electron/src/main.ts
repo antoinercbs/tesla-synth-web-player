@@ -121,6 +121,11 @@ function createWindow(): void {
     width: 1280,
     height: 860,
     title: 'Tesla Player',
+    // Dev only: in a packaged build the icon is baked into the .exe (Windows) or
+    // the AppImage by electron-builder, so this path (not shipped) is irrelevant.
+    ...(app.isPackaged
+      ? {}
+      : { icon: join(__dirname, '..', 'build-assets', 'icon.png') }),
     show: false, // avoid a white flash: reveal only after the splash paints
     backgroundColor: '#0c0e14',
     webPreferences: {
