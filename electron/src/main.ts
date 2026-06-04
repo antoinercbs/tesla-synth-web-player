@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog } from 'electron';
+import { app, BrowserWindow, dialog, Menu } from 'electron';
 import { join } from 'path';
 import {
   APP_ORIGIN,
@@ -99,6 +99,22 @@ async function resolveBackend(): Promise<void> {
   rendererUrl = `${APP_ORIGIN}/`;
 }
 
+/** Minimal slice of Electron's serial PortInfo used to label a chooser entry. */
+interface SerialPortInfo {
+  portId: string;
+  portName?: string;
+  displayName?: string;
+  vendorId?: string;
+  productId?: string;
+}
+
+/** Human-readable label for the serial chooser: friendly name + USB ids. */
+function serialPortLabel(p: SerialPortInfo): string {
+  const name = p.displayName || p.portName || p.portId;
+  const usb = p.vendorId && p.productId ? ` — USB ${p.vendorId}:${p.productId}` : '';
+  return `${name}${usb}`;
+}
+
 /** Opens the window on the splash screen (shown only once it has painted). */
 function createWindow(): void {
   win = new BrowserWindow({
@@ -123,9 +139,41 @@ function createWindow(): void {
   const ses = win.webContents.session;
   ses.setPermissionCheckHandler(() => true);
   ses.setDevicePermissionHandler((details) => details.deviceType === 'serial');
+  // Electron ships NO built-in serial port chooser (Chrome's picker isn't part
+  // of Electron), so the renderer's navigator.serial.requestPort() can only work
+  // if we answer this event ourselves. Blindly picking portList[0] "connects"
+  // the wrong COM port (there are usually several on Windows), which is exactly
+  // the "it says connected but does nothing" symptom — so show the ports in a
+  // native popup menu and let the user choose.
   ses.on('select-serial-port', (event, portList, _wc, callback) => {
     event.preventDefault();
-    callback(portList.length ? portList[0].portId : '');
+    let done = false;
+    // The callback MUST be invoked exactly once (a port id, or '' to cancel).
+    const choose = (id: string): void => {
+      if (done) return;
+      done = true;
+      callback(id);
+    };
+    if (!portList.length) {
+      choose('');
+      return;
+    }
+    const menu = Menu.buildFromTemplate([
+      { label: 'Select a serial port', enabled: false },
+      { type: 'separator' },
+      ...portList.map((p) => ({
+        label: serialPortLabel(p),
+        click: () => choose(p.portId),
+      })),
+      { type: 'separator' },
+      { label: 'Cancel', click: () => choose('') },
+    ]);
+    menu.popup({
+      window: win ?? undefined,
+      // Dismissed by clicking away (no item picked) → cancel the request. The
+      // setTimeout lets a real item's click handler (which runs first) win.
+      callback: () => setTimeout(() => choose(''), 0),
+    });
   });
 
   win.once('ready-to-show', () => win?.show());
