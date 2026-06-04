@@ -54,10 +54,10 @@ const external = [
 ];
 
 await build({
-  entryPoints: [
-    resolve(nestRoot, 'dist/main.js'),
-    resolve(nestRoot, 'dist/scripts/init-db.js'),
-  ],
+  // Only main.js: the desktop app applies the schema.sql baseline in-process
+  // (see embedded-backend.ts) using the same native sqlite3, so it no longer
+  // forks dist/scripts/init-db.js. (Docker still uses init-db via its own build.)
+  entryPoints: [resolve(nestRoot, 'dist/main.js')],
   bundle: true,
   platform: 'node',
   target: 'node18',
@@ -70,4 +70,4 @@ await build({
   logLevel: 'warning',
 });
 
-console.log(`[bundle-backend] bundled main.js + scripts/init-db.js -> ${outdir}`);
+console.log(`[bundle-backend] bundled main.js -> ${outdir}`);

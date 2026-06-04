@@ -1,5 +1,4 @@
-import { utilityProcess } from 'electron';
-import { existsSync, promises as fs } from 'fs';
+import { existsSync, promises as fs, readFileSync } from 'fs';
 import { inject } from 'light-my-request';
 import { join } from 'path';
 import type { Fetcher } from './sync-engine';
@@ -11,8 +10,12 @@ import type { Fetcher } from './sync-engine';
  * light-my-request — no TCP port, no forked HTTP server. The app:// protocol
  * handler (app-protocol.ts) and the sync engine talk to it through `dispatch()`.
  *
- * Only a fresh-DB one-shot `init-db` is still forked (it applies the schema.sql
- * baseline then exits); everything else lives in this process.
+ * The fresh-DB one-shot `init-db` (applies the schema.sql baseline) also runs
+ * in-process: it reuses the SAME native sqlite3 the in-process backend loads, so
+ * everything lives in this process. (It used to be a utilityProcess.fork of
+ * dist/scripts/init-db.js, but on Windows that forked process crashed during
+ * Electron's bootstrap — asar fs-wrapper / integrity check — and exited 1 before
+ * our code ran. Running in-process sidesteps that fork entirely.)
  */
 
 export interface EmbeddedOptions {
@@ -62,41 +65,50 @@ function applyEnv(opts: EmbeddedOptions): void {
   process.env.ELECTRON_DIR = join(opts.dataRoot, 'electron');
 }
 
-/** Runs init-db once (creates the schema.sql baseline) on a brand-new data dir. */
+/** Minimal slice of the `sqlite3` module — just what applying the baseline needs. */
+interface Sqlite3Database {
+  exec(sql: string, cb: (err: Error | null) => void): void;
+  close(cb?: (err: Error | null) => void): void;
+}
+interface Sqlite3Module {
+  Database: new (
+    path: string,
+    cb?: (err: Error | null) => void,
+  ) => Sqlite3Database;
+}
+
+/**
+ * Applies the schema.sql baseline to a brand-new DB, IN-PROCESS — no fork.
+ * Mirrors what dist/scripts/init-db.js did, but loads the native sqlite3 from
+ * the backend's own node_modules (the bundle keeps sqlite3 external and resolves
+ * it from there too), so it's the exact module the in-process backend uses.
+ */
 function runInitDb(opts: EmbeddedOptions): Promise<void> {
+  // Resolve sqlite3 by absolute path: the backend tree (incl. its node_modules)
+  // ships OUTSIDE the asar via extraResources, so this loads the real .node and
+  // doesn't go through Node's normal asar-aware lookup from this file.
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const sqlite3 = require(
+    join(opts.backendRoot, 'node_modules', 'sqlite3'),
+  ) as Sqlite3Module;
+  const schema = readFileSync(join(opts.backendRoot, 'schema.sql'), 'utf-8');
+  const dbPath = join(opts.dataRoot, 'database.db');
+
   return new Promise((resolve, reject) => {
-    const child = utilityProcess.fork(
-      join(opts.backendRoot, 'dist/scripts/init-db.js'),
-      [],
-      { cwd: opts.backendRoot, env: process.env as Record<string, string>, stdio: 'pipe' },
-    );
-    let errOut = '';
-    let settled = false;
-    const timer = setTimeout(() => {
-      if (settled) return;
-      settled = true;
-      try {
-        child.kill();
-      } catch {
-        /* ignore */
-      }
-      reject(new Error('init-db timed out (>30s)'));
-    }, 30000);
-    child.stdout?.on('data', (b: Buffer) => process.stdout.write(`[init-db] ${b}`));
-    child.stderr?.on('data', (b: Buffer) => {
-      errOut += String(b);
-      process.stderr.write(`[init-db] ${b}`);
-    });
-    child.on('exit', (code) => {
-      if (settled) return;
-      settled = true;
-      clearTimeout(timer);
-      if (code === 0) {
-        resolve();
+    const db = new sqlite3.Database(dbPath, (openErr) => {
+      if (openErr) {
+        reject(new Error(`init-db: failed to open ${dbPath}: ${openErr.message}`));
         return;
       }
-      const tail = errOut.trim().split('\n').slice(-3).join(' ');
-      reject(new Error(`init-db exited with ${code}${tail ? `: ${tail}` : ''}`));
+      db.exec(schema, (execErr) => {
+        db.close(() => {
+          if (execErr) {
+            reject(new Error(`init-db: schema apply failed: ${execErr.message}`));
+          } else {
+            resolve();
+          }
+        });
+      });
     });
   });
 }

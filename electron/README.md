@@ -38,10 +38,24 @@ cd ../electron && npm run dev:fork
 
 ## Package
 
+The scripts are cross-platform (env vars go through `cross-env`). `dist` builds
+for the **host OS** by default; pick a target explicitly with the variants:
+
 ```bash
-npm run build:electron   # front + back build, stage, electron-rebuild sqlite3, package
+# Build for the OS you're on (front + back build, stage, rebuild sqlite3, package):
+npm run build:electron          # → host OS (Windows: NSIS .exe, Linux: AppImage)
+
+npm run build:electron:win      # force Windows (.exe)
+npm run build:electron:linux    # force Linux (AppImage)
+npm run build:electron:all      # both (Linux host + Wine for the Windows target)
 ```
 
-Outputs `dist-electron/*.AppImage` (Linux) and `*.exe` (Windows — needs **Wine**
-when cross-building from Linux). Drop the artifacts into the server's
-`data/electron/` to offer them from the hosted web app's download button.
+Outputs land in `dist-electron/`: `*.AppImage` (Linux) and `Tesla Player-Setup-*.exe`
+(Windows). Drop the artifacts into the server's `data/electron/` to offer them
+from the hosted web app's download button.
+
+**Windows note:** `rebuild:native` recompiles `sqlite3` for Electron's ABI, which
+needs C++ build tools — install them with `npm install --global windows-build-tools`
+or the *Desktop development with C++* workload from Visual Studio Build Tools
+(plus Python 3). Cross-building the Linux AppImage from Windows is **not** supported;
+use `build:electron:win` on Windows and build the AppImage on Linux/CI.
