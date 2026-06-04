@@ -61,8 +61,22 @@ export interface RemoteConfig {
   bearer?: string;
 }
 
+/** Request body shapes the engine sends (JSON strings + multipart FormData). */
+export type RequestBody = string | FormData | Blob | ArrayBuffer | Uint8Array;
+
+/** Minimal fetch shape the engine needs. The remote peer (and the dev local peer)
+ *  use the real `fetch`; the packaged local peer uses an in-process dispatch
+ *  adapter (embedded-backend.makeDispatchFetch) with the same signature. */
+export type Fetcher = (
+  url: string,
+  init?: { method?: string; headers?: Record<string, string>; body?: RequestBody },
+) => Promise<Response>;
+
 export interface SyncContext {
   localBase: string;
+  /** Transport for the LOCAL peer: real `fetch` (dev HTTP backend) or the
+   *  in-process dispatch adapter (packaged, no TCP). */
+  localFetch: Fetcher;
   remote: RemoteConfig;
 }
 
@@ -77,6 +91,7 @@ type Progress = (p: SyncProgress) => void;
 interface Peer {
   base: string;
   headers: Record<string, string>;
+  fetch: Fetcher;
 }
 
 interface SongPayload {
@@ -115,10 +130,11 @@ function authHeaders(remote: RemoteConfig): Record<string, string> {
 }
 
 async function fetchJson<T>(
+  fetcher: Fetcher,
   url: string,
-  init: RequestInit & { headers?: Record<string, string> } = {},
+  init: { method?: string; headers?: Record<string, string>; body?: RequestBody } = {},
 ): Promise<T> {
-  const res = await fetch(url, init);
+  const res = await fetcher(url, init);
   if (!res.ok) {
     throw new Error(`${init.method ?? 'GET'} ${url} -> HTTP ${res.status}`);
   }
@@ -130,13 +146,19 @@ function peersOf(ctx: SyncContext): { local: Peer; remote: Peer } {
     throw new Error('No server configured. Set the server URL first.');
   }
   return {
-    local: { base: trimSlash(ctx.localBase), headers: {} },
-    remote: { base: trimSlash(ctx.remote.url), headers: authHeaders(ctx.remote) },
+    local: { base: trimSlash(ctx.localBase), headers: {}, fetch: ctx.localFetch },
+    remote: {
+      base: trimSlash(ctx.remote.url),
+      headers: authHeaders(ctx.remote),
+      fetch: globalThis.fetch,
+    },
   };
 }
 
 const manifestOf = (peer: Peer): Promise<Manifest> =>
-  fetchJson<Manifest>(`${peer.base}/api/sync/manifest`, { headers: peer.headers });
+  fetchJson<Manifest>(peer.fetch, `${peer.base}/api/sync/manifest`, {
+    headers: peer.headers,
+  });
 
 const norm = (s: string): string => s.trim().toLowerCase();
 
@@ -253,7 +275,7 @@ function collect(selections: SyncSelection[], choice: Choice): Selected {
 }
 
 const pull = (peer: Peer, body: Record<string, string[]>): Promise<PullResponse> =>
-  fetchJson<PullResponse>(`${peer.base}/api/sync/pull`, {
+  fetchJson<PullResponse>(peer.fetch, `${peer.base}/api/sync/pull`, {
     method: 'POST',
     headers: { ...peer.headers, 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -264,7 +286,7 @@ async function transferFile(
   target: Peer,
   meta: ManifestEntry,
 ): Promise<void> {
-  const res = await fetch(`${source.base}/api/sync/file/${meta.uuid}`, {
+  const res = await source.fetch(`${source.base}/api/sync/file/${meta.uuid}`, {
     headers: source.headers,
   });
   if (!res.ok) {
@@ -278,9 +300,9 @@ async function transferFile(
   form.append('contentHash', meta.contentHash);
   form.append('updatedAt', String(meta.updatedAt));
   form.append('file', new Blob([bytes]), fname);
-  const up = await fetch(`${target.base}/api/sync/file`, {
+  const up = await target.fetch(`${target.base}/api/sync/file`, {
     method: 'POST',
-    headers: target.headers, // do NOT set Content-Type; fetch adds the boundary
+    headers: target.headers, // do NOT set Content-Type; the boundary is added for us
     body: form,
   });
   if (!up.ok) {
@@ -346,6 +368,7 @@ async function transfer(
       params: { songs: songPayloads.length, playlists: playlistPayloads.length },
     });
     const res = await fetchJson<{ warnings?: string[] }>(
+      target.fetch,
       `${target.base}/api/sync/apply`,
       {
         method: 'POST',

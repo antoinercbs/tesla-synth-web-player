@@ -1,21 +1,33 @@
 import { app, BrowserWindow, dialog } from 'electron';
 import { join } from 'path';
-import { startBackend, type BackendHandle } from './backend';
+import {
+  APP_ORIGIN,
+  registerAppProtocol,
+  registerAppSchemes,
+} from './app-protocol';
+import {
+  makeDispatchFetch,
+  startEmbeddedBackend,
+  type EmbeddedBackend,
+} from './embedded-backend';
 import { registerIpc } from './ipc';
 import { setupMenu } from './menu';
 import { cancelPending } from './oidc-auth';
-import { findFreePort } from './port';
+import type { Fetcher } from './sync-engine';
 
 // Disable Chromium's OS-level sandbox. In an AppImage the bundled chrome-sandbox
 // can't be made root:4755, and the namespace sandbox is blocked by AppArmor on
 // recent Linux — both make Electron abort on launch ("SUID sandbox helper ...
 // not configured correctly"). The three switches together are the robust combo
-// for Linux/AppImage. Acceptable here: the app only loads its own localhost
-// backend, and contextIsolation + nodeIntegration:false still guard the preload
-// bridge. Must be set before app is ready (top of the main script).
+// for Linux/AppImage. Acceptable here: the app only loads its own in-process
+// backend (no network server), and contextIsolation + nodeIntegration:false
+// still guard the preload bridge. Must be set before app is ready.
 app.commandLine.appendSwitch('no-sandbox');
 app.commandLine.appendSwitch('disable-setuid-sandbox');
 app.commandLine.appendSwitch('disable-gpu-sandbox');
+
+// Register the custom app:// scheme's privileges. MUST happen before app ready.
+registerAppSchemes();
 
 // Clubelek emblem (same artwork as the sidebar), painted volt.
 const EMBLEM_PATH =
@@ -47,23 +59,27 @@ background:linear-gradient(90deg,transparent,#46e0ff,transparent);animation:slid
 <div class="bar"></div><div class="s">starting…</div></div></body></html>`,
   );
 
-let backend: BackendHandle | null = null;
+let backend: EmbeddedBackend | null = null;
 let win: BrowserWindow | null = null;
+// Local sync peer: its base + transport. Dev (no fork) talks to the HTTP dev
+// backend; packaged / dev:fork uses the in-process dispatch over app://.
 let localBase = '';
+let localFetch: Fetcher = globalThis.fetch;
 let rendererUrl = '';
 
 /**
- * Resolves where the backend lives and what URL the window should load:
- *  - packaged: fork the bundled backend (resources/backend) on a free port.
- *  - dev (default): no fork — load the Vite dev server, talk to the dev backend.
- *  - dev with ELECTRON_START_BACKEND=1: fork the locally-built nest-backend
- *    (exercises the real production boot path before packaging).
+ * Resolves how the backend runs and what URL the window loads:
+ *  - dev (default): no embedded backend — load the Vite dev server (HMR), talk
+ *    to the separately-run dev backend over HTTP.
+ *  - packaged / dev with ELECTRON_START_BACKEND=1: run the bundled NestJS
+ *    IN-PROCESS (no TCP server) and serve everything over the app:// protocol.
  */
 async function resolveBackend(): Promise<void> {
   const devNoFork =
     !app.isPackaged && process.env.ELECTRON_START_BACKEND !== '1';
   if (devNoFork) {
     localBase = process.env.ELECTRON_BACKEND_URL || 'http://localhost:5000';
+    localFetch = globalThis.fetch;
     rendererUrl = process.env.ELECTRON_RENDERER_URL || 'http://localhost:8080';
     return;
   }
@@ -74,16 +90,13 @@ async function resolveBackend(): Promise<void> {
   const publicDir = app.isPackaged
     ? join(process.resourcesPath, 'public')
     : join(__dirname, '..', '..', 'tesla-player', 'dist');
+  const dataRoot = app.getPath('userData');
 
-  const port = await findFreePort();
-  backend = await startBackend({
-    backendRoot,
-    publicDir,
-    dataRoot: app.getPath('userData'),
-    port,
-  });
-  localBase = `http://127.0.0.1:${port}`;
-  rendererUrl = `${localBase}/`;
+  backend = await startEmbeddedBackend({ backendRoot, dataRoot });
+  registerAppProtocol(backend, publicDir, join(dataRoot, 'uploads'));
+  localBase = APP_ORIGIN;
+  localFetch = makeDispatchFetch(backend);
+  rendererUrl = `${APP_ORIGIN}/`;
 }
 
 /** Opens the window on the splash screen (shown only once it has painted). */
@@ -133,7 +146,7 @@ app
   .then(async () => {
     setupMenu(); // no native menu bar
     registerIpc(
-      () => localBase,
+      () => ({ base: localBase, fetch: localFetch }),
       () => win,
     );
     createWindow(); // splash appears right away

@@ -23,5 +23,8 @@
     "electron-builder": "^25.1.8",
     "esbuild": "^0.24.2",
     "typescript": "^5.7.0"
+  },
+  "dependencies": {
+    "light-my-request": "^6.6.0"
   }
 }
