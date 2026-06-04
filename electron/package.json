@@ -1,6 +1,6 @@
 {
   "name": "tesla-player-desktop",
-  "version": "0.1.0",
+  "version": "2.0.0",
   "description": "Tesla Player desktop app: embedded NestJS backend (offline), with optional sync to a remote server.",
   "author": "Clubelek",
   "license": "MIT",
