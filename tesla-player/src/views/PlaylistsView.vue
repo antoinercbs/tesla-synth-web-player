@@ -15,7 +15,7 @@ const playlists = ref<Playlist[]>([]);
 const routeId = computed(() => route.params.id as string | undefined);
 const isChooser = computed(() => routeId.value == null);
 const playlistItems = computed(() =>
-  playlists.value.map((p) => ({ id: p.id, label: `${p.name} — ${p.coilCount} ⚡` })),
+  playlists.value.map((p) => ({ id: p.id, label: `${p.name} · ${p.coilCount} ⚡` })),
 );
 const headTitle = computed(() => {
   if (routeId.value === 'new' || routeId.value == null) return '';

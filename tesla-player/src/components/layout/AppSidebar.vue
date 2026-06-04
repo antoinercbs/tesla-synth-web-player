@@ -30,6 +30,14 @@
       <router-link class="nav-item" :to="{ name: 'midi' }" :title="sidebarCompact ? $t('nav.midi') : null">
         <span class="icon"><i class="fas fa-folder-open"></i></span><span class="nav-item__label">{{ $t('nav.midi') }}</span>
       </router-link>
+      <!-- device config: only reachable over a live bidirectional serial link -->
+      <router-link v-if="midiStore.serialConnected" class="nav-item" :to="{ name: 'syntherrupter' }"
+        :title="sidebarCompact ? $t('nav.syntherrupter') : null">
+        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter') }}</span>
+      </router-link>
+      <span v-else class="nav-item is-disabled" :title="$t('label.serialNeededForConfig')">
+        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter') }}</span>
+      </span>
     </nav>
 
     <div class="sidebar__spacer"></div>
@@ -38,29 +46,67 @@
       <div class="sidebar-card__title">{{ $t('title.outputSelection') }}</div>
       <div class="sidebar-output">
         <label class="sidebar-output__label">{{ $t('label.firstOutput') }}</label>
-        <div class="select-field" :class="{ 'is-synth': isSynthSelected }">
-          <select v-model="selectedOutputId" @change="onOutputChange">
-            <option :value="synthId">⚡ {{ $t('label.builtinSynth') }}</option>
-            <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
+        <!-- output 1 transport: virtual synth · MIDI device · bidirectional serial -->
+        <segmented-control v-model="output1Mode" fill class="output-modes" @update:model-value="onMode1Change" :options="[
+          { value: 'synth', label: $t('label.outSynth') },
+          { value: 'midi', label: $t('label.outMidi') },
+          { value: 'serial', label: $t('label.outSerial'), disabled: !serialSupported,
+            title: serialSupported ? '' : $t('label.serialUnsupported') },
+        ]" />
+
+        <span v-if="output1Mode === 'synth'" class="output-emul">
+          <span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('label.emulationHint') }}
+        </span>
+
+        <template v-else-if="output1Mode === 'midi'">
+          <div class="select-field">
+            <select v-model="selectedOutputId" @change="onOutputChange">
+              <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+          </div>
+          <span v-if="outputs.length === 0" class="output-emul">{{ $t('label.noMidiOutput') }}</span>
+        </template>
+
+        <div v-else class="sidebar-serial">
+          <template v-if="midiStore.serialConnected">
+            <span class="sidebar-serial__on"><span class="conn__dot"></span>{{ midiStore.serialPortLabel }}</span>
+            <button class="btn btn--ghost sidebar-serial__btn" type="button" @click="disconnectSerial">
+              <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('label.serialDisconnect') }}
+            </button>
+          </template>
+          <template v-else>
+            <button class="btn btn--volt sidebar-serial__btn" type="button" :disabled="!serialSupported" @click="connectSerial">
+              <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('label.serialConnect') }}
+            </button>
+            <span v-if="!serialSupported" class="output-emul">{{ $t('label.serialUnsupported') }}</span>
+            <span v-else-if="serialError" class="output-emul is-error">{{ serialError }}</span>
+          </template>
         </div>
-        <span v-if="isSynthSelected" class="output-emul"><span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('label.emulationHint') }}</span>
       </div>
       <div class="sidebar-output">
-        <label class="sidebar-output__label">{{ $t('label.secondOutput') }}</label>
-        <div class="select-field">
-          <select v-model="selectedOutput2Id" @change="onOutput2Change">
-            <option :value="null">—</option>
-            <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
+        <!-- second output is off by default (compact); the toggle reveals the picker -->
+        <div class="sidebar-output__head">
+          <label class="sidebar-output__label">{{ $t('label.secondOutput') }}</label>
+          <label class="switch sidebar-output__toggle" :title="$t('label.secondOutput')">
+            <input type="checkbox" v-model="showSecondOutput" @change="onSecondToggle">
+            <span class="switch__track"></span>
+          </label>
         </div>
-        <!-- manual latency offset to align the 2nd output with the 1st (hardware calibration) -->
-        <div v-if="selectedOutput2Id" class="sidebar-offset" :title="$t('label.output2OffsetHint')">
-          <label class="sidebar-offset__label" for="out2-offset">{{ $t('label.output2Offset') }}</label>
-          <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
-            v-model.number="output2Offset">
-          <span class="sidebar-offset__val">{{ output2Offset > 0 ? '+' : '' }}{{ output2Offset }} ms</span>
-        </div>
+        <template v-if="showSecondOutput">
+          <div class="select-field">
+            <select v-model="selectedOutput2Id" @change="onOutput2Change">
+              <option :value="null">—</option>
+              <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
+            </select>
+          </div>
+          <!-- manual latency offset to align the 2nd output with the 1st (hardware calibration) -->
+          <div v-if="selectedOutput2Id" class="sidebar-offset" :title="$t('label.output2OffsetHint')">
+            <label class="sidebar-offset__label" for="out2-offset">{{ $t('label.output2Offset') }}</label>
+            <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
+              v-model.number="output2Offset">
+            <span class="sidebar-offset__val">{{ output2Offset > 0 ? '+' : '' }}{{ output2Offset }} ms</span>
+          </div>
+        </template>
       </div>
     </section>
 
@@ -120,14 +166,20 @@
       </button>
     </template>
 
+    <!-- Synthetic credits → verbose modal (foremost: the Syntherrupter author). -->
+    <button v-if="!sidebarCompact" class="sidebar-credits" type="button"
+      :title="$t('credits.title')" @click="creditsOpen = true">
+      <i class="fas fa-circle-info"></i><span class="sidebar-credits__text">{{ $t('credits.footer') }}</span>
+    </button>
+
     <!-- Compact rail keeps the essentials visible: selected output(s) + connection. -->
     <div v-if="sidebarCompact" class="sidebar-cstatus">
-      <span class="cstat" :class="{ 'is-synth': isSynthSelected }"
-        :title="$t('label.firstOutput') + ' — ' + output1Name">
-        <i class="fas" :class="isSynthSelected ? 'fa-wave-square' : 'fa-plug'"></i>
+      <span class="cstat" :class="{ 'is-synth': midiStore.isSynthOutput || midiStore.isSerialOutput }"
+        :title="$t('label.firstOutput') + ' · ' + output1Name">
+        <i class="fas" :class="output1Icon"></i>
       </span>
       <span v-if="selectedOutput2Id" class="cstat cstat--spk"
-        :title="$t('label.secondOutput') + ' — ' + output2Name">
+        :title="$t('label.secondOutput') + ' · ' + output2Name">
         <i class="fas fa-volume-high"></i>
       </span>
       <span v-if="!isElectron" class="cstat-conn" :class="{ 'is-up': isConnected }"
@@ -145,9 +197,11 @@
   <sync-modal v-if="isElectron" :open="syncOpen"
     @close="syncOpen = false" @applied="onSyncApplied" />
   <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
+  <credits-modal :open="creditsOpen" @close="creditsOpen = false" />
 </template>
 
 <script>
+import { markRaw } from 'vue'
 import { mapStores } from 'pinia'
 import { WebMidi } from 'webmidi'
 import emblemSrc from '@/assets/emblem_high_black.svg'
@@ -156,10 +210,13 @@ import { useMidiStore } from '@/stores/midi'
 import { coilColor } from '@/ui/coil-colors'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
+import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
+import SegmentedControl from '@/components/ui/SegmentedControl.vue'
 import GeneralConfigModal from '@/components/settings/GeneralConfigModal.vue'
 import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
 import SyncModal from '@/components/desktop/SyncModal.vue'
 import DownloadModal from '@/components/desktop/DownloadModal.vue'
+import CreditsModal from '@/components/layout/CreditsModal.vue'
 
 /**
  * The application sidebar: brand, navigation, the collapse/compact toggle, MIDI
@@ -170,11 +227,16 @@ import DownloadModal from '@/components/desktop/DownloadModal.vue'
  */
 export default {
   name: 'AppSidebar',
-  components: { GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal },
+  components: { SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal },
   data() {
     return {
       emblemSrc,
       labelSrc,
+      // output-1 transport mode: 'synth' | 'midi' | 'serial' (persisted). Defaults
+      // from the legacy persisted device id (synth vs a real MIDI output).
+      output1Mode: localStorage.getItem('output1Mode')
+        || ((localStorage.getItem('midiOutput1Id') || SYNTH_OUTPUT_ID) === SYNTH_OUTPUT_ID ? 'synth' : 'midi'),
+      serialError: '',
       isConnected: false,
       pingTimer: null,
       configOpen: false,
@@ -189,8 +251,11 @@ export default {
       // default to the built-in synth until a real output is explicitly chosen
       selectedOutputId: localStorage.getItem('midiOutput1Id') || SYNTH_OUTPUT_ID,
       selectedOutput2Id: localStorage.getItem('midiOutput2Id') || null,
+      // 2nd-output picker is collapsed unless a device is set (compact by default)
+      showSecondOutput: !!localStorage.getItem('midiOutput2Id'),
       // narrow icon-rail sidebar (persisted); nav stays, the verbose cards collapse
-      sidebarCompact: localStorage.getItem('sidebarCompact') === '1'
+      sidebarCompact: localStorage.getItem('sidebarCompact') === '1',
+      creditsOpen: false
     }
   },
   computed: {
@@ -199,8 +264,19 @@ export default {
     outputs() {
       return this.midiStore.midiOutputList || []
     },
-    // names shown as tooltips on the compact-sidebar output chips
+    /** Web Serial available (Chromium; also Electron with the main-process handler). */
+    serialSupported() {
+      return typeof navigator !== 'undefined' && 'serial' in navigator
+    },
+    /** Compact-rail chip icon for the active output 1. */
+    output1Icon() {
+      if (this.midiStore.isSerialOutput) return 'fa-bolt'
+      if (this.midiStore.isSynthOutput) return 'fa-wave-square'
+      return 'fa-plug'
+    },
+    // name shown as the tooltip on the compact-sidebar output-1 chip
     output1Name() {
+      if (this.midiStore.isSerialOutput) return this.midiStore.serialPortLabel
       return this.isSynthSelected
         ? this.$t('label.builtinSynth')
         : (this.outputs.find(o => o.id === this.selectedOutputId)?.name || '—')
@@ -222,16 +298,20 @@ export default {
         .catch(err => console.error('Save config failed', err))
         .finally(() => { this.configOpen = false })
     },
-    // Resolve the store's outputs from the selected ids. Output 1 falls back to
-    // the built-in synth whenever no real output is chosen/connected. WebMidi
-    // rebuilds Output objects on (dis)connection, so we always look up by id.
+    // Resolve output 1 from the current mode. Output 2 is always a WebMIDI device.
+    // A live serial link is never clobbered (a WebMIDI (dis)connect must not drop
+    // it); other modes fall back to the built-in synth so sound always works.
     resolveOutputs() {
-      let out1 = this.selectedOutputId === SYNTH_OUTPUT_ID
-        ? null
-        : (this.outputs.find(o => o.id === this.selectedOutputId) || null)
-      if (!out1) { out1 = getTeslaSynth(); this.selectedOutputId = SYNTH_OUTPUT_ID }
-      this.midiStore.setMidiOutput(out1)
-      this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null)
+      if (this.output1Mode === 'serial') {
+        if (!this.midiStore.serialConnected) this.midiStore.setMidiOutput(getTeslaSynth());
+      } else if (this.output1Mode === 'midi') {
+        const dev = this.outputs.find(o => o.id === this.selectedOutputId) || null;
+        this.midiStore.setMidiOutput(dev || getTeslaSynth());
+      } else {
+        this.midiStore.setMidiOutput(getTeslaSynth());
+        this.selectedOutputId = SYNTH_OUTPUT_ID;
+      }
+      this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null);
     },
     refreshOutputs() {
       this.midiStore.setMidiOutputList(WebMidi.outputs)
@@ -245,18 +325,74 @@ export default {
     },
     onOutputChange() {
       localStorage.setItem('midiOutput1Id', this.selectedOutputId || SYNTH_OUTPUT_ID)
-      if (this.selectedOutputId === SYNTH_OUTPUT_ID) {
+      this.resolveOutputs()
+    },
+    // --- output-1 mode switch + serial (Syntherrupter) link ---
+    onMode1Change(mode) {
+      localStorage.setItem('output1Mode', mode)
+      if (mode !== 'serial' && this.midiStore.serialConnected) this.closeSerial()
+      if (mode === 'synth') {
         const synth = getTeslaSynth()
-        synth.resume() // selection is a user gesture → unlock the AudioContext
+        synth.resume() // the click is a user gesture → unlock the AudioContext
         this.midiStore.setMidiOutput(synth)
+        this.selectedOutputId = SYNTH_OUTPUT_ID
+        localStorage.setItem('midiOutput1Id', SYNTH_OUTPUT_ID)
       } else {
-        this.resolveOutputs()
+        this.resolveOutputs() // midi → device/synth ; serial → synth until Connect
       }
+    },
+    async connectSerial() {
+      this.serialError = ''
+      if (!this.serialSupported) return
+      try {
+        const port = await navigator.serial.requestPort()
+        await this.openSerial(port)
+      } catch (err) {
+        if (err && err.name !== 'NotFoundError') { // NotFoundError = picker dismissed
+          this.serialError = this.$t('label.serialError')
+          console.error('Serial connect failed', err)
+        }
+      }
+    },
+    async openSerial(port) {
+      const label = this.portLabel(port)
+      const out = await SerialMidiOutput.open(port, label, () => this.onSerialClosed())
+      this.midiStore.setMidiOutput(markRaw(out))
+      this.midiStore.setSerialConnection(label)
+    },
+    async closeSerial() {
+      const out = this.midiStore.midiOutput
+      this.midiStore.setSerialConnection(null)
+      if (out && out.id === SERIAL_OUTPUT_ID) { try { await out.close() } catch { /* */ } }
+    },
+    async disconnectSerial() {
+      await this.closeSerial()
+      this.resolveOutputs() // fall back to the synth
+    },
+    onSerialClosed() {
+      // stream ended (physical unplug or close) — drop the link + fall back
+      this.midiStore.setSerialConnection(null)
+      if (this.output1Mode === 'serial') this.resolveOutputs()
+    },
+    portLabel(port) {
+      const info = port.getInfo ? port.getInfo() : null
+      if (info && info.usbVendorId != null) {
+        const hex = (n) => (n || 0).toString(16).padStart(4, '0')
+        return `USB ${hex(info.usbVendorId)}:${hex(info.usbProductId)}`
+      }
+      return this.$t('label.serialPort')
     },
     onOutput2Change() {
       if (this.selectedOutput2Id) localStorage.setItem('midiOutput2Id', this.selectedOutput2Id)
       else localStorage.removeItem('midiOutput2Id')
       this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null)
+    },
+    // toggling the 2nd output off clears it (so it can't stay active while hidden)
+    onSecondToggle() {
+      if (!this.showSecondOutput && this.selectedOutput2Id) {
+        this.selectedOutput2Id = null
+        this.onOutput2Change()
+      }
     },
     onLanguageChange() {
       localStorage.setItem('locale', this.$i18n.locale)
@@ -285,6 +421,12 @@ export default {
   mounted() {
     this.resolveOutputs() // built-in synth available immediately, even before/without WebMIDI
     WebMidi.enable({ sysex: true }).then(this.onEnabled).catch(err => console.error('WebMIDI:', err))
+    // Serial mode persisted → silently reopen a previously-authorized port (no prompt).
+    if (this.output1Mode === 'serial' && this.serialSupported) {
+      navigator.serial.getPorts()
+        .then(ports => { if (ports[0]) this.openSerial(ports[0]).catch(() => {}) })
+        .catch(() => {})
+    }
     this.ping()
     this.pingTimer = setInterval(this.ping, 10000)
     // Native menu "Server configuration…" opens the modal.

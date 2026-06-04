@@ -51,7 +51,7 @@ const program = computed<number | null>({
 
     <span class="readout-label">{{ $t('label.midiChannels') }}</span>
     <ChannelMaskSelector v-model="channelMask" :color="color" :available-channels="availableChannels"
-      :label="`${$t('label.coil')} ${index} — ${$t('label.midiChannels')}`" />
+      :label="`${$t('label.coil')} ${index} · ${$t('label.midiChannels')}`" />
 
     <div class="readout-row">
       <div class="readout">

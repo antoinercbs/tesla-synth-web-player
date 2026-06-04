@@ -44,8 +44,23 @@ export const MODE_BYTE: Record<PlaybackMode, number> = {
   simple: 0x01,
 };
 
-/** Value placed in the float-flag byte when the value is IEEE-754 encoded. */
+/** Value placed in the float-flag byte when the value is IEEE-754 encoded.
+ *  In the real protocol this is the high bit of the parameter number: the float
+ *  variant of a parameter PN is `PN | 0x2000`, i.e. 0x20 set in the PN_MSB byte. */
 export const FLOAT_FLAG = 0x20;
+
+/** Read/response command numbers (carried in the PN field). See the wiki's
+ *  "Custom MIDI Commands". We use GET for read-back (replies are normal,
+ *  self-describing commands we can decode + match by parameter + target). */
+export const CMD = {
+  RESPONSE: 0x01, // device → host reply (echoes target + value)
+  IS_SUPPORTED: 0x02, // host → device: is this parameter/target supported?
+  READ: 0x03, // host → device: read → 0x01 response(s)
+  GET: 0x04, // host → device: get → normal command reply per parameter
+} as const;
+
+/** Broadcast device id (addresses every device on the bus). */
+export const DEVICE_BROADCAST = 0x7f;
 
 // ---------------------------------------------------------------------------
 // Low-level packing (the only non-trivial part; ported from the verified
@@ -111,6 +126,112 @@ export function buildFrame({ pn, coil, mode, value, isFloat = false }: FrameSpec
     ...pack7(bits),
     SYSEX_END,
   ];
+}
+
+// ---------------------------------------------------------------------------
+// General command building (full PN/TG/device space — config + read-back)
+// ---------------------------------------------------------------------------
+
+export interface CommandSpec {
+  /** Full parameter number, e.g. 0x260 (Coil Max Ontime). The float variant is
+   *  selected via `isFloat` (which sets PN | 0x2000), not by passing it here. */
+  pn: number;
+  /** Full 16-bit target (TG): coil index 0..5, or 0x7f wildcard. */
+  target?: number;
+  value?: number;
+  isFloat?: boolean;
+  /** Destination device id (0..126), or 0x7f broadcast. */
+  deviceId?: number;
+  /** Explicit 5 value bytes, bypassing value/isFloat packing (e.g. the GET
+   *  command's char[4] parameter-range payload). */
+  rawValue?: number[];
+}
+
+/**
+ * Build any 16-byte Syntherrupter command for the full parameter space:
+ *   F0 00 26 05 | ver(01) | devID | PN_LSB PN_MSB | TG_LSB TG_MSB | v0..v4 | F7
+ * PN_MSB carries the high parameter byte plus the float bit (0x20). For the four
+ * legacy playback commands this produces the exact same bytes as buildFrame.
+ */
+export function buildCommand({
+  pn,
+  target = 0,
+  value = 0,
+  isFloat = false,
+  deviceId = DEVICE_BROADCAST,
+  rawValue,
+}: CommandSpec): number[] {
+  const safe = Number.isFinite(value) ? value : 0;
+  const bits = isFloat ? floatToBits(safe) : Math.trunc(safe);
+  const valueBytes = (rawValue ?? pack7(bits)).slice(0, 5);
+  while (valueBytes.length < 5) valueBytes.push(0);
+  return [
+    0xf0, 0x00, 0x26, 0x05, 0x01,
+    deviceId & 0x7f,
+    pn & 0x7f, // PN_LSB
+    ((pn >> 8) & 0x7f) | (isFloat ? FLOAT_FLAG : 0), // PN_MSB (+ float bit)
+    target & 0x7f, // TG_LSB
+    (target >> 8) & 0x7f, // TG_MSB
+    ...valueBytes.map((b) => b & 0x7f),
+    SYSEX_END,
+  ];
+}
+
+/**
+ * Build a GET (read-back) command for one parameter, or a [first..last] range,
+ * on `target` (a coil, or 0x7f to read every coil → one reply per coil). The
+ * device answers with normal commands carrying the current value(s).
+ *
+ * The firmware reads the range from the (7-bit-unpacked) 32-bit value as
+ * `start = value & 0x7f7f` and `end = (value >> 16) & 0x7f7f` (see Sysex.cpp),
+ * i.e. the value is `firstPN | (lastPN << 16)` packed like any other value — NOT
+ * the four PN bytes laid out raw (those wouldn't survive the 7-bit packing).
+ */
+export function buildRead(
+  pnFirst: number,
+  target: number = DEVICE_BROADCAST,
+  pnLast: number = pnFirst,
+  deviceId: number = DEVICE_BROADCAST,
+): number[] {
+  const value = (pnFirst & 0xffff) + (pnLast & 0xffff) * 0x10000;
+  return buildCommand({ pn: CMD.GET, target, deviceId, value });
+}
+
+/** String parameters (user name/password) carry 4 ASCII chars per frame. */
+export const STRING_GROUP_SIZE = 4;
+
+/**
+ * Build the frames that set a `char[4]`-chunked string parameter (user name
+ * `0x240` / password `0x241`) for `user` (TG_LSB). Each frame's TG_MSB is the
+ * char-group position; writing group 0 first clears the old string on-device, so
+ * the returned frames (group 0 onward) fully replace it. An empty string emits a
+ * single group-0 clear frame.
+ */
+export function buildStringFrames(
+  pn: number,
+  user: number,
+  text: string,
+  deviceId: number = DEVICE_BROADCAST,
+): number[][] {
+  const bytes = Array.from(text, (c) => c.charCodeAt(0) & 0x7f); // 7-bit ASCII
+  const groups = Math.max(1, Math.ceil(bytes.length / STRING_GROUP_SIZE));
+  const frames: number[][] = [];
+  for (let g = 0; g < groups; g++) {
+    const chunk = [0, 1, 2, 3].map((k) => bytes[g * STRING_GROUP_SIZE + k] ?? 0);
+    frames.push(buildCommand({ pn, target: (user & 0x7f) | (g << 8), deviceId, rawValue: [...chunk, 0] }));
+  }
+  return frames;
+}
+
+/** Reassemble a string from its GET-reply frames (one per char group), in order. */
+export function reassembleString(frames: DecodedFrame[]): string {
+  const sorted = [...frames].sort((a, b) => (a.target >> 8) - (b.target >> 8));
+  const chars: number[] = [];
+  for (const f of sorted) {
+    for (let k = 0; k < STRING_GROUP_SIZE; k++) chars.push(f.valueBytes[k] ?? 0);
+  }
+  const end = chars.indexOf(0);
+  return String.fromCharCode(...(end >= 0 ? chars.slice(0, end) : chars));
 }
 
 // ---------------------------------------------------------------------------
@@ -186,26 +307,44 @@ export function hexToBytes(hex: string): number[] {
 // ---------------------------------------------------------------------------
 
 export interface DecodedFrame {
+  /** Legacy: PN_LSB only (byte 6). Kept for the synth + existing callers. */
   pn: number;
+  /** Full parameter number = PN_LSB | (basePN_MSB << 8), float bit stripped. */
+  pnFull: number;
   isFloat: boolean;
+  /** Legacy: TG_LSB only (byte 8) = coil index. */
   coil: number;
+  /** Legacy: TG_MSB only (byte 9) = playback-mode byte. */
   mode: number;
+  /** Full target = TG_LSB | (TG_MSB << 8). */
+  target: number;
+  /** Destination/source device id (byte 5). */
+  deviceId: number;
   /** Value read as an integer (7-bit reassembly). */
   valueInt: number;
   /** Same bits reinterpreted as an IEEE-754 float. */
   valueFloat: number;
+  /** The 5 raw value bytes (10..14) — used for char[4] string parameters. */
+  valueBytes: number[];
 }
 
 export function decodeFrame(frame: number[] | string): DecodedFrame {
   const bytes = typeof frame === 'string' ? hexToBytes(frame) : frame;
-  const valueInt = unpack7(bytes.slice(10, 15));
+  const valueBytes = bytes.slice(10, 15);
+  const valueInt = unpack7(valueBytes);
+  const pnMsb = bytes[7] ?? 0;
+  const basePnMsb = pnMsb & ~FLOAT_FLAG & 0x7f;
   return {
     pn: bytes[6],
-    isFloat: bytes[7] === FLOAT_FLAG,
+    pnFull: (bytes[6] ?? 0) | (basePnMsb << 8),
+    isFloat: (pnMsb & FLOAT_FLAG) !== 0,
     coil: bytes[8],
     mode: bytes[9],
+    target: (bytes[8] ?? 0) | ((bytes[9] ?? 0) << 8),
+    deviceId: bytes[5],
     valueInt,
     valueFloat: bitsToFloat(valueInt),
+    valueBytes,
   };
 }
 

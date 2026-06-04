@@ -7,6 +7,7 @@ import {
   type SysexOutput,
 } from '@/utils/live-sysex-helper';
 import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
+import { SERIAL_OUTPUT_ID } from '@/serial/serial-midi';
 import type { AppConfig, CoilConfig, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
@@ -26,6 +27,11 @@ interface MidiState {
   /** Bumped after a desktop sync so views holding ad-hoc data (e.g. playlists,
    *  which are not in this store) know to re-read from the API. */
   dataRevision: number;
+  /** True while output 1 is a live bidirectional serial link to a Syntherrupter.
+   *  Gates access to the device-config page. */
+  serialConnected: boolean;
+  /** Human label of the connected serial port (for the sidebar). */
+  serialPortLabel: string;
 }
 
 /** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
@@ -44,12 +50,16 @@ export const useMidiStore = defineStore('midi', {
     output2OffsetMs: clampOffset(Number(localStorage.getItem('midiOutput2Offset'))),
     appConfig: { coilNames: [], defaultCoilCount: 3 },
     dataRevision: 0,
+    serialConnected: false,
+    serialPortLabel: '',
   }),
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
     coilName: (state) => (index: number): string => state.appConfig.coilNames[index] ?? '',
     /** True when output 1 is the built-in emulated synth (no real hardware). */
     isSynthOutput: (state): boolean => state.midiOutput?.id === SYNTH_OUTPUT_ID,
+    /** True when output 1 is the bidirectional serial Syntherrupter link. */
+    isSerialOutput: (state): boolean => state.midiOutput?.id === SERIAL_OUTPUT_ID,
   },
   actions: {
     /** Signal that server-side data may have changed (e.g. after a sync). */
@@ -68,6 +78,11 @@ export const useMidiStore = defineStore('midi', {
     },
     setMidiOutput(output: MidiSink | null) {
       this.midiOutput = output;
+    },
+    /** Record the serial link state (label = connected port, null = disconnected). */
+    setSerialConnection(label: string | null) {
+      this.serialConnected = label != null;
+      this.serialPortLabel = label ?? '';
     },
     setMidiOutput2(output: Output | null) {
       this.midiOutput2 = output;

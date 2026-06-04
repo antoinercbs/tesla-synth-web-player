@@ -249,6 +249,10 @@
 }
 .sidebar-output { padding: 0 0.4rem 0.55rem; }
 .sidebar-output__label { display: block; font-size: 0.64rem; color: var(--text-dim); margin-bottom: 0.28rem; font-family: var(--font-mono); }
+/* second-output header: label + a compact show/hide toggle on one line */
+.sidebar-output__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.28rem; }
+.sidebar-output__head .sidebar-output__label { margin-bottom: 0; }
+.sidebar-output__toggle { flex: 0 0 auto; }
 .sidebar-offset { margin-top: 0.4rem; }
 .sidebar-offset__label { display: block; font-size: 0.6rem; color: var(--text-mute); margin-bottom: 0.2rem; font-family: var(--font-mono); }
 .sidebar-offset__range { width: 100%; accent-color: var(--volt); }

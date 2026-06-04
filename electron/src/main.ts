@@ -102,6 +102,18 @@ function createWindow(): void {
       sandbox: false,
     },
   });
+  // Web Serial (Syntherrupter link). Electron ships no built-in port chooser, so
+  // we grant the 'serial' permission and surface the first available port when the
+  // renderer calls navigator.serial.requestPort(). The app is local-only (it loads
+  // its own backend), consistent with the disabled OS sandbox above.
+  const ses = win.webContents.session;
+  ses.setPermissionCheckHandler(() => true);
+  ses.setDevicePermissionHandler((details) => details.deviceType === 'serial');
+  ses.on('select-serial-port', (event, portList, _wc, callback) => {
+    event.preventDefault();
+    callback(portList.length ? portList[0].portId : '');
+  });
+
   win.once('ready-to-show', () => win?.show());
   // Belt-and-suspenders: never leave the window hidden if ready-to-show stalls.
   setTimeout(() => {

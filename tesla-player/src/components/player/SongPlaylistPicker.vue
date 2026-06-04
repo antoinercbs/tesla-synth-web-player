@@ -51,7 +51,7 @@ const selectedPlaylist = computed<Playlist | null>(
   () => playlists.value.find((p) => p.id === selectedPlaylistId.value) ?? null,
 );
 const playlistItems = computed(() =>
-  playlists.value.map((p) => ({ id: p.id, label: `${p.name} — ${p.coilCount} ⚡` })),
+  playlists.value.map((p) => ({ id: p.id, label: `${p.name} · ${p.coilCount} ⚡` })),
 );
 function songById(id: number): Song | undefined {
   return songs.value.find((s) => s.id === id);

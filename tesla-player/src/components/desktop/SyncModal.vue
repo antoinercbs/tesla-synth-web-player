@@ -163,7 +163,7 @@ onUnmounted(() => {
         <!-- Result summary -->
         <div v-else-if="result" class="sync-modal__result">
           <p class="sync-modal__done">
-            <span class="icon"><i class="fas fa-check"></i></span>{{ $t('desktop.done') }} —
+            <span class="icon"><i class="fas fa-check"></i></span>{{ $t('desktop.done') }}.
             {{ result.pulled }} {{ $t('desktop.pulled') }}, {{ result.pushed }} {{ $t('desktop.pushed') }}
           </p>
           <div v-if="result.warnings.length" class="sync-modal__warnings">
@@ -178,7 +178,7 @@ onUnmounted(() => {
         </div>
 
         <!-- Error -->
-        <p v-else-if="error" class="sync-modal__error" role="alert">{{ $t('desktop.failed') }} — {{ error }}</p>
+        <p v-else-if="error" class="sync-modal__error" role="alert">{{ $t('desktop.failed') }}: {{ error }}</p>
 
         <!-- Nothing to do -->
         <p v-else-if="!hasChanges" class="sync-modal__note">

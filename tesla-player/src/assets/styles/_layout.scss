@@ -6,8 +6,8 @@
 .app-shell { display: flex; height: 100vh; overflow: hidden; }
 
 .sidebar {
-  flex: 0 0 244px;
-  width: 244px;
+  flex: 0 0 268px;
+  width: 268px;
   height: 100vh;
   overflow-y: auto;
   display: flex;
@@ -15,7 +15,11 @@
   padding: 1.4rem 1rem;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
   border-right: 1px solid var(--line);
+  // still scrollable, but no visible bar (it stole horizontal width + jittered the layout)
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.sidebar::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 .brand {
   display: flex; align-items: center; gap: 0.4rem;
@@ -66,7 +70,7 @@
 .nav { display: flex; flex-direction: column; gap: 0.35rem; }
 .nav-item {
   display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.72rem 0.85rem;
+  padding: 0.5rem 0.85rem;
   border-radius: var(--radius);
   color: var(--text-dim);
   font-family: var(--font-display);
@@ -82,6 +86,24 @@
   box-shadow: inset 2px 0 0 var(--volt), inset 0 0 26px -12px var(--volt);
 }
 .nav-item.router-link-active .icon { color: var(--volt); filter: drop-shadow(0 0 5px var(--volt)); }
+// device-config item, locked until a serial link is up
+.nav-item.is-disabled { opacity: 0.4; cursor: not-allowed; }
+.nav-item.is-disabled:hover { background: none; color: var(--text-dim); }
+
+// output-1 mode chooser: three segments must fit the narrow sidebar, so stack
+// the icon over a smaller label and trim the padding (the shared .segmented is
+// sized for the wider main-pane toggles).
+.segmented.output-modes button { min-width: 0; padding: 0.4rem 0.3rem; font-size: 0.78rem; }
+
+// output-1 serial (Syntherrupter) connect control
+.sidebar-serial { display: flex; flex-direction: column; gap: 0.4rem; }
+.sidebar-serial__btn { justify-content: center; padding: 0.45rem 0.6rem; font-size: 0.78rem; white-space: nowrap; }
+.sidebar-serial__on {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  font-family: var(--font-mono); font-size: 0.78rem; color: var(--volt);
+}
+.sidebar-serial__on .conn__dot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.output-emul.is-error { color: var(--danger); }
 
 .sidebar__spacer { flex: 1; }
 .sidebar__foot {
@@ -94,6 +116,19 @@
 .conn { display: flex; align-items: center; gap: 0.5rem; font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono); }
 .conn__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--danger); box-shadow: 0 0 8px var(--danger); }
 .conn.is-up .conn__dot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+
+// synthetic credits line (sidebar footer) → opens the verbose credits modal
+.sidebar-credits {
+  display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+  width: 100%; margin-top: 0.6rem; padding: 0.5rem 0.55rem;
+  background: var(--line-005); border: 1px solid var(--line); border-radius: var(--radius-sm, 9px);
+  cursor: pointer; text-align: center;
+  color: var(--text-mute); font-size: 0.62rem; font-family: var(--font-mono);
+  transition: color 0.15s, background 0.15s, border-color 0.15s;
+}
+.sidebar-credits:hover { color: var(--volt); background: var(--volt-06); border-color: var(--volt-30); }
+.sidebar-credits i { flex: 0 0 auto; font-size: 0.62rem; opacity: 0.8; }
+.sidebar-credits__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 // --- collapsible "compact" sidebar -----------------------------------------
 // A toggle (last nav row) narrows the sidebar to an icon-only rail: the brand
