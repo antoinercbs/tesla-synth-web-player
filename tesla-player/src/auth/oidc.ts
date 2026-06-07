@@ -84,21 +84,19 @@ export async function initOidc(cfg: AuthRuntimeConfig): Promise<void> {
     post_logout_redirect_uri: `${origin}/`,
     response_type: 'code',
     scope: 'openid profile',
-    // Renew the access token silently in the BACKGROUND shortly before it
-    // expires, using the refresh token Keycloak returns for the code grant (no
-    // iframe, no third-party cookies). This is what stops a mid-session 401 from
-    // bouncing through the IdP and reloading the SPA — which would lose unsaved
-    // edits. (Requires the Keycloak client to issue refresh tokens — the default
-    // for a Standard-flow client; if absent, it degrades to the 401 → re-login.)
-    automaticSilentRenew: true,
+    // NO background auto-renew timer. oidc-client-ts's automaticSilentRenew
+    // hammers the token + userinfo endpoints in a tight loop (~2 req/s) when the
+    // access-token lifespan is short relative to its renew-notification window.
+    // Instead we renew LAZILY: the 401 response interceptor calls tryRenew()
+    // (refresh-token grant, no redirect) and retries the request once. That
+    // already prevents the disruptive full-page re-login that loses edits —
+    // with zero background polling of the IdP.
+    automaticSilentRenew: false,
     userStore: new WebStorageStateStore({ store: window.localStorage }),
     loadUserInfo: true,
   });
   userManager.events.addUserLoaded((u) => emit(u));
   userManager.events.addUserUnloaded(() => emit(null));
-  userManager.events.addSilentRenewError((e) =>
-    console.warn('OIDC silent renew failed; will re-auth on the next 401', e),
-  );
   const existing = await userManager.getUser();
   emit(existing && !existing.expired ? existing : null);
 }
