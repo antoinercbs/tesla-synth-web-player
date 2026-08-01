@@ -119,11 +119,7 @@ async function onReplaceFileChosen(e: Event): Promise<void> {
                 form,
             );
 
-            const index = midiStore.midiFileList.findIndex(
-                (m) => m.id === data.id,
-            );
-            if (index !== -1) midiStore.midiFileList[index] = data;
-
+            midiStore.updateMidiFile(data);
             emit("select", data.id);
             uploadMsg.value = { type: "success", name: data.name };
         } catch (err) {
@@ -169,8 +165,7 @@ async function saveEditName(f: MidiFile): Promise<void> {
             name: newName,
         });
 
-        const index = midiStore.midiFileList.findIndex((m) => m.id === data.id);
-        if (index !== -1) midiStore.midiFileList[index] = data;
+        midiStore.updateMidiFile(data);
     } catch (err) {
         console.error("MIDI rename failed", err);
     } finally {
@@ -198,40 +193,34 @@ async function confirmDelete(): Promise<void> {
 }
 
 const songsByMidi = computed(() => {
-  const map = new Map<number, Song[]>();
-  
-  for (const song of midiStore.midiSongList) {
-    if (song.midiFile?.id) {
-      if (!map.has(song.midiFile.id)) {
-        map.set(song.midiFile.id, []);
-      }
-      map.get(song.midiFile.id)!.push(song);
+    const map = new Map<number, Song[]>();
+    for (const song of midiStore.midiSongList) {
+        const id = song.midiFile?.id;
+        if (id == null) continue;
+        const list = map.get(id);
+        if (list) list.push(song);
+        else map.set(id, [song]);
     }
-  }
-  return map;
+    return map;
 });
 
+/** Flips the menu upwards when it would overflow the bottom of the list. */
 function alignDropdown(e: MouseEvent): void {
-  const wrapper = e.currentTarget as HTMLElement;
-  const menu = wrapper.querySelector('.midi-lib__dropdown-menu') as HTMLElement;
-  const list = wrapper.closest('.midi-lib__list') as HTMLElement;
+    const wrapper = e.currentTarget as HTMLElement;
+    const menu = wrapper.querySelector<HTMLElement>(".midi-lib__dropdown-menu");
+    const list = wrapper.closest<HTMLElement>(".midi-lib__list");
+    if (!menu || !list) return;
 
-  if (!menu || !list) return;
+    // Measured while forced visible, then restored: the menu is display:none
+    // until :hover, and a hidden element has no height to measure.
+    const originalDisplay = menu.style.display;
+    menu.style.display = "flex";
+    const overflows =
+        wrapper.getBoundingClientRect().bottom + menu.offsetHeight + 10 >
+        list.getBoundingClientRect().bottom;
+    menu.style.display = originalDisplay;
 
-  const originalDisplay = menu.style.display;
-  menu.style.display = 'flex';
-  
-  const wrapperRect = wrapper.getBoundingClientRect();
-  const listRect = list.getBoundingClientRect();
-  const menuHeight = menu.offsetHeight;
-
-  if (wrapperRect.bottom + menuHeight + 10 > listRect.bottom) {
-    menu.classList.add('is-dropup');
-  } else {
-    menu.classList.remove('is-dropup');
-  }
-
-  menu.style.display = originalDisplay;
+    menu.classList.toggle("is-dropup", overflows);
 }
 </script>
 
@@ -344,7 +333,7 @@ function alignDropdown(e: MouseEvent): void {
                     <button
                         type="button"
                         class="midi-lib__edit-icon"
-                        title="Valider"
+                        :title="$t('label.confirm')"
                         @mousedown.prevent="saveEditName(f)"
                     >
                         <i class="fas fa-check"></i>
@@ -352,7 +341,7 @@ function alignDropdown(e: MouseEvent): void {
                     <button
                         type="button"
                         class="midi-lib__edit-icon is-cancel"
-                        title="Annuler"
+                        :title="$t('label.cancel')"
                         @mousedown.prevent="cancelEditName"
                     >
                         <i class="fas fa-xmark"></i>
@@ -368,28 +357,37 @@ function alignDropdown(e: MouseEvent): void {
                 <span class="midi-lib__item-dur">{{
                     formatDuration(f.durationMs)
                 }}</span>
-                <span class="midi-lib__item-ch">{{f.channels == null ? '-' : f.channels }} ch</span>
-                <div class="midi-lib__usages midi-lib__dropdown" @mouseenter="alignDropdown">
-                <div class="midi-lib__usages-badge">
-                  {{  songsByMidi.get(f.id) ? songsByMidi.get(f.id)?.length : 0 }}
-                  <i class="fas fa-music"></i>
+                <span class="midi-lib__item-ch">
+                    {{ f.channels ?? "–" }} {{ $t("label.channelsShort") }}
+                </span>
+                <div
+                    class="midi-lib__usages midi-lib__dropdown"
+                    @mouseenter="alignDropdown"
+                >
+                    <div class="midi-lib__usages-badge">
+                        {{ songsByMidi.get(f.id)?.length ?? 0 }}
+                        <i class="fas fa-music"></i>
+                    </div>
+                    <div
+                        v-if="songsByMidi.get(f.id)?.length"
+                        class="midi-lib__dropdown-menu is-usages"
+                    >
+                        <div class="midi-lib__dropdown-header">
+                            {{ $t("label.usedFor") }}
+                        </div>
+                        <RouterLink
+                            v-for="s in songsByMidi.get(f.id)"
+                            :key="s.id"
+                            class="midi-lib__dropdown-item"
+                            :to="`/edit/${s.id}`"
+                        >
+                            <span class="midi-lib__usage-title">{{ s.name }}</span>
+                            <span class="midi-lib__usage-coils">
+                                &middot; {{ s.coilCount }} <i class="fas fa-bolt"></i>
+                            </span>
+                        </RouterLink>
+                    </div>
                 </div>
-                <div class="midi-lib__dropdown-menu is-usages" v-if="songsByMidi.get(f.id)?.length">
-                  <div class="midi-lib__dropdown-header">{{ $t('label.usedFor') }}</div>
-                  
-                  <RouterLink 
-                    v-for="s in songsByMidi.get(f.id)" 
-                    :key="s.id"
-                    class="midi-lib__dropdown-item"
-                    :to="`/edit/${s.id}`"
-                  >
-                    <span class="midi-lib__usage-title">{{ s.name }}</span>
-                    <span class="midi-lib__usage-coils">
-                      &middot; {{ s.coilCount }} <i class="fas fa-bolt"></i>
-                    </span>
-                  </RouterLink>
-                </div>
-              </div>
                 <div class="midi-lib__item-actions">
                     <button
                         class="midi-lib__dl"
@@ -418,7 +416,7 @@ function alignDropdown(e: MouseEvent): void {
                                 @click="triggerReplace(f)"
                             >
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
-                                <span>{{ $t("label.upload") }}</span>
+                                <span>{{ $t("label.replaceFile") }}</span>
                             </button>
                             <button
                                 class="midi-lib__dropdown-item"

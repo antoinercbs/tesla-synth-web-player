@@ -15,7 +15,7 @@ import { SongResponse, SongsService } from './songs.service';
 
 @Controller('songs')
 export class SongsController {
-  constructor(private readonly songsService: SongsService) { }
+  constructor(private readonly songsService: SongsService) {}
 
   @Get()
   findAll(): Promise<SongResponse[]> {

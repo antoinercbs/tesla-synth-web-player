@@ -32,7 +32,7 @@ export class MidiService implements OnModuleInit {
   constructor(
     @InjectRepository(MidiFile)
     private readonly midiFileRepository: Repository<MidiFile>,
-  ) { }
+  ) {}
 
   /**
    * Back-fill, at boot, anything missing on existing rows: the play length
@@ -52,7 +52,7 @@ export class MidiService implements OnModuleInit {
         if (buffer) {
           if (needDuration) patch.durationMs = this.durationFromBuffer(buffer);
           if (needHash) patch.contentHash = hashBytes(buffer);
-          if (needChannels) patch.channels = this.channelsFromBuffer(buffer)
+          if (needChannels) patch.channels = this.channelsFromBuffer(buffer);
         }
       }
       if (!file.uuid) patch.uuid = randomUUID();
@@ -162,13 +162,12 @@ export class MidiService implements OnModuleInit {
   }
 
   /**
-   * Replace an existing MIDI file's content on disk while keeping its physical path.
-   * Updates its metadata (duration, channels, hash, etc).
+   * Overwrites the bytes at the entry's existing path, so every song keeps
+   * pointing at it. The sync change-signal is bumped like any other write.
    */
   async replaceFile(
     id: number,
     buffer: Buffer,
-    originalName: string,
     editorName: string | null = null,
   ): Promise<MidiFileResponse> {
     const midiFile = await this.midiFileRepository.findOne({ where: { id } });
@@ -176,11 +175,8 @@ export class MidiService implements OnModuleInit {
       throw new NotFoundException(`MIDI file ${id} not found`);
     }
 
-    const filePath = join(UPLOADS_DIR, basename(midiFile.path));
+    await fs.writeFile(join(UPLOADS_DIR, basename(midiFile.path)), buffer);
 
-    await fs.writeFile(filePath, buffer);
-
-    midiFile.name = originalName;
     midiFile.durationMs = this.durationFromBuffer(buffer);
     midiFile.channels = this.channelsFromBuffer(buffer);
     midiFile.contentHash = hashBytes(buffer);
@@ -191,7 +187,7 @@ export class MidiService implements OnModuleInit {
     return this.toResponse(saved);
   }
 
-  /** Rename a midi file */
+  /** Library name only: the file on disk keeps its stored name. */
   async rename(
     id: number,
     newName: string,

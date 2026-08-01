@@ -128,7 +128,7 @@ function buildPayload() {
     events: draft.events
       .filter((e) => e.coilIndex < draft.coilCount)
       .map((e) => ({ coilIndex: e.coilIndex, atMs: Math.round(e.atMs), param: e.param, value: e.value })),
-    tagIds: draft.tags.filter((t) => t.id !== undefined).map((t) => t.id),  
+    tagIds: draft.tags.filter((t) => t.id != null).map((t) => t.id),
   };
 }
 
@@ -140,7 +140,7 @@ async function save(): Promise<void> {
     const { data } = isNew
       ? await axios.post<Song>('/api/songs', payload)
       : await axios.put<Song>(`/api/songs/${draft.id}`, payload);
-    
+
     draft.id = data.id;
 
     if (isNew) midiStore.addMidiSongToList(data);
@@ -150,7 +150,7 @@ async function save(): Promise<void> {
     notify('label.songSaved');
   } catch (err) {
     console.error('Save failed', err);
-    notify('error.saveFailed');
+    notify('label.saveFailed', 'error');
   }
 }
 
@@ -260,44 +260,33 @@ const showLibrary = ref(false);
 
       <div class="field-block field-block--wide">
         <span class="field-label">{{ $t('label.tags') }}</span>
-        
         <div class="editor-tags">
           <div class="editor-tags__list" v-if="draft.tags.length > 0">
-            <span 
-              v-for="tag in draft.tags" 
-              :key="tag.id ?? tag.name" 
-              class="song-tag-pill" 
-              :style="{ '--tag-c': tag.color }"
-            >
+            <span v-for="tag in draft.tags" :key="tag.id ?? tag.name" class="song-tag-pill"
+              :style="{ '--tag-c': tag.color }">
               {{ tag.name }}
-              <button class="tag-rm" type="button" @click="removeTag(tag.id)" title="Retirer">
+              <button class="tag-rm" type="button" :title="$t('label.removeTag')" @click="removeTag(tag.id)">
                 <i class="fas fa-xmark"></i>
               </button>
             </span>
           </div>
 
           <div class="midi-lib__dropdown" v-if="availableTagsToAdd.length > 0">
-            <button class="editor-tags__add" type="button" title="Ajouter un tag">
+            <button class="editor-tags__add" type="button" :title="$t('label.addTag')">
               <i class="fas fa-plus"></i>
             </button>
-            
             <div class="midi-lib__dropdown-menu">
-              <div class="midi-lib__dropdown-header">Ajouter un tag</div>
-              <button 
-                v-for="t in availableTagsToAdd" 
-                :key="t.id" 
-                class="midi-lib__dropdown-item tag-dropdown-item"
-                type="button"
-                @click="addTag(t)"
-              >
+              <div class="midi-lib__dropdown-header">{{ $t('label.addTag') }}</div>
+              <button v-for="t in availableTagsToAdd" :key="t.id" class="midi-lib__dropdown-item tag-dropdown-item"
+                type="button" @click="addTag(t)">
                 <span class="cfg-name-dot" :style="{ '--c': t.color }"></span>
                 <span class="tag-dropdown-name">{{ t.name }}</span>
               </button>
             </div>
           </div>
-          
+
           <span v-else-if="draft.tags.length === 0 && allTags.length === 0" class="editor-tags__empty">
-            Aucun tag configuré globalement.
+            {{ $t('label.noTagAvailable') }}
           </span>
         </div>
       </div>

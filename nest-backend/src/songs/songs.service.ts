@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'crypto';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { MidiFile } from '../midi/entities/midi-file.entity';
 import { hashSong } from '../sync/content-hash';
 import { CreateSongDto } from './dto/create-song.dto';
@@ -32,7 +32,7 @@ export interface SongResponse {
     param: string;
     value: number;
   }[];
-  tags: Tag[];
+  tags: { id: number; name: string; color: string }[];
 }
 
 @Injectable()
@@ -42,7 +42,9 @@ export class SongsService {
     private readonly songRepository: Repository<Song>,
     @InjectRepository(MidiFile)
     private readonly midiFileRepository: Repository<MidiFile>,
-  ) { }
+    @InjectRepository(Tag)
+    private readonly tagRepository: Repository<Tag>,
+  ) {}
 
   async findAll(): Promise<SongResponse[]> {
     const songs = await this.songRepository.find({ relations: ['tags'] });
@@ -67,7 +69,7 @@ export class SongsService {
   ): Promise<SongResponse> {
     const song = await this.songRepository.findOne({
       where: { id },
-      relations: ['tags']
+      relations: ['tags'],
     });
     if (!song) {
       throw new NotFoundException(`Song ${id} not found`);
@@ -95,7 +97,10 @@ export class SongsService {
   }
 
   private async findOneOrThrow(id: number): Promise<SongResponse> {
-    const song = await this.songRepository.findOne({ where: { id }, relations: ['tags'] });
+    const song = await this.songRepository.findOne({
+      where: { id },
+      relations: ['tags'],
+    });
     if (!song) {
       throw new NotFoundException(`Song ${id} not found`);
     }
@@ -132,7 +137,14 @@ export class SongsService {
       return event;
     });
 
-    song.tags = (dto.tagIds ?? []).filter((id): id is number => typeof id === 'number').map((tagId) => ({ id: tagId } as any));
+    // Left untouched when the payload omits tagIds, so a client that predates
+    // tags cannot silently clear them. Unknown ids are dropped rather than
+    // inserted as dangling song_tags rows.
+    if (dto.tagIds) {
+      song.tags = dto.tagIds.length
+        ? await this.tagRepository.findBy({ id: In(dto.tagIds) })
+        : [];
+    }
 
     return song;
   }
@@ -165,11 +177,11 @@ export class SongsService {
       editorName: song.editorName ?? null,
       midiFile: song.midiFile
         ? {
-          id: song.midiFile.id,
-          name: song.midiFile.name,
-          path: song.midiFile.path,
-          durationMs: song.midiFile.durationMs,
-        }
+            id: song.midiFile.id,
+            name: song.midiFile.name,
+            path: song.midiFile.path,
+            durationMs: song.midiFile.durationMs,
+          }
         : null,
       coils: [...(song.coils ?? [])]
         .sort((a, b) => a.coilIndex - b.coilIndex)
@@ -185,25 +197,11 @@ export class SongsService {
         param: e.param,
         value: e.value,
       })),
-      tags: song.tags ?? []
+      tags: (song.tags ?? []).map((t) => ({
+        id: t.id,
+        name: t.name,
+        color: t.color,
+      })),
     };
-  }
-
-  async updateTags(songId: number, tagIds: number[], editorName: string | null = null): Promise<Song> {
-    const song = await this.songRepository.findOne({
-      where: { id: songId },
-      relations: ['tags']
-    });
-
-    if (!song) {
-      throw new NotFoundException(`Song ${songId} not found`);
-    }
-
-    song.tags = tagIds.map(id => ({ id } as any));
-
-    song.updatedAt = Date.now();
-    song.editorName = editorName;
-
-    return this.songRepository.save(song);
   }
 }

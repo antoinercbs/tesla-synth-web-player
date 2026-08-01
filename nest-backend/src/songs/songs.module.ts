@@ -13,4 +13,4 @@ import { Tag } from '../tags/entities/tag.entity';
   controllers: [SongsController],
   providers: [SongsService],
 })
-export class SongsModule { }
+export class SongsModule {}

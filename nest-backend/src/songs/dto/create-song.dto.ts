@@ -3,7 +3,6 @@ import {
   IsArray,
   IsIn,
   IsInt,
-  IsNumber,
   IsOptional,
   IsString,
   Max,
@@ -62,9 +61,11 @@ export class CreateSongDto {
   @Type(() => CoilEventDto)
   events?: CoilEventDto[];
 
+  /** Omitted (not empty) leaves the song's tags as they are. */
+  @IsOptional()
   @IsArray()
-  @IsNumber({}, { each: true })
-  tagIds: number[] = [];
+  @IsInt({ each: true })
+  tagIds?: number[];
 
   /** Convenience accessor that resolves the MIDI file id from either field. */
   get resolvedMidiFileId(): number | null {

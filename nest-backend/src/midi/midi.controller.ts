@@ -21,7 +21,7 @@ import { MidiFileResponse, MidiService } from './midi.service';
 
 @Controller('midi')
 export class MidiController {
-  constructor(private readonly midiService: MidiService) { }
+  constructor(private readonly midiService: MidiService) {}
 
   @Get()
   findAll(): Promise<MidiFileResponse[]> {
@@ -55,8 +55,13 @@ export class MidiController {
   }
 
   /**
-   * Replace an existing MIDI file's content on disk while keeping its physical path.
-   * Updates its metadata (duration, channels, hash, etc).
+   * Swap the bytes of an existing entry, keeping its path and uuid. Like
+   * :id/programs this edits the FILE → it affects every song that uses it (their
+   * per-coil channel masks are NOT remapped). The library name is kept: it may
+   * have been chosen through :id/name and is not tied to the file on disk.
+   *
+   * No `storage` here on purpose — the default memory storage is what gives us
+   * `file.buffer` to hash and to write over the existing path.
    */
   @Put(':id/file')
   @UseInterceptors(
@@ -67,29 +72,26 @@ export class MidiController {
   )
   replaceFile(
     @Param('id', ParseIntPipe) id: number,
-    @UploadedFile() file: Express.Multer.File,
     @EditorName() editorName: string | null,
+    @UploadedFile() file?: Express.Multer.File,
   ): Promise<MidiFileResponse> {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
-    const nameWithoutExt = file.originalname.replace(/\.[^/.]+$/, '');
-    return this.midiService.replaceFile(id, file.buffer, nameWithoutExt, editorName);
+    return this.midiService.replaceFile(id, file.buffer, editorName);
   }
 
-  /**
-   * Rename a MIDI file.
-   */
   @Patch(':id/name')
   rename(
     @Param('id', ParseIntPipe) id: number,
     @Body('name') name: string,
     @EditorName() editorName: string | null,
   ): Promise<MidiFileResponse> {
-    if (!name || name.trim() === '') {
-      throw new BadRequestException('Le nom ne peut pas être vide');
+    const trimmed = (name ?? '').trim();
+    if (!trimmed) {
+      throw new BadRequestException('Name cannot be empty');
     }
-    return this.midiService.rename(id, name.trim(), editorName);
+    return this.midiService.rename(id, trimmed, editorName);
   }
 
   @Delete(':id')

@@ -104,7 +104,8 @@ export interface Song {
   coils: CoilConfig[];
   /** Mid-song parameter-change events (optional; future). */
   events?: CoilEvent[];
-  tags: AppTag[];
+  /** Absent when talking to a server that predates tags. */
+  tags?: AppTag[];
   /** Who last edited this (server-stamped from the OIDC token), or null. */
   editorName?: string | null;
 }
@@ -119,6 +120,7 @@ export interface Playlist {
   editorName?: string | null;
 }
 
+/** A song label. `id` is absent until the tag has been saved server-side. */
 export interface AppTag {
   id?: number;
   name: string;

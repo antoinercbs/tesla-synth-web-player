@@ -1,16 +1,19 @@
 <script setup lang="ts">
 import { computed, reactive, watch } from 'vue';
 import { coilColor } from '@/ui/coil-colors';
-import { AppTag, MAX_COILS, MIN_COILS, type AppConfig } from '@/types/domain';
+import { MAX_COILS, MIN_COILS, type AppConfig, type AppTag } from '@/types/domain';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 
-const props = defineProps<{ open: boolean; config: AppConfig, tags: AppTag[] }>();
-const emit = defineEmits<{ (e: 'save', payload: {config: AppConfig, tags: AppTag[]}): void; (e: 'close'): void }>();
+const props = defineProps<{ open: boolean; config: AppConfig; tags: AppTag[] }>();
+const emit = defineEmits<{
+  (e: 'save', payload: { config: AppConfig; tags: AppTag[] }): void;
+  (e: 'close'): void;
+}>();
 
 // Names are kept for all MAX_COILS slots so they survive count changes; only the
 // first `defaultCoilCount` are shown/edited.
-const draft = reactive<{ coilNames: string[]; defaultCoilCount: number, tags: AppTag[]; }>({
+const draft = reactive<{ coilNames: string[]; defaultCoilCount: number; tags: AppTag[] }>({
   coilNames: Array(MAX_COILS).fill(''),
   defaultCoilCount: 3,
   tags: [],
@@ -46,7 +49,10 @@ function save(): void {
       coilNames: draft.coilNames.map((n) => (n ?? '').trim()),
       defaultCoilCount: draft.defaultCoilCount,
     },
-    tags: draft.tags.filter(t => t.name.trim() !== ''),
+    // Blank rows are the "add" button's leftovers, not tags to create.
+    tags: draft.tags
+      .map((t) => ({ ...t, name: t.name.trim() }))
+      .filter((t) => t.name !== ''),
   });
 }
 
@@ -77,18 +83,18 @@ const shownCount = computed(() => draft.defaultCoilCount);
         <span class="field-label">{{ $t('label.tags') }}</span>
         <div class="cfg-names">
           <div v-if="draft.tags.length === 0" class="cfg-empty-tags">
-            {{ $t("label.noTagAvailable") }}
+            {{ $t('label.noTagAvailable') }}
           </div>
-          
+
           <div v-for="(tag, i) in draft.tags" :key="tag.id ?? i" class="cfg-name-row">
             <input class="cfg-tag-color" type="color" v-model="tag.color" :title="$t('label.tagColor')">
             <input class="text-field" type="text" v-model="tag.name"
               :placeholder="$t('label.tagName')" maxlength="24">
-            <button class="cfg-tag-del" type="button" @click="removeTag(i)" title="Supprimer">
+            <button class="cfg-tag-del" type="button" :title="$t('label.delete')" @click="removeTag(i)">
               <i class="fas fa-trash"></i>
             </button>
           </div>
-          
+
           <button class="btn btn--ghost cfg-add-tag" type="button" @click="addTag">
             <i class="fas fa-plus"></i> {{ $t('label.addTag') }}
           </button>

@@ -78,6 +78,24 @@ CREATE TABLE IF NOT EXISTS CoilEvent (
 	FOREIGN KEY (song_id) REFERENCES Song(id) ON DELETE CASCADE
 );
 
+-- Free-form song labels. Named identically to the MidiChannelsAndTags migration
+-- so a fresh DB and a migrated one share the exact same structure.
+CREATE TABLE IF NOT EXISTS Tag (
+	id				INTEGER PRIMARY KEY AUTOINCREMENT,
+	name			TEXT NOT NULL,
+	color			TEXT NOT NULL DEFAULT '#46e0ff'
+);
+
+CREATE TABLE IF NOT EXISTS song_tags (
+	songId			INTEGER NOT NULL,
+	tagId			INTEGER NOT NULL,
+	PRIMARY KEY (songId, tagId),
+	FOREIGN KEY (songId) REFERENCES Song(id) ON DELETE CASCADE,
+	FOREIGN KEY (tagId)  REFERENCES Tag(id)  ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS IDX_song_tags_song ON song_tags(songId);
+CREATE INDEX IF NOT EXISTS IDX_song_tags_tag  ON song_tags(tagId);
+
 -- Global operator config (singleton row id=1): per-coil names + default coil count.
 CREATE TABLE IF NOT EXISTS AppConfig (
 	id 				INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -1,71 +1,52 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Tag } from './entities/tag.entity';
+import { In, Repository } from 'typeorm';
 import { SyncTagDto } from './dto/tag.dto';
+import { Tag } from './entities/tag.entity';
 
 @Injectable()
-export class TagService {
+export class TagsService {
   constructor(
     @InjectRepository(Tag)
     private readonly tagRepository: Repository<Tag>,
-  ) { }
+  ) {}
 
-  /**
-   * Get all available tags.
-   */
   findAll(): Promise<Tag[]> {
     return this.tagRepository.find();
   }
 
   /**
-   * Synchronize the entire tag list.
-   * Creates new tags (no ID), updates existing ones, and deletes omitted ones.
+   * Reconciles the stored tags against the full desired list. Deleting a tag
+   * drops its song_tags rows through ON DELETE CASCADE (see the
+   * MidiChannelsAndTags migration). An id that no longer exists is skipped, not
+   * resurrected — the caller adopts the response and self-heals.
    */
   async syncAll(incomingTags: SyncTagDto[]): Promise<Tag[]> {
     const existingTags = await this.tagRepository.find();
+    const byId = new Map(existingTags.map((t) => [t.id, t]));
 
-    // 1. Identify which tags to delete
-    const incomingIds = incomingTags
-      .map((t) => t.id)
-      .filter((id): id is number => typeof id === 'number');
-    const tagsToRemove = existingTags.filter((t) => !incomingIds.includes(t.id));
-
-    if (tagsToRemove.length > 0) {
-      const ids = tagsToRemove.map((t) => t.id);
-
-      await this.tagRepository.manager
-        .createQueryBuilder()
-        .delete()
-        .from('song_tags')
-        .where('tagId IN (:...ids)', { ids })
-        .execute();
-
-      await this.tagRepository.remove(tagsToRemove);
+    const keptIds = new Set(
+      incomingTags
+        .map((t) => t.id)
+        .filter((id): id is number => typeof id === 'number'),
+    );
+    const removedIds = existingTags
+      .filter((t) => !keptIds.has(t.id))
+      .map((t) => t.id);
+    if (removedIds.length > 0) {
+      await this.tagRepository.delete({ id: In(removedIds) });
     }
 
-    // 2. Update existing tags and create new ones
-    const savedTags: Tag[] = [];
-
+    const saved: Tag[] = [];
     for (const dto of incomingTags) {
-      if (dto.id) {
-        // Update existing
-        const existing = existingTags.find(t => t.id === dto.id);
-        if (existing) {
-          existing.name = dto.name;
-          existing.color = dto.color;
-          savedTags.push(await this.tagRepository.save(existing));
-        }
-      } else {
-        // Create new
-        const newTag = this.tagRepository.create({
-          name: dto.name,
-          color: dto.color,
-        });
-        savedTags.push(await this.tagRepository.save(newTag));
-      }
+      const existing = dto.id != null ? byId.get(dto.id) : undefined;
+      if (dto.id != null && !existing) continue;
+      const tag =
+        existing ?? this.tagRepository.create({ name: '', color: '#46e0ff' });
+      tag.name = dto.name.trim();
+      tag.color = dto.color;
+      saved.push(await this.tagRepository.save(tag));
     }
-
-    return savedTags;
+    return saved;
   }
 }

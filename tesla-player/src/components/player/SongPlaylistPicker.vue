@@ -35,12 +35,20 @@ const coilFilter = ref<number | null>(null); // null = all counts
 const availableCoilCounts = computed(() =>
   [...new Set(songs.value.map((s) => s.coilCount))].sort((a, b) => a - b),
 );
+// A song matches on its name OR on any one of its tags — never on the two
+// concatenated, which would match across the seam ("abc" + "rock" ~ "crock").
+function matches(song: Song, q: string): boolean {
+  return (
+    song.name.toLowerCase().includes(q) ||
+    (song.tags ?? []).some((t) => t.name.toLowerCase().includes(q))
+  );
+}
 const filteredSongs = computed<Song[]>(() => {
   const q = search.value.trim().toLowerCase();
   return songs.value.filter(
     (s) =>
       (coilFilter.value == null || s.coilCount === coilFilter.value) &&
-      (q === '' || (s.name.toLowerCase() + s.tags.map((t) => t.name).join(" ").toLowerCase()).includes(q)),
+      (q === '' || matches(s, q)),
   );
 });
 
@@ -117,13 +125,9 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
           </button>
           <div class="play-row__name-wrapper">
             <span class="play-row__name">{{ song.name }}</span>
-            <div class="song-tags-display">
-              <span 
-                v-for="tag in song.tags" 
-                :key="tag.id ?? tag.name" 
-                class="song-tag-pill" 
-                :style="{ '--tag-c': tag.color }"
-              >
+            <div v-if="song.tags?.length" class="song-tags-display">
+              <span v-for="tag in song.tags" :key="tag.id ?? tag.name" class="song-tag-pill"
+                :style="{ '--tag-c': tag.color }">
                 {{ tag.name }}
               </span>
             </div>

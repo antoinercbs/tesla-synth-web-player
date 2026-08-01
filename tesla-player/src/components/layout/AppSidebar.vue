@@ -306,14 +306,23 @@ export default {
   },
   methods: {
     coilColor,
-    saveConfig({config, tags}) {
-      this.axios.put('/api/settings', config)
-        .then(r => { this.midiStore.setAppConfig(r.data); notify('label.settingsSaved') })
+    saveConfig({ config, tags }) {
+      const savedConfig = this.axios.put('/api/settings', config)
+        .then(r => { this.midiStore.setAppConfig(r.data) })
         .catch(err => console.error('Save config failed', err))
-        .finally(() => { this.configOpen = false })
-      this.axios.put("/api/tags/sync", tags)
-        .then(r => { this.midiStore.setTagList(r.data) })
+      const savedTags = this.axios.put('/api/tags/sync', tags)
+        .then(r => {
+          this.midiStore.setTagList(r.data)
+          // A deleted tag is gone from song_tags too, so the songs in memory
+          // still carry stale pills until they are re-read.
+          return this.axios.get('/api/songs')
+            .then(s => { this.midiStore.setMidiSongList(s.data) })
+        })
         .catch(err => console.error('Save tags failed', err))
+      Promise.all([savedConfig, savedTags]).then(() => {
+        notify('label.settingsSaved')
+        this.configOpen = false
+      })
     },
     // Resolve output 1 from the current mode. Output 2 is always a WebMIDI device.
     // A live serial link is never clobbered (a WebMIDI (dis)connect must not drop

@@ -9,6 +9,7 @@ import { createReadStream, existsSync, promises as fs } from 'fs';
 import { basename, join } from 'path';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
+import { computeChannels } from '../midi/midi-channels';
 import { computeDurationMs } from '../midi/midi-duration';
 import { MidiFile } from '../midi/entities/midi-file.entity';
 import { PlaylistSong } from '../playlists/entities/playlist-song.entity';
@@ -262,6 +263,7 @@ export class SyncService {
         throw new BadRequestException('Uploaded bytes do not match contentHash');
       }
       const durationMs = this.durationOf(buffer);
+      const channels = this.channelsOf(buffer);
 
       const existing = await this.midiFileRepository.findOne({
         where: { uuid: dto.uuid },
@@ -276,6 +278,7 @@ export class SyncService {
         existing.path = `./uploads/${storedName}`;
         existing.contentHash = actualHash;
         existing.durationMs = durationMs;
+        existing.channels = channels;
         existing.name = dto.name;
         existing.updatedAt = dto.updatedAt;
         existing.editorName = dto.editorName ?? null;
@@ -292,6 +295,7 @@ export class SyncService {
         path: `./uploads/${storedName}`,
         contentHash: actualHash,
         durationMs,
+        channels,
         updatedAt: dto.updatedAt,
         editorName: dto.editorName ?? null,
       });
@@ -307,6 +311,14 @@ export class SyncService {
   private durationOf(buffer: Buffer): number | null {
     try {
       return computeDurationMs(buffer);
+    } catch {
+      return null;
+    }
+  }
+
+  private channelsOf(buffer: Buffer): number | null {
+    try {
+      return computeChannels(buffer);
     } catch {
       return null;
     }

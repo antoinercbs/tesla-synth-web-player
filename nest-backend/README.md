@@ -31,33 +31,40 @@ By default the SQLite database and the `uploads/` folder are read from the
 database is a no-op and never touches existing rows. TypeORM migrations run
 automatically on app start (`migrationsRun`).
 
-To create a new migration:
-
-```bash
-npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate src/database/migrations/<NAME_OF_THE_MIGRATION> -d src/database/data-source.ts
-```
+New migrations are **written by hand** (see `1717700000000-AddEditorName.ts` for
+the shape) and registered in `database/data-source.ts`. Do NOT use
+`typeorm migration:generate`: SQLite cannot ALTER a constraint, so the generated
+diff rebuilds every table through temporary copies and silently drops things it
+was never asked to touch — the partial UNIQUE uuid indexes the sync module needs
+and the PlaylistSong → Song foreign key. Keep migrations additive and idempotent
+(`IF NOT EXISTS` / a `PRAGMA table_info` guard), and mirror any new table in
+`schema.sql` so fresh and migrated databases stay identical.
 
 ## API
 
 All routes are under the global `/api` prefix.
 
-| Method | Route                    | Notes                                                                     |
-| ------ | ------------------------ | ------------------------------------------------------------------------- |
-| GET    | `/api/ping`              | `{ "ping": "pong" }`                                                      |
-| GET    | `/api/songs`             | full nested representation (coils + events)                               |
-| POST   | `/api/songs`             | returns the created song                                                  |
-| PUT    | `/api/songs/:id`         | id in the path (RESTful)                                                  |
-| DELETE | `/api/songs/:id`         | cascades coils + playlist entries                                         |
-| GET    | `/api/midi`              |                                                                           |
-| POST   | `/api/midi`              | multipart `file` field                                                    |
+| Method | Route                    | Notes |
+|--------|--------------------------|-------|
+| GET    | `/api/ping`              | `{ "ping": "pong" }` |
+| GET    | `/api/songs`             | full nested representation (coils + events + tags) |
+| POST   | `/api/songs`             | returns the created song |
+| PUT    | `/api/songs/:id`         | id in the path (RESTful) |
+| DELETE | `/api/songs/:id`         | cascades coils + playlist entries |
+| GET    | `/api/midi`              | |
+| POST   | `/api/midi`              | multipart `file` field |
+| PUT    | `/api/midi/:id/file`     | replaces the bytes in place, keeping the path/uuid (affects every song using it) |
+| PATCH  | `/api/midi/:id/name`     | renames the library entry (does not touch the file on disk) |
 | PATCH  | `/api/midi/:id/programs` | rewrites the file's per-channel instruments (affects every song using it) |
-| DELETE | `/api/midi/:id`          | also deletes the file on disk                                             |
-| GET    | `/api/playlists`         |                                                                           |
-| POST   | `/api/playlists`         |                                                                           |
-| PUT    | `/api/playlists/:id`     | id in the path (RESTful)                                                  |
-| DELETE | `/api/playlists/:id`     |                                                                           |
-| GET    | `/api/settings`          | operator config (coil names, default coil count)                          |
-| PUT    | `/api/settings`          | update the operator config                                                |
+| DELETE | `/api/midi/:id`          | also deletes the file on disk |
+| GET    | `/api/playlists`         | |
+| POST   | `/api/playlists`         | |
+| PUT    | `/api/playlists/:id`     | id in the path (RESTful) |
+| DELETE | `/api/playlists/:id`     | |
+| GET    | `/api/tags`              | every tag known to this instance |
+| PUT    | `/api/tags/sync`         | full desired tag list; creates/updates/deletes to match (LOCAL-ONLY, see below) |
+| GET    | `/api/settings`          | operator config (coil names, default coil count) |
+| PUT    | `/api/settings`          | update the operator config |
 
 ### Design notes
 
@@ -69,3 +76,8 @@ All routes are under the global `/api` prefix.
 - **SysEx is compiled in the browser.** The per-coil song model is turned into
   Syntherrupter SysEx frames on the front (`tesla-player/src/sysex/`); the
   backend only stores the structured config — there is no server-side sysex/CLI.
+- **Tags are local-only, on purpose (for now).** `Tag` / `song_tags` carry no
+  `uuid`/`updatedAt`/`contentHash`, are absent from the sync manifest, and are
+  deliberately NOT folded into `hashSong` — so tagging a song never shows up as a
+  sync conflict, and tags simply do not travel between instances. Making them
+  syncable means giving them a sync identity first (see `sync/content-hash.ts`).

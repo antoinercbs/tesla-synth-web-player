@@ -91,7 +91,11 @@ export default {
       return this.routeId == null
     },
     songItems() {
-      return this.midiStore.midiSongList.map(s => ({ id: s.id, label: s.name ? `${s.name} ${s.tags.map((t) => " - " + t.name).join("")}  ·  ${s.coilCount} ⚡` : `#${s.id}` }))
+      return this.midiStore.midiSongList.map(s => {
+        const tags = (s.tags ?? []).map(t => t.name).join(', ')
+        const name = s.name || `#${s.id}`
+        return { id: s.id, label: tags ? `${name} — ${tags}` : name }
+      })
     },
     currentSong() {
       const id = Number(this.routeId)

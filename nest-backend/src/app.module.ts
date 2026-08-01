@@ -48,4 +48,4 @@ import { TagsModule } from './tags/tags.module';
     DownloadsModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

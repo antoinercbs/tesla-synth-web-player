@@ -14,8 +14,7 @@ import { MidiFileDuration1717400000000 } from './migrations/1717400000000-MidiFi
 import { AppConfig1717500000000 } from './migrations/1717500000000-AppConfig';
 import { AddSyncColumns1717600000000 } from './migrations/1717600000000-AddSyncColumns';
 import { AddEditorName1717700000000 } from './migrations/1717700000000-AddEditorName';
-import { ChannelsToMidiFiles1784119855075 } from './migrations/1784119855075-ChannelsToMidiFiles';
-import { Tags1784213908160 } from './migrations/1784213908161-Tags';
+import { MidiChannelsAndTags1717800000000 } from './migrations/1717800000000-MidiChannelsAndTags';
 
 /**
  * Shared TypeORM configuration, used both by the Nest app (app.module) and the
@@ -34,8 +33,7 @@ export const dataSourceOptions: DataSourceOptions = {
     AppConfig1717500000000,
     AddSyncColumns1717600000000,
     AddEditorName1717700000000,
-    ChannelsToMidiFiles1784119855075,
-    Tags1784213908160,
+    MidiChannelsAndTags1717800000000,
   ],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,

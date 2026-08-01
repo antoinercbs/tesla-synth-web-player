@@ -102,6 +102,11 @@ export const useMidiStore = defineStore('midi', {
     addMidiFileToList(file: MidiFile) {
       this.midiFileList.push(file);
     },
+    updateMidiFile(file: MidiFile) {
+      const index = this.midiFileList.findIndex((f) => f.id === file.id);
+      if (index !== -1) this.midiFileList.splice(index, 1, file);
+      else this.midiFileList.push(file);
+    },
     deleteMidiFile(fileId: number) {
       this.midiFileList = this.midiFileList.filter((file) => file.id !== fileId);
     },
