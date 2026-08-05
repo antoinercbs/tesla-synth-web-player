@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
@@ -15,7 +15,7 @@ const playlists = ref<Playlist[]>([]);
 const routeId = computed(() => route.params.id as string | undefined);
 const isChooser = computed(() => routeId.value == null);
 const playlistItems = computed(() =>
-  playlists.value.map((p) => ({ id: p.id, label: `${p.name} · ${p.coilCount} ⚡` })),
+  playlists.value.map((p) => ({ id: p.id, label: `${p.name} · ${p.coilCount}⚡` })),
 );
 const headTitle = computed(() => {
   if (routeId.value === 'new' || routeId.value == null) return '';
@@ -55,6 +55,27 @@ function onDeleted(id: number): void {
   playlists.value = playlists.value.filter((p) => p.id !== id);
   close();
 }
+
+const headerScrolled = ref(false);
+let scrollEl: HTMLElement | null = null;
+
+function onScroll(): void {
+  headerScrolled.value = (scrollEl?.scrollTop ?? 0) > 6;
+}
+
+onMounted(() => {
+  scrollEl = document.querySelector('.app-main');
+  if (scrollEl) {
+    scrollEl.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+});
+
+onBeforeUnmount(() => {
+  if (scrollEl) {
+    scrollEl.removeEventListener('scroll', onScroll);
+  }
+});
 </script>
 
 <template>
@@ -76,7 +97,7 @@ function onDeleted(id: number): void {
 
   <!-- editor -->
   <div v-else class="screen">
-    <header class="screen-head">
+    <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}</h1>
       <button class="icon-btn" type="button" :title="$t('label.closeEditor')" :aria-label="$t('label.closeEditor')"
         @click="close">
@@ -88,3 +109,16 @@ function onDeleted(id: number): void {
     </div>
   </div>
 </template>
+
+<style scoped>
+@media (max-width: 1000px) {
+
+  .screen,
+  .screen-body--fill {
+    height: auto;
+    flex: none;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+}
+</style>

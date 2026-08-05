@@ -259,6 +259,21 @@ const showLibrary = ref(false);
       </div>
 
       <div class="field-block field-block--wide">
+        <span class="field-label">{{ $t('label.midiFile') }}</span>
+        <div class="midi-field">
+          <SearchableSelect v-model="draft.midiFileId" :items="midiFileItems" :label="$t('label.midiFile')"
+            :placeholder="$t('label.chooseAMidiFile')" :clear-label="$t('label.noAssociatedMidiFile')" clearable />
+          <button class="field-btn" type="button" :disabled="!selectedFile" :title="$t('label.editInstruments')"
+            @click="selectedFile && openInstruments(selectedFile)">
+            <i class="fas fa-guitar"></i>
+          </button>
+          <button class="field-btn" type="button" :title="$t('title.midiFileManager')" @click="showLibrary = true">
+            <i class="fas fa-folder-open"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="field-block">
         <span class="field-label">{{ $t('label.tags') }}</span>
         <div class="editor-tags">
           <div class="editor-tags__list" v-if="draft.tags.length > 0">
@@ -292,27 +307,6 @@ const showLibrary = ref(false);
       </div>
 
       <div class="field-block">
-        <span class="field-label">{{ $t('label.midiFile') }}</span>
-        <div class="midi-field">
-          <SearchableSelect
-            v-model="draft.midiFileId"
-            :items="midiFileItems"
-            :label="$t('label.midiFile')"
-            :placeholder="$t('label.chooseAMidiFile')"
-            :clear-label="$t('label.noAssociatedMidiFile')"
-            clearable
-          />
-          <button class="field-btn" type="button" :disabled="!selectedFile"
-            :title="$t('label.editInstruments')" @click="selectedFile && openInstruments(selectedFile)">
-            <i class="fas fa-guitar"></i>
-          </button>
-          <button class="field-btn" type="button" :title="$t('title.midiFileManager')" @click="showLibrary = true">
-            <i class="fas fa-folder-open"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="field-block">
         <span class="field-label" id="coilcount-label">{{ $t('label.coilCount') }}</span>
         <segmented-control v-model="draft.coilCount" fill pressed aria-labelledby="coilcount-label"
           :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />
@@ -320,13 +314,8 @@ const showLibrary = ref(false);
     </div>
 
     <div class="coils-grid">
-      <CoilConfigCard
-        v-for="i in draft.coilCount"
-        :key="i - 1"
-        v-model="draft.coils[i - 1]"
-        :index="i - 1"
-        :available-channels="availableChannels"
-      />
+      <CoilConfigCard v-for="i in draft.coilCount" :key="i - 1" v-model="draft.coils[i - 1]" :index="i - 1"
+        :available-channels="availableChannels" />
     </div>
 
     <article class="coil-card output2-card" :style="{ '--coil': 'var(--plasma)' }">
@@ -346,14 +335,14 @@ const showLibrary = ref(false);
       </h2>
       <div class="editor-preview">
         <MidiPreview :analysis="analysis" :coils="draft.coils" :coil-count="draft.coilCount"
-          :output2-mask="draft.output2Mask" view="combined"
-          :events="draft.events" editable v-model:edit-param="editParam"
-          @update:events="draft.events = $event" />
+          :output2-mask="draft.output2Mask" view="combined" :events="draft.events" editable
+          v-model:edit-param="editParam" @update:events="draft.events = $event" />
       </div>
     </section>
 
     <div class="editor-footer">
-      <button v-if="draft.id" class="btn btn--danger editor-footer__delete" type="button" @click="confirmDeleteSong = true">
+      <button v-if="draft.id" class="btn btn--danger editor-footer__delete" type="button"
+        @click="confirmDeleteSong = true">
         <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.deleteSong') }}
       </button>
       <button class="btn btn--volt" type="button" @click="save">
@@ -364,14 +353,14 @@ const showLibrary = ref(false);
 
     <ConfirmModal :open="confirmDeleteSong" :title="$t('label.deleteSong')"
       :message="`${$t('label.deleteQuestion')} « ${draft.name || ('#' + draft.id)} » ?`"
-      :confirm-label="$t('label.confirm')" :cancel-label="$t('label.cancel')"
-      @confirm="doDelete" @close="confirmDeleteSong = false" />
+      :confirm-label="$t('label.confirm')" :cancel-label="$t('label.cancel')" @confirm="doDelete"
+      @close="confirmDeleteSong = false" />
 
-    <MidiLibraryModal :open="showLibrary" :current-id="draft.midiFileId"
-      @close="showLibrary = false" @select="draft.midiFileId = $event" @edit-instruments="openInstruments" />
+    <MidiLibraryModal :open="showLibrary" :current-id="draft.midiFileId" @close="showLibrary = false"
+      @select="draft.midiFileId = $event" @edit-instruments="openInstruments" />
 
-    <MidiInstrumentsModal :open="showInstruments" :file="instrumentsFile"
-      @close="showInstruments = false" @saved="onInstrumentsSaved" />
+    <MidiInstrumentsModal :open="showInstruments" :file="instrumentsFile" @close="showInstruments = false"
+      @saved="onInstrumentsSaved" />
   </div>
 </template>
 
@@ -435,6 +424,7 @@ const showLibrary = ref(false);
   place-items: center;
   transition: 0.15s;
 }
+
 .tag-rm:hover {
   opacity: 1;
 }
@@ -453,6 +443,7 @@ const showLibrary = ref(false);
   font-size: 0.72rem;
   padding: 0.15rem 0.2rem 0.15rem 0.2rem;
 }
+
 .editor-tags__add:hover {
   border-color: var(--volt);
   color: var(--volt);
@@ -470,6 +461,7 @@ const showLibrary = ref(false);
   align-items: center;
   gap: 0.5rem;
 }
+
 .tag-dropdown-name {
   white-space: nowrap;
 }
@@ -477,12 +469,32 @@ const showLibrary = ref(false);
 .editor-tags .midi-lib__dropdown-menu {
   right: auto;
   left: 0;
-  
-  max-width: 250px; 
+
+  max-width: 250px;
 }
 
 .editor-tags .midi-lib__dropdown-menu::before {
   left: 0;
   right: 0;
+}
+
+@media (max-width: 600px) {
+  .midi-field {
+    flex-wrap: wrap;
+  }
+
+  .midi-field :deep(.combo),
+  .midi-field>*:first-child {
+    flex: 1 1 calc(100% - 6.5rem);
+    min-width: 160px;
+  }
+
+  .midi-field>*:last-child {
+    display: none;
+  }
+
+  .field-btn {
+    flex: 0 0 auto;
+  }
 }
 </style>

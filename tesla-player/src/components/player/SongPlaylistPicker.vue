@@ -116,8 +116,10 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
         </div>
       </div>
       <ul class="play-rows">
-        <li v-for="song in filteredSongs" :key="song.id" class="play-row" :class="{ 'is-current': song.id === currentId }">
-          <button class="row-btn row-btn--play" type="button" @click="emit('play-now', song)" :title="$t('label.playNow')">
+        <li v-for="song in filteredSongs" :key="song.id" class="play-row"
+          :class="{ 'is-current': song.id === currentId }">
+          <button class="row-btn row-btn--play" type="button" @click="emit('play-now', song)"
+            :title="$t('label.playNow')">
             <i class="fas" :class="song.id === currentId ? 'fa-volume-high' : 'fa-play'"></i>
           </button>
           <button class="row-btn" type="button" @click="emit('enqueue', song)" :title="$t('label.addToQueue')">
@@ -134,8 +136,10 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
           </div>
           <span class="play-row__dur">{{ formatDuration(song.midiFile?.durationMs) }}</span>
           <span class="coil-dots">
-            <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot" :style="{ '--c': coilColor(i) }"></span>
-            <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i class="fas fa-volume-high"></i></span>
+            <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot"
+              :style="{ '--c': coilColor(i) }"></span>
+            <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
+                class="fas fa-volume-high"></i></span>
           </span>
           <button class="row-btn" type="button" @click="emit('edit', song)" :title="$t('nav.edit')">
             <i class="fas fa-pen"></i>
@@ -148,12 +152,13 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
     <!-- playlists -->
     <template v-else>
       <div class="play-pick play-pick--combo">
-        <searchable-select v-model="selectedPlaylistId" :items="playlistItems"
-          :placeholder="$t('label.pickPlaylist')" clearable />
+        <searchable-select v-model="selectedPlaylistId" :items="playlistItems" :placeholder="$t('label.pickPlaylist')"
+          clearable />
       </div>
       <template v-if="selectedPlaylist">
         <div class="playlist-bar">
-          <span class="coil-badge"><span class="icon"><i class="fas fa-bolt"></i></span>{{ selectedPlaylist.coilCount }}</span>
+          <span class="coil-badge"><span class="icon"><i class="fas fa-bolt"></i></span>{{ selectedPlaylist.coilCount
+          }}</span>
           <button class="btn btn--volt playlist-bar__play" type="button" :disabled="compatibleSongs.length === 0"
             @click="emit('play-playlist', compatibleSongs)">
             <span class="icon"><i class="fas fa-play"></i></span>{{ $t('label.playAll') }}
@@ -178,7 +183,8 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
             <span v-else class="coil-dots">
               <span v-for="i in coilChips(entry.song.coilCount)" :key="i" class="coil-dot"
                 :style="{ '--c': coilColor(i) }"></span>
-              <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i class="fas fa-volume-high"></i></span>
+              <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
+                  class="fas fa-volume-high"></i></span>
             </span>
             <button class="row-btn" type="button" @click="emit('edit', entry.song)" :title="$t('nav.edit')">
               <i class="fas fa-pen"></i>
@@ -197,72 +203,232 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 /* panel shell + compact row buttons + coil dots (shared play primitives) */
 .play-panel {
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
-.source-panel { flex: 1 1 50%; min-height: 0; display: flex; flex-direction: column; }
+
+.source-panel {
+  flex: 1 1 50%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .play-panel__head {
-  display: flex; align-items: center; gap: 0.6rem; flex: 0 0 auto;
-  padding: 0.7rem 0.9rem; background: var(--volt-06); border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 0 0 auto;
+  padding: 0.7rem 0.9rem;
+  background: var(--volt-06);
+  border-bottom: 1px solid var(--line);
 }
+
 .row-btn {
   position: relative;
-  width: 2rem; height: 2rem; border-radius: var(--radius-3, 7px); flex: 0 0 auto;
-  display: grid; place-items: center; cursor: pointer;
-  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line-strong);
-  color: var(--text-dim); font-size: 0.8rem; transition: 0.13s;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-3, 7px);
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-strong);
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  transition: 0.13s;
   padding: 3px 0 0 0;
 }
-.row-btn:hover { color: var(--volt); border-color: var(--volt); }
-.row-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-.row-btn:disabled:hover { color: var(--text-dim); border-color: var(--line-strong); }
-.row-btn--play:hover { color: var(--plasma); border-color: var(--plasma); }
-.coil-dots { display: inline-flex; align-items: center; gap: 3px; flex: 0 0 auto; }
-.coil-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px -1px var(--c); }
+
+.row-btn:hover {
+  color: var(--volt);
+  border-color: var(--volt);
+}
+
+.row-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.row-btn:disabled:hover {
+  color: var(--text-dim);
+  border-color: var(--line-strong);
+}
+
+.row-btn--play:hover {
+  color: var(--plasma);
+  border-color: var(--plasma);
+}
+
+.coil-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex: 0 0 auto;
+}
+
+.coil-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 6px -1px var(--c);
+}
+
 /* speaker (2nd output) indicator — matches the plasma colour used for the speaker lane elsewhere */
-.speaker-flag { display: inline-flex; align-items: center; margin-left: 2px; color: var(--plasma); font-size: 0.7rem; }
+.speaker-flag {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
+  color: var(--plasma);
+  font-size: 0.7rem;
+}
 
 /* search row */
-.play-pick { display: flex; align-items: center; gap: 0.6rem; padding: 0.8rem 1rem; flex: 0 0 auto; }
-.play-pick--combo { display: block; }
-.play-search { position: relative; flex: 1 1 auto; min-width: 0; }
-.play-search .text-field { width: 100%; padding-left: 2.2rem; }
-.play-search__icon {
-  position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%);
-  color: var(--text-mute); pointer-events: none; font-size: 0.85rem;
+.play-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  flex: 0 0 auto;
 }
-.coil-select { flex: 0 0 auto; width: auto; height: 100%; }
-.coil-select select { padding: 0.5rem 1.9rem 0.5rem 0.7rem; height: 100%; font-family: var(--font-mono); font-size: 0.85rem; }
+
+.play-pick--combo {
+  display: block;
+}
+
+.play-search {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.play-search .text-field {
+  width: 100%;
+  padding-left: 2.2rem;
+}
+
+.play-search__icon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-mute);
+  pointer-events: none;
+  font-size: 0.85rem;
+}
+
+.coil-select {
+  flex: 0 0 auto;
+  width: auto;
+  height: 100%;
+}
+
+.coil-select select {
+  padding: 0.5rem 1.9rem 0.5rem 0.7rem;
+  height: 100%;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
 
 /* playlist action bar */
-.playlist-bar { display: flex; align-items: center; gap: 0.6rem; padding: 0 1rem 0.7rem; flex: 0 0 auto; }
-.coil-badge {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  padding: 0.3rem 0.6rem; border-radius: 8px;
-  background: var(--volt-10); border: 1px solid var(--line-strong);
-  color: var(--volt); font-family: var(--font-mono); font-weight: 600; font-size: 0.85rem;
+.playlist-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1rem 0.7rem;
+  flex: 0 0 auto;
 }
-.playlist-bar__play { flex: 1 1 auto; justify-content: center; padding: 0.45rem 0.9rem; }
+
+.coil-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  background: var(--volt-10);
+  border: 1px solid var(--line-strong);
+  color: var(--volt);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.playlist-bar__play {
+  flex: 1 1 auto;
+  justify-content: center;
+  padding: 0.45rem 0.9rem;
+}
 
 /* rows + empty */
-.play-empty { padding: 1.2rem 1rem; color: var(--text-mute); text-align: center; font-family: var(--font-mono); font-size: 0.85rem; }
-.play-rows { list-style: none; margin: 0; padding: 0; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+.play-empty {
+  padding: 1.2rem 1rem;
+  color: var(--text-mute);
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.play-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .play-row {
-  display: flex; align-items: center; gap: 0.55rem;
-  padding: 0.5rem 1rem; min-width: 0;
-  border-top: 1px solid var(--line); transition: background 0.13s;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.5rem 1rem;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  transition: background 0.13s;
 }
-.play-row:hover { background: var(--line-005); }
-.play-row.is-current { background: var(--volt-08); }
-.play-row.is-incompatible { opacity: 0.5; }
+
+.play-row:hover {
+  background: var(--line-005);
+}
+
+.play-row.is-current {
+  background: var(--volt-08);
+}
+
+.play-row.is-incompatible {
+  opacity: 0.5;
+}
+
 .play-row__name {
-  min-width: 0; font-weight: 500;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  min-width: 0;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.play-row.is-current .play-row__name { color: var(--volt); }
-.play-row__dur { flex: 0 0 auto; color: var(--text-mute); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+
+.play-row.is-current .play-row__name {
+  color: var(--volt);
+}
+
+.play-row__dur {
+  flex: 0 0 auto;
+  color: var(--text-mute);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .incompat-flag {
-  display: inline-flex; align-items: center; gap: 0.25rem; flex: 0 0 auto;
-  color: var(--coil-1); font-family: var(--font-mono); font-size: 0.78rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 0 0 auto;
+  color: var(--coil-1);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
 }
 
 .play-row__name-wrapper {
@@ -290,5 +456,21 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   background-color: color-mix(in srgb, var(--tag-c) 15%, transparent);
   border: 1px solid color-mix(in srgb, var(--tag-c) 30%, transparent);
   white-space: nowrap;
+}
+
+@media (max-width: 1000px) {
+  .play-rows {
+    max-height: 20rem;
+    -ms-overflow-style: none !important;
+    scrollbar-width: none !important;
+  }
+
+  .play-rows::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .play-row {
+    padding: 0.5rem;
+  }
 }
 </style>

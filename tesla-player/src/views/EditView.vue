@@ -5,12 +5,8 @@
       <h1 class="view-head__title">{{ $t('nav.edit') }}</h1>
       <p class="edit-chooser__hint">{{ $t('label.chooseOrCreate') }}</p>
       <div class="edit-chooser__actions">
-        <searchable-select
-          class="edit-chooser__pick"
-          v-model="chooserPick"
-          :items="songItems"
-          :label="$t('label.selectSongToEdit')"
-          :placeholder="$t('label.selectSongToEdit')" />
+        <searchable-select class="edit-chooser__pick" v-model="chooserPick" :items="songItems"
+          :label="$t('label.selectSongToEdit')" :placeholder="$t('label.selectSongToEdit')" />
         <span class="edit-chooser__or">{{ $t('label.or') }}</span>
         <button class="btn btn--volt" type="button" @click="newSong">
           <span class="icon"><i class="fas fa-file-circle-plus"></i></span>
@@ -24,7 +20,8 @@
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle }}</h1>
-      <button class="icon-btn" type="button" :title="$t('label.closeEditor')" :aria-label="$t('label.closeEditor')" @click="close">
+      <button class="icon-btn" type="button" :title="$t('label.closeEditor')" :aria-label="$t('label.closeEditor')"
+        @click="close">
         <i class="fas fa-xmark"></i>
       </button>
     </header>
@@ -91,11 +88,7 @@ export default {
       return this.routeId == null
     },
     songItems() {
-      return this.midiStore.midiSongList.map(s => {
-        const tags = (s.tags ?? []).map(t => t.name).join(', ')
-        const name = s.name || `#${s.id}`
-        return { id: s.id, label: tags ? `${name} — ${tags}` : name }
-      })
+      return this.midiStore.midiSongList.map(s => ({ id: s.id, label: s.name ? `${s.name} ${s.tags.map((t) => " - " + t.name).join("")}  ·  ${s.coilCount}⚡` : `#${s.id}` }))
     },
     currentSong() {
       const id = Number(this.routeId)

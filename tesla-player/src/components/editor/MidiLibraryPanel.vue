@@ -226,52 +226,22 @@ function alignDropdown(e: MouseEvent): void {
 
 <template>
     <div class="midi-lib" style="height: 100%">
-        <input
-            ref="fileInput"
-            type="file"
-            accept=".mid,.midi"
-            style="display: none"
-            @change="onFileChosen"
-        />
-        <input
-            ref="replaceInput"
-            type="file"
-            accept=".mid,.midi"
-            style="display: none"
-            @change="onReplaceFileChosen"
-        />
-        <div
-            class="dropzone"
-            :class="{ 'is-drag': dragActive }"
-            @click="pickFile"
-            @dragover.prevent="dragActive = true"
-            @dragleave.prevent="dragActive = false"
-            @drop.prevent="onDrop"
-        >
-            <span class="dropzone__icon"
-                ><i class="fas fa-cloud-arrow-up"></i
-            ></span>
+        <input ref="fileInput" type="file" accept=".mid,.midi" style="display: none" @change="onFileChosen" />
+        <input ref="replaceInput" type="file" accept=".mid,.midi" style="display: none" @change="onReplaceFileChosen" />
+        <div class="dropzone" :class="{ 'is-drag': dragActive }" @click="pickFile" @dragover.prevent="dragActive = true"
+            @dragleave.prevent="dragActive = false" @drop.prevent="onDrop">
+            <span class="dropzone__icon"><i class="fas fa-cloud-arrow-up"></i></span>
             <span class="dropzone__hint">{{
                 uploading ? $t("label.upload") + "…" : $t("label.dropMidiHint")
             }}</span>
         </div>
 
-        <div
-            v-if="uploadMsg && !pendingDelete"
-            class="midi-lib__msg"
-            :class="uploadMsg.type"
-        >
-            <i
-                class="fas"
-                :class="
-                    uploadMsg.type === 'success'
-                        ? 'fa-circle-check'
-                        : 'fa-circle-exclamation'
-                "
-            ></i>
-            <span v-if="uploadMsg.type === 'success'"
-                >{{ uploadMsg.name }} · {{ $t("label.uploaded") }}</span
-            >
+        <div v-if="uploadMsg && !pendingDelete" class="midi-lib__msg" :class="uploadMsg.type">
+            <i class="fas" :class="uploadMsg.type === 'success'
+                ? 'fa-circle-check'
+                : 'fa-circle-exclamation'
+                "></i>
+            <span v-if="uploadMsg.type === 'success'">{{ uploadMsg.name }} · {{ $t("label.uploaded") }}</span>
             <span v-else>{{ $t("label.uploadFailed") }}</span>
         </div>
 
@@ -281,106 +251,57 @@ function alignDropdown(e: MouseEvent): void {
                 {{ $t("label.deleteQuestion") }} « {{ pendingDelete.name }} » ?
             </span>
             <span class="midi-lib__confirm-actions">
-                <button
-                    class="btn btn--danger"
-                    type="button"
-                    @click="confirmDelete"
-                >
+                <button class="btn btn--danger" type="button" @click="confirmDelete">
                     {{ $t("label.confirm") }}
                 </button>
-                <button
-                    class="btn btn--ghost"
-                    type="button"
-                    @click="cancelDelete"
-                >
+                <button class="btn btn--ghost" type="button" @click="cancelDelete">
                     {{ $t("label.cancel") }}
                 </button>
             </span>
         </div>
 
         <div class="midi-lib__search">
-            <input
-                class="text-field"
-                type="text"
-                v-model="librarySearch"
-                :placeholder="$t('label.search')"
-            />
+            <input class="text-field" type="text" v-model="librarySearch" :placeholder="$t('label.search')" />
         </div>
 
         <div class="midi-lib__list">
             <div v-if="filteredLibrary.length === 0" class="midi-lib__empty">
                 {{ $t("label.noResults") }}
             </div>
-            <div
-                v-for="f in filteredLibrary"
-                :key="f.id"
-                class="midi-lib__item"
-                :class="{ 'is-current': f.id === currentId }"
-            >
-                <span
-                    v-if="editingId === f.id"
-                    class="midi-lib__item-name-edit"
-                >
-                    <input
-                        type="text"
-                        v-model="editName"
-                        :data-id="f.id"
-                        ref="editInputs"
-                        @keyup.enter="saveEditName(f)"
-                        @keyup.esc="cancelEditName"
-                        @blur="saveEditName(f)"
-                    />
-                    <button
-                        type="button"
-                        class="midi-lib__edit-icon"
-                        :title="$t('label.confirm')"
-                        @mousedown.prevent="saveEditName(f)"
-                    >
+            <div v-for="f in filteredLibrary" :key="f.id" class="midi-lib__item"
+                :class="{ 'is-current': f.id === currentId }">
+                <span v-if="editingId === f.id" class="midi-lib__item-name-edit">
+                    <input type="text" v-model="editName" :data-id="f.id" ref="editInputs"
+                        @keyup.enter="saveEditName(f)" @keyup.esc="cancelEditName" @blur="saveEditName(f)" />
+                    <button type="button" class="midi-lib__edit-icon" :title="$t('label.confirm')"
+                        @mousedown.prevent="saveEditName(f)">
                         <i class="fas fa-check"></i>
                     </button>
-                    <button
-                        type="button"
-                        class="midi-lib__edit-icon is-cancel"
-                        :title="$t('label.cancel')"
-                        @mousedown.prevent="cancelEditName"
-                    >
+                    <button type="button" class="midi-lib__edit-icon is-cancel" :title="$t('label.cancel')"
+                        @mousedown.prevent="cancelEditName">
                         <i class="fas fa-xmark"></i>
                     </button>
                 </span>
-                <span
-                    v-else
-                    class="midi-lib__item-name"
-                    @dblclick="startEditName(f)"
-                >
+                <span v-else class="midi-lib__item-name" @dblclick="startEditName(f)">
                     {{ f.name }}
                 </span>
                 <span class="midi-lib__item-dur">{{
                     formatDuration(f.durationMs)
                 }}</span>
                 <span class="midi-lib__item-ch">
-                    {{ f.channels ?? "–" }} {{ $t("label.channelsShort") }}
+                    {{ f.channels ?? "–" }} ch
                 </span>
-                <div
-                    class="midi-lib__usages midi-lib__dropdown"
-                    @mouseenter="alignDropdown"
-                >
+                <div class="midi-lib__usages midi-lib__dropdown" @mouseenter="alignDropdown">
                     <div class="midi-lib__usages-badge">
                         {{ songsByMidi.get(f.id)?.length ?? 0 }}
                         <i class="fas fa-music"></i>
                     </div>
-                    <div
-                        v-if="songsByMidi.get(f.id)?.length"
-                        class="midi-lib__dropdown-menu is-usages"
-                    >
+                    <div v-if="songsByMidi.get(f.id)?.length" class="midi-lib__dropdown-menu is-usages">
                         <div class="midi-lib__dropdown-header">
                             {{ $t("label.usedFor") }}
                         </div>
-                        <RouterLink
-                            v-for="s in songsByMidi.get(f.id)"
-                            :key="s.id"
-                            class="midi-lib__dropdown-item"
-                            :to="`/edit/${s.id}`"
-                        >
+                        <RouterLink v-for="s in songsByMidi.get(f.id)" :key="s.id" class="midi-lib__dropdown-item"
+                            :to="`/edit/${s.id}`">
                             <span class="midi-lib__usage-title">{{ s.name }}</span>
                             <span class="midi-lib__usage-coils">
                                 &middot; {{ s.coilCount }} <i class="fas fa-bolt"></i>
@@ -389,12 +310,8 @@ function alignDropdown(e: MouseEvent): void {
                     </div>
                 </div>
                 <div class="midi-lib__item-actions">
-                    <button
-                        class="midi-lib__dl"
-                        type="button"
-                        :title="$t('label.editInstruments')"
-                        @click="emit('edit-instruments', f)"
-                    >
+                    <button class="midi-lib__dl" type="button" :title="$t('label.editInstruments')"
+                        @click="emit('edit-instruments', f)">
                         <i class="fas fa-guitar"></i>
                     </button>
                     <div class="midi-lib__dropdown" @mouseenter="alignDropdown">
@@ -402,38 +319,22 @@ function alignDropdown(e: MouseEvent): void {
                             <i class="fas fa-ellipsis-vertical"></i>
                         </button>
                         <div class="midi-lib__dropdown-menu">
-                            <button
-                                class="midi-lib__dropdown-item"
-                                type="button"
-                                @click="startEditName(f)"
-                            >
+                            <button class="midi-lib__dropdown-item" type="button" @click="startEditName(f)">
                                 <i class="fa-solid fa-pen"></i>
                                 <span>{{ $t("label.rename") }}</span>
                             </button>
-                            <button
-                                class="midi-lib__dropdown-item"
-                                type="button"
-                                @click="triggerReplace(f)"
-                            >
+                            <button class="midi-lib__dropdown-item" type="button" @click="triggerReplace(f)">
                                 <i class="fa-solid fa-cloud-arrow-up"></i>
                                 <span>{{ $t("label.replaceFile") }}</span>
                             </button>
-                            <button
-                                class="midi-lib__dropdown-item"
-                                type="button"
-                                @click="downloadFile(f)"
-                            >
+                            <button class="midi-lib__dropdown-item" type="button" @click="downloadFile(f)">
                                 <i class="fas fa-download"></i>
                                 <span>{{ $t("label.download") }}</span>
                             </button>
 
                             <div class="midi-lib__dropdown-divider"></div>
 
-                            <button
-                                class="midi-lib__dropdown-item is-danger"
-                                type="button"
-                                @click="requestDelete(f)"
-                            >
+                            <button class="midi-lib__dropdown-item is-danger" type="button" @click="requestDelete(f)">
                                 <i class="fas fa-trash"></i>
                                 <span>{{ $t("label.delete") }}</span>
                             </button>

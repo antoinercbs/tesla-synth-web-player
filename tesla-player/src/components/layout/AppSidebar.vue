@@ -3,7 +3,8 @@
     <!-- Signed-in identity + sign-out, at the very top (web, OIDC-enabled server). -->
     <div v-if="authStore.enabled && authStore.authenticated && !sidebarCompact" class="sidebar-auth">
       <span class="sidebar-auth__who" :title="authStore.displayName">
-        <i class="fas fa-user"></i><span class="sidebar-auth__name">{{ authStore.displayName || $t('auth.signedIn') }}</span>
+        <i class="fas fa-user"></i><span class="sidebar-auth__name">{{ authStore.displayName || $t('auth.signedIn')
+        }}</span>
       </span>
       <button class="sidebar-auth__out" type="button" :title="$t('auth.signOut')" @click="signOut">
         <i class="fas fa-right-from-bracket"></i>
@@ -15,8 +16,7 @@
         :style="{ '--emblem-src': 'url(' + emblemSrc + ')' }" />
       <div class="brand__text">
         <router-link class="brand__app" :to="{ name: 'play' }">Tesla Player</router-link>
-        <a class="brand__label-link" href="https://clubelek.fr" target="_blank" rel="noopener"
-          title="clubelek.fr">
+        <a class="brand__label-link" href="https://clubelek.fr" target="_blank" rel="noopener" title="clubelek.fr">
           <img class="brand__label" :src="labelSrc" alt="Clubelek" />
         </a>
       </div>
@@ -35,18 +35,22 @@
         <span class="icon"><i class="fas fa-pencil"></i></span><span class="nav-item__label">{{ $t('nav.edit') }}</span>
       </router-link>
       <router-link class="nav-item" :to="{ name: 'playlists' }" :title="sidebarCompact ? $t('nav.playlists') : null">
-        <span class="icon"><i class="fas fa-list-ul"></i></span><span class="nav-item__label">{{ $t('nav.playlists') }}</span>
+        <span class="icon"><i class="fas fa-list-ul"></i></span><span class="nav-item__label">{{ $t('nav.playlists')
+        }}</span>
       </router-link>
       <router-link class="nav-item" :to="{ name: 'midi' }" :title="sidebarCompact ? $t('nav.midi') : null">
-        <span class="icon"><i class="fas fa-folder-open"></i></span><span class="nav-item__label">{{ $t('nav.midi') }}</span>
+        <span class="icon"><i class="fas fa-folder-open"></i></span><span class="nav-item__label">{{ $t('nav.midi')
+        }}</span>
       </router-link>
       <!-- device config: only reachable over a live bidirectional serial link -->
       <router-link v-if="midiStore.serialConnected" class="nav-item" :to="{ name: 'syntherrupter' }"
         :title="sidebarCompact ? $t('nav.syntherrupter') : null">
-        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter') }}</span>
+        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
+        }}</span>
       </router-link>
       <span v-else class="nav-item is-disabled" :title="$t('label.serialNeededForConfig')">
-        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter') }}</span>
+        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
+        }}</span>
       </span>
     </nav>
 
@@ -60,8 +64,10 @@
         <segmented-control v-model="output1Mode" fill class="output-modes" @update:model-value="onMode1Change" :options="[
           { value: 'synth', label: $t('label.outSynth') },
           { value: 'midi', label: $t('label.outMidi') },
-          { value: 'serial', label: $t('label.outSerial'), disabled: !serialSupported,
-            title: serialSupported ? '' : $t('label.serialUnsupported') },
+          {
+            value: 'serial', label: $t('label.outSerial'), disabled: !serialSupported,
+            title: serialSupported ? '' : $t('label.serialUnsupported')
+          },
         ]" />
 
         <span v-if="output1Mode === 'synth'" class="output-emul">
@@ -85,7 +91,8 @@
             </button>
           </template>
           <template v-else>
-            <button class="btn btn--volt sidebar-serial__btn" type="button" :disabled="!serialSupported" @click="connectSerial">
+            <button class="btn btn--volt sidebar-serial__btn" type="button" :disabled="!serialSupported"
+              @click="connectSerial">
               <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('label.serialConnect') }}
             </button>
             <span v-if="!serialSupported" class="output-emul">{{ $t('label.serialUnsupported') }}</span>
@@ -123,8 +130,7 @@
     <section class="sidebar-card">
       <div class="sidebar-card__title">
         {{ $t('title.coils') }}
-        <button class="sidebar-card__cfg" type="button" :title="$t('label.generalConfig')"
-          @click="configOpen = true">
+        <button class="sidebar-card__cfg" type="button" :title="$t('label.generalConfig')" @click="configOpen = true">
           <i class="fas fa-gear"></i>
         </button>
       </div>
@@ -142,12 +148,13 @@
     <!-- Desktop app: a prominent Sync button, then server config + language.
          No online/offline (the backend is local). -->
     <section v-if="isElectron" class="sidebar-foot-el">
-      <button v-if="serverConfigured" class="btn btn--volt sidebar-foot-el__sync" type="button" @click="syncOpen = true">
+      <button v-if="serverConfigured" class="btn btn--volt sidebar-foot-el__sync" type="button"
+        @click="syncOpen = true">
         <span class="icon"><i class="fas fa-rotate"></i></span>{{ $t('desktop.sync') }}
       </button>
       <div class="sidebar-foot-el__row">
-        <button class="btn btn--ghost sidebar-foot-el__cfg" type="button"
-          :title="$t('desktop.serverConfig')" @click="serverOpen = true">
+        <button class="btn btn--ghost sidebar-foot-el__cfg" type="button" :title="$t('desktop.serverConfig')"
+          @click="serverOpen = true">
           <span class="icon"><i class="fas fa-server"></i></span>{{ $t('desktop.serverConfig') }}
         </button>
         <div class="select-field">
@@ -177,8 +184,8 @@
     </template>
 
     <!-- Synthetic credits → verbose modal (foremost: the Syntherrupter author). -->
-    <button v-if="!sidebarCompact" class="sidebar-credits" type="button"
-      :title="$t('credits.title')" @click="creditsOpen = true">
+    <button v-if="!sidebarCompact" class="sidebar-credits" type="button" :title="$t('credits.title')"
+      @click="creditsOpen = true">
       <i class="fas fa-circle-info"></i><span class="sidebar-credits__text">{{ $t('credits.footer') }}</span>
     </button>
 
@@ -188,8 +195,7 @@
         :title="$t('label.firstOutput') + ' · ' + output1Name">
         <i class="fas" :class="output1Icon"></i>
       </span>
-      <span v-if="selectedOutput2Id" class="cstat cstat--spk"
-        :title="$t('label.secondOutput') + ' · ' + output2Name">
+      <span v-if="selectedOutput2Id" class="cstat cstat--spk" :title="$t('label.secondOutput') + ' · ' + output2Name">
         <i class="fas fa-volume-high"></i>
       </span>
       <span v-if="!isElectron" class="cstat-conn" :class="{ 'is-up': isConnected }"
@@ -200,12 +206,10 @@
   </aside>
 
   <!-- sidebar action modals (config / desktop sync+server / download) -->
-  <general-config-modal :open="configOpen" :config="midiStore.appConfig"
-    @save="saveConfig" @close="configOpen = false" :tags="midiStore.tagList" />
-  <server-config-modal v-if="isElectron" :open="serverOpen"
-    @close="serverOpen = false" @saved="onServerSaved" />
-  <sync-modal v-if="isElectron" :open="syncOpen"
-    @close="syncOpen = false" @applied="onSyncApplied" />
+  <general-config-modal :open="configOpen" :config="midiStore.appConfig" @save="saveConfig" @close="configOpen = false"
+    :tags="midiStore.tagList" />
+  <server-config-modal v-if="isElectron" :open="serverOpen" @close="serverOpen = false" @saved="onServerSaved" />
+  <sync-modal v-if="isElectron" :open="syncOpen" @close="syncOpen = false" @applied="onSyncApplied" />
   <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
   <credits-modal :open="creditsOpen" @close="creditsOpen = false" />
 </template>
@@ -448,8 +452,8 @@ export default {
     onSyncApplied() {
       // A pull may have changed the local DB — refresh the cached lists, and
       // bump the data revision so views that fetch ad-hoc (playlists) re-read.
-      this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => {})
-      this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => {})
+      this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => { })
+      this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => { })
       this.midiStore.bumpDataRevision()
     },
     ping() {
@@ -464,8 +468,8 @@ export default {
     // Serial mode persisted → silently reopen a previously-authorized port (no prompt).
     if (this.output1Mode === 'serial' && this.serialSupported) {
       navigator.serial.getPorts()
-        .then(ports => { if (ports[0]) this.openSerial(ports[0]).catch(() => {}) })
-        .catch(() => {})
+        .then(ports => { if (ports[0]) this.openSerial(ports[0]).catch(() => { }) })
+        .catch(() => { })
     }
     this.ping()
     this.pingTimer = setInterval(this.ping, 10000)
@@ -497,6 +501,7 @@ export default {
   font-size: 0.72rem;
   color: var(--text-mute);
 }
+
 .sidebar-auth__who {
   display: flex;
   align-items: center;
@@ -504,11 +509,13 @@ export default {
   min-width: 0;
   flex: 1;
 }
+
 .sidebar-auth__name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .sidebar-auth__out {
   flex: 0 0 auto;
   background: transparent;
@@ -518,6 +525,7 @@ export default {
   padding: 0.2rem 0.3rem;
   border-radius: 4px;
 }
+
 .sidebar-auth__out:hover {
   color: var(--volt, #ffd24d);
   background: var(--line-005, rgba(255, 255, 255, 0.04));

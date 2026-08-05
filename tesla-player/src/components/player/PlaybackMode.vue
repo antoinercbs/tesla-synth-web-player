@@ -158,12 +158,12 @@ function removeAt(opos: number): void {
   if (opos < pos.value) {
     pos.value--
   } else if (opos === pos.value) {
-    if (order.value.length === 0) { 
-      player.value?.stop(); 
-      pos.value = -1; 
-    } else { 
-      if (pos.value >= order.value.length) pos.value = order.value.length - 1; 
-      playCurrent(); 
+    if (order.value.length === 0) {
+      player.value?.stop();
+      pos.value = -1;
+    } else {
+      if (pos.value >= order.value.length) pos.value = order.value.length - 1;
+      playCurrent();
     }
   }
 }
@@ -192,8 +192,8 @@ function onSongFinished(): void { next(true); }
   <div class="playback">
     <!-- LEFT: source (songs / playlists) + the up-next queue -->
     <div class="playback-left" ref="leftEl" :style="leftStyle">
-      <song-playlist-picker :current-id="current?.id ?? null" @play-now="playNow"
-        @enqueue="enqueue" @play-playlist="playPlaylist" @edit="editSong" />
+      <song-playlist-picker :current-id="current?.id ?? null" @play-now="playNow" @enqueue="enqueue"
+        @play-playlist="playPlaylist" @edit="editSong" />
 
       <queue-panel v-if="queue.length > 1" :queue="queue" :order="order" :pos="pos" :current="current"
         :has-prev="hasPrev" :has-next="hasNext" :total-label="queueTotalLabel" :shuffle="shuffle" :repeat="repeat"
@@ -201,8 +201,8 @@ function onSongFinished(): void { next(true); }
         @toggle-shuffle="toggleShuffle" @cycle-repeat="cycleRepeat" @clear="clearQueue" />
     </div>
 
-    <resize-handle class="playback__split" @resize-start="onLeftResizeStart"
-      @resize="onLeftResize" @resize-end="saveLeftWidth" />
+    <resize-handle class="playback__split" @resize-start="onLeftResizeStart" @resize="onLeftResize"
+      @resize-end="saveLeftWidth" />
 
     <!-- RIGHT: the player, alone, filling the column -->
     <div class="playback-right" :style="rightStyle">
@@ -214,15 +214,55 @@ function onSongFinished(): void { next(true); }
 <style scoped>
 /* full-height two-column layout: left = source + queue, right = player.
    A draggable ResizeHandle sits between them; widths come from inline styles. */
-.playback { display: flex; flex: 1 1 auto; min-height: 0; align-items: stretch; }
-.playback-left { display: flex; flex-direction: column; gap: 1.1rem; min-height: 0; }
-.playback-right { display: flex; flex-direction: column; min-height: 0; }
-.playback-right :deep(.player-panel) { flex: 1 1 auto; min-height: 0; }
+.playback {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-items: stretch;
+}
+
+.playback-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+  min-height: 0;
+}
+
+.playback-right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.playback-right :deep(.player-panel) {
+  flex: 1 1 auto;
+  min-height: 0;
+}
 
 /* narrow screens: stack and drop the divider (override the inline flex) */
-@media (max-width: 900px) {
-  .playback { flex-direction: column; gap: 1rem; }
-  .playback-left, .playback-right { flex: 1 1 auto !important; }
-  .playback__split { display: none; }
+@media (max-width: 1000px) {
+  .playback {
+    flex-direction: column;
+    gap: 1rem;
+    height: auto;
+    flex: none;
+  }
+
+  .playback-left,
+  .playback-right {
+    flex: none !important;
+    height: auto !important;
+    width: 100% !important;
+    overflow: visible;
+  }
+
+  .playback-right :deep(.player-panel) {
+    height: auto;
+    flex: none;
+  }
+
+  .playback__split {
+    display: none;
+  }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useMidiStore } from '@/stores/midi';
 import PlaybackMode from '@/components/player/PlaybackMode.vue';
 import LiveMode from '@/components/player/LiveMode.vue';
@@ -31,6 +31,27 @@ watch(() => midiStore.isSynthOutput, (synth) => {
   if (synth && mode.value === 'fixed') mode.value = 'playback';
 }, { immediate: true });
 
+const headerScrolled = ref(false);
+let scrollEl: HTMLElement | null = null;
+
+function onScroll(): void {
+  headerScrolled.value = (scrollEl?.scrollTop ?? 0) > 6;
+}
+
+onMounted(() => {
+  scrollEl = document.querySelector('.app-main');
+  if (scrollEl) {
+    scrollEl.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // Vérification initiale
+  }
+});
+
+onBeforeUnmount(() => {
+  if (scrollEl) {
+    scrollEl.removeEventListener('scroll', onScroll);
+  }
+});
+
 const activeComponent = computed(
   () => ({ playback: PlaybackMode, live: LiveMode, fixed: FixedMode })[mode.value],
 );
@@ -38,14 +59,13 @@ const activeComponent = computed(
 
 <template>
   <div class="screen">
-    <header class="screen-head">
+    <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ $t('nav.play') }}</h1>
-      <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label"
-        :options="MODES.map((m) => ({
-          value: m.id, label: $t(m.key), icon: m.icon,
-          disabled: modeDisabled(m.id),
-          title: modeDisabled(m.id) ? $t('label.fixedNeedsHardware') : '',
-        }))" />
+      <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="MODES.map((m) => ({
+        value: m.id, label: $t(m.key), icon: m.icon,
+        disabled: modeDisabled(m.id),
+        title: modeDisabled(m.id) ? $t('label.fixedNeedsHardware') : '',
+      }))" />
     </header>
 
     <div class="screen-body" :class="{ 'screen-body--fill': mode === 'playback' }">

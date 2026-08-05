@@ -10,6 +10,7 @@
     flex-direction: column; // sections stack; the VU grows to fill
     container-type: inline-size; // faders switch slider↔input based on player width
 }
+
 .player-panel__head {
     display: flex;
     align-items: center;
@@ -23,14 +24,17 @@
     background: var(--volt-06);
     border-bottom: 1px solid var(--line);
 }
+
 .player-panel__head .icon {
     color: var(--volt);
 }
+
 .player-panel__title {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
 }
+
 .player-synth-badge {
     display: inline-flex;
     align-items: center;
@@ -45,9 +49,12 @@
     border: 1px solid var(--volt);
     background: var(--volt-08);
 }
+
 .player-panel__autoplay {
     margin-left: auto;
-} // autoplay toggle pinned right
+}
+
+// autoplay toggle pinned right
 
 .player-song {
     display: flex;
@@ -57,10 +64,12 @@
     padding: 0.9rem 1rem 0.5rem;
     min-width: 0;
 }
+
 .player-song .icon {
     color: var(--text-dim);
     flex: 0 0 auto;
 }
+
 .player-song__name {
     flex: 1 1 auto;
     min-width: 0;
@@ -69,6 +78,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
 .player-song__empty {
     color: var(--text-mute);
 }
@@ -81,18 +91,22 @@
     margin-left: auto;
     flex-wrap: wrap;
 }
+
 .player-legend__label {
     display: flex;
     align-items: center;
 }
+
 .player-legend__label .icon {
     color: var(--volt);
 }
+
 .coil-legend {
     display: flex;
     gap: 4px;
     flex-wrap: wrap;
 }
+
 .coil-legend__chip {
     width: 1.4rem;
     height: 1.4rem;
@@ -118,6 +132,7 @@
     color: var(--text-dim);
     font-size: 0.8rem;
 }
+
 .player-hint .icon {
     color: var(--volt);
 }
@@ -132,6 +147,7 @@
     display: flex;
     flex-direction: column;
 }
+
 .vu__label {
     display: block;
     font-family: var(--font-display);
@@ -141,6 +157,7 @@
     color: var(--text-dim);
     margin-bottom: 0.5rem;
 }
+
 .vu-strip {
     display: grid;
     grid-template-columns: repeat(16, 1fr);
@@ -149,6 +166,7 @@
     flex: 1 1 auto;
     min-height: 80px;
 }
+
 .vu-chan {
     display: flex;
     flex-direction: column;
@@ -157,6 +175,7 @@
     min-width: 0;
     min-height: 0;
 }
+
 .vu-track {
     width: 100%;
     flex: 1 1 auto;
@@ -167,9 +186,11 @@
     background: rgba(255, 255, 255, 0.025);
     border: 1px solid var(--line);
 }
+
 .vu-track.is-unmapped {
     opacity: 0.3;
 }
+
 .vu-fill {
     position: absolute;
     left: 0;
@@ -181,6 +202,7 @@
     box-shadow: 0 0 10px -1px rgba(255, 255, 255, 0.25);
     transition: height 0.16s ease-out;
 }
+
 .vu-num {
     font-family: var(--font-mono);
     font-size: 0.6rem;
@@ -195,11 +217,13 @@
     gap: 0.4rem;
     padding: 0.5rem 1rem 0.7rem;
 }
+
 .power-head {
     display: flex;
     align-items: center;
     gap: 0.6rem;
 }
+
 .power-head__key {
     display: inline-flex;
     align-items: center;
@@ -210,18 +234,22 @@
     font-size: 0.66rem;
     color: var(--text-dim);
 }
+
 .power-head__key .icon {
     color: var(--volt);
     font-size: 1.15rem;
 }
+
 .power-scope {
     margin-right: auto;
     flex: 0 0 auto;
 }
+
 .power-scope button {
     padding: 0.22rem 0.6rem;
     font-size: 0.68rem;
 }
+
 .power-head__val {
     font-family: var(--font-mono);
     font-size: 1.05rem;
@@ -229,9 +257,11 @@
     color: var(--text);
     font-variant-numeric: tabular-nums;
 }
+
 .power-head__val.is-boost {
     color: var(--danger);
 }
+
 .power-head__reset {
     width: 1.8rem;
     height: 1.8rem;
@@ -246,14 +276,17 @@
     font-size: 0.72rem;
     transition: 0.13s;
 }
+
 .power-head__reset:hover:not(:disabled) {
     color: var(--volt);
     border-color: var(--volt);
 }
+
 .power-head__reset:disabled {
     opacity: 0.35;
     cursor: default;
 }
+
 // hero range with a tri-zone track (safe cyan → amber → red) and a big thumb
 .power-range {
     width: 100%;
@@ -263,32 +296,32 @@
     background: transparent;
     cursor: pointer;
 }
+
 .power-range:disabled {
     opacity: 0.4;
     cursor: default;
 }
+
 .power-range::-webkit-slider-runnable-track {
     height: 8px;
     border-radius: 5px;
     opacity: 0.85;
-    background: linear-gradient(
-        90deg,
-        var(--volt) 0 50%,
-        var(--amber) 50% 75%,
-        var(--danger) 75% 100%
-    );
+    background: linear-gradient(90deg,
+            var(--volt) 0 50%,
+            var(--amber) 50% 75%,
+            var(--danger) 75% 100%);
 }
+
 .power-range::-moz-range-track {
     height: 8px;
     border-radius: 5px;
     opacity: 0.85;
-    background: linear-gradient(
-        90deg,
-        var(--volt) 0 50%,
-        var(--amber) 50% 75%,
-        var(--danger) 75% 100%
-    );
+    background: linear-gradient(90deg,
+            var(--volt) 0 50%,
+            var(--amber) 50% 75%,
+            var(--danger) 75% 100%);
 }
+
 .power-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
@@ -300,6 +333,7 @@
     border: 3px solid var(--volt);
     box-shadow: 0 0 7px -1px var(--volt);
 }
+
 .power-range::-moz-range-thumb {
     width: 20px;
     height: 20px;
@@ -308,6 +342,7 @@
     border: 3px solid var(--volt);
     box-shadow: 0 0 7px -1px var(--volt);
 }
+
 .power-zones {
     display: flex;
     justify-content: space-between;
@@ -317,13 +352,16 @@
     letter-spacing: 0.04em;
     color: var(--text-mute);
 }
+
 .power-zones__mid {
     color: var(--text-dim);
 }
+
 .power-zones__over {
     color: var(--danger);
     opacity: 0.85;
 }
+
 // ADVANCED scope: one row per coil with ontime + duty sub-sliders (coil-coloured)
 .power-coils {
     display: flex;
@@ -331,12 +369,14 @@
     gap: 0.4rem;
     padding-top: 0.1rem;
 }
+
 .coil-bias {
     display: grid;
     grid-template-columns: 1.2rem 1fr 1fr;
     align-items: center;
     gap: 0.35rem 0.7rem;
 }
+
 .coil-bias__chip {
     font-family: var(--font-mono);
     font-size: 0.74rem;
@@ -344,6 +384,7 @@
     color: var(--c);
     text-align: center;
 }
+
 .coil-bias__item {
     display: grid;
     grid-template-columns: auto 1fr 2.4rem;
@@ -351,6 +392,7 @@
     gap: 0.3rem;
     min-width: 0;
 }
+
 .coil-bias__key {
     font-family: var(--font-display);
     text-transform: uppercase;
@@ -358,6 +400,7 @@
     font-size: 0.56rem;
     color: var(--text-dim);
 }
+
 .coil-bias__val {
     font-family: var(--font-mono);
     font-size: 0.68rem;
@@ -365,38 +408,48 @@
     text-align: right;
     font-variant-numeric: tabular-nums;
 }
+
 .bias__range {
     width: 100%;
     min-width: 0;
     accent-color: var(--c);
 }
+
 @container (max-width: 380px) {
     .power-zones span:not(.power-zones__mid) {
         display: none;
     }
+
     .coil-bias {
         grid-template-columns: 1rem 1fr;
     }
+
     .coil-bias__chip {
         grid-row: span 2;
     }
+
     // compact instrument chips in the narrow (docked) player: drop the instrument
     // NAME and shrink, leaving "P{n} ch …" (the full name stays in the wide player)
     .vu-legend {
         gap: 0.3rem;
         padding: 0.45rem 1rem;
     }
+
     .vu-legend__label-text {
         display: none;
-    } // keep the icon, drop the word
+    }
+
+    // keep the icon, drop the word
     .env-chip {
         padding: 0.12rem 0.4rem;
         font-size: 0.66rem;
         gap: 0.22rem;
     }
+
     .env-chip__name {
         display: none;
     }
+
     .env-chip__chs {
         font-size: 0.62rem;
     }
@@ -408,6 +461,7 @@
     gap: 0.5rem;
     padding: 0.4rem 1rem 1rem;
 }
+
 .player-transport .btn {
     flex: 1 1 auto;
     justify-content: center;
@@ -432,6 +486,7 @@
     gap: 0.6rem;
     padding: 0 1rem 0.6rem;
 }
+
 .player-progress__bar {
     position: relative;
     flex: 1 1 auto;
@@ -441,12 +496,14 @@
     cursor: pointer;
     touch-action: none;
 }
+
 // taller invisible hit area so the thin bar is easy to grab without changing layout
 .player-progress__bar::before {
     content: "";
     position: absolute;
     inset: -8px 0;
 }
+
 .player-progress__fill {
     height: 100%;
     background: var(--volt);
@@ -455,6 +512,7 @@
     transition: width 0.08s linear;
     pointer-events: none;
 }
+
 .player-progress__knob {
     position: absolute;
     top: 50%;
@@ -468,10 +526,12 @@
     opacity: 0;
     transition: opacity 0.12s;
 }
+
 .player-progress__bar:hover .player-progress__knob,
 .player-progress__bar.is-scrubbing .player-progress__knob {
     opacity: 1;
 }
+
 .player-progress__time {
     flex: 0 0 auto;
     font-family: var(--font-mono);
@@ -486,21 +546,25 @@
     display: flex;
     flex-direction: column;
 }
+
 // display:flex (not width:100%) so the full-width tabs don't overflow with margins
 .player-viz__tabs {
     display: flex;
     margin: 0.3rem 1rem 0.5rem;
     flex: 0 0 auto;
 }
+
 .player-viz__param {
     margin: 0 1rem 0.5rem;
     align-self: flex-start;
     flex: 0 0 auto;
 }
+
 .player-viz__param button {
     padding: 0.3rem 0.7rem;
     font-size: 0.72rem;
 }
+
 .player-viz__tabs button {
     flex: 1 1 0;
     min-width: 0;
@@ -512,18 +576,22 @@
     font-size: 0.72rem;
     white-space: nowrap;
 }
+
 .player-viz__tabs .icon {
     font-size: 0.74rem;
 }
+
 // view-toggle icons follow the selection: white when idle, near-black when active
 .player-viz__tabs button .icon,
 .editor-preview__views button .icon {
     color: var(--text);
 }
+
 .player-viz__tabs button.is-active .icon,
 .editor-preview__views button.is-active .icon {
     color: var(--ink);
 }
+
 .player-viz__body {
     flex: 1 1 auto;
     min-height: 0;
@@ -541,6 +609,7 @@
     padding: 0.6rem 1rem 0.7rem;
     border-top: 1px solid var(--line);
 }
+
 .vu-legend__label {
     display: inline-flex;
     align-items: center;
@@ -551,10 +620,12 @@
     font-size: 0.6rem;
     color: var(--text-dim);
 }
+
 .vu-legend__label .icon {
     color: var(--volt);
     font-size: 1.05rem;
 }
+
 .env-chip {
     display: inline-flex;
     align-items: center;
@@ -566,18 +637,22 @@
     color: var(--text-dim);
     font-size: 0.78rem;
 }
+
 .env-chip .icon {
     color: var(--volt);
     font-size: 0.72rem;
 }
+
 .env-chip__pn {
     font-family: var(--font-mono);
     font-weight: 700;
     color: var(--volt);
 }
+
 .env-chip__name {
     color: var(--text);
 }
+
 .env-chip__chs {
     font-family: var(--font-mono);
     font-size: 0.7rem;
@@ -593,6 +668,7 @@
     gap: 0.45rem;
     min-width: 0;
 }
+
 .player-coil {
     display: inline-flex;
     align-items: center;
@@ -602,6 +678,7 @@
     background: var(--bg-2);
     border: 1px solid var(--line);
 }
+
 .player-coil__chip {
     width: 1.3rem;
     height: 1.3rem;
@@ -615,15 +692,18 @@
     background: var(--c, var(--volt));
     box-shadow: 0 0 5px -3px var(--c, var(--volt));
 }
+
 .player-coil__readouts {
     display: flex;
     gap: 0.5rem;
 }
+
 .player-coil__readout {
     font-family: var(--font-mono);
     font-size: 0.82rem;
     color: var(--text);
 }
+
 .player-coil__readout i {
     color: var(--text-mute);
     font-style: normal;
@@ -635,6 +715,7 @@
 .player-options {
     padding: 0.2rem 1rem 0.5rem;
 }
+
 .switch {
     display: inline-flex;
     align-items: center;
@@ -642,12 +723,14 @@
     cursor: pointer;
     user-select: none;
 }
+
 .switch input {
     position: absolute;
     opacity: 0;
     width: 0;
     height: 0;
 }
+
 .switch__track {
     position: relative;
     flex: 0 0 auto;
@@ -658,6 +741,7 @@
     border: 1px solid var(--line-strong);
     transition: 0.15s;
 }
+
 .switch__track::after {
     content: "";
     position: absolute;
@@ -669,18 +753,22 @@
     background: var(--text-mute);
     transition: 0.15s;
 }
-.switch input:checked + .switch__track {
+
+.switch input:checked+.switch__track {
     background: var(--volt);
     border-color: var(--volt);
     box-shadow: 0 0 8px -4px var(--volt);
 }
-.switch input:checked + .switch__track::after {
+
+.switch input:checked+.switch__track::after {
     transform: translateX(1rem);
     background: var(--ink);
 }
-.switch input:focus-visible + .switch__track {
+
+.switch input:focus-visible+.switch__track {
     box-shadow: 0 0 0 2px var(--volt);
 }
+
 .switch__text {
     font-family: var(--font-display);
     text-transform: uppercase;
@@ -688,12 +776,14 @@
     font-size: 0.7rem;
     color: var(--text-dim);
 }
+
 .midi-lib__empty {
     color: var(--text-mute);
     font-family: var(--font-mono);
     font-size: 0.85rem;
     padding: 0.4rem 0;
 }
+
 .midi-lib__item {
     display: flex;
     align-items: center;
@@ -704,9 +794,11 @@
     border-radius: 8px;
     transition: background ease 300ms;
 }
+
 .midi-lib__item:has(.midi-lib__action:hover) {
     background-color: var(--panel-2);
 }
+
 .midi-lib__item:has(.midi-lib__dropdown:hover) {
     background-color: var(--panel-2);
 }
@@ -730,6 +822,7 @@
     transition: 0.15s ease;
     font-size: 1.1rem;
 }
+
 .midi-lib__action:hover {
     color: var(--volt);
 }
@@ -806,6 +899,7 @@
 .midi-lib__dropdown-item:hover {
     background: var(--line-strong);
     color: var(--text);
+
     .midi-lib__usage-title {
         text-decoration: underline;
     }
@@ -825,6 +919,7 @@
 .midi-lib__item.is-current {
     border-color: var(--volt);
 }
+
 .midi-lib__item-name {
     flex: 1;
     min-width: 0;
@@ -853,6 +948,7 @@
     font-size: inherit;
     outline: none;
 }
+
 .midi-lib__edit-icon {
     background: none;
     border: none;
@@ -865,29 +961,35 @@
     transition: 0.15s;
     font-size: 0.9rem;
 }
+
 .midi-lib__edit-icon:hover {
     color: var(--ok, #3ddc97);
     background: rgba(61, 220, 151, 0.12);
 }
+
 .midi-lib__edit-icon.is-cancel:hover {
     color: var(--danger, #ff4d62);
     background: rgba(255, 77, 98, 0.12);
 }
+
 .midi-lib__item-ch {
     flex: 0 0 auto;
     color: var(--text-mute);
     font-size: 0.78rem;
     margin-left: 0.5rem;
 }
+
 .midi-lib__item-dur {
     flex: 0 0 auto;
     color: var(--text-mute);
     font-size: 0.78rem;
     font-variant-numeric: tabular-nums;
 }
+
 .midi-lib__usages {
     margin-left: 0.5rem;
 }
+
 .midi-lib__usages-badge {
     display: flex;
     align-items: center;
@@ -898,6 +1000,7 @@
     transition: 0.15s;
     padding: 0.3rem 0;
 }
+
 .midi-lib__usages-badge i {
     padding-top: 3px;
 }
@@ -914,9 +1017,11 @@
     left: -50px;
     animation: usagesFadeDown 0.15s ease forwards;
 }
+
 .midi-lib__usages:hover .midi-lib__dropdown-menu.is-usages {
     transform: translate(-50%, 0);
 }
+
 .midi-lib__dropdown-header {
     font-size: 0.7rem;
     letter-spacing: 0.5px;
@@ -925,15 +1030,18 @@
     border-bottom: 1px solid var(--line-strong);
     margin-bottom: 0.2rem;
 }
+
 .midi-lib__dropdown-menu.is-usages .midi-lib__dropdown-item {
     justify-content: space-between;
 }
+
 .midi-lib__usage-title {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     flex: 1;
 }
+
 .midi-lib__usage-coils {
     color: var(--text-mute);
     display: flex;
@@ -942,69 +1050,84 @@
     font-family: var(--font-mono, monospace);
     padding-top: 2px;
 }
+
 .midi-lib__usage-coils i {
     color: var(--volt);
 }
+
 .midi-lib__dropdown-menu.is-dropup {
     top: auto;
     bottom: 100%;
     margin-top: 0;
     margin-bottom: 0.3rem;
     animation: dropdownFadeUp 0.15s ease forwards;
+
     &::before {
         bottom: auto;
         top: 100%;
     }
 }
+
 @keyframes dropdownFadeDown {
     from {
         opacity: 0;
         transform: translateY(-5px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
+
 @keyframes dropdownFadeUp {
     from {
         opacity: 0;
         transform: translateY(5px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
+
 @keyframes usagesFadeDown {
     from {
         opacity: 0;
         transform: translate(-50%, -5px);
     }
+
     to {
         opacity: 1;
         transform: translate(-50%, 0);
     }
 }
+
 @keyframes usagesFadeUp {
     from {
         opacity: 0;
         transform: translate(-50%, 5px);
     }
+
     to {
         opacity: 1;
         transform: translate(-50%, 0);
     }
 }
+
 .midi-lib__dropdown:hover .midi-lib__dropdown-menu.is-dropup {
     transform: translateY(0);
 }
+
 .midi-lib__dropdown-menu.is-usages.is-dropup {
     animation: usagesFadeUp 0.15s ease forwards;
 }
+
 .midi-lib__usages:hover .midi-lib__dropdown-menu.is-usages.is-dropup {
     transform: translate(-50%, 0);
 }
+
 .sidebar__section-title {
     font-family: var(--font-display);
     text-transform: uppercase;
@@ -1013,9 +1136,11 @@
     color: var(--text-mute);
     margin: 1.1rem 0.4rem 0.6rem;
 }
+
 .sidebar-output {
     padding: 0 0.4rem 0.55rem;
 }
+
 .sidebar-output__label {
     display: block;
     font-size: 0.64rem;
@@ -1023,6 +1148,7 @@
     margin-bottom: 0.28rem;
     font-family: var(--font-mono);
 }
+
 /* second-output header: label + a compact show/hide toggle on one line */
 .sidebar-output__head {
     display: flex;
@@ -1031,15 +1157,19 @@
     gap: 0.5rem;
     margin-bottom: 0.28rem;
 }
+
 .sidebar-output__head .sidebar-output__label {
     margin-bottom: 0;
 }
+
 .sidebar-output__toggle {
     flex: 0 0 auto;
 }
+
 .sidebar-offset {
     margin-top: 0.4rem;
 }
+
 .sidebar-offset__label {
     display: block;
     font-size: 0.6rem;
@@ -1047,10 +1177,12 @@
     margin-bottom: 0.2rem;
     font-family: var(--font-mono);
 }
+
 .sidebar-offset__range {
     width: 100%;
     accent-color: var(--volt);
 }
+
 .sidebar-offset__val {
     display: block;
     text-align: right;
@@ -1059,10 +1191,12 @@
     font-family: var(--font-mono);
     font-variant-numeric: tabular-nums;
 }
+
 .select-field.is-synth select {
     border-color: var(--volt);
     color: var(--volt);
 }
+
 .output-emul {
     display: flex;
     align-items: center;
@@ -1074,18 +1208,20 @@
     color: var(--volt);
     opacity: 0.85;
 }
+
 .output-emul .icon {
     font-size: 0.66rem;
 }
 
 // framed sidebar sections (output selection + coils)
 .sidebar-card {
-    margin: 0 0.5rem 0.7rem;
+    margin-bottom: 0.6rem;
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--line);
     border-radius: 10px;
     padding: 0.55rem 0.6rem 0.5rem;
 }
+
 .sidebar-card__title {
     display: flex;
     align-items: center;
@@ -1098,12 +1234,15 @@
     color: var(--text-mute);
     margin: 0 0.1rem 0.5rem;
 }
+
 .sidebar-card .sidebar-output {
     padding: 0 0 0.5rem;
 }
+
 .sidebar-card .sidebar-output:last-child {
     padding-bottom: 0;
 }
+
 .sidebar-card__cfg {
     background: none;
     border: 0;
@@ -1117,6 +1256,7 @@
         color 0.13s,
         background 0.13s;
 }
+
 .sidebar-card__cfg:hover {
     color: var(--volt);
 }
@@ -1129,6 +1269,7 @@
     flex-direction: column;
     gap: 0.22rem;
 }
+
 .sidebar-coil {
     display: flex;
     align-items: center;
@@ -1136,6 +1277,7 @@
     padding: 0.1rem 0.15rem;
     min-width: 0;
 }
+
 .sidebar-coil__dot {
     width: 0.62rem;
     height: 0.62rem;
@@ -1144,6 +1286,7 @@
     background: var(--c);
     box-shadow: 0 0 7px -1px var(--c);
 }
+
 .sidebar-coil__idx {
     font-family: var(--font-mono);
     font-size: 0.72rem;
@@ -1152,6 +1295,7 @@
     text-align: center;
     flex: 0 0 auto;
 }
+
 .sidebar-coil__name {
     font-size: 0.78rem;
     color: var(--text);
@@ -1160,6 +1304,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 }
+
 .sidebar-coil__name.is-empty {
     color: var(--text-mute);
     font-style: italic;
