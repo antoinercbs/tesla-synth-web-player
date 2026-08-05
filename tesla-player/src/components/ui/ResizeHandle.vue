@@ -45,9 +45,8 @@ function onPointerUp(e: PointerEvent): void {
 </script>
 
 <template>
-  <div class="resize-handle" :class="{ 'is-active': dragging }" role="separator"
-    aria-orientation="vertical" @pointerdown="onPointerDown" @pointermove="onPointerMove"
-    @pointerup="onPointerUp" @pointercancel="onPointerUp">
+  <div class="resize-handle" :class="{ 'is-active': dragging }" role="separator" aria-orientation="vertical"
+    @pointerdown="onPointerDown" @pointermove="onPointerMove" @pointerup="onPointerUp" @pointercancel="onPointerUp">
     <span class="resize-handle__grip"></span>
   </div>
 </template>
@@ -62,6 +61,7 @@ function onPointerUp(e: PointerEvent): void {
   cursor: col-resize;
   touch-action: none;
 }
+
 .resize-handle__grip {
   width: 2px;
   height: 100%;
@@ -69,6 +69,7 @@ function onPointerUp(e: PointerEvent): void {
   background: var(--line-strong);
   transition: background 0.12s ease, box-shadow 0.12s ease;
 }
+
 .resize-handle:hover .resize-handle__grip,
 .resize-handle.is-active .resize-handle__grip {
   background: var(--volt);

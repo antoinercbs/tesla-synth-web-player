@@ -306,20 +306,24 @@
     height: 8px;
     border-radius: 5px;
     opacity: 0.85;
-    background: linear-gradient(90deg,
-            var(--volt) 0 50%,
-            var(--amber) 50% 75%,
-            var(--danger) 75% 100%);
+    background: linear-gradient(
+        90deg,
+        var(--volt) 0 50%,
+        var(--amber) 50% 75%,
+        var(--danger) 75% 100%
+    );
 }
 
 .power-range::-moz-range-track {
     height: 8px;
     border-radius: 5px;
     opacity: 0.85;
-    background: linear-gradient(90deg,
-            var(--volt) 0 50%,
-            var(--amber) 50% 75%,
-            var(--danger) 75% 100%);
+    background: linear-gradient(
+        90deg,
+        var(--volt) 0 50%,
+        var(--amber) 50% 75%,
+        var(--danger) 75% 100%
+    );
 }
 
 .power-range::-webkit-slider-thumb {
@@ -754,18 +758,18 @@
     transition: 0.15s;
 }
 
-.switch input:checked+.switch__track {
+.switch input:checked + .switch__track {
     background: var(--volt);
     border-color: var(--volt);
     box-shadow: 0 0 8px -4px var(--volt);
 }
 
-.switch input:checked+.switch__track::after {
+.switch input:checked + .switch__track::after {
     transform: translateX(1rem);
     background: var(--ink);
 }
 
-.switch input:focus-visible+.switch__track {
+.switch input:focus-visible + .switch__track {
     box-shadow: 0 0 0 2px var(--volt);
 }
 
@@ -1300,6 +1304,7 @@
     font-size: 0.78rem;
     color: var(--text);
     min-width: 0;
+    width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

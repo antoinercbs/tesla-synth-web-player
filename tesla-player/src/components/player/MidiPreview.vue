@@ -332,65 +332,77 @@ watch(() => props.playheadMs, () => {
     <div class="preview__frame">
       <!-- automation parameter toggle: full width, integrated at the top of the frame -->
       <div v-if="showParam" class="segmented preview__param">
-        <button type="button" :class="{ 'is-active': editParam === 'ontime' }" @click="emit('update:editParam', 'ontime')">Ontime</button>
-        <button type="button" :class="{ 'is-active': editParam === 'duty' }" @click="emit('update:editParam', 'duty')">Duty</button>
+        <button type="button" :class="{ 'is-active': editParam === 'ontime' }"
+          @click="emit('update:editParam', 'ontime')">Ontime</button>
+        <button type="button" :class="{ 'is-active': editParam === 'duty' }"
+          @click="emit('update:editParam', 'duty')">Duty</button>
       </div>
 
       <div ref="bodyEl" class="preview__body">
         <div class="preview__inner" :style="{ height: heightPx + 'px' }">
-        <div v-if="hasData && showLanes" class="preview__rail" :class="{ 'is-compact': compact }"
-          :style="{ width: railW + 'px' }">
-          <div class="preview__rail-head" :style="{ height: RULER_H + 'px' }"></div>
-          <div v-if="showRoll" class="preview__rail-roll" :style="{ height: rollH + 'px' }"><i class="fas fa-music"></i></div>
-          <div v-for="(lane, i) in railLanes" :key="i" class="preview__rail-lane" :style="{ height: laneH + 'px', '--c': lane.color }">
-            <span class="preview__rail-dot"></span>
-            <span v-if="lane.speaker" class="preview__rail-id"><i class="fas fa-volume-high"></i></span>
-            <template v-else-if="compact">
-              <span class="preview__rail-cnum">{{ lane.num }}</span>
-              <span class="preview__rail-csub">{{ lane.sub }}</span>
-            </template>
-            <template v-else>
-              <span class="preview__rail-id">{{ lane.num }}<span v-if="lane.name" class="preview__rail-name"> · {{ lane.name }}</span></span>
-              <span class="preview__rail-sub">{{ lane.sub }}</span>
-            </template>
+          <div v-if="hasData && showLanes" class="preview__rail" :class="{ 'is-compact': compact }"
+            :style="{ width: railW + 'px' }">
+            <div class="preview__rail-head" :style="{ height: RULER_H + 'px' }"></div>
+            <div v-if="showRoll" class="preview__rail-roll" :style="{ height: rollH + 'px' }"><i
+                class="fas fa-music"></i></div>
+            <div v-for="(lane, i) in railLanes" :key="i" class="preview__rail-lane"
+              :style="{ height: laneH + 'px', '--c': lane.color }">
+              <span class="preview__rail-dot"></span>
+              <span v-if="lane.speaker" class="preview__rail-id"><i class="fas fa-volume-high"></i></span>
+              <template v-else-if="compact">
+                <span class="preview__rail-cnum">{{ lane.num }}</span>
+                <span class="preview__rail-csub">{{ lane.sub }}</span>
+              </template>
+              <template v-else>
+                <span class="preview__rail-id">{{ lane.num }}<span v-if="lane.name" class="preview__rail-name"> · {{
+                    lane.name }}</span></span>
+                <span class="preview__rail-sub">{{ lane.sub }}</span>
+              </template>
+            </div>
           </div>
-        </div>
 
-        <div ref="scrollEl" class="preview__scroll">
-          <svg v-if="hasData" ref="svgEl" :width="widthPx" :height="heightPx" class="preview__svg"
-            :class="{ 'is-editable': editable && showLanes }" @pointerdown="onSvgPointerDown">
-            <defs>
-              <pattern v-for="p in patterns" :id="p.id" :key="p.id" patternUnits="userSpaceOnUse"
-                :width="p.colors.length * 4" :height="p.colors.length * 4" patternTransform="rotate(45)">
-                <rect v-for="(col, k) in p.colors" :key="k" :x="k * 4" :y="0" :width="4" :height="p.colors.length * 4" :fill="col" />
-              </pattern>
-            </defs>
-            <line v-for="(t, i) in timeTicks" :key="`t${i}`" :x1="t.x" :x2="t.x" :y1="RULER_H" :y2="heightPx"
-              class="preview__tick" :class="{ 'is-major': t.major }" />
-            <text v-for="(t, i) in timeTicks" v-show="t.label" :key="`tl${i}`" :x="t.x + 3" :y="11" class="preview__ticklabel">{{ t.label }}</text>
-            <line v-for="(y, i) in octaveLines" :key="`o${i}`" :x1="0" :x2="widthPx" :y1="y" :y2="y" class="preview__grid" />
-            <line v-if="view === 'combined'" :x1="0" :x2="widthPx" :y1="lanesTopY" :y2="lanesTopY" class="preview__divider" />
-            <line v-for="(y, i) in laneLines" :key="`l${i}`" :x1="0" :x2="widthPx" :y1="y" :y2="y" class="preview__grid" />
-            <rect v-for="(r, i) in rects" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" :fill="r.fill"
-              :opacity="r.roll ? 1 : (events.length ? 0.3 : 1)" rx="1.5" />
+          <div ref="scrollEl" class="preview__scroll">
+            <svg v-if="hasData" ref="svgEl" :width="widthPx" :height="heightPx" class="preview__svg"
+              :class="{ 'is-editable': editable && showLanes }" @pointerdown="onSvgPointerDown">
+              <defs>
+                <pattern v-for="p in patterns" :id="p.id" :key="p.id" patternUnits="userSpaceOnUse"
+                  :width="p.colors.length * 4" :height="p.colors.length * 4" patternTransform="rotate(45)">
+                  <rect v-for="(col, k) in p.colors" :key="k" :x="k * 4" :y="0" :width="4" :height="p.colors.length * 4"
+                    :fill="col" />
+                </pattern>
+              </defs>
+              <line v-for="(t, i) in timeTicks" :key="`t${i}`" :x1="t.x" :x2="t.x" :y1="RULER_H" :y2="heightPx"
+                class="preview__tick" :class="{ 'is-major': t.major }" />
+              <text v-for="(t, i) in timeTicks" v-show="t.label" :key="`tl${i}`" :x="t.x + 3" :y="11"
+                class="preview__ticklabel">{{ t.label }}</text>
+              <line v-for="(y, i) in octaveLines" :key="`o${i}`" :x1="0" :x2="widthPx" :y1="y" :y2="y"
+                class="preview__grid" />
+              <line v-if="view === 'combined'" :x1="0" :x2="widthPx" :y1="lanesTopY" :y2="lanesTopY"
+                class="preview__divider" />
+              <line v-for="(y, i) in laneLines" :key="`l${i}`" :x1="0" :x2="widthPx" :y1="y" :y2="y"
+                class="preview__grid" />
+              <rect v-for="(r, i) in rects" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" :fill="r.fill"
+                :opacity="r.roll ? 1 : (events.length ? 0.3 : 1)" rx="1.5" />
 
-            <g v-for="a in autoCurves" :key="`a${a.coilIdx}`">
-              <line :x1="0" :x2="widthPx" :y1="a.baseY" :y2="a.baseY" class="auto-base" :stroke="a.color" />
-              <polyline :points="a.points" class="auto-line" :stroke="a.color" />
-            </g>
-            <g v-for="h in handles" :key="`h${h.i}`">
-              <text v-if="editable" :x="h.cx + 7" :y="h.cy - 5" class="auto-pct" :fill="h.color">{{ h.pct }}%</text>
-              <circle :cx="h.cx" :cy="h.cy" :r="editable ? 5 : 3" class="auto-handle" :class="{ 'is-editable': editable }"
-                :fill="h.color" @pointerdown.stop="onHandlePointerDown(h.i, $event)" @contextmenu="removeEvent(h.i, $event)" />
-            </g>
+              <g v-for="a in autoCurves" :key="`a${a.coilIdx}`">
+                <line :x1="0" :x2="widthPx" :y1="a.baseY" :y2="a.baseY" class="auto-base" :stroke="a.color" />
+                <polyline :points="a.points" class="auto-line" :stroke="a.color" />
+              </g>
+              <g v-for="h in handles" :key="`h${h.i}`">
+                <text v-if="editable" :x="h.cx + 7" :y="h.cy - 5" class="auto-pct" :fill="h.color">{{ h.pct }}%</text>
+                <circle :cx="h.cx" :cy="h.cy" :r="editable ? 5 : 3" class="auto-handle"
+                  :class="{ 'is-editable': editable }" :fill="h.color"
+                  @pointerdown.stop="onHandlePointerDown(h.i, $event)" @contextmenu="removeEvent(h.i, $event)" />
+              </g>
 
-            <!-- combined editor: only the coil lanes are editable, so the score area keeps the default cursor -->
-            <rect v-if="editable && view === 'combined'" :x="0" :y="0" :width="widthPx" :height="lanesTopY"
-              class="preview__noedit" />
+              <!-- combined editor: only the coil lanes are editable, so the score area keeps the default cursor -->
+              <rect v-if="editable && view === 'combined'" :x="0" :y="0" :width="widthPx" :height="lanesTopY"
+                class="preview__noedit" />
 
-            <line v-if="playing || paused" class="preview__playhead" :x1="playheadX" :x2="playheadX" :y1="0" :y2="heightPx" />
-          </svg>
-          <div v-else class="preview__empty">{{ $t('label.noMidiData') }}</div>
+              <line v-if="playing || paused" class="preview__playhead" :x1="playheadX" :x2="playheadX" :y1="0"
+                :y2="heightPx" />
+            </svg>
+            <div v-else class="preview__empty">{{ $t('label.noMidiData') }}</div>
           </div>
         </div>
       </div>
@@ -400,53 +412,245 @@ watch(() => props.playheadMs, () => {
 </template>
 
 <style scoped>
-.preview { display: flex; flex-direction: column; min-height: 0; min-width: 0; flex: 1 1 auto; gap: 0.4rem; }
-.preview__frame {
-  flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column;
-  border: 1px solid var(--line); border-radius: 8px; overflow: hidden;
-  background: rgba(255, 255, 255, 0.02);
-  user-select: none; -webkit-user-select: none;
+.preview {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 0.4rem;
 }
-.preview__param { display: flex; border-radius: 0; border: 0; border-bottom: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); padding: 4px; gap: 4px; flex: 0 0 auto; }
-.preview__param button { flex: 1 1 0; padding: 0.35rem; font-size: 0.74rem; }
-.preview__body { flex: 1 1 auto; min-height: 100px; overflow-y: auto; overflow-x: hidden; }
-.preview__scroll { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; }
-.preview__svg { display: block; }
-.preview__svg.is-editable { cursor: crosshair; }
-.preview__noedit { fill: transparent; pointer-events: all; cursor: default; }
-.preview__inner { display: flex; width: 100%; }
 
-.preview__rail { flex: 0 0 auto; border-right: 1px solid var(--line); background: rgba(0, 0, 0, 0.18); }
-.preview__rail-head { border-bottom: 1px solid var(--line); }
-.preview__rail-roll { display: grid; place-items: center; color: var(--text-mute); border-bottom: 1px solid var(--line); }
-.preview__rail-lane { display: flex; flex-direction: column; justify-content: center; gap: 1px; padding: 0 0.5rem; position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
-.preview__rail-dot { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--c); box-shadow: 0 0 7px -1px var(--c); }
-.preview__rail-id { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.preview__rail-name { color: var(--text-dim); font-weight: 400; }
-.preview__rail-sub { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-mute); white-space: nowrap; }
+.preview__frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.02);
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.preview__param {
+  display: flex;
+  border-radius: 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.18);
+  padding: 4px;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.preview__param button {
+  flex: 1 1 0;
+  padding: 0.35rem;
+  font-size: 0.74rem;
+}
+
+.preview__body {
+  flex: 1 1 auto;
+  min-height: 100px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.preview__scroll {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.preview__svg {
+  display: block;
+}
+
+.preview__svg.is-editable {
+  cursor: crosshair;
+}
+
+.preview__noedit {
+  fill: transparent;
+  pointer-events: all;
+  cursor: default;
+}
+
+.preview__inner {
+  display: flex;
+  width: 100%;
+}
+
+.preview__rail {
+  flex: 0 0 auto;
+  border-right: 1px solid var(--line);
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.preview__rail-head {
+  border-bottom: 1px solid var(--line);
+}
+
+.preview__rail-roll {
+  display: grid;
+  place-items: center;
+  color: var(--text-mute);
+  border-bottom: 1px solid var(--line);
+}
+
+.preview__rail-lane {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  padding: 0 0.5rem;
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+}
+
+.preview__rail-dot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--c);
+  box-shadow: 0 0 7px -1px var(--c);
+}
+
+.preview__rail-id {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.preview__rail-name {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.preview__rail-sub {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--text-mute);
+  white-space: nowrap;
+}
 
 /* compact rail: narrow column, number on top + ontime/duty written vertically */
-.preview__rail.is-compact .preview__rail-lane { align-items: center; padding: 0.2rem 0; gap: 2px; }
-.preview__rail-cnum { font-family: var(--font-mono); font-size: 0.74rem; font-weight: 600; color: var(--text); flex: 0 0 auto; }
-.preview__rail-csub {
-  writing-mode: vertical-rl; transform: rotate(180deg);
-  font-family: var(--font-mono); font-size: 0.6rem; color: var(--text-mute);
-  white-space: nowrap; overflow: hidden; min-height: 0; flex: 0 1 auto;
+.preview__rail.is-compact .preview__rail-lane {
+  align-items: center;
+  padding: 0.2rem 0;
+  gap: 2px;
 }
 
-.preview__grid { stroke: var(--line); stroke-width: 1; opacity: 0.6; }
-.preview__divider { stroke: var(--line-strong, var(--line)); stroke-width: 1.5; opacity: 0.9; }
-.preview__tick { stroke: var(--line); stroke-width: 1; opacity: 0.3; }
-.preview__tick.is-major { opacity: 0.55; }
-.preview__ticklabel { fill: var(--text-mute); font-family: var(--font-mono); font-size: 9px; }
-.preview__playhead { stroke: var(--volt); stroke-width: 2; filter: drop-shadow(0 0 4px var(--volt)); }
-.preview__empty { height: 100%; min-height: 120px; display: grid; place-items: center; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.85rem; }
-.preview__hint { margin: 0; font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-mute); }
+.preview__rail-cnum {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text);
+  flex: 0 0 auto;
+}
 
-.auto-base { stroke-width: 1; stroke-dasharray: 3 4; opacity: 0.4; }
-.auto-line { fill: none; stroke-width: 2; opacity: 0.95; filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.4)); }
-.auto-pct { font-family: var(--font-mono); font-size: 9px; opacity: 0.9; }
-.auto-handle { stroke: #06090f; stroke-width: 1.5; }
-.auto-handle.is-editable { cursor: grab; }
-.auto-handle.is-editable:hover { stroke: #fff; }
+.preview__rail-csub {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--text-mute);
+  white-space: nowrap;
+  overflow: hidden;
+  min-height: 0;
+  flex: 0 1 auto;
+}
+
+.preview__grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  opacity: 0.6;
+}
+
+.preview__divider {
+  stroke: var(--line-strong, var(--line));
+  stroke-width: 1.5;
+  opacity: 0.9;
+}
+
+.preview__tick {
+  stroke: var(--line);
+  stroke-width: 1;
+  opacity: 0.3;
+}
+
+.preview__tick.is-major {
+  opacity: 0.55;
+}
+
+.preview__ticklabel {
+  fill: var(--text-mute);
+  font-family: var(--font-mono);
+  font-size: 9px;
+}
+
+.preview__playhead {
+  stroke: var(--volt);
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px var(--volt));
+}
+
+.preview__empty {
+  height: 100%;
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.preview__hint {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--text-mute);
+}
+
+.auto-base {
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0.4;
+}
+
+.auto-line {
+  fill: none;
+  stroke-width: 2;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.4));
+}
+
+.auto-pct {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  opacity: 0.9;
+}
+
+.auto-handle {
+  stroke: #06090f;
+  stroke-width: 1.5;
+}
+
+.auto-handle.is-editable {
+  cursor: grab;
+}
+
+.auto-handle.is-editable:hover {
+  stroke: #fff;
+}
 </style>

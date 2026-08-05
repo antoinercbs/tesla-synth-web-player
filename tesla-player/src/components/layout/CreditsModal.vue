@@ -11,8 +11,8 @@ defineEmits<{ (e: 'close'): void }>();
 </script>
 
 <template>
-  <base-modal :open="open" :title="$t('credits.title')" icon="fa-heart"
-    card-class="credits-modal" @close="$emit('close')">
+  <base-modal :open="open" :title="$t('credits.title')" icon="fa-heart" card-class="credits-modal"
+    @close="$emit('close')">
     <div class="credits">
       <section class="credits__item credits__item--lead">
         <h3 class="credits__name">Syntherrupter</h3>
@@ -52,14 +52,60 @@ defineEmits<{ (e: 'close'): void }>();
 </template>
 
 <style scoped>
-.credits { display: flex; flex-direction: column; gap: 1.25rem; max-width: 30rem; }
-.credits__item { display: flex; flex-direction: column; gap: 0.4rem; }
-.credits__item--lead { padding-bottom: 1.1rem; border-bottom: 1px solid var(--line); }
-.credits__name { margin: 0; font-size: 1rem; color: var(--text); }
-.credits__item p { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--text-mute); }
-.credits__by { color: var(--text); }
-.credits__links { display: flex; gap: 1rem; margin-top: 0.25rem; }
-.credits__links a, .credits__by a { color: var(--volt); text-decoration: none; font-size: 0.85rem; }
-.credits__links a:hover, .credits__by a:hover { text-decoration: underline; }
-.credits__links i { font-size: 0.7rem; }
+.credits {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  max-width: 30rem;
+}
+
+.credits__item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.credits__item--lead {
+  padding-bottom: 1.1rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.credits__name {
+  margin: 0;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.credits__item p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  color: var(--text-mute);
+}
+
+.credits__by {
+  color: var(--text);
+}
+
+.credits__links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.credits__links a,
+.credits__by a {
+  color: var(--volt);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.credits__links a:hover,
+.credits__by a:hover {
+  text-decoration: underline;
+}
+
+.credits__links i {
+  font-size: 0.7rem;
+}
 </style>

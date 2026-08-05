@@ -530,4 +530,10 @@ export default {
   color: var(--volt, #ffd24d);
   background: var(--line-005, rgba(255, 255, 255, 0.04));
 }
+
+@media (max-width: 1000px) {
+  .sidebar-auth {
+    display: none;
+  }
+}
 </style>

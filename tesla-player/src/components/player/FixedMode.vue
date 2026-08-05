@@ -114,11 +114,11 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         <span class="fixed-dot"></span>{{ running ? $t('label.liveRunning') : $t('label.liveStopped') }}
       </div>
       <div class="fixed-coils-toggle">
-        <button v-for="(c, i) in cfg.coils" :key="i" type="button" class="coil-toggle"
-          :class="{ 'is-on': c.enabled }" :style="{ '--c': coilColor(i) }" @click="toggleCoil(i)"
-          :title="`${$t('label.coil')} ${i}`">{{ i }}</button>
+        <button v-for="(c, i) in cfg.coils" :key="i" type="button" class="coil-toggle" :class="{ 'is-on': c.enabled }"
+          :style="{ '--c': coilColor(i) }" @click="toggleCoil(i)" :title="`${$t('label.coil')} ${i}`">{{ i }}</button>
       </div>
-      <button class="btn" :class="running ? 'btn--danger' : 'btn--volt'" type="button" :disabled="!canRun" @click="toggle">
+      <button class="btn" :class="running ? 'btn--danger' : 'btn--volt'" type="button" :disabled="!canRun"
+        @click="toggle">
         <span class="icon"><i class="fas" :class="running ? 'fa-stop' : 'fa-play'"></i></span>
         {{ running ? $t('label.stop') : $t('label.start') }}
       </button>
@@ -142,7 +142,8 @@ onBeforeUnmount(() => { if (running.value) stop(); });
           :style="{ '--coil': coilColor(i) }">
           <header class="coil-card__head">
             <span class="coil-card__badge">{{ i }}</span>
-            <h3 class="coil-card__title">{{ $t('label.coil') }} {{ i }}<span v-if="midiStore.coilName(i)" class="coil-card__name"> · {{ midiStore.coilName(i) }}</span></h3>
+            <h3 class="coil-card__title">{{ $t('label.coil') }} {{ i }}<span v-if="midiStore.coilName(i)"
+                class="coil-card__name"> · {{ midiStore.coilName(i) }}</span></h3>
             <label class="switch coil-card__switch" :title="$t('label.coil') + ' ' + i">
               <input type="checkbox" :checked="c.enabled" @change="toggleCoil(i)">
               <span class="switch__track"></span>
@@ -151,15 +152,18 @@ onBeforeUnmount(() => { if (running.value) stop(); });
           <div class="readout-row">
             <div class="readout">
               <span class="readout__key">{{ $t('label.ontime') }}</span>
-              <label class="readout__field"><input type="number" min="0" step="1" v-model.number="c.ontimeUs"><i>µs</i></label>
+              <label class="readout__field"><input type="number" min="0" step="1"
+                  v-model.number="c.ontimeUs"><i>µs</i></label>
             </div>
             <div class="readout">
               <span class="readout__key">{{ $t('label.duty') }}</span>
-              <label class="readout__field"><input type="number" min="0" max="100" step="0.1" :value="dutyPct(c.duty)" @input="onDutyInput(c, $event)"><i>%</i></label>
+              <label class="readout__field"><input type="number" min="0" max="100" step="0.1" :value="dutyPct(c.duty)"
+                  @input="onDutyInput(c, $event)"><i>%</i></label>
             </div>
             <div class="readout">
               <span class="readout__key">{{ $t('label.frequency') }}</span>
-              <label class="readout__field"><input type="number" min="0" step="1" v-model.number="c.frequencyHz"><i>Hz</i></label>
+              <label class="readout__field"><input type="number" min="0" step="1"
+                  v-model.number="c.frequencyHz"><i>Hz</i></label>
             </div>
           </div>
         </article>
@@ -169,58 +173,148 @@ onBeforeUnmount(() => { if (running.value) stop(); });
 </template>
 
 <style scoped>
-.fixed { display: flex; flex-direction: column; gap: 1.2rem; }
-.coil-card__name { color: var(--text-mute); font-weight: 400; }
+.fixed {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.coil-card__name {
+  color: var(--text-mute);
+  font-weight: 400;
+}
 
 /* control bar (mirrors the live-mode bar) */
 .fixed-bar {
-  display: flex; align-items: center; gap: 1.1rem; flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+  flex-wrap: wrap;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
 }
+
 .fixed-bar__status {
-  display: inline-flex; align-items: center; gap: 0.45rem; margin-right: auto;
-  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em;
-  font-size: 0.78rem; color: var(--text-mute);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-right: auto;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: var(--text-mute);
 }
-.fixed-bar__status.is-live { color: var(--volt); }
-.fixed-dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--text-mute); transition: 0.2s; }
+
+.fixed-bar__status.is-live {
+  color: var(--volt);
+}
+
+.fixed-dot {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--text-mute);
+  transition: 0.2s;
+}
+
 .fixed-bar__status.is-live .fixed-dot {
-  background: var(--volt); box-shadow: 0 0 10px var(--volt);
+  background: var(--volt);
+  box-shadow: 0 0 10px var(--volt);
   animation: fixed-pulse 1.4s ease-in-out infinite;
 }
-@keyframes fixed-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
-.fixed-bar__hint { flex: 1 1 100%; margin: 0.2rem 0 0; }
+
+@keyframes fixed-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.fixed-bar__hint {
+  flex: 1 1 100%;
+  margin: 0.2rem 0 0;
+}
 
 /* per-coil on/off switches in the bar */
-.fixed-coils-toggle { display: flex; gap: 0.35rem; flex-wrap: wrap; }
+.fixed-coils-toggle {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
 .coil-toggle {
-  width: 2rem; height: 2rem; border-radius: 7px; cursor: pointer;
-  display: grid; place-items: center;
-  font-family: var(--font-mono); font-weight: 700; font-size: 0.8rem;
-  background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line-strong); color: var(--text-mute);
+  width: 2rem;
+  height: 2rem;
+  border-radius: 7px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--line-strong);
+  color: var(--text-mute);
   transition: 0.13s;
 }
-.coil-toggle.is-on { color: #06090f; background: var(--c); border-color: var(--c); box-shadow: 0 0 12px -3px var(--c); }
-.coil-toggle:not(.is-on):hover { color: var(--text); border-color: var(--c); }
+
+.coil-toggle.is-on {
+  color: #06090f;
+  background: var(--c);
+  border-color: var(--c);
+  box-shadow: 0 0 12px -3px var(--c);
+}
+
+.coil-toggle:not(.is-on):hover {
+  color: var(--text);
+  border-color: var(--c);
+}
 
 /* section header */
 .fixed-section__head {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  margin-bottom: 1rem; flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
+
 .fixed-section__title {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.07em;
-  font-size: 0.9rem; color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.9rem;
+  color: var(--text);
 }
-.fixed-section__title .icon { color: var(--volt); }
+
+.fixed-section__title .icon {
+  color: var(--volt);
+}
 
 /* per-card on/off switch (tinted with the coil colour) + dimmed off state */
-.coil-card__switch { margin-left: auto; }
-.coil-card__switch input:checked + .switch__track {
-  background: var(--coil, var(--volt)); border-color: var(--coil, var(--volt));
+.coil-card__switch {
+  margin-left: auto;
+}
+
+.coil-card__switch input:checked+.switch__track {
+  background: var(--coil, var(--volt));
+  border-color: var(--coil, var(--volt));
   box-shadow: 0 0 12px -3px var(--coil, var(--volt));
 }
-.coil-card.is-off { opacity: 0.55; }
+
+.coil-card.is-off {
+  opacity: 0.55;
+}
 </style>

@@ -188,6 +188,7 @@
     border: 1px solid var(--line-strong);
     color: var(--text-dim);
     transition: 0.15s;
+    flex-shrink: 0;
 }
 
 .icon-btn:hover {
@@ -524,7 +525,7 @@
     font-family: var(--font-mono);
     font-size: 0.9rem;
     font-weight: 500;
-    padding: 0.4rem 0.4rem;
+    padding: 0.4rem 0.8rem;
     border-radius: 6px;
     transition: 0.13s;
     min-width: fit-content;

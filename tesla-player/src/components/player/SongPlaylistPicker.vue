@@ -20,7 +20,6 @@ const emit = defineEmits<{
   (e: 'play-now', song: Song): void;
   (e: 'enqueue', song: Song): void;
   (e: 'play-playlist', songs: Song[]): void;
-  (e: 'edit', song: Song): void;
 }>();
 
 const midiStore = useMidiStore();
@@ -141,9 +140,9 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
             <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
                 class="fas fa-volume-high"></i></span>
           </span>
-          <button class="row-btn" type="button" @click="emit('edit', song)" :title="$t('nav.edit')">
+          <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(song.id) } }" :title="$t('nav.edit')">
             <i class="fas fa-pen"></i>
-          </button>
+          </RouterLink>
         </li>
         <li v-if="filteredSongs.length === 0" class="play-empty">{{ $t('label.noResults') }}</li>
       </ul>
@@ -175,7 +174,15 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
               @click="entry.compatible && emit('enqueue', entry.song)" :title="$t('label.addToQueue')">
               <i class="fas fa-plus"></i>
             </button>
-            <span class="play-row__name">{{ entry.song.name }}</span>
+            <div class="play-row__name-wrapper">
+              <span class="play-row__name">{{ entry.song.name }}</span>
+              <div v-if="entry.song.tags?.length" class="song-tags-display">
+                <span v-for="tag in entry.song.tags" :key="tag.id ?? tag.name" class="song-tag-pill"
+                  :style="{ '--tag-c': tag.color }">
+                  {{ tag.name }}
+                </span>
+              </div>
+            </div>
             <span v-if="!entry.compatible" class="incompat-flag"
               :title="$t('label.incompatibleCoils', { n: entry.song.coilCount })">
               <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ entry.song.coilCount }}
@@ -186,9 +193,10 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
               <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
                   class="fas fa-volume-high"></i></span>
             </span>
-            <button class="row-btn" type="button" @click="emit('edit', entry.song)" :title="$t('nav.edit')">
+            <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(entry.song.id) } }"
+              :title="$t('nav.edit')">
               <i class="fas fa-pen"></i>
-            </button>
+            </RouterLink>
           </li>
           <li v-if="playlistEntries.length === 0" class="play-empty">{{ $t('label.emptyPlaylist') }}</li>
           <li v-else-if="compatibleSongs.length === 0" class="play-empty">{{ $t('label.noCompatibleSongs') }}</li>

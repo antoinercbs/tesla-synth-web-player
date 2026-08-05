@@ -45,7 +45,8 @@ const program = computed<number | null>({
   <article class="coil-card" :style="{ '--coil': color }">
     <header class="coil-card__head">
       <span class="coil-card__badge">{{ index }}</span>
-      <h3 class="coil-card__title">{{ $t('label.coil') }} {{ index }}<span v-if="name" class="coil-card__name"> · {{ name }}</span></h3>
+      <h3 class="coil-card__title">{{ $t('label.coil') }} {{ index }}<span v-if="name" class="coil-card__name"> · {{
+          name }}</span></h3>
       <span class="coil-card__count">{{ activeChannels }} ch</span>
     </header>
 
@@ -85,8 +86,24 @@ const program = computed<number | null>({
 </template>
 
 <style scoped>
-.coil-card__name { color: var(--text-mute); font-weight: 400; }
-.coil-env__label { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.85rem; }
-.coil-env__label .icon { color: var(--coil, var(--volt)); font-size: 0.8rem; }
-.coil-env { margin-top: 0.4rem; }
+.coil-card__name {
+  color: var(--text-mute);
+  font-weight: 400;
+}
+
+.coil-env__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.85rem;
+}
+
+.coil-env__label .icon {
+  color: var(--coil, var(--volt));
+  font-size: 0.8rem;
+}
+
+.coil-env {
+  margin-top: 0.4rem;
+}
 </style>

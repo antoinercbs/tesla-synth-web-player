@@ -12,8 +12,8 @@
  * from the issuer's .well-known. The redirect target is the SPA origin (not the
  * API base) because in dev the SPA (:8080) and API (:5000) differ.
  */
-import axios from 'axios';
-import { User, UserManager, WebStorageStateStore } from 'oidc-client-ts';
+import axios from "axios";
+import { User, UserManager, WebStorageStateStore } from "oidc-client-ts";
 
 export interface AuthRuntimeConfig {
   enabled: boolean;
@@ -31,7 +31,7 @@ const listeners = new Set<(user: User | null) => void>();
 // round-trip very recently and we're being asked to authenticate again, the trip
 // isn't yielding a usable session (IdP unreachable, or a token the API keeps
 // rejecting). Stop bouncing and let the caller show the manual fallback page.
-const REDIRECT_FLAG = 'tp_auth_redirect_at';
+const REDIRECT_FLAG = "tp_auth_redirect_at";
 const LOOP_WINDOW_MS = 12000;
 
 function emit(user: User | null): void {
@@ -60,10 +60,12 @@ export function onUserChanged(cb: (user: User | null) => void): () => void {
  */
 export async function fetchAuthConfig(): Promise<AuthRuntimeConfig> {
   try {
-    const { data } = await axios.get<AuthRuntimeConfig>('/api/auth/config', {
+    const { data } = await axios.get<AuthRuntimeConfig>("/api/auth/config", {
       timeout: 5000,
     });
-    return data && typeof data.enabled === 'boolean' ? data : { enabled: false };
+    return data && typeof data.enabled === "boolean"
+      ? data
+      : { enabled: false };
   } catch {
     return { enabled: false };
   }
@@ -82,8 +84,8 @@ export async function initOidc(cfg: AuthRuntimeConfig): Promise<void> {
     client_id: cfg.clientId as string,
     redirect_uri: `${origin}/auth/callback`,
     post_logout_redirect_uri: `${origin}/`,
-    response_type: 'code',
-    scope: 'openid profile',
+    response_type: "code",
+    scope: "openid profile",
     // NO background auto-renew timer. oidc-client-ts's automaticSilentRenew
     // hammers the token + userinfo endpoints in a tight loop (~2 req/s) when the
     // access-token lifespan is short relative to its renew-notification window.
@@ -144,9 +146,12 @@ export function tryRenew(): Promise<string | null> {
 /** Best display name from the OIDC profile, or '' if none. */
 export function displayNameOf(user: User | null): string {
   const p = user?.profile;
-  if (!p) return '';
-  const composed = [p.given_name, p.family_name].filter(Boolean).join(' ').trim();
-  return composed || (p.name ?? '') || (p.preferred_username ?? '') || '';
+  if (!p) return "";
+  const composed = [p.given_name, p.family_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+  return composed || (p.name ?? "") || (p.preferred_username ?? "") || "";
 }
 
 /**
@@ -156,7 +161,10 @@ export function displayNameOf(user: User | null): string {
  * honours the anti-loop guard and returns false instead of re-bouncing — the
  * caller then shows the manual fallback page.
  */
-export async function login(returnTo?: string, force = false): Promise<boolean> {
+export async function login(
+  returnTo?: string,
+  force = false,
+): Promise<boolean> {
   if (!userManager) return false;
   if (!force) {
     let last = 0;
@@ -180,7 +188,7 @@ export async function login(returnTo?: string, force = false): Promise<boolean> 
     /* ignore */
   }
   try {
-    await userManager.signinRedirect({ state: returnTo ?? '/' });
+    await userManager.signinRedirect({ state: returnTo ?? "/" });
     return true;
   } catch {
     try {
@@ -194,10 +202,10 @@ export async function login(returnTo?: string, force = false): Promise<boolean> 
 
 /** Processes the IdP redirect back to /auth/callback. Returns the path to resume. */
 export async function completeLogin(): Promise<string> {
-  if (!userManager) return '/';
+  if (!userManager) return "/";
   const user = await userManager.signinRedirectCallback();
   emit(user && !user.expired ? user : null);
-  return typeof user.state === 'string' ? user.state : '/';
+  return typeof user.state === "string" ? user.state : "/";
 }
 
 /** Clears the local session and (best-effort) the IdP SSO session. */
@@ -208,6 +216,6 @@ export async function logout(): Promise<void> {
   } catch {
     await userManager.removeUser();
     emit(null);
-    window.location.assign('/');
+    window.location.assign("/");
   }
 }

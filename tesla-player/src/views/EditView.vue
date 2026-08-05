@@ -20,10 +20,10 @@
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle }}</h1>
-      <button class="icon-btn" type="button" :title="$t('label.closeEditor')" :aria-label="$t('label.closeEditor')"
-        @click="close">
+      <RouterLink class="icon-btn" :to="{ name: 'edit', params: {} }" :title="$t('label.closeEditor')"
+        :aria-label="$t('label.closeEditor')">
         <i class="fas fa-xmark"></i>
-      </button>
+      </RouterLink>
     </header>
     <div class="edit-body">
       <div class="edit-body__editor" :style="editorStyle">
@@ -77,12 +77,27 @@ export default {
   watch: {
     currentSong() {
       this.syncPlayer()
+    },
+    isInvalidId: {
+      immediate: true,
+      handler(invalid) {
+        if (invalid) {
+          this.$router.replace({ name: 'edit', params: {} })
+        }
+      }
     }
   },
   computed: {
     ...mapStores(useMidiStore),
     routeId() {
       return this.$route.params.id
+    },
+    isInvalidId() {
+      const id = this.routeId
+      if (!id || id === 'new') return false
+      const list = this.midiStore.midiSongList
+      if (!list || list.length === 0) return false
+      return !list.some(s => s.id === Number(id))
     },
     isChooser() {
       return this.routeId == null
@@ -129,9 +144,6 @@ export default {
     },
     newSong() {
       this.$router.push({ name: 'edit', params: { id: 'new' } })
-    },
-    close() {
-      this.$router.push({ name: 'edit', params: {} })
     },
     onSaved(song) {
       if (String(song.id) !== String(this.routeId)) {

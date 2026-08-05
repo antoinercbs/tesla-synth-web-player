@@ -112,6 +112,10 @@
     color: var(--volt);
 }
 
+.sidebar__action i {
+    margin-top: 2px;
+}
+
 // desktop app foot: a prominent Sync button + a row of server-config + language
 .sidebar-foot-el {
     margin-top: 0.5rem;

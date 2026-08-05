@@ -233,7 +233,7 @@ function alignDropdown(e: MouseEvent): void {
             <span class="dropzone__icon"><i class="fas fa-cloud-arrow-up"></i></span>
             <span class="dropzone__hint">{{
                 uploading ? $t("label.upload") + "…" : $t("label.dropMidiHint")
-            }}</span>
+                }}</span>
         </div>
 
         <div v-if="uploadMsg && !pendingDelete" class="midi-lib__msg" :class="uploadMsg.type">
@@ -287,7 +287,7 @@ function alignDropdown(e: MouseEvent): void {
                 </span>
                 <span class="midi-lib__item-dur">{{
                     formatDuration(f.durationMs)
-                }}</span>
+                    }}</span>
                 <span class="midi-lib__item-ch">
                     {{ f.channels ?? "–" }} ch
                 </span>

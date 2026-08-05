@@ -51,7 +51,8 @@ function tickToMsFn(
   ticksPerBeat: number,
 ): (tick: number) => number {
   const points = [...tempos].sort((a, b) => a.tick - b.tick);
-  if (points.length === 0 || points[0].tick > 0) points.unshift({ tick: 0, us: DEFAULT_TEMPO });
+  if (points.length === 0 || points[0].tick > 0)
+    points.unshift({ tick: 0, us: DEFAULT_TEMPO });
   // cumulative ms at the start of each tempo segment
   const cum: { tick: number; ms: number; us: number }[] = [];
   let ms = 0;
@@ -64,7 +65,10 @@ function tickToMsFn(
   }
   return (tick: number) => {
     let seg = cum[0];
-    for (const c of cum) { if (c.tick <= tick) seg = c; else break; }
+    for (const c of cum) {
+      if (c.tick <= tick) seg = c;
+      else break;
+    }
     return seg.ms + ((tick - seg.tick) * seg.us) / ticksPerBeat / 1000;
   };
 }
@@ -87,7 +91,10 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
 
   // 2. tempo map → tick→ms
   const tempos = all
-    .filter((e) => e.subtype === 'setTempo' && typeof e.microsecondsPerBeat === 'number')
+    .filter(
+      (e) =>
+        e.subtype === "setTempo" && typeof e.microsecondsPerBeat === "number",
+    )
     .map((e) => ({ tick: e.tick, us: e.microsecondsPerBeat as number }));
   const t2ms = tickToMsFn(tempos, ticksPerBeat);
 
@@ -99,27 +106,45 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
 
   for (const e of all) {
     maxTick = Math.max(maxTick, e.tick);
-    if (e.type !== 'channel' || e.channel == null) continue;
-    if (e.subtype === 'noteOn' && e.noteNumber != null) {
-      active.set(`${e.channel}:${e.noteNumber}`, { tick: e.tick, velocity: e.velocity ?? 127 });
-    } else if (e.subtype === 'noteOff' && e.noteNumber != null) {
+    if (e.type !== "channel" || e.channel == null) continue;
+    if (e.subtype === "noteOn" && e.noteNumber != null) {
+      active.set(`${e.channel}:${e.noteNumber}`, {
+        tick: e.tick,
+        velocity: e.velocity ?? 127,
+      });
+    } else if (e.subtype === "noteOff" && e.noteNumber != null) {
       const key = `${e.channel}:${e.noteNumber}`;
       const start = active.get(key);
       if (start != null) {
-        notes.push({ channel: e.channel, note: e.noteNumber, startMs: t2ms(start.tick), endMs: t2ms(e.tick), velocity: start.velocity });
+        notes.push({
+          channel: e.channel,
+          note: e.noteNumber,
+          startMs: t2ms(start.tick),
+          endMs: t2ms(e.tick),
+          velocity: start.velocity,
+        });
         active.delete(key);
       }
-    } else if (e.subtype === 'programChange' && e.programNumber != null) {
-      if (!(e.channel in programByChannel)) programByChannel[e.channel] = e.programNumber;
+    } else if (e.subtype === "programChange" && e.programNumber != null) {
+      if (!(e.channel in programByChannel))
+        programByChannel[e.channel] = e.programNumber;
     }
   }
   // close any notes left hanging at the end of the file
   for (const [key, start] of active) {
-    const [ch, note] = key.split(':').map(Number);
-    notes.push({ channel: ch, note, startMs: t2ms(start.tick), endMs: t2ms(maxTick), velocity: start.velocity });
+    const [ch, note] = key.split(":").map(Number);
+    notes.push({
+      channel: ch,
+      note,
+      startMs: t2ms(start.tick),
+      endMs: t2ms(maxTick),
+      velocity: start.velocity,
+    });
   }
 
-  const channels = [...new Set(notes.map((n) => n.channel))].sort((a, b) => a - b);
+  const channels = [...new Set(notes.map((n) => n.channel))].sort(
+    (a, b) => a - b,
+  );
   const pitches = notes.map((n) => n.note);
   // Song length = the last note's end. NOT t2ms(maxTick): some files pad the
   // track with a huge trailing gap (e.g. 2^28 ticks) long after the music stops.

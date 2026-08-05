@@ -63,9 +63,8 @@ const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
           </div>
         </div>
       </div>
-      <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="coils"
-        :coil-count="coilCount" :output2-mask="output2Mask"
-        :view="previewView" :playhead-ms="playheadMs" :playing="playing" :paused="paused"
+      <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="coils" :coil-count="coilCount"
+        :output2-mask="output2Mask" :view="previewView" :playhead-ms="playheadMs" :playing="playing" :paused="paused"
         :events="events" v-model:edit-param="editParam" :compact="compact" />
     </div>
   </div>

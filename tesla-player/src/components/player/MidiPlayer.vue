@@ -610,8 +610,10 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
 <template>
   <article class="player-panel">
     <header class="player-panel__head">
-      <span class="player-panel__title"><span class="icon"><i class="fas fa-compact-disc"></i></span>{{ $t('title.player') }}</span>
-      <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{ $t('label.synthActive') }}</span>
+      <span class="player-panel__title"><span class="icon"><i class="fas fa-compact-disc"></i></span>{{
+        $t('title.player') }}</span>
+      <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{
+        $t('label.synthActive') }}</span>
       <label v-if="props.showAutoplay" class="switch player-panel__autoplay">
         <input type="checkbox" :checked="midiStore.autoplay" @change="onAutoplayToggle" />
         <span class="switch__track"></span>
@@ -630,8 +632,8 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
 
     <!-- playback progress (click / drag to seek), right under the song title -->
     <div v-if="song" class="player-progress">
-      <div class="player-progress__bar" :class="{ 'is-scrubbing': scrubbing }" ref="seekBar"
-        @pointerdown="onSeekDown" :title="$t('label.seek')">
+      <div class="player-progress__bar" :class="{ 'is-scrubbing': scrubbing }" ref="seekBar" @pointerdown="onSeekDown"
+        :title="$t('label.seek')">
         <div class="player-progress__fill" :style="{ width: seekPct + '%' }"></div>
         <div class="player-progress__knob" :style="{ left: seekPct + '%' }"></div>
       </div>
@@ -667,13 +669,13 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
     <!-- LIVE POWER: a GLOBAL ⇄ ADVANCED toggle. Global = one Power fader (ontime+duty,
          all coils); Advanced = per-coil ontime/duty sliders for fine-tuning. -->
     <power-control-panel v-model:master-power="masterPower" :scope="powerScope" :coil-rows="powerCoilRows"
-      :boost="powerBoost" :dirty="masterDirty" :has-song="!!song"
-      @set-scope="setScope" @power-change="onPowerChange" @coil-input="onCoilInput" @coil-change="applyLive"
-      @reset="resetPower" />
+      :boost="powerBoost" :dirty="masterDirty" :has-song="!!song" @set-scope="setScope" @power-change="onPowerChange"
+      @coil-input="onCoilInput" @coil-change="applyLive" @reset="resetPower" />
 
     <div class="player-transport">
       <button class="btn btn--volt" type="button" :disabled="!canTransport" @click="togglePlayPause">
-        <span class="icon"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></span>{{ isPlaying ? 'Pause' : 'Play' }}
+        <span class="icon"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></span>{{ isPlaying ? 'Pause'
+          : 'Play' }}
       </button>
       <button class="btn" :class="{ 'btn--danger': isPlaying }" type="button" :disabled="!canStop" @click="stop">
         <span class="icon"><i class="fas fa-stop"></i></span>Stop

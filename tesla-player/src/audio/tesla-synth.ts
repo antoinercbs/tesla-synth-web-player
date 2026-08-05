@@ -251,8 +251,12 @@ export class TeslaSynthOutput implements MidiSink {
     if (!Number.isFinite(ms)) return this.ctx.currentTime;
     const ts = this.ctx.getOutputTimestamp?.();
     let when: number;
-    if (ts && typeof ts.contextTime === 'number' && ts.contextTime > 0 &&
-        typeof ts.performanceTime === 'number') {
+    if (
+      ts &&
+      typeof ts.contextTime === "number" &&
+      ts.contextTime > 0 &&
+      typeof ts.performanceTime === "number"
+    ) {
       when = ts.contextTime + (ms - ts.performanceTime) / 1000;
     } else {
       const lat = this.ctx.outputLatency || this.ctx.baseLatency || 0;

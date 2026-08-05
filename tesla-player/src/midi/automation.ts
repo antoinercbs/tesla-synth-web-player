@@ -1,4 +1,4 @@
-import type { CoilEvent, CoilParam } from '@/types/domain';
+import type { CoilEvent, CoilParam } from "@/types/domain";
 
 /**
  * The ratio (multiplier of the coil's configured value, 1 = 100%) in effect for
@@ -15,7 +15,10 @@ export function effectiveRatio(
   let bestAt = -1;
   for (const e of events) {
     if (e.coilIndex !== coilIndex || e.param !== param) continue;
-    if (e.atMs <= atMs && e.atMs > bestAt) { bestAt = e.atMs; ratio = e.value; }
+    if (e.atMs <= atMs && e.atMs > bestAt) {
+      bestAt = e.atMs;
+      ratio = e.value;
+    }
   }
   return ratio;
 }

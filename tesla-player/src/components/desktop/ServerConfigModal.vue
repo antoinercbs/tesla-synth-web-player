@@ -94,14 +94,17 @@ async function signOut(): Promise<void> {
         <template v-else-if="status.enabled">
           <template v-if="status.signedIn">
             <span class="srv-auth__who">
-              <i class="fas fa-circle-check"></i>{{ $t('auth.signedInAs', { name: status.displayName || $t('auth.signedIn') }) }}
+              <i class="fas fa-circle-check"></i>{{ $t('auth.signedInAs', {
+                name: status.displayName ||
+                  $t('auth.signedIn') }) }}
             </span>
             <button class="btn btn--ghost" type="button" @click="signOut">
               <span class="icon"><i class="fas fa-right-from-bracket"></i></span>{{ $t('auth.signOut') }}
             </button>
           </template>
           <template v-else>
-            <span class="srv-auth__req">{{ signingIn ? $t('desktop.signingInBrowser') : $t('desktop.authRequired') }}</span>
+            <span class="srv-auth__req">{{ signingIn ? $t('desktop.signingInBrowser') : $t('desktop.authRequired')
+              }}</span>
             <button class="btn btn--volt" type="button" :disabled="signingIn" @click="signIn">
               <span class="icon"><i class="fas fa-right-to-bracket"></i></span>{{ $t('desktop.signInToServer') }}
             </button>
@@ -121,9 +124,25 @@ async function signOut(): Promise<void> {
 </template>
 
 <style scoped>
-.srv-modal__hint { color: var(--text-mute); font-size: 0.85rem; margin: 0 0 1.1rem; }
-.srv-modal__body { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.2rem; }
-.srv-modal__error { color: var(--danger); font-size: 0.82rem; margin: 0 0 0.8rem; }
+.srv-modal__hint {
+  color: var(--text-mute);
+  font-size: 0.85rem;
+  margin: 0 0 1.1rem;
+}
+
+.srv-modal__body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+
+.srv-modal__error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  margin: 0 0 0.8rem;
+}
+
 .srv-auth {
   display: flex;
   align-items: center;
@@ -134,7 +153,24 @@ async function signOut(): Promise<void> {
   border-radius: 8px;
   background: var(--line-005, rgba(255, 255, 255, 0.03));
 }
-.srv-auth__who { display: flex; align-items: center; gap: 0.45rem; color: var(--volt, #ffd24d); font-size: 0.85rem; }
-.srv-auth__req { color: var(--text-mute); font-size: 0.85rem; flex: 1; }
-.srv-auth__note { color: var(--text-mute); font-size: 0.8rem; margin: 0; }
+
+.srv-auth__who {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--volt, #ffd24d);
+  font-size: 0.85rem;
+}
+
+.srv-auth__req {
+  color: var(--text-mute);
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.srv-auth__note {
+  color: var(--text-mute);
+  font-size: 0.8rem;
+  margin: 0;
+}
 </style>

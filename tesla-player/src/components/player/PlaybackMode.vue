@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
 import { useMidiStore } from '@/stores/midi';
 import MidiPlayer from '@/components/player/MidiPlayer.vue';
 import ResizeHandle from '@/components/ui/ResizeHandle.vue';
@@ -9,7 +8,6 @@ import QueuePanel from '@/components/player/QueuePanel.vue';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import type { Song } from '@/types/domain';
 
-const router = useRouter();
 const midiStore = useMidiStore();
 const player = ref<InstanceType<typeof MidiPlayer> | null>(null);
 const isPlaying = ref(false); // mirrors the player; lets the queue keep chaining
@@ -43,10 +41,6 @@ function saveLeftWidth(): void {
   if (leftWidth.value != null) {
     localStorage.setItem('playLeftWidth', String(leftWidth.value));
   }
-}
-
-function editSong(song: Song): void {
-  router.push({ name: 'edit', params: { id: String(song.id) } });
 }
 
 /* --------------------------------- queue ---------------------------------- */
@@ -193,7 +187,7 @@ function onSongFinished(): void { next(true); }
     <!-- LEFT: source (songs / playlists) + the up-next queue -->
     <div class="playback-left" ref="leftEl" :style="leftStyle">
       <song-playlist-picker :current-id="current?.id ?? null" @play-now="playNow" @enqueue="enqueue"
-        @play-playlist="playPlaylist" @edit="editSong" />
+        @play-playlist="playPlaylist" />
 
       <queue-panel v-if="queue.length > 1" :queue="queue" :order="order" :pos="pos" :current="current"
         :has-prev="hasPrev" :has-next="hasNext" :total-label="queueTotalLabel" :shuffle="shuffle" :repeat="repeat"

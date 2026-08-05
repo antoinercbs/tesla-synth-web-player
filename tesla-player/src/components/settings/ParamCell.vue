@@ -37,8 +37,8 @@ const dirty = computed(
       :placeholder="param.secret ? '••••' : param.writeOnly ? $t('sp.writeOnly') : ''" v-model="model">
 
     <label v-else class="param-cell__box">
-      <input type="number" :min="param.min" :max="param.max" :step="param.step ?? 1"
-        v-model.number="model" :disabled="unread">
+      <input type="number" :min="param.min" :max="param.max" :step="param.step ?? 1" v-model.number="model"
+        :disabled="unread">
       <i v-if="param.unit">{{ param.unit }}</i>
     </label>
 
@@ -47,33 +47,89 @@ const dirty = computed(
 </template>
 
 <style scoped>
-.param-cell { display: inline-flex; align-items: center; gap: 0.35rem; width: 100%; }
-.param-cell__field { width: 100%; }
+.param-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.param-cell__field {
+  width: 100%;
+}
 
 /* number + in-field unit suffix — mirrors the editor's .readout__field */
 .param-cell__box {
-  display: flex; align-items: center; width: 100%;
-  background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm, 8px);
-  padding: 0 0.55rem; transition: 0.15s;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm, 8px);
+  padding: 0 0.55rem;
+  transition: 0.15s;
 }
+
 .param-cell__box input {
-  width: 100%; min-width: 0; background: transparent; border: 0; outline: none;
-  color: var(--text); font-family: var(--font-mono); font-size: 0.88rem; padding: 0.35rem 0;
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  padding: 0.35rem 0;
 }
+
 .param-cell__box i {
-  font-style: normal; flex: 0 0 auto; padding-left: 0.35rem;
-  color: var(--text-mute); font-family: var(--font-mono); font-size: 0.72rem;
+  font-style: normal;
+  flex: 0 0 auto;
+  padding-left: 0.35rem;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
 }
-.param-cell__box:focus-within { border-color: var(--volt); box-shadow: 0 0 0 1px var(--volt-30); }
+
+.param-cell__box:focus-within {
+  border-color: var(--volt);
+  box-shadow: 0 0 0 1px var(--volt-30);
+}
+
 .param-cell.is-dirty .param-cell__box,
-.param-cell.is-dirty .param-cell__field { border-color: var(--volt); box-shadow: 0 0 0 1px var(--volt-30); }
-.param-cell.is-dirty .switch__track { box-shadow: 0 0 0 2px var(--volt-30); }
-.param-cell__ro { font-family: var(--font-mono); font-size: 0.85rem; color: var(--volt); }
+.param-cell.is-dirty .param-cell__field {
+  border-color: var(--volt);
+  box-shadow: 0 0 0 1px var(--volt-30);
+}
+
+.param-cell.is-dirty .switch__track {
+  box-shadow: 0 0 0 2px var(--volt-30);
+}
+
+.param-cell__ro {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--volt);
+}
 
 /* unread — device returned no value: disabled control + orange warning */
-.param-cell__warn { color: var(--warn, #f5a623); font-size: 0.8rem; flex: 0 0 auto; }
+.param-cell__warn {
+  color: var(--warn, #f5a623);
+  font-size: 0.8rem;
+  flex: 0 0 auto;
+}
+
 .param-cell.is-unread .param-cell__box,
-.param-cell.is-unread .param-cell__field { border-color: var(--warn, #f5a623); opacity: 0.5; }
-.param-cell.is-unread .switch { opacity: 0.5; }
-.param-cell.is-unread input { cursor: not-allowed; }
+.param-cell.is-unread .param-cell__field {
+  border-color: var(--warn, #f5a623);
+  opacity: 0.5;
+}
+
+.param-cell.is-unread .switch {
+  opacity: 0.5;
+}
+
+.param-cell.is-unread input {
+  cursor: not-allowed;
+}
 </style>

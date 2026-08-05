@@ -312,6 +312,7 @@
     flex: 0 0 auto;
     font-size: 0.62rem;
     opacity: 0.8;
+    margin-top: 2px;
 }
 
 .sidebar-credits__text {
@@ -521,6 +522,7 @@
         flex-direction: row;
         width: 100%;
         justify-content: space-around;
+        margin-bottom: 0;
     }
     .nav > span {
         display: none;

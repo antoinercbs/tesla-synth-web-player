@@ -101,8 +101,8 @@ function fmtSize(bytes?: number): string {
     <p v-else-if="failed || !targets.length" class="dl-modal__note">{{ $t('desktop.noBuild') }}</p>
 
     <div v-else class="dl-modal__options">
-      <button v-for="t in targets" :key="t.os" type="button" class="dl-option"
-        :disabled="busy !== null" @click="download(t)">
+      <button v-for="t in targets" :key="t.os" type="button" class="dl-option" :disabled="busy !== null"
+        @click="download(t)">
         <span class="dl-option__icon"><i :class="osIcon(t.os)"></i></span>
         <span class="dl-option__label">{{ $t('desktop.' + t.os) }}</span>
         <span class="dl-option__size">{{ fmtSize(t.size) }}</span>
@@ -120,20 +120,74 @@ function fmtSize(bytes?: number): string {
 </template>
 
 <style scoped>
-.dl-modal__hint { color: var(--text-mute); font-size: 0.85rem; margin: 0 0 1.1rem; }
-.dl-modal__note { color: var(--text-mute); display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0 1rem; }
-.dl-modal__note--err { color: var(--danger, #ff6b6b); }
-.dl-modal__options { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.2rem; }
-.dl-option {
-  display: flex; align-items: center; gap: 0.7rem; width: 100%;
-  padding: 0.7rem 0.9rem; border-radius: 8px; text-decoration: none;
-  font: inherit; text-align: left; cursor: pointer;
-  background: rgba(255, 255, 255, 0.04); border: 1px solid var(--line); color: var(--text);
+.dl-modal__hint {
+  color: var(--text-mute);
+  font-size: 0.85rem;
+  margin: 0 0 1.1rem;
 }
-.dl-option:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); border-color: var(--volt); }
-.dl-option:disabled { opacity: 0.6; cursor: default; }
-.dl-option__icon { font-size: 1.25rem; width: 1.6rem; text-align: center; }
-.dl-option__label { flex: 1 1 auto; }
-.dl-option__size { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-mute); }
-.dl-option__go { color: var(--text-mute); }
+
+.dl-modal__note {
+  color: var(--text-mute);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0 1rem;
+}
+
+.dl-modal__note--err {
+  color: var(--danger, #ff6b6b);
+}
+
+.dl-modal__options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 1.2rem;
+}
+
+.dl-option {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  color: var(--text);
+}
+
+.dl-option:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--volt);
+}
+
+.dl-option:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.dl-option__icon {
+  font-size: 1.25rem;
+  width: 1.6rem;
+  text-align: center;
+}
+
+.dl-option__label {
+  flex: 1 1 auto;
+}
+
+.dl-option__size {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-mute);
+}
+
+.dl-option__go {
+  color: var(--text-mute);
+}
 </style>

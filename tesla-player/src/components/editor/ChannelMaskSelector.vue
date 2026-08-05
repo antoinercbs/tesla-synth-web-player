@@ -31,17 +31,10 @@ function toggle(channel: number): void {
 
 <template>
   <div class="chan-grid" role="group" :aria-label="label">
-    <button
-      v-for="i in MIDI_CHANNEL_COUNT"
-      :key="i - 1"
-      type="button"
-      class="chan-cell"
+    <button v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" type="button" class="chan-cell"
       :class="{ 'is-on': isOn(i - 1), 'is-unavail': !available(i - 1) }"
-      :style="isOn(i - 1) ? { '--cell': color } : undefined"
-      :aria-pressed="isOn(i - 1)"
-      :disabled="!available(i - 1)"
-      @click="toggle(i - 1)"
-    >
+      :style="isOn(i - 1) ? { '--cell': color } : undefined" :aria-pressed="isOn(i - 1)" :disabled="!available(i - 1)"
+      @click="toggle(i - 1)">
       {{ i - 1 }}
     </button>
   </div>

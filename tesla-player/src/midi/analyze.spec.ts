@@ -1,18 +1,54 @@
-import { describe, it, expect } from 'vitest';
-import { analyzeMidi } from './analyze';
+import { describe, it, expect } from "vitest";
+import { analyzeMidi } from "./analyze";
 
-describe('analyzeMidi', () => {
-  it('pairs notes and converts ticks→ms at the default tempo (120 BPM)', () => {
+describe("analyzeMidi", () => {
+  it("pairs notes and converts ticks→ms at the default tempo (120 BPM)", () => {
     // 480 ticks/beat, default 500000 µs/beat → 1 beat = 500 ms
     const parsed = {
       header: { ticksPerBeat: 480 },
-      tracks: [[
-        { deltaTime: 0, type: 'channel', subtype: 'programChange', channel: 0, programNumber: 5 },
-        { deltaTime: 0, type: 'channel', subtype: 'noteOn', channel: 0, noteNumber: 60, velocity: 100 },
-        { deltaTime: 480, type: 'channel', subtype: 'noteOff', channel: 0, noteNumber: 60, velocity: 0 },
-        { deltaTime: 0, type: 'channel', subtype: 'noteOn', channel: 1, noteNumber: 64, velocity: 100 },
-        { deltaTime: 240, type: 'channel', subtype: 'noteOff', channel: 1, noteNumber: 64, velocity: 0 },
-      ]],
+      tracks: [
+        [
+          {
+            deltaTime: 0,
+            type: "channel",
+            subtype: "programChange",
+            channel: 0,
+            programNumber: 5,
+          },
+          {
+            deltaTime: 0,
+            type: "channel",
+            subtype: "noteOn",
+            channel: 0,
+            noteNumber: 60,
+            velocity: 100,
+          },
+          {
+            deltaTime: 480,
+            type: "channel",
+            subtype: "noteOff",
+            channel: 0,
+            noteNumber: 60,
+            velocity: 0,
+          },
+          {
+            deltaTime: 0,
+            type: "channel",
+            subtype: "noteOn",
+            channel: 1,
+            noteNumber: 64,
+            velocity: 100,
+          },
+          {
+            deltaTime: 240,
+            type: "channel",
+            subtype: "noteOff",
+            channel: 1,
+            noteNumber: 64,
+            velocity: 0,
+          },
+        ],
+      ],
     };
     const a = analyzeMidi(parsed);
     expect(a.notes.length).toBe(2);
@@ -28,27 +64,57 @@ describe('analyzeMidi', () => {
     expect(a.durationMs).toBeCloseTo(750, 3);
   });
 
-  it('honours a setTempo event', () => {
+  it("honours a setTempo event", () => {
     // 1,000,000 µs/beat = 60 BPM → 1 beat = 1000 ms
     const parsed = {
       header: { ticksPerBeat: 480 },
-      tracks: [[
-        { deltaTime: 0, type: 'meta', subtype: 'setTempo', microsecondsPerBeat: 1000000 },
-        { deltaTime: 0, type: 'channel', subtype: 'noteOn', channel: 0, noteNumber: 60, velocity: 100 },
-        { deltaTime: 480, type: 'channel', subtype: 'noteOff', channel: 0, noteNumber: 60, velocity: 0 },
-      ]],
+      tracks: [
+        [
+          {
+            deltaTime: 0,
+            type: "meta",
+            subtype: "setTempo",
+            microsecondsPerBeat: 1000000,
+          },
+          {
+            deltaTime: 0,
+            type: "channel",
+            subtype: "noteOn",
+            channel: 0,
+            noteNumber: 60,
+            velocity: 100,
+          },
+          {
+            deltaTime: 480,
+            type: "channel",
+            subtype: "noteOff",
+            channel: 0,
+            noteNumber: 60,
+            velocity: 0,
+          },
+        ],
+      ],
     };
     const a = analyzeMidi(parsed);
     expect(a.notes[0].endMs).toBeCloseTo(1000, 3);
   });
 
-  it('closes notes left hanging at end of file', () => {
+  it("closes notes left hanging at end of file", () => {
     const parsed = {
       header: { ticksPerBeat: 480 },
-      tracks: [[
-        { deltaTime: 0, type: 'channel', subtype: 'noteOn', channel: 0, noteNumber: 60, velocity: 100 },
-        { deltaTime: 480, type: 'meta', subtype: 'endOfTrack' },
-      ]],
+      tracks: [
+        [
+          {
+            deltaTime: 0,
+            type: "channel",
+            subtype: "noteOn",
+            channel: 0,
+            noteNumber: 60,
+            velocity: 100,
+          },
+          { deltaTime: 480, type: "meta", subtype: "endOfTrack" },
+        ],
+      ],
     };
     const a = analyzeMidi(parsed);
     expect(a.notes.length).toBe(1);

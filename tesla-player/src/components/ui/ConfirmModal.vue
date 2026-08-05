@@ -12,8 +12,8 @@ const emit = defineEmits<{ (e: 'confirm'): void; (e: 'close'): void }>();
 </script>
 
 <template>
-  <BaseModal :open="open" :title="title" icon="fa-triangle-exclamation"
-    card-class="modal-card--confirm" :close-label="cancelLabel" @close="emit('close')">
+  <BaseModal :open="open" :title="title" icon="fa-triangle-exclamation" card-class="modal-card--confirm"
+    :close-label="cancelLabel" @close="emit('close')">
     <p class="confirm-modal__msg">{{ message }}</p>
     <template #actions>
       <button class="btn btn--ghost" type="button" @click="emit('close')">{{ cancelLabel }}</button>
@@ -23,5 +23,9 @@ const emit = defineEmits<{ (e: 'confirm'): void; (e: 'close'): void }>();
 </template>
 
 <style scoped>
-.confirm-modal__msg { color: var(--text-dim); margin: 0 0 1.4rem; line-height: 1.5; }
+.confirm-modal__msg {
+  color: var(--text-dim);
+  margin: 0 0 1.4rem;
+  line-height: 1.5;
+}
 </style>

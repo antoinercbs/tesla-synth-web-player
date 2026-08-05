@@ -209,7 +209,8 @@ onBeforeUnmount(() => {
         <span class="live-dot"></span>{{ running ? $t('label.liveRunning') : $t('label.liveStopped') }}
       </div>
 
-      <button class="btn" :class="running ? 'btn--danger' : 'btn--volt'" type="button" :disabled="!canRun" @click="toggle">
+      <button class="btn" :class="running ? 'btn--danger' : 'btn--volt'" type="button" :disabled="!canRun"
+        @click="toggle">
         <span class="icon"><i class="fas" :class="running ? 'fa-stop' : 'fa-play'"></i></span>
         {{ running ? $t('label.stop') : $t('label.start') }}
       </button>
@@ -227,7 +228,8 @@ onBeforeUnmount(() => {
       <div class="vu">
         <div class="vu__head">
           <span class="vu__label">{{ $t('label.channels') }}</span>
-          <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{ $t('label.synthActive') }}</span>
+          <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{
+            $t('label.synthActive') }}</span>
         </div>
         <div class="vu-strip">
           <div v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" class="vu-chan">
@@ -259,52 +261,132 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
-.live { display: flex; flex-direction: column; gap: 1.2rem; }
+.live {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
 /* the hint lives INSIDE the control-bar card, full-width on its own line */
-.live-bar__hint { flex: 1 1 100%; margin: 0.2rem 0 0; }
+.live-bar__hint {
+  flex: 1 1 100%;
+  margin: 0.2rem 0 0;
+}
 
 /* control bar */
 .live-bar {
-  display: flex; align-items: flex-end; gap: 1.1rem; flex-wrap: wrap;
+  display: flex;
+  align-items: flex-end;
+  gap: 1.1rem;
+  flex-wrap: wrap;
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1rem 1.2rem;
 }
-.live-bar__field { display: flex; flex-direction: column; gap: 0.35rem; flex: 1 1 16rem; min-width: 0; }
-.live-bar__field .select-field { width: 100%; }
-.live-bar__warn { color: var(--coil-1); font-family: var(--font-mono); font-size: 0.78rem; }
+
+.live-bar__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.live-bar__field .select-field {
+  width: 100%;
+}
+
+.live-bar__warn {
+  color: var(--coil-1);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+}
+
 .live-bar__status {
-  display: inline-flex; align-items: center; gap: 0.45rem;
-  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em;
-  font-size: 0.78rem; color: var(--text-mute); padding-bottom: 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.78rem;
+  color: var(--text-mute);
+  padding-bottom: 0.55rem;
 }
-.live-bar__status.is-live { color: var(--volt); }
+
+.live-bar__status.is-live {
+  color: var(--volt);
+}
+
 .live-dot {
-  width: 0.7rem; height: 0.7rem; border-radius: 50%;
-  background: var(--text-mute); transition: 0.2s;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--text-mute);
+  transition: 0.2s;
 }
+
 .live-bar__status.is-live .live-dot {
-  background: var(--volt); box-shadow: 0 0 10px var(--volt);
+  background: var(--volt);
+  box-shadow: 0 0 10px var(--volt);
   animation: live-pulse 1.4s ease-in-out infinite;
 }
-@keyframes live-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+@keyframes live-pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
 
 /* monitor */
 .live-monitor {
   background: linear-gradient(180deg, var(--panel-2), var(--panel));
-  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
 }
-.vu__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
-.vu__head .vu__label { margin-bottom: 0; }
+
+.vu__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.vu__head .vu__label {
+  margin-bottom: 0;
+}
 
 /* coil mapping section */
 .live-section__head {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  margin-bottom: 1rem; flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
+
 .live-section__title {
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.07em;
-  font-size: 0.9rem; color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  font-size: 0.9rem;
+  color: var(--text);
 }
-.live-section__title .icon { color: var(--volt); }
+
+.live-section__title .icon {
+  color: var(--volt);
+}
 </style>

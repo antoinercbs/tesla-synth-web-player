@@ -42,7 +42,8 @@ function inputValue(e: Event): number {
 <template>
   <div class="player-power">
     <div class="power-head">
-      <span class="power-head__key"><span class="icon"><i class="fas fa-gauge-high"></i></span>{{ $t('label.power') }}</span>
+      <span class="power-head__key"><span class="icon"><i class="fas fa-gauge-high"></i></span>{{ $t('label.power')
+        }}</span>
       <segmented-control class="power-scope" :model-value="scope" @update:model-value="emit('set-scope', $event)"
         :options="[
           { value: 'global', label: $t('label.scopeGlobal') },

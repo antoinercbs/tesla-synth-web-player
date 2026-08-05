@@ -33,22 +33,64 @@ const emit = defineEmits<{ (e: 'info', param: SynthParam): void }>();
 
 <style scoped>
 .param-row {
-  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0.6rem;
-  padding: 0.4rem 0.55rem; border: 1px solid var(--line); border-radius: var(--radius-sm, 9px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm, 9px);
   background: var(--line-005);
 }
-.param-row.is-ro { opacity: 0.85; }
+
+.param-row.is-ro {
+  opacity: 0.85;
+}
+
 .param-row__label {
-  display: inline-flex; align-items: center; gap: 0.4rem; min-width: 0;
-  font-size: 0.82rem; color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.82rem;
+  color: var(--text);
 }
-.param-row__flag { color: var(--text-mute); font-size: 0.72rem; }
-.param-row__flag.is-safety { color: var(--danger); }
+
+.param-row__flag {
+  color: var(--text-mute);
+  font-size: 0.72rem;
+}
+
+.param-row__flag.is-safety {
+  color: var(--danger);
+}
+
 .param-row__info {
-  border: 0; background: transparent; cursor: pointer; color: var(--text-mute);
-  padding: 0; margin-left: 0.15rem; font-size: 0.78rem; line-height: 1; flex: 0 0 auto;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-mute);
+  padding: 0;
+  margin-left: 0.15rem;
+  font-size: 0.78rem;
+  line-height: 1;
+  flex: 0 0 auto;
 }
-.param-row__info:hover { color: var(--volt); }
-.param-row__control { display: inline-flex; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
-.param-row__control .param-cell { width: 7rem; } /* numeric + unit suffix in the card */
+
+.param-row__info:hover {
+  color: var(--volt);
+}
+
+.param-row__control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex: 0 0 auto;
+}
+
+.param-row__control .param-cell {
+  width: 7rem;
+}
+
+/* numeric + unit suffix in the card */
 </style>

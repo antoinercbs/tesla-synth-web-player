@@ -81,8 +81,8 @@ async function save(): Promise<void> {
 </script>
 
 <template>
-  <BaseModal :open="open" :title="$t('title.editInstruments')" icon="fa-guitar"
-    card-class="modal-card--instruments" :close-label="$t('label.cancel')" @close="emit('close')">
+  <BaseModal :open="open" :title="$t('title.editInstruments')" icon="fa-guitar" card-class="modal-card--instruments"
+    :close-label="$t('label.cancel')" @close="emit('close')">
     <p v-if="file" class="instr-file"><i class="fas fa-file-audio"></i> {{ file.name }}</p>
 
     <p class="instr-warning" role="alert">
@@ -97,7 +97,8 @@ async function save(): Promise<void> {
       </div>
       <div v-else-if="rows.length === 0" class="instr-state">{{ $t('label.noChannelsInFile') }}</div>
       <div v-else class="instr-list">
-        <div v-for="row in rows" :key="row.channel" class="instr-row" :class="{ 'is-changed': row.current !== row.original }">
+        <div v-for="row in rows" :key="row.channel" class="instr-row"
+          :class="{ 'is-changed': row.current !== row.original }">
           <span class="instr-row__ch">{{ $t('label.channel') }} {{ row.channel }}</span>
           <span class="instr-row__icon"><i class="fas" :class="envelopeIcon(row.current)"></i></span>
           <div class="select-field instr-row__select">
@@ -120,26 +121,93 @@ async function save(): Promise<void> {
 
 <style scoped>
 .instr-file {
-  margin: -0.4rem 0 0.8rem; font-family: var(--font-mono); font-size: 0.82rem; color: var(--text);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  margin: -0.4rem 0 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.instr-file i { color: var(--volt); margin-right: 0.35rem; }
+
+.instr-file i {
+  color: var(--volt);
+  margin-right: 0.35rem;
+}
+
 .instr-warning {
-  display: flex; align-items: center; gap: 0.5rem; margin: 0 0 1rem; padding: 0.6rem 0.8rem;
-  border: 1px solid var(--danger); border-radius: 8px; background: rgba(255, 90, 90, 0.08);
-  color: var(--text); font-size: 0.8rem; line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  background: rgba(255, 90, 90, 0.08);
+  color: var(--text);
+  font-size: 0.8rem;
+  line-height: 1.4;
 }
-.instr-warning .icon { color: var(--danger); flex: 0 0 auto; margin-top: 0.05rem; }
-.instr-body { max-height: 46vh; overflow-y: auto; }
-.instr-state { padding: 1.4rem; text-align: center; color: var(--text-mute); font-family: var(--font-mono); font-size: 0.85rem; }
-.instr-state.is-error { color: var(--danger); }
-.instr-list { display: flex; flex-direction: column; gap: 0.45rem; }
+
+.instr-warning .icon {
+  color: var(--danger);
+  flex: 0 0 auto;
+  margin-top: 0.05rem;
+}
+
+.instr-body {
+  max-height: 46vh;
+  overflow-y: auto;
+}
+
+.instr-state {
+  padding: 1.4rem;
+  text-align: center;
+  color: var(--text-mute);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.instr-state.is-error {
+  color: var(--danger);
+}
+
+.instr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
 .instr-row {
-  display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 0.6rem;
-  padding: 0.4rem 0.5rem; border: 1px solid var(--line); border-radius: 8px;
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.5rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
 }
-.instr-row.is-changed { border-color: var(--volt); background: var(--volt-05); }
-.instr-row__ch { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text-dim); white-space: nowrap; }
-.instr-row__icon { color: var(--volt); width: 1.1rem; text-align: center; }
-.instr-row__select select { width: 100%; }
+
+.instr-row.is-changed {
+  border-color: var(--volt);
+  background: var(--volt-05);
+}
+
+.instr-row__ch {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.instr-row__icon {
+  color: var(--volt);
+  width: 1.1rem;
+  text-align: center;
+}
+
+.instr-row__select select {
+  width: 100%;
+}
 </style>

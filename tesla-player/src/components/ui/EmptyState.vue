@@ -11,11 +11,14 @@ withDefaults(
 
 <template>
   <p v-if="variant === 'hint'" class="player-hint">
-    <span class="icon"><i class="fas" :class="icon"></i></span><slot></slot>
+    <span class="icon"><i class="fas" :class="icon"></i></span>
+    <slot></slot>
   </p>
   <div v-else class="empty-stub">
     <span class="empty-stub__icon"><i class="fas" :class="icon"></i></span>
-    <div><slot></slot></div>
+    <div>
+      <slot></slot>
+    </div>
   </div>
 </template>
 
@@ -32,5 +35,10 @@ withDefaults(
   text-align: center;
   padding: 2rem;
 }
-.empty-stub__icon { font-size: 2rem; color: var(--volt); opacity: 0.5; }
+
+.empty-stub__icon {
+  font-size: 2rem;
+  color: var(--volt);
+  opacity: 0.5;
+}
 </style>

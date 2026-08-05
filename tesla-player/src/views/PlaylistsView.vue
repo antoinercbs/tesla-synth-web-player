@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import { RouterLink, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import SearchableSelect from '@/components/ui/SearchableSelect.vue';
@@ -29,11 +29,30 @@ function loadPlaylists(): void {
       ...p,
       songIds: (p.songIds ?? []).filter((id) => id != null),
     }));
+    checkValidId();
   });
 }
 loadPlaylists();
 // Re-read after a desktop sync may have changed playlists locally.
 watch(() => midiStore.dataRevision, loadPlaylists);
+
+function checkValidId(): void {
+  const id = routeId.value;
+  console.log(id)
+  if (!id || id === 'new') return;
+  console.log("a", playlists)
+  if (playlists.value.length === 0) return;
+  console.log("b", id)
+  const exists = playlists.value.some((x) => x.id === Number(id));
+  console.log("c", exists)
+  if (!exists) {
+    router.replace({ name: 'playlists', params: {} });
+  }
+}
+
+watch(routeId, () => {
+  checkValidId();
+});
 
 // picking in the chooser navigates to the editor (getter stays null so it resets)
 const chooserPick = computed<number | null>({
@@ -41,7 +60,6 @@ const chooserPick = computed<number | null>({
   set: (id) => { if (id != null) router.push({ name: 'playlists', params: { id: String(id) } }); },
 });
 function newPlaylist(): void { router.push({ name: 'playlists', params: { id: 'new' } }); }
-function close(): void { router.push({ name: 'playlists', params: {} }); }
 
 function onSaved(p: Playlist): void {
   const i = playlists.value.findIndex((x) => x.id === p.id);
@@ -99,10 +117,10 @@ onBeforeUnmount(() => {
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}</h1>
-      <button class="icon-btn" type="button" :title="$t('label.closeEditor')" :aria-label="$t('label.closeEditor')"
-        @click="close">
+      <RouterLink class="icon-btn" :to="{ name: 'playlists', params: {} }" :title="$t('label.closeEditor')"
+        :aria-label="$t('label.closeEditor')">
         <i class="fas fa-xmark"></i>
-      </button>
+      </RouterLink>
     </header>
     <div class="screen-body screen-body--fill">
       <playlist-manager :playlists="playlists" :playlist-id="routeId ?? null" @saved="onSaved" @deleted="onDeleted" />

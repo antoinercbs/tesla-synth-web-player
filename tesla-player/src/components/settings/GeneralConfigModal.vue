@@ -88,8 +88,7 @@ const shownCount = computed(() => draft.defaultCoilCount);
 
           <div v-for="(tag, i) in draft.tags" :key="tag.id ?? i" class="cfg-name-row">
             <input class="cfg-tag-color" type="color" v-model="tag.color" :title="$t('label.tagColor')">
-            <input class="text-field" type="text" v-model="tag.name"
-              :placeholder="$t('label.tagName')" maxlength="24">
+            <input class="text-field" type="text" v-model="tag.name" :placeholder="$t('label.tagName')" maxlength="24">
             <button class="cfg-tag-del" type="button" :title="$t('label.delete')" @click="removeTag(i)">
               <i class="fas fa-trash"></i>
             </button>
@@ -111,42 +110,96 @@ const shownCount = computed(() => draft.defaultCoilCount);
 </template>
 
 <style scoped>
-.cfg-modal__body { display: flex; flex-direction: column; align-items: stretch; gap: 1.3rem; overflow-y: auto; }
-.cfg-field { display: flex; flex-direction: column; align-items: stretch; gap: 0.55rem; }
+.cfg-modal__body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1.3rem;
+  overflow-y: auto;
+}
+
+.cfg-field {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+}
+
 .field-label {
-  align-self: flex-start; text-align: left;
-  font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase;
-  letter-spacing: 0.07em; color: var(--text-mute);
+  align-self: flex-start;
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-mute);
 }
-.cfg-names { display: flex; flex-direction: column; gap: 0.5rem; }
-.cfg-name-row { display: flex; align-items: center; gap: 0.6rem; }
+
+.cfg-names {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.cfg-name-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
 .cfg-name-dot {
-  width: 0.7rem; height: 0.7rem; border-radius: 50%; flex: 0 0 auto;
-  background: var(--c); box-shadow: 0 0 8px -1px var(--c);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--c);
+  box-shadow: 0 0 8px -1px var(--c);
 }
-.cfg-name-idx { font-family: var(--font-mono); color: var(--text-mute); width: 1rem; text-align: center; flex: 0 0 auto; }
-.cfg-name-row .text-field { flex: 1 1 auto; min-width: 0; }
+
+.cfg-name-idx {
+  font-family: var(--font-mono);
+  color: var(--text-mute);
+  width: 1rem;
+  text-align: center;
+  flex: 0 0 auto;
+}
+
+.cfg-name-row .text-field {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
 .cfg-empty-tags {
   font-size: 0.85rem;
   color: var(--text-mute);
   font-style: italic;
   padding: 0.2rem 0;
 }
+
 .cfg-add-tag {
   align-self: flex-start;
   margin-top: 0.2rem;
+  margin-bottom: 1px;
   font-size: 0.8rem;
   padding: 0.4rem 0.6rem;
 }
+
 .cfg-tag-del {
-  background: none; border: none; color: var(--text-dim);
-  cursor: pointer; padding: 0.4rem; border-radius: 4px;
-  transition: 0.15s; font-size: 0.9rem;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 4px;
+  transition: 0.15s;
+  font-size: 0.9rem;
 }
+
 .cfg-tag-del:hover {
   color: var(--danger, #ff4d62);
   background: rgba(255, 77, 98, 0.12);
 }
+
 .cfg-tag-color {
   appearance: none;
   -webkit-appearance: none;
@@ -159,9 +212,11 @@ const shownCount = computed(() => draft.defaultCoilCount);
   background: none;
   flex: 0 0 auto;
 }
+
 .cfg-tag-color::-webkit-color-swatch-wrapper {
   padding: 0;
 }
+
 .cfg-tag-color::-webkit-color-swatch {
   border: none;
   border-radius: 50%;
