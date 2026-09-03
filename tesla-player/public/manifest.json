@@ -1,0 +1,29 @@
+{
+    "id": "com.teslasynth.player",
+    "name": "Tesla Synth Web Player",
+    "short_name": "Tesla Player",
+    "description": "Lecteur et éditeur MIDI en direct pour bobines Tesla.",
+    "display": "standalone",
+    "display_override": [
+        "window-controls-overlay",
+        "minimal-ui"
+    ],
+    "orientation": "any",
+    "theme_color": "#131c28",
+    "background_color": "#080b11",
+    "dir": "ltr",
+    "lang": "fr-FR",
+    "categories": [
+        "music",
+        "entertainment",
+        "utilities"
+    ],
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "200x200",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ]
+}
