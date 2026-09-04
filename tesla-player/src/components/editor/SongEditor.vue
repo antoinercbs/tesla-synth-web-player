@@ -187,6 +187,7 @@ function bufferToString(buffer: ArrayBuffer): string {
   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
   try { return decodeURIComponent(escape(binary)); } catch { return binary; }
 }
+
 async function refreshPreview(bust = false): Promise<void> {
   const file = midiStore.midiFileList.find((f) => f.id === draft.midiFileId);
   if (!file) { analysis.value = null; return; }

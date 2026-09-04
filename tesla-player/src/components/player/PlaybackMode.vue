@@ -83,9 +83,9 @@ function rebuildOrder(startQueueIdx: number): void {
 // Activate the current item. It PLAYS when autoplay is on, OR something is
 // already playing (navigating an active queue). Otherwise it just LOADS (cues)
 // the track — so with autoplay off the next song is queued up but waits for Play.
-function playCurrent(): void {
+function playCurrent(noAutoPlay = false): void {
   if (!current.value) return;
-  if (midiStore.autoplay || isPlaying.value) player.value?.playSong(current.value);
+  if ((midiStore.autoplay || isPlaying.value) && !noAutoPlay) player.value?.playSong(current.value);
   else player.value?.loadSong(current.value);
 }
 
@@ -104,7 +104,8 @@ function pushToOrder(newQueueIdx: number): void {
 function playNow(song: Song): void {
   queue.value = [song];
   rebuildOrder(0);
-  playCurrent();
+  playCurrent(true);
+  console.log("Play without autoplay")
 }
 function playPlaylist(songs: Song[]): void {
   if (!songs.length) return;

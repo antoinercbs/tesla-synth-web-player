@@ -52,18 +52,25 @@ function pickFile(): void {
     fileInput.value?.click();
 }
 function onFileChosen(e: Event): void {
-    const f = (e.target as HTMLInputElement).files?.[0];
-    if (f) uploadOne(f);
+    const files = (e.target as HTMLInputElement).files;
+    if (files) uploadMultiple(files)
 }
 function onDrop(e: DragEvent): void {
     dragActive.value = false;
-    const f = e.dataTransfer?.files?.[0];
-    if (f) uploadOne(f);
+    const files = e.dataTransfer?.files;
+    if (files) uploadMultiple(files)
 }
 function triggerReplace(f: MidiFile): void {
     targetReplaceId.value = f.id;
     replaceInput.value?.click();
 }
+
+async function uploadMultiple(files: FileList): Promise<void> {
+    for (var i = 0, len = files.length; i < len; i++) {
+        uploadOne(files[i])
+    };
+}
+
 async function uploadOne(file: File): Promise<void> {
     uploading.value = true;
     uploadMsg.value = null;
