@@ -4,6 +4,7 @@ import {
   envelopeReleaseMs,
   programSteps,
 } from "@/sysex/envelopes";
+import { pitchGain, pulseCoefficients } from "@/audio/tesla-impulse";
 
 /**
  * The subset of a MIDI output the app drives. Both a real WebMidi `Output` and
@@ -22,32 +23,23 @@ export interface MidiSink {
 
 export const SYNTH_OUTPUT_ID = "__synth__";
 
-// A musical Tesla coil's pitch IS the pulse-repetition frequency: each note is a
-// periodic impulse train, i.e. a NARROW-DUTY pulse wave. Verified against a real
-// recording ("3 Tesla coils - Megalovania", spectral analysis): all harmonics
-// present (even+odd), ~-6 dB/oct slope, SHARP sinc nulls, ~tonal (flatness 8e-4,
-// so NO noise / NO heavy distortion — that would add inharmonic content the real
-// coil doesn't have). Each note is one band-limited pulse via a per-note
-// PeriodicWave, which Web Audio synthesises with ZERO aliasing (only harmonics
-// below Nyquist) — strictly more faithful than a PolyBLEP worklet (~-33 dB alias).
+// A musical Tesla coil's pitch IS the pulse-repetition frequency: each note is ONE acoustic
+// impulse repeated at f0, so its harmonics sample the impulse spectrum |P(k·f0)|. That
+// impulse — measured on the club's three coils, see `tesla-impulse.ts` — is a doublet
+// (ignition click, extinction click ≈214 µs later) whose spectrum rises +6 dB/oct up to
+// ~2.3 kHz and is notched at ~4.7 kHz: bass notes have almost no fundamental and buzz, high
+// notes carry their energy on the 2nd/3rd harmonic. Each note is one band-limited waveform
+// via a per-note PeriodicWave (only harmonics below Nyquist → ZERO aliasing), which Web Audio
+// peak-normalises: the SAME bang at every pitch, exactly what the recordings show (constant
+// impulse, RMS growing with pitch). The electrical SysEx ontime/duty drive only loudness.
 //
-// KEY measured fact: the acoustic impulse has a roughly FIXED DURATION (strike
-// τ≈230 µs), so the audio duty SCALES with pitch: dBody = BODY_SEC·f0. The first
-// sinc null then sits at ~1/τ ≈ 4.3 kHz regardless of pitch (matching the measured
-// centroid). Low notes are narrow/buzzy, high notes fuller. This audio duty is
-// DISTINCT from the electrical SysEx duty (the free ring-down outlives the ontime);
-// the electrical duty drives only loudness, never the pulse width.
+// Texture: the recordings are ~85% tonal in the mids but the bangs are not identical — the
+// inter-harmonic floor sits ~10 dB under the harmonics — so each voice's amplitude is
+// modulated by low-passed noise (bandwidth ≈ f0/2 → one random gain per bang), on top of a
+// slow mean-reverting flicker (streamer sputter). No additive noise: the pulse stays tonal.
 const PULSE_HARMONICS_MAX = 256;
-const BODY_SEC = 0.000231; // acoustic impulse extent (s); dBody = BODY_SEC·f0
-const D_MIN = 0.04,
-  D_MAX = 0.26; // clamp on the audio duty (≈B2..C6)
 const PITCH_JITTER = 0.0007; // ±0.07% per-voice static PRF detune (measured 0.067%)
 const ATTACK_MIN_S = 0.0012; // gate ramp floor — measured real attack ≈1.1 ms (snappy, not a click)
-const FILTER_HZ = 9000; // per-voice low-pass — tames the over-clean upper sinc lobes (real D4/A4
-// roll off hard above ~4-5 kHz) while keeping the buzz
-const FORMANT_HZ = 2600,
-  FORMANT_DB = 2.5,
-  FORMANT_Q = 0.9; // gentle measured ~2.5 kHz body resonance
 const REVERB_WET = 0.12; // light room send (dry coil + a touch of space)
 // arc flicker: a real coil's streamer sputters → the sustain shimmers in amplitude (the
 // recording is far from a flat tone). A bounded mean-reverting random walk on a per-voice
@@ -55,6 +47,15 @@ const REVERB_WET = 0.12; // light room send (dry coil + a touch of space)
 const FLICKER_DEPTH = 0.18,
   FLICKER_STEP_MS = 38,
   FLICKER_HORIZON_S = 2.2;
+// bang-to-bang amplitude jitter: white noise low-passed at ~f0/2 (one random value per bang),
+// scaled to an RMS of JITTER_SIGMA around 1 → inter-harmonic floor ≈ 20·log10(σ) ≈ −12 dB.
+const JITTER_SIGMA = 0.25;
+const JITTER_LP_MIN_HZ = 25;
+const NOISE_SECONDS = 2;
+const NOISE_RMS = 1 / Math.sqrt(3); // uniform [-1, 1]
+// the doublet waveform has a higher crest factor than the old rectangular pulse (RMS ≈ 3 dB
+// lower at the same peak) → a bit more master gain to keep the same loudness.
+const MASTER_GAIN = 0.42;
 
 interface Stamped {
   when: number;
@@ -69,8 +70,10 @@ interface Voice {
   source: OscillatorNode;
   env: GainNode; // envelope shape × velocity (can exceed 1 on attack)
   flick: GainNode; // arc-flicker amplitude shimmer (per-voice random walk)
-  loud: GainNode; // coil energy (re-modulated live by ontime/duty automation)
-  filter: BiquadFilterNode;
+  jitter: GainNode; // bang-to-bang amplitude jitter (1 ± σ, driven by low-passed noise)
+  jitterLp: BiquadFilterNode;
+  jitterAmt: GainNode;
+  loud: GainNode; // coil energy × pitch gain (re-modulated live by ontime/duty automation)
   ch: number;
   program: number;
   velScale: number;
@@ -86,10 +89,10 @@ function noteHz(note: number): number {
 
 /**
  * A Web-Audio "MIDI output" emulating Tesla-coil sound. Per note: one band-limited
- * pulse oscillator (a per-note PeriodicWave, pitch-scaled duty, zero aliasing) through
- * an open/bright low-pass, gated by the channel's Syntherrupter envelope (the VCA),
- * into a bus with a gentle body formant and a light reverb send. Loudness follows the
- * coil's ontime/duty tracked from the SysEx stream.
+ * impulse-train oscillator (a per-note PeriodicWave built from the measured coil impulse
+ * spectrum, zero aliasing), gated by the channel's Syntherrupter envelope (the VCA),
+ * roughened by per-bang amplitude jitter and a slow flicker, into a bus with a limiter and
+ * a light reverb send. Loudness follows the coil's ontime/duty tracked from the SysEx stream.
  */
 export class TeslaSynthOutput implements MidiSink {
   readonly id = SYNTH_OUTPUT_ID;
@@ -99,7 +102,8 @@ export class TeslaSynthOutput implements MidiSink {
   private bus: GainNode;
   private master: GainNode;
   private wet: GainNode; // reverb send level
-  private pulseCache = new Map<number, PeriodicWave>(); // per MIDI note (duty depends only on pitch)
+  private noise: AudioBufferSourceNode; // shared white noise, low-passed per voice
+  private pulseCache = new Map<number, PeriodicWave>(); // per MIDI note (spectrum depends only on pitch)
   private voices = new Map<string, Voice>();
   private live: Voice[] = [];
   private channelProgram: number[] = new Array(16).fill(0);
@@ -111,37 +115,33 @@ export class TeslaSynthOutput implements MidiSink {
       (window as unknown as { webkitAudioContext: typeof AudioContext })
         .webkitAudioContext;
     this.ctx = new Ctx();
-    // bus → body formant → limiter → gain → speakers, plus a light parallel reverb send.
+    // bus → limiter → gain → speakers, plus a light parallel reverb send.
     this.bus = this.ctx.createGain();
-    const formant = this.ctx.createBiquadFilter();
-    formant.type = "peaking";
-    formant.frequency.value = FORMANT_HZ;
-    formant.gain.value = FORMANT_DB;
-    formant.Q.value = FORMANT_Q;
     const comp = this.ctx.createDynamicsCompressor();
     comp.threshold.value = -12;
     comp.ratio.value = 8;
     comp.attack.value = 0.002;
     comp.release.value = 0.18;
     this.master = this.ctx.createGain();
-    this.master.gain.value = 0.34;
-    this.bus
-      .connect(formant)
-      .connect(comp)
-      .connect(this.master)
-      .connect(this.ctx.destination);
+    this.master.gain.value = MASTER_GAIN;
+    this.bus.connect(comp).connect(this.master).connect(this.ctx.destination);
     const conv = this.ctx.createConvolver();
     conv.buffer = this.makeReverbIR(0.9, 2.6);
     this.wet = this.ctx.createGain();
     this.wet.gain.value = REVERB_WET;
     comp.connect(conv).connect(this.wet).connect(this.ctx.destination);
+    // one looping noise source feeds every voice's jitter low-pass (a modulator, never audible
+    // by itself — it only reaches the graph through GainNode.gain params).
+    this.noise = this.ctx.createBufferSource();
+    this.noise.buffer = this.makeNoise(NOISE_SECONDS);
+    this.noise.loop = true;
+    this.noise.start();
   }
 
   resume(): void {
     if (this.ctx.state === "suspended") void this.ctx.resume();
   }
 
-  /** Short decaying-noise impulse response for a subtle room (not a tone source). */
   /** Bounded mean-reverting random walk (~1.0 ±FLICKER_DEPTH) baked onto a per-voice gain → arc shimmer. */
   private scheduleFlicker(g: AudioParam, when: number): void {
     g.setValueAtTime(1, when);
@@ -167,27 +167,29 @@ export class TeslaSynthOutput implements MidiSink {
     return ir;
   }
 
+  /** Mono uniform white noise in [-1, 1] (RMS = NOISE_RMS), looped as the jitter modulator. */
+  private makeNoise(seconds: number): AudioBuffer {
+    const sr = this.ctx.sampleRate;
+    const len = Math.max(1, Math.floor(seconds * sr));
+    const buf = this.ctx.createBuffer(1, len, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    return buf;
+  }
+
   /**
-   * Band-limited pulse wave for a note: a duty-d impulse train (imag[n] ∝ sin(nπd)/n →
-   * even+odd harmonics, sinc nulls at h=k/d, -6 dB/oct), capped at the last harmonic
-   * below Nyquist so there is no aliasing. Cached per MIDI note (duty depends on pitch).
+   * Band-limited impulse train for a note: the measured coil impulse spectrum sampled at the
+   * harmonics (see `pulseCoefficients`), capped at the last harmonic below Nyquist so there is
+   * no aliasing. Cached per MIDI note (the spectrum depends only on pitch).
    */
   private pulseFor(note: number): PeriodicWave {
     const cached = this.pulseCache.get(note);
     if (cached) return cached;
-    const hz = noteHz(note);
-    const d = Math.min(D_MAX, Math.max(D_MIN, BODY_SEC * hz));
-    const n = Math.max(
-      1,
-      Math.min(
-        PULSE_HARMONICS_MAX,
-        Math.floor(this.ctx.sampleRate / 2 / hz) - 1,
-      ),
+    const { real, imag } = pulseCoefficients(
+      noteHz(note),
+      this.ctx.sampleRate,
+      PULSE_HARMONICS_MAX,
     );
-    const real = new Float32Array(new ArrayBuffer((n + 1) * 4));
-    const imag = new Float32Array(new ArrayBuffer((n + 1) * 4));
-    for (let h = 1; h <= n; h++)
-      imag[h] = (2 / (h * Math.PI)) * Math.sin(h * Math.PI * d);
     const wave = this.ctx.createPeriodicWave(real, imag, {
       disableNormalization: false,
     });
@@ -365,7 +367,8 @@ export class TeslaSynthOutput implements MidiSink {
       }
     }
     const { ontime, duty } = this.channelParams(ch, when);
-    const energy = TeslaSynthOutput.energy(ontime, duty);
+    const hz = noteHz(note);
+    const energy = TeslaSynthOutput.energy(ontime, duty) * pitchGain(hz);
     // Linear in velocity, matching the Syntherrupter firmware (ontime ∝ velocity/127).
     const velScale = vel / 127;
     const program = this.channelProgram[ch] ?? 0;
@@ -376,20 +379,27 @@ export class TeslaSynthOutput implements MidiSink {
     const flick = ctx.createGain();
     const loud = ctx.createGain();
     loud.gain.setValueAtTime(energy, ctx.currentTime);
-    // ~Butterworth low-pass (no resonance) — tames the over-clean upper sinc lobes.
-    const filter = ctx.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.value = FILTER_HZ;
-    filter.Q.value = 0.7;
+
+    // bang-to-bang jitter: gain 1 + noise low-passed at ~f0/2 (≈ one random value per bang).
+    const jitter = ctx.createGain();
+    const jitterLp = ctx.createBiquadFilter();
+    jitterLp.type = "lowpass";
+    const fc = Math.max(JITTER_LP_MIN_HZ, hz * 0.5);
+    jitterLp.frequency.value = fc;
+    jitterLp.Q.value = -3; // dB for lowpass → ≈ Butterworth, no resonance
+    const jitterAmt = ctx.createGain();
+    // a 2nd-order low-pass keeps ≈1.11·fc/(sr/2) of the white noise power → scale to σ.
+    jitterAmt.gain.value =
+      JITTER_SIGMA / (NOISE_RMS * Math.sqrt((1.11 * fc) / (ctx.sampleRate / 2)));
+    this.noise.connect(jitterLp).connect(jitterAmt).connect(jitter.gain);
 
     const source = ctx.createOscillator();
     source.setPeriodicWave(this.pulseFor(note));
     // tiny static per-voice detune (measured PRF jitter ≈0.07%) so repeated/stacked
     // notes aren't digitally identical.
-    source.frequency.value =
-      noteHz(note) * (1 + (Math.random() * 2 - 1) * PITCH_JITTER);
+    source.frequency.value = hz * (1 + (Math.random() * 2 - 1) * PITCH_JITTER);
     source.connect(env);
-    env.connect(flick).connect(loud).connect(filter).connect(this.bus);
+    env.connect(flick).connect(jitter).connect(loud).connect(this.bus);
     this.scheduleAttack(env.gain, program, velScale, when);
     this.scheduleFlicker(flick.gain, when);
     source.start(when);
@@ -401,8 +411,10 @@ export class TeslaSynthOutput implements MidiSink {
       source,
       env,
       flick,
+      jitter,
+      jitterLp,
+      jitterAmt,
       loud,
-      filter,
       ch,
       program,
       velScale,
@@ -462,29 +474,24 @@ export class TeslaSynthOutput implements MidiSink {
       Math.max(0, (when - this.ctx.currentTime + tailS) * 1000) + 40;
     setTimeout(() => {
       try {
-        v.source.disconnect();
+        this.noise.disconnect(v.jitterLp);
       } catch {
         /* */
       }
-      try {
-        v.env.disconnect();
-      } catch {
-        /* */
-      }
-      try {
-        v.flick.disconnect();
-      } catch {
-        /* */
-      }
-      try {
-        v.loud.disconnect();
-      } catch {
-        /* */
-      }
-      try {
-        v.filter.disconnect();
-      } catch {
-        /* */
+      for (const node of [
+        v.source,
+        v.env,
+        v.flick,
+        v.jitter,
+        v.jitterLp,
+        v.jitterAmt,
+        v.loud,
+      ]) {
+        try {
+          node.disconnect();
+        } catch {
+          /* */
+        }
       }
     }, delayMs);
   }
@@ -502,7 +509,7 @@ export class TeslaSynthOutput implements MidiSink {
   private remodulate(coil: number, when: number): void {
     const cs = this.coils[coil];
     if (!cs) return;
-    const target = TeslaSynthOutput.energy(
+    const base = TeslaSynthOutput.energy(
       this.stampAt(cs.ontime, when, 40),
       this.stampAt(cs.duty, when, 0.05),
     );
@@ -511,7 +518,7 @@ export class TeslaSynthOutput implements MidiSink {
       try {
         this.holdAt(v.loud.gain, when);
         v.loud.gain.linearRampToValueAtTime(
-          Math.max(0.0001, target),
+          Math.max(0.0001, base * pitchGain(v.source.frequency.value)),
           when + 0.03,
         );
       } catch {
