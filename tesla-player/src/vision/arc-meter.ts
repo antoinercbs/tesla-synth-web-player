@@ -91,10 +91,6 @@ export interface ArcMeterParams {
    * texture (a small fraction of a large, smooth difference).
    */
   thinRatio: number;
-  /** Neighbourhood radius of the density test (a channel is sparse, a lit surface is dense). */
-  denseRadius: number;
-  /** Mask pixels whose (2r+1)² neighbourhood is more than this fraction lit are a surface, not a channel. */
-  denseMax: number;
 }
 
 export const DEFAULT_PARAMS: ArcMeterParams = {
@@ -111,8 +107,6 @@ export const DEFAULT_PARAMS: ArcMeterParams = {
   movedPx: 6,
   decorFactor: 1.6,
   thinRatio: 0.5,
-  denseRadius: 6,
-  denseMax: 0.45,
 };
 
 export interface Shift {
@@ -274,30 +268,6 @@ export function dilateBinary(src: Uint8Array, w: number, h: number, r: number, o
     for (let y = 0; y < h; y++) { run = tmp[y * w + x] ? 0 : run + 1; out[y * w + x] = run <= r ? 1 : 0; }
     run = r + 1;
     for (let y = h - 1; y >= 0; y--) { run = tmp[y * w + x] ? 0 : run + 1; if (run <= r) out[y * w + x] = 1; }
-  }
-  return out;
-}
-
-/** Count of set pixels in the (2r+1)² square around each pixel (clamped at the borders). */
-export function boxCount(src: Uint8Array, w: number, h: number, r: number, out: Uint16Array, tmp: Uint16Array): Uint16Array {
-  for (let y = 0; y < h; y++) {
-    const row = y * w;
-    let acc = 0;
-    for (let x = 0; x < Math.min(w, r); x++) acc += src[row + x];
-    for (let x = 0; x < w; x++) {
-      if (x + r < w) acc += src[row + x + r];
-      if (x - r - 1 >= 0) acc -= src[row + x - r - 1];
-      tmp[row + x] = acc;
-    }
-  }
-  for (let x = 0; x < w; x++) {
-    let acc = 0;
-    for (let y = 0; y < Math.min(h, r); y++) acc += tmp[y * w + x];
-    for (let y = 0; y < h; y++) {
-      if (y + r < h) acc += tmp[(y + r) * w + x];
-      if (y - r - 1 >= 0) acc -= tmp[(y - r - 1) * w + x];
-      out[y * w + x] = acc;
-    }
   }
   return out;
 }
@@ -505,7 +475,6 @@ export class ArcMeter {
   private readonly qbuf: Float32Array;
   private readonly d: Float32Array; private readonly top: Float32Array;
   private readonly mask: Uint8Array; private readonly bridged: Uint8Array; private readonly tmpU: Uint8Array;
-  private readonly cnt: Uint16Array; private readonly cntTmp: Uint16Array;
   private readonly visited: Uint8Array;
   private readonly queue: Int32Array;
 
@@ -555,7 +524,6 @@ export class ArcMeter {
     this.qbuf = new Float32Array(this.qw * this.qh);
     this.d = new Float32Array(n); this.top = new Float32Array(n);
     this.mask = new Uint8Array(n); this.bridged = new Uint8Array(n); this.tmpU = new Uint8Array(n);
-    this.cnt = new Uint16Array(n); this.cntTmp = new Uint16Array(n);
     this.visited = new Uint8Array(n); this.keep = new Uint8Array(n);
     this.queue = new Int32Array(n);
     this.buildAlignIndex();
@@ -698,22 +666,6 @@ export class ArcMeter {
     const mask = this.mask, dBl = this.f1;
     for (let i = 0; i < n; i++) {
       mask[i] = this.roi[i] && top[i] > bg.thr[i] && top[i] >= p.thinRatio * dBl[i] ? 1 : 0;
-    }
-    // 4b. a channel is sparse, a lit surface is dense: drop mask pixels whose neighbourhood
-    //     is mostly lit (the root disk is left alone, the arc is fat there)
-    if (p.denseRadius > 0) {
-      const r = p.denseRadius;
-      const cnt = boxCount(mask, w, h, r, this.cnt, this.cntTmp);
-      for (let y = 0; y < h; y++) {
-        const y0 = Math.max(0, y - r), y1 = Math.min(h - 1, y + r);
-        for (let x = 0; x < w; x++) {
-          const i = y * w + x;
-          if (!mask[i] || this.root[i]) continue;
-          const x0 = Math.max(0, x - r), x1 = Math.min(w - 1, x + r);
-          const area = (x1 - x0 + 1) * (y1 - y0 + 1);
-          if (cnt[i] > p.denseMax * area) mask[i] = 0;
-        }
-      }
     }
     let maskCount = 0;
     for (let i = 0; i < n; i++) maskCount += mask[i];

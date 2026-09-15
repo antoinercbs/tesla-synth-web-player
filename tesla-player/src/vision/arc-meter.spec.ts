@@ -30,13 +30,21 @@ function rng(seed: number): () => number {
   };
 }
 
+/** Distance from (px, py) to the segment a-b. */
+function distToSeg(px: number, py: number, a: { x: number; y: number }, b: { x: number; y: number }): number {
+  const vx = b.x - a.x, vy = b.y - a.y, len2 = vx * vx + vy * vy || 1;
+  const t = Math.max(0, Math.min(1, ((px - a.x) * vx + (py - a.y) * vy) / len2));
+  return Math.hypot(px - (a.x + t * vx), py - (a.y + t * vy));
+}
+
 /**
  * A night scene: dark gradient sky, a bright static "LED bar" under the coil, a
  * lit "window" to the right, gaussian-ish sensor noise. Optionally shifted by
- * (dx, dy) (camera moved) and with an "arc" polyline from the breakout.
+ * (dx, dy) (camera moved) and with an "arc" polyline from the breakout, `arcWidth` px wide
+ * (2 by default), optionally wrapped in a gaussian halo (the camera's bloom around a bright channel).
  */
-function scene(opts: { noise?: number; shift?: { dx: number; dy: number }; arc?: { x: number; y: number }[]; glow?: number; seed?: number; ground?: { x: number; y: number; r: number } } = {}): Uint8ClampedArray {
-  const { noise = 2, shift = { dx: 0, dy: 0 }, arc, glow = 0, seed = 1, ground } = opts;
+function scene(opts: { noise?: number; shift?: { dx: number; dy: number }; arc?: { x: number; y: number }[]; arcWidth?: number; arcHalo?: { amp: number; sigma: number }; glow?: number; seed?: number; ground?: { x: number; y: number; r: number } } = {}): Uint8ClampedArray {
+  const { noise = 2, shift = { dx: 0, dy: 0 }, arc, arcWidth = 2, arcHalo, glow = 0, seed = 1, ground } = opts;
   const rand = rng(seed);
   const img = new Uint8ClampedArray(W * H * 4);
   for (let y = 0; y < H; y++) {
@@ -70,15 +78,27 @@ function scene(opts: { noise?: number; shift?: { dx: number; dy: number }; arc?:
       img[i] = r + n1; img[i + 1] = g + n1; img[i + 2] = b + n1; img[i + 3] = 255;
     }
   }
+  if (arc && arcHalo) {
+    for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+      let near = Infinity;
+      for (let k = 0; k < arc.length - 1; k++) near = Math.min(near, distToSeg(x - shift.dx, y - shift.dy, arc[k], arc[k + 1]));
+      const d = Math.max(0, near - arcWidth / 2);
+      const gl = arcHalo.amp * Math.exp(-(d * d) / (2 * arcHalo.sigma * arcHalo.sigma));
+      if (gl < 1) continue;
+      const i = (y * W + x) * 4;
+      img[i] += gl * 0.8; img[i + 1] += gl * 0.7; img[i + 2] += gl;
+    }
+  }
   if (arc) {
-    // 2-px wide violet/white filament along the polyline
+    // arcWidth-px wide violet/white filament along the polyline
+    const o0 = -Math.floor((arcWidth - 1) / 2), o1 = Math.ceil((arcWidth - 1) / 2);
     for (let k = 0; k < arc.length - 1; k++) {
       const a = arc[k], b = arc[k + 1];
       const steps = Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) * 2);
       for (let s = 0; s <= steps; s++) {
         const t = s / steps;
         const x = Math.round(a.x + (b.x - a.x) * t + shift.dx), y = Math.round(a.y + (b.y - a.y) * t + shift.dy);
-        for (let oy = 0; oy <= 1; oy++) for (let ox = 0; ox <= 1; ox++) {
+        for (let oy = o0; oy <= o1; oy++) for (let ox = o0; ox <= o1; ox++) {
           const xx = x + ox, yy = y + oy;
           if (xx < 0 || yy < 0 || xx >= W || yy >= H) continue;
           const i = (yy * W + xx) * 4;
@@ -196,6 +216,33 @@ describe('ArcMeter', () => {
     expect(r.stray).toBeLessThan(30);
   });
 
+  it('keeps a channel that blooms to several pixels, with or without a halo', () => {
+    const m = meterWithBackground();
+    const arc = [{ x: 96, y: 60 }, { x: 84, y: 50 }, { x: 72, y: 42 }, { x: 60, y: 30 }]; // ≈ 46.9
+    for (const arcWidth of [4, 6]) {
+      const r = m.measure(scene({ seed: 5, arc, arcWidth }));
+      expect(r.L).toBeGreaterThan(42);
+      expect(r.L).toBeLessThan(52);
+    }
+    // a horizontal channel fills the most of any square neighbourhood: the case a density rule breaks on
+    const flat = m.measure(scene({ seed: 5, arc: [{ x: 96, y: 60 }, { x: 120, y: 60 }, { x: 142, y: 60 }], arcWidth: 5 }));
+    expect(flat.L).toBeGreaterThan(42);
+    const halo = m.measure(scene({ seed: 5, arc, arcHalo: { amp: 100, sigma: 2 } }));
+    expect(halo.L).toBeGreaterThan(42);
+    expect(halo.L).toBeLessThan(52);
+  });
+
+  it('follows a forked arc past the fork', () => {
+    const m = meterWithBackground();
+    // the polyline retraces the trunk so the second branch grows from the fork point (78, 48)
+    const fork = [{ x: 96, y: 60 }, { x: 78, y: 48 }, { x: 60, y: 30 }, { x: 78, y: 48 }, { x: 60, y: 52 }, { x: 50, y: 56 }];
+    for (const arcWidth of [3, 5]) {
+      const r = m.measure(scene({ seed: 5, arc: fork, arcWidth }));
+      expect(r.L).toBeGreaterThan(42); // tip (60, 30) ≈ 46.9; the fork itself is at ≈ 21.6
+      expect(r.L).toBeLessThan(52);
+    }
+  });
+
   it('ignores the diffuse glow of the arc on the surroundings', () => {
     const m = meterWithBackground();
     const r = m.measure(scene({ seed: 6, glow: 60 }));
@@ -226,18 +273,13 @@ describe('ArcMeter', () => {
     expect(r.L).toBeGreaterThan(toStrike - ground.r - 6); // channel kept up to the patch
     expect(r.L).toBeLessThanOrEqual(toStrike + 2); // never beyond the strike point
     expect(r.area).toBeLessThan(260); // the patch (≈ 800 px) is not counted
-    // without the thin-channel rules the patch would be swallowed into the arc
-    const plain = new ArcMeter(GEOM, { thinRatio: 0, denseRadius: 0 });
+    // without the thin-channel rule the patch would be swallowed into the arc
+    const plain = new ArcMeter(GEOM, { thinRatio: 0 });
     const b = plain.backgroundBuilder();
     for (let k = 0; k < 12; k++) b.add(plain.cropFrom(scene({ seed: 100 + k })));
     plain.buildBackground(b);
     plain.measure(scene({ seed: 21, arc, ground }));
-    // kept pixels inside the lit patch but AWAY from the channel: (almost) none with the rules, plenty without
-    const distToSeg = (px: number, py: number, a: { x: number; y: number }, b: { x: number; y: number }): number => {
-      const vx = b.x - a.x, vy = b.y - a.y, len2 = vx * vx + vy * vy || 1;
-      const t = Math.max(0, Math.min(1, ((px - a.x) * vx + (py - a.y) * vy) / len2));
-      return Math.hypot(px - (a.x + t * vx), py - (a.y + t * vy));
-    };
+    // kept pixels inside the lit patch but AWAY from the channel: (almost) none with the rule, plenty without
     const inPatch = (m: ArcMeter): number => {
       let c = 0;
       for (let y = 0; y < m.height; y++) for (let x = 0; x < m.width; x++) {
