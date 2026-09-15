@@ -89,6 +89,10 @@ The **MIDI files** manager lets you **upload**, **download** and **delete** the 
 
 > ⚠️ Editing a file's instruments changes the **file itself**, so it affects **every song** that uses that file.
 
+## Tuning the primary with a camera
+
+The **Tuning** screen helps with the "accord" of a coil: moving the primary tap so the primary resonates with the loaded secondary. Instead of judging arc length by eye between two tap positions, a phone placed on a stand measures it. The full procedure, its safety rules and what the numbers mean are in [Camera-assisted tuning](./tuning.md).
+
 ## Language
 
 The footer language selector switches the whole UI between **English** and **French**; your choice is remembered. Want another language? See [Development → Internationalization](./development.md#internationalization).

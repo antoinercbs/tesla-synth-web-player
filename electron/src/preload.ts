@@ -29,6 +29,22 @@ contextBridge.exposeInMainWorld('teslaElectron', {
     return () => ipcRenderer.removeListener('sync:progress', listener);
   },
 
+  // LAN HTTPS server for camera-assisted tuning (the phone joins over Wi-Fi).
+  lanStart: () => ipcRenderer.invoke('lan:start'),
+  lanStop: () => ipcRenderer.invoke('lan:stop'),
+  lanStatus: () => ipcRenderer.invoke('lan:status'),
+
+  // Live channel of a tuning session, carried by IPC (the renderer cannot open
+  // a WebSocket over app://). Frames are the hub's, tagged by the caller's sid.
+  tuningOpen: (opts: unknown) => ipcRenderer.invoke('tuning:open', opts),
+  tuningSend: (sid: string, msg: unknown) => ipcRenderer.invoke('tuning:send', sid, msg),
+  tuningClose: (sid: string) => ipcRenderer.invoke('tuning:close', sid),
+  onTuningMessage: (cb: (sid: string, msg: unknown) => void) => {
+    const listener = (_e: IpcRendererEvent, sid: string, msg: unknown): void => cb(sid, msg);
+    ipcRenderer.on('tuning:message', listener);
+    return () => ipcRenderer.removeListener('tuning:message', listener);
+  },
+
   /** Native menu "Server configuration…" asks the renderer to open the modal. */
   onOpenServerConfig: (cb: () => void) => {
     const listener = (): void => cb();

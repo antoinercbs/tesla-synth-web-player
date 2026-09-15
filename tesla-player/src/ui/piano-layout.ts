@@ -24,6 +24,17 @@ export function noteName(note: number): string {
   return `${NAMES[((note % 12) + 12) % 12]}${Math.floor(note / 12) - 1}`;
 }
 
+/** Equal-temperament frequency of a MIDI note, A4 (69) = 440 Hz. */
+export function noteFrequency(note: number): number {
+  return 440 * Math.pow(2, (note - 69) / 12);
+}
+
+/** "131 Hz" above 100 Hz, "65.4 Hz" below (a Tesla coil's firing rate IS the pitch). */
+export function noteHzLabel(note: number): string {
+  const f = noteFrequency(note);
+  return `${f >= 100 ? Math.round(f) : f.toFixed(1)} Hz`;
+}
+
 /** Last note of a window of `octaves` octaves starting at `start` (the closing C). */
 export function endNote(start: number, octaves: number): number {
   return start + 12 * octaves;

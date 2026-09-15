@@ -25,6 +25,7 @@ export default {
     // Full app chrome (sidebar) is shown unless we're gated at the login /
     // access-denied screen (auth on, and either not signed in or role-refused).
     showChrome() {
+      if (this.$route.meta.bare) return false // e.g. the tuning camera page on a phone
       const a = this.authStore
       return !(a.enabled && (!a.authenticated || a.accessDenied))
     }

@@ -32,6 +32,21 @@ const routes: RouteRecordRaw[] = [
     name: "syntherrupter",
     component: () => import("@/views/SyntherrupterView.vue"),
   },
+  // Camera-assisted primary tuning (player side).
+  {
+    path: "/tune",
+    name: "tune",
+    component: () => import("@/views/TuneView.vue"),
+  },
+  // The phone's camera page of a tuning session: no app chrome, and PUBLIC —
+  // the session token in the URL fragment is its credential (the phone has no
+  // account), so the auth gate below lets it through.
+  {
+    path: "/tune/cam/:sessionId",
+    name: "tune-camera",
+    component: () => import("@/views/TuneCameraView.vue"),
+    meta: { bare: true, public: true },
+  },
   // Auth (only ever reached when the server has OIDC enabled).
   {
     path: "/login",
@@ -61,7 +76,7 @@ const router = createRouter({
 router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (!auth.enabled) return true;
-  if (to.name === "login" || to.name === "auth-callback") return true;
+  if (to.name === "login" || to.name === "auth-callback" || to.meta.public) return true;
   if (auth.authenticated) {
     // Authenticated but the API refused (missing role) → access-denied wall.
     return auth.accessDenied ? { name: "login" } : true;

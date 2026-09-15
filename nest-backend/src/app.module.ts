@@ -12,6 +12,7 @@ import { SettingsModule } from './settings/settings.module';
 import { SongsModule } from './songs/songs.module';
 import { SyncModule } from './sync/sync.module';
 import { TagsModule } from './tags/tags.module';
+import { TuningModule } from './tuning/tuning.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { TagsModule } from './tags/tags.module';
     SettingsModule,
     SyncModule,
     DownloadsModule,
+    TuningModule,
   ],
 })
 export class AppModule {}

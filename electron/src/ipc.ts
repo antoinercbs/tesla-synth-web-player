@@ -4,6 +4,8 @@ import {
   setServerUrl,
   type ServerConfigInput,
 } from './config-store';
+import type { EmbeddedBackend } from './embedded-backend';
+import { lanStatus, startLan, stopLan } from './lan-server';
 import { getStatus, getValidAccessToken, login, logout } from './oidc-auth';
 import { applySync, previewSync, type Fetcher, type SyncSelection } from './sync-engine';
 
@@ -22,7 +24,49 @@ export interface LocalPeer {
 export function registerIpc(
   getLocalPeer: () => LocalPeer,
   getWindow: () => BrowserWindow | null,
+  getBackend: () => EmbeddedBackend | null = () => null,
 ): void {
+  // --- LAN HTTPS server for camera-assisted tuning (on demand) ---
+  ipcMain.handle('lan:start', () => {
+    const backend = getBackend();
+    const hub = backend?.tuning ?? null;
+    return startLan(backend?.express ?? null, hub ? (srv) => hub.attach(srv) : undefined);
+  });
+  ipcMain.handle('lan:stop', () => stopLan());
+  ipcMain.handle('lan:status', () => lanStatus());
+
+  // --- Live channel of a tuning session for the renderer (no socket over app://):
+  // the same hub connection the phone gets over WebSocket, carried by IPC.
+  interface TuningOpen { sid: string; id: string; token: string; after: number; who: 'desktop' | 'camera' }
+  const liveConns = new Map<string, { onMessage(raw: unknown): void; dispose(): void }>();
+  ipcMain.handle('tuning:open', (e, opts: TuningOpen) => {
+    const hub = getBackend()?.tuning;
+    if (!hub) return { ok: false, status: 503, message: 'backend-not-in-process' };
+    const wc = e.sender;
+    const sid = String(opts?.sid ?? '');
+    if (!sid) return { ok: false, status: 400, message: 'missing sid' };
+    try {
+      const conn = hub.connect(String(opts.id), opts.token, Math.max(0, Number(opts.after) || 0), opts.who === 'camera' ? 'camera' : 'desktop', {
+        send: (msg) => { if (!wc.isDestroyed()) wc.send('tuning:message', sid, msg); },
+        close: () => { liveConns.delete(sid); },
+      });
+      liveConns.get(sid)?.dispose();
+      liveConns.set(sid, conn);
+      wc.once('destroyed', () => { conn.dispose(); liveConns.delete(sid); });
+      return { ok: true };
+    } catch (err) {
+      const withStatus = err as { status?: number; getStatus?: () => number; message?: string };
+      const status = typeof withStatus.getStatus === 'function' ? withStatus.getStatus() : withStatus.status ?? 500;
+      return { ok: false, status, message: String(withStatus.message ?? err) };
+    }
+  });
+  ipcMain.handle('tuning:send', (_e, sid: string, msg: unknown) => { liveConns.get(String(sid))?.onMessage(msg); });
+  ipcMain.handle('tuning:close', (_e, sid: string) => {
+    const c = liveConns.get(String(sid));
+    liveConns.delete(String(sid));
+    c?.dispose();
+  });
+
   ipcMain.handle('server-config:get', () => getServerConfigPublic());
   ipcMain.handle('server-config:set', (_e, cfg: ServerConfigInput) =>
     setServerUrl(cfg),

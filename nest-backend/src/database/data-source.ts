@@ -8,6 +8,7 @@ import { Coil } from '../songs/entities/coil.entity';
 import { CoilEvent } from '../songs/entities/coil-event.entity';
 import { Song } from '../songs/entities/song.entity';
 import { Tag } from '../tags/entities/tag.entity';
+import { CoilTuning } from '../tuning/entities/coil-tuning.entity';
 import { CoilModel1717200000000 } from './migrations/1717200000000-CoilModel';
 import { PlaylistCoilCount1717300000000 } from './migrations/1717300000000-PlaylistCoilCount';
 import { MidiFileDuration1717400000000 } from './migrations/1717400000000-MidiFileDuration';
@@ -15,6 +16,7 @@ import { AppConfig1717500000000 } from './migrations/1717500000000-AppConfig';
 import { AddSyncColumns1717600000000 } from './migrations/1717600000000-AddSyncColumns';
 import { AddEditorName1717700000000 } from './migrations/1717700000000-AddEditorName';
 import { MidiChannelsAndTags1717800000000 } from './migrations/1717800000000-MidiChannelsAndTags';
+import { CoilTuning1717900000000 } from './migrations/1717900000000-CoilTuning';
 
 /**
  * Shared TypeORM configuration, used both by the Nest app (app.module) and the
@@ -25,7 +27,7 @@ import { MidiChannelsAndTags1717800000000 } from './migrations/1717800000000-Mid
 export const dataSourceOptions: DataSourceOptions = {
   type: 'sqlite',
   database: DATABASE_PATH,
-  entities: [Song, Tag, Coil, CoilEvent, MidiFile, Playlist, PlaylistSong, AppConfig],
+  entities: [Song, Tag, Coil, CoilEvent, MidiFile, Playlist, PlaylistSong, AppConfig, CoilTuning],
   migrations: [
     CoilModel1717200000000,
     PlaylistCoilCount1717300000000,
@@ -34,6 +36,7 @@ export const dataSourceOptions: DataSourceOptions = {
     AddSyncColumns1717600000000,
     AddEditorName1717700000000,
     MidiChannelsAndTags1717800000000,
+    CoilTuning1717900000000,
   ],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,

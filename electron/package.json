@@ -33,6 +33,7 @@
     "typescript": "^5.7.0"
   },
   "dependencies": {
-    "light-my-request": "^6.6.0"
+    "light-my-request": "^6.6.0",
+    "selfsigned": "^5.5.0"
   }
 }

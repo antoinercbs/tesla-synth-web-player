@@ -14,6 +14,7 @@ Welcome to the Tesla Coil Syntherrupter Web Player documentation. Pick a guide b
 ### For coil operators
 
 - **[Configuring the Syntherrupter over USB](./syntherrupter.md)**: connect to the device over USB-serial and edit its on-board settings (per-coil safety limits, system settings, user accounts), plus Linux serial setup.
+- **[Camera-assisted tuning](./tuning.md)**: tune the primary tap with a phone measuring the arc length, compare trials, and save each tuning with place and weather conditions.
 
 ### For administrators
 

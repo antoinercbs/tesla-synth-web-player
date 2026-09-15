@@ -5,6 +5,8 @@ import {
   fitOctaves,
   isBlackKey,
   keyboardLayout,
+  noteFrequency,
+  noteHzLabel,
   noteName,
 } from "./piano-layout";
 
@@ -89,5 +91,18 @@ describe("keyboardLayout", () => {
     expect(centre(by(66))).toBeLessThan(4 * w); // F#4
     expect(centre(by(68))).toBeCloseTo(5 * w, 6); // G#4 centred on G|A
     expect(centre(by(70))).toBeGreaterThan(6 * w); // A#4
+  });
+});
+
+describe('noteFrequency', () => {
+  it('follows equal temperament from A4 = 440 Hz', () => {
+    expect(noteFrequency(69)).toBe(440);
+    expect(noteFrequency(60)).toBeCloseTo(261.63, 1);
+    expect(noteFrequency(48)).toBeCloseTo(130.81, 1);
+    expect(noteFrequency(57)).toBeCloseTo(220, 6);
+  });
+  it('labels with a sensible precision', () => {
+    expect(noteHzLabel(48)).toBe('131 Hz');
+    expect(noteHzLabel(36)).toBe('65.4 Hz');
   });
 });

@@ -1,7 +1,9 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { json, urlencoded } from 'express';
+import type { Server } from 'http';
 import { AppModule } from './app.module';
+import { TuningWsHub } from './tuning/tuning-ws.hub';
 
 /**
  * Builds and fully configures the Nest application WITHOUT listening on a port.
@@ -35,6 +37,15 @@ export async function createApp(): Promise<INestApplication> {
   return app;
 }
 
+/**
+ * The live channel of tuning sessions (WebSocket hub + the desktop app's
+ * in-process connections). Attached to the hosted server's HTTP server below
+ * and, in the desktop app, to the on-demand LAN HTTPS server.
+ */
+export function tuningHub(app: INestApplication): TuningWsHub {
+  return app.get(TuningWsHub);
+}
+
 async function bootstrap(): Promise<void> {
   const app = await createApp();
 
@@ -43,6 +54,7 @@ async function bootstrap(): Promise<void> {
   // this as a server (it runs createApp() in-process), so HOST is server-only.
   const host = process.env.HOST || '0.0.0.0';
   await app.listen(port, host);
+  tuningHub(app).attach(app.getHttpServer() as Server);
 
   // Legacy readiness signal for any utilityProcess fork; harmless no-op when run
   // directly or in-process.

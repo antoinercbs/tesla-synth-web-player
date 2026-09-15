@@ -54,6 +54,16 @@ export interface TeslaSyncProgress {
   params?: Record<string, string | number>;
 }
 
+/** State of the optional LAN HTTPS server used by camera-assisted tuning. */
+export interface TeslaLanStatus {
+  ok: boolean;
+  running: boolean;
+  port: number | null;
+  /** Origins the phone can open, most likely LAN address first. */
+  urls: string[];
+  error?: string;
+}
+
 export interface TeslaElectronBridge {
   isElectron: true;
   getServerConfig(): Promise<TeslaServerConfigPublic>;
@@ -66,6 +76,21 @@ export interface TeslaElectronBridge {
   applySync(selections: TeslaSyncSelection[]): Promise<TeslaApplyOutcome>;
   onSyncProgress(cb: (p: TeslaSyncProgress) => void): () => void;
   onOpenServerConfig(cb: () => void): () => void;
+  /** Tuning: start / stop / query the LAN HTTPS server (absent on older builds). */
+  lanStart?(): Promise<TeslaLanStatus>;
+  lanStop?(): Promise<void>;
+  lanStatus?(): Promise<TeslaLanStatus>;
+
+  /**
+   * Live channel of a tuning session through the main process (nothing can
+   * upgrade to a WebSocket over the in-process `app://` transport). Messages
+   * are the hub's frames (see tuning/protocol.ts), tagged by the `sid` the
+   * renderer chose when opening.
+   */
+  tuningOpen?(opts: { sid: string; id: string; token: string; after: number; who: 'desktop' | 'camera' }): Promise<{ ok: boolean; status?: number; message?: string }>;
+  tuningSend?(sid: string, msg: unknown): Promise<void>;
+  tuningClose?(sid: string): Promise<void>;
+  onTuningMessage?(cb: (sid: string, msg: unknown) => void): () => void;
 }
 
 declare global {

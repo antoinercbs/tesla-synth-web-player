@@ -12,6 +12,7 @@ import {
 } from './embedded-backend';
 import { registerIpc } from './ipc';
 import { setupMenu } from './menu';
+import { stopLan } from './lan-server';
 import { cancelPending } from './oidc-auth';
 import type { Fetcher } from './sync-engine';
 
@@ -92,7 +93,7 @@ async function resolveBackend(): Promise<void> {
     : join(__dirname, '..', '..', 'tesla-player', 'dist');
   const dataRoot = app.getPath('userData');
 
-  backend = await startEmbeddedBackend({ backendRoot, dataRoot });
+  backend = await startEmbeddedBackend({ backendRoot, dataRoot, publicDir });
   registerAppProtocol(backend, publicDir, join(dataRoot, 'uploads'));
   localBase = APP_ORIGIN;
   localFetch = makeDispatchFetch(backend);
@@ -201,6 +202,7 @@ app
     registerIpc(
       () => ({ base: localBase, fetch: localFetch }),
       () => win,
+      () => backend,
     );
     createWindow(); // splash appears right away
     try {
@@ -235,6 +237,7 @@ app.on('window-all-closed', () => {
 let stopping = false;
 app.on('before-quit', (e) => {
   cancelPending(); // tear down any in-flight loopback OIDC login
+  void stopLan(); // the tuning LAN server, if a session left it up
   if (backend && !stopping) {
     stopping = true;
     e.preventDefault();

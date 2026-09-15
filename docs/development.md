@@ -59,6 +59,15 @@ Open **http://localhost:8080**. The SQLite database and uploaded MIDI files are 
 
 To run the desktop app against your local build instead, see the `dev` / `dev:fork` scripts in `electron/package.json`.
 
+### Camera-assisted tuning in development
+
+The phone page of a tuning session needs a **secure context** to open the camera. In development the front is served over plain HTTP, so:
+
+- on this computer, open the camera link from the Tuning screen as-is (`http://localhost:…` counts as secure, the webcam works);
+- for a real phone, serve the front over HTTPS (e.g. `vite --https` with a local certificate such as [mkcert](https://github.com/FiloSottile/mkcert), and point `VITE_BASE_URL` at an HTTPS backend), or test with the packaged desktop app, whose LAN server is HTTPS out of the box (self-signed).
+
+The measurement core is pure TypeScript (`tesla-player/src/vision/arc-meter.ts`) and is unit-tested on synthetic frames. It can also replay a real recording: extract raw RGBA frames with ffmpeg (`-pix_fmt rgba`, 384 px wide, 10 fps) and run `ARC_REPLAY=/path/frames.rgba npx vitest run src/vision/arc-meter.replay.spec.ts`.
+
 ## Checks
 
 ```bash

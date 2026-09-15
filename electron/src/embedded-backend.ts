@@ -23,6 +23,8 @@ export interface EmbeddedOptions {
   backendRoot: string;
   /** Per-user data dir (DB + uploads + electron downloads). */
   dataRoot: string;
+  /** Built front-end (served by Nest's static module when the LAN server is up). */
+  publicDir?: string;
 }
 
 export interface DispatchRequest {
@@ -41,9 +43,27 @@ export interface DispatchResponse {
   body: Buffer;
 }
 
+/** The live channel of tuning sessions (nest-backend/src/tuning/tuning-ws.hub.ts), without @nestjs types. */
+export interface TuningHubLike {
+  /** In-process connection for the renderer (IPC carrier). Throws like the REST endpoints (has `getStatus()`). */
+  connect(
+    id: string,
+    token: string | undefined,
+    after: number,
+    who: 'desktop' | 'camera',
+    sink: { send(msg: unknown): void; close(): void },
+  ): { onMessage(raw: unknown): void; dispose(): void };
+  /** Route the `upgrade` events of a server (the LAN HTTPS server) to the WebSocket hub. */
+  attach(server: import('http').Server | import('https').Server): () => void;
+}
+
 export interface EmbeddedBackend {
   dispatch(req: DispatchRequest): Promise<DispatchResponse>;
   stop(): Promise<void>;
+  /** The underlying Express instance (for the optional LAN HTTPS server). */
+  express: unknown;
+  /** Live tuning channel (null with an older backend bundle). */
+  tuning: TuningHubLike | null;
 }
 
 /** The slice of the Nest application we use (avoids needing @nestjs types here). */
@@ -52,7 +72,10 @@ interface InProcessNestApp {
   close(): Promise<unknown>;
   getHttpAdapter(): { getInstance(): unknown };
 }
-type BackendModule = { createApp: () => Promise<InProcessNestApp> };
+type BackendModule = {
+  createApp: () => Promise<InProcessNestApp>;
+  tuningHub?: (app: InProcessNestApp) => TuningHubLike;
+};
 type DispatchFunc = Parameters<typeof inject>[0];
 
 function applyEnv(opts: EmbeddedOptions): void {
@@ -63,6 +86,9 @@ function applyEnv(opts: EmbeddedOptions): void {
   process.env.DATABASE_PATH = join(opts.dataRoot, 'database.db');
   process.env.UPLOADS_DIR = join(opts.dataRoot, 'uploads');
   process.env.ELECTRON_DIR = join(opts.dataRoot, 'electron');
+  // Lets Nest's ServeStaticModule serve the SPA over the LAN tuning server (the
+  // app:// protocol serves it from disk itself and ignores this).
+  if (opts.publicDir) process.env.PUBLIC_DIR = opts.publicDir;
 }
 
 /** Minimal slice of the `sqlite3` module — just what applying the baseline needs. */
@@ -144,6 +170,7 @@ export async function startEmbeddedBackend(
   const app = await mod.createApp();
   await app.init(); // registers routes + runs migrations (NO listen)
   const express = app.getHttpAdapter().getInstance() as DispatchFunc;
+  const tuning = mod.tuningHub ? mod.tuningHub(app) : null;
   console.log(`[startup +${ms()}ms] backend ready (in-process)`);
 
   const dispatch = async (req: DispatchRequest): Promise<DispatchResponse> => {
@@ -164,7 +191,7 @@ export async function startEmbeddedBackend(
     }
   };
 
-  return { dispatch, stop };
+  return { dispatch, stop, express, tuning };
 }
 
 const HOP_BY_HOP = new Set(['content-length', 'transfer-encoding', 'connection']);

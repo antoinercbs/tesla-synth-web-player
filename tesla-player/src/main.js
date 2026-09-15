@@ -98,6 +98,10 @@ async function bootstrap() {
   app.use(VueAxios, axios)
   app.use(i18n)
 
+  // Resolve the first route before the first render, so route meta (e.g. the
+  // bare, chrome-less tuning camera page) is honoured from the very first frame
+  // and the sidebar never mounts for a split second on a phone.
+  await router.isReady()
   app.mount('#app')
 }
 

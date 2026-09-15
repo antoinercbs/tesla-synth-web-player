@@ -103,3 +103,37 @@ CREATE TABLE IF NOT EXISTS AppConfig (
 	defaultCoilCount INTEGER NOT NULL DEFAULT 3
 );
 INSERT OR IGNORE INTO AppConfig (id, coilNames, defaultCoilCount) VALUES (1, '[]', 3);
+
+-- Camera-assisted primary tuning history (one row per saved tuning of a coil).
+-- Named identically to the CoilTuning migration so fresh and migrated DBs match.
+CREATE TABLE IF NOT EXISTS CoilTuning (
+	id            INTEGER PRIMARY KEY AUTOINCREMENT,
+	coilIndex     INTEGER NOT NULL,
+	coilName      TEXT,
+	createdAt     INTEGER NOT NULL,
+	location      TEXT,
+	lat           REAL,
+	lon           REAL,
+	indoor        INTEGER,
+	tempC         REAL,
+	humidityPct   REAL,
+	pressureHpa   REAL,
+	weatherCode   INTEGER,
+	ground        TEXT,
+	comment       TEXT,
+	primaryTurns  REAL,
+	tapStep       REAL,
+	tapMin        REAL,
+	tapMax        REAL,
+	tapTurns      REAL NOT NULL,
+	bestPx        REAL,
+	tone          TEXT,
+	camera        TEXT,
+	trials        TEXT,
+	uuid          TEXT,
+	updatedAt     INTEGER,
+	contentHash   TEXT,
+	editorName    TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS UQ_coiltuning_uuid ON CoilTuning(uuid) WHERE uuid IS NOT NULL;
+CREATE INDEX IF NOT EXISTS IDX_coiltuning_coil ON CoilTuning(coilIndex, createdAt);

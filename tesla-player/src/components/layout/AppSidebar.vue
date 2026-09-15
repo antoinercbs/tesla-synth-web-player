@@ -42,6 +42,10 @@
         <span class="icon"><i class="fas fa-folder-open"></i></span><span class="nav-item__label">{{ $t('nav.midi')
         }}</span>
       </router-link>
+      <router-link class="nav-item" :to="{ name: 'tune' }" :title="sidebarCompact ? $t('nav.tune') : null">
+        <span class="icon"><i class="fas fa-bullseye"></i></span><span class="nav-item__label">{{ $t('nav.tune')
+        }}</span>
+      </router-link>
       <!-- device config: only reachable over a live bidirectional serial link -->
       <router-link v-if="midiStore.serialConnected" class="nav-item" :to="{ name: 'syntherrupter' }"
         :title="sidebarCompact ? $t('nav.syntherrupter') : null">

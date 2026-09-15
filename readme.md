@@ -12,6 +12,7 @@ It was built for the high-voltage team of the [Clubelek](https://clubelek.fr) (t
 - **Configure each song per coil**: map MIDI channels to coils, set on-time and duty-cycle, with ability to change the settings automatically during a song.
 - **Drive the output three ways**: a built-in **Tesla-coil sound emulation** (compose with no hardware), a **MIDI device**, or a **bidirectional USB-serial link** to the Syntherrupter.
 - **Configure the Syntherrupter itself over USB**: read its settings back and edit the per-coil safety limits, system settings and user accounts, then Save-to-EEPROM / Reboot.
+- **Tune the primary with a camera**: a phone (or webcam) measures the arc length while the app holds test notes on one coil; trials are compared per tap position, the next position is suggested, and each tuning is saved with its place and weather. See [Camera-assisted tuning](docs/tuning.md).
 - A **second output** (e.g. speakers) with a per-channel filter and a latency offset.
 - A **MIDI file manager** with a per-channel instrument editor.
 - A standalone **desktop app** (Linux/Windows) that runs fully offline and can **sync** with a server.
