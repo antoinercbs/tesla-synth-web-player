@@ -267,9 +267,7 @@
 }
 
 .edit-body__dock .player-coil__chip {
-    width: 1.1rem;
-    height: 1.1rem;
-    font-size: 0.62rem;
+    font-size: 0.72rem;
 }
 
 .edit-body__dock .player-coil__readout {
@@ -604,7 +602,7 @@
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius-lg);
-    padding: 1rem 1.05rem 1.15rem;
+    padding: 1rem 1.05rem 1.15rem 1.25rem;
     animation: rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 
@@ -628,19 +626,20 @@
     margin-bottom: 0.85rem;
 }
 
-// the coil number inside a ring of its colour: the toroid of the logo
-.coil-card__badge {
-    width: 1.95rem;
-    height: 1.95rem;
-    flex: 0 0 auto;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--fs-lg);
+// the coil's colour as an edge bar (its column in the VU); the number stays in the title
+.coil-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--coil, var(--volt));
+}
+
+.coil-card__no,
+.coil-card__icon {
     color: var(--coil, var(--volt));
-    border: 3px solid var(--coil, var(--volt));
 }
 
 .coil-card__title {

@@ -321,7 +321,7 @@ const showLibrary = ref(false);
 
     <article class="coil-card output2-card" :style="{ '--coil': 'var(--plasma)' }">
       <header class="coil-card__head">
-        <span class="coil-card__badge"><i class="fas fa-volume-high"></i></span>
+        <span class="coil-card__icon"><i class="fas fa-volume-high"></i></span>
         <h3 class="coil-card__title">{{ $t('label.secondOutputChannels') }}</h3>
         <span class="coil-card__count">{{ output2Count }} ch</span>
       </header>

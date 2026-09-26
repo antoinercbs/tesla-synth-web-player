@@ -44,8 +44,7 @@ const program = computed<number | null>({
 <template>
   <article class="coil-card" :style="{ '--coil': color }">
     <header class="coil-card__head">
-      <span class="coil-card__badge">{{ index }}</span>
-      <h3 class="coil-card__title">{{ $t('label.coil') }} {{ index }}<span v-if="name" class="coil-card__name"> · {{
+      <h3 class="coil-card__title">{{ $t('label.coil') }} <span class="coil-card__no">{{ index }}</span><span v-if="name" class="coil-card__name"> · {{
           name }}</span></h3>
       <span class="coil-card__count">{{ activeChannels }} ch</span>
     </header>

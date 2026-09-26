@@ -145,13 +145,13 @@ const shownCount = computed(() => draft.defaultCoilCount);
   gap: 0.6rem;
 }
 
-/* coil identity = a ring (the toroid), as in the sidebar */
+/* coil identity = a short vertical bar (its VU column), as in the sidebar */
 .cfg-name-dot {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: 50%;
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
   flex: 0 0 auto;
-  border: 2.5px solid var(--c);
+  background: var(--c);
 }
 
 .cfg-name-idx {

@@ -84,7 +84,7 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
           <template v-for="it in filtered" :key="it.id">
             <tr class="hist-row" :class="{ 'is-open': openId === it.id }" @click="toggle(it)">
               <td class="mono nowrap">{{ date(it.createdAt) }}</td>
-              <td class="nowrap"><span class="coil-dot" :style="{ background: coilColor(it.coilIndex) }"></span>{{ coilLabel(it) }}</td>
+              <td class="nowrap"><span class="coil-dot" :style="{ '--c': coilColor(it.coilIndex) }"></span>{{ coilLabel(it) }}</td>
               <td class="hist-place">{{ it.location || (it.lat != null ? `${it.lat.toFixed(4)}, ${it.lon?.toFixed(4)}` : '—') }}</td>
               <td class="num mono strong">{{ formatTurns(it.tapTurns, it.tapStep ?? 0.125) }} tr</td>
               <td class="num mono">{{ it.bestPx != null ? it.bestPx.toFixed(0) + ' px' : '—' }}</td>
@@ -160,7 +160,7 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
 .strong { color: var(--volt); font-weight: 600; }
 .dim { color: var(--text-dim); margin: 0; }
 .small { font-size: var(--fs-sm); }
-.coil-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.45rem; vertical-align: middle; }
+.coil-dot { display: inline-block; width: 4px; height: 12px; border-radius: 2px; background: var(--c); margin-right: 0.45rem; vertical-align: middle; }
 .hist-place { max-width: 22rem; }
 .hist-cond { display: flex; gap: 0.7rem; align-items: center; color: var(--text-dim); font-size: var(--fs-sm); white-space: nowrap; }
 .hist-actions { text-align: right; white-space: nowrap; }

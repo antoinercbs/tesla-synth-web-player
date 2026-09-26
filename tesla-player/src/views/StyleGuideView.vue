@@ -114,7 +114,7 @@ const on = ref(true);
       </section>
 
       <section class="sg-block">
-        <h2 class="sg-title">Coils — rings, not dots</h2>
+        <h2 class="sg-title">Coils — an edge bar in the coil's colour (its VU column)</h2>
         <div class="sg-row">
           <span class="coil-legend">
             <span v-for="i in 6" :key="i" class="coil-legend__chip" :style="{ '--c': `var(--coil-${i - 1})` }">{{ i - 1 }}</span>

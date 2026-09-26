@@ -339,10 +339,10 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 }
 
 .coil-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  border: 2px solid var(--c);
+  width: 4px;
+  height: 11px;
+  border-radius: 2px;
+  background: var(--c);
 }
 
 /* speaker (2nd output) indicator — matches the plasma colour used for the speaker lane elsewhere */

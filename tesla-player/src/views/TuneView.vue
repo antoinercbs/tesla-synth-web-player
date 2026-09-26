@@ -546,7 +546,7 @@ onBeforeUnmount(() => { void endSession(); });
           <div class="tune-col">
             <!-- what is under test, in one strip -->
             <div class="tune-facts">
-              <span class="fact"><span class="coil-dot" :style="{ background: coilColor(setup.coilIndex) }"></span><b>{{ coilLabel }}</b></span>
+              <span class="fact"><span class="coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span><b>{{ coilLabel }}</b></span>
               <span class="fact" :title="t('tune.fiberHint')"><span class="fact__k">{{ t('tune.fiber') }}</span><b class="mono">{{ setup.fiberIndex }}</b></span>
               <span class="fact"><span class="fact__k">{{ t('label.ontime') }}</span><b class="mono">{{ setup.ontimeUs }} µs</b></span>
               <span class="fact"><span class="fact__k">{{ t('label.duty') }}</span><b class="mono">{{ dutyPct }} %</b></span>
@@ -663,7 +663,7 @@ onBeforeUnmount(() => { void endSession(); });
           <div class="tune-recap__grid">
             <arc-heatmap :heat="best?.heat ?? null" :width="220" :title="t('tune.heat.best')" />
             <dl class="tune-recap__facts mono">
-              <div><dt>{{ t('tune.coilName') }}</dt><dd><span class="coil-dot" :style="{ background: coilColor(setup.coilIndex) }"></span>{{ coilLabel }}</dd></div>
+              <div><dt>{{ t('tune.coilName') }}</dt><dd><span class="coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span>{{ coilLabel }}</dd></div>
               <div><dt>{{ t('tune.best') }}</dt><dd class="strong">{{ best ? formatTurns(best.tapTurns, setup.tapStep) : '–' }} tr · {{ best ? best.score.toFixed(0) : '–' }} px</dd></div>
               <div><dt>{{ t('tune.trials') }}</dt><dd>{{ trials.length }}</dd></div>
               <div><dt>{{ t('tune.tone') }}</dt><dd>{{ setup.notes.map((n) => noteName(n)).join(' ') }} · {{ (setup.holdMs / 1000).toFixed(0) }} s · {{ setup.ontimeUs }} µs / {{ dutyPct }} %</dd></div>
@@ -803,7 +803,7 @@ label.tune-field, label.tune-field:hover { padding: 0; margin: 0; }
 .small { font-size: var(--fs-sm); margin: 0; }
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .strong { color: var(--volt); font-weight: 600; }
-.coil-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.45rem; vertical-align: middle; }
+.coil-dot { display: inline-block; width: 4px; height: 12px; border-radius: 2px; background: var(--c); margin-right: 0.45rem; vertical-align: middle; }
 .tune-summary { display: inline-flex; align-items: center; gap: 0.6rem; background: var(--bg-2); border: 1px solid var(--line-strong); color: var(--text-dim); border-radius: 999px; padding: 0.3rem 0.5rem 0.3rem 0.8rem; font-size: var(--fs-sm); cursor: pointer; transition: 0.15s; }
 .tune-summary:hover { color: var(--text); border-color: var(--volt); }
 .tune-summary:disabled { opacity: 0.6; cursor: not-allowed; }

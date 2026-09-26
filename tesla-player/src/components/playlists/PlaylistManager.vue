@@ -504,10 +504,11 @@ function doDelete(): void {
 }
 
 .coil-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  border: 2px solid var(--c);
+  width: 4px;
+  height: 12px;
+  border-radius: 2px;
+  flex: 0 0 auto;
+  background: var(--c);
 }
 
 .incompat-flag {

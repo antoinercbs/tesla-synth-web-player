@@ -489,7 +489,7 @@ color: var(--text-mute);
 .sy-tbl tbody tr:last-child th, .sy-tbl tbody tr:last-child td { border-bottom: 0; }
 .sy-tbl tbody tr:hover td, .sy-tbl tbody tr:hover th { background: var(--line-005); }
 .sy-tbl__rowhead { font-family: var(--font-display);font-size: var(--fs-sm); color: var(--text); white-space: nowrap; }
-.sy-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--c); margin-right: 0.5rem; vertical-align: middle; }
+.sy-dot { display: inline-block; width: 4px; height: 12px; border-radius: 2px; background: var(--c); margin-right: 0.5rem; vertical-align: middle; }
 .sy-tbl__usericon { color: var(--volt); margin-right: 0.4rem; }
 .sy-tbl__unit { color: var(--text-mute); margin-left: 0.3rem; text-transform: none; }
 .sy-tbl__flag { margin-left: 0.3rem; color: var(--text-mute); }

@@ -141,8 +141,7 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         <article v-for="(c, i) in cfg.coils" :key="i" class="coil-card" :class="{ 'is-off': !c.enabled }"
           :style="{ '--coil': coilColor(i) }">
           <header class="coil-card__head">
-            <span class="coil-card__badge">{{ i }}</span>
-            <h3 class="coil-card__title">{{ $t('label.coil') }} {{ i }}<span v-if="midiStore.coilName(i)"
+            <h3 class="coil-card__title">{{ $t('label.coil') }} <span class="coil-card__no">{{ i }}</span><span v-if="midiStore.coilName(i)"
                 class="coil-card__name"> · {{ midiStore.coilName(i) }}</span></h3>
             <label class="switch coil-card__switch" :title="$t('label.coil') + ' ' + i">
               <input type="checkbox" :checked="c.enabled" @change="toggleCoil(i)">

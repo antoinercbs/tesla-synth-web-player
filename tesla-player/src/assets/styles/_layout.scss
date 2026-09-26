@@ -381,11 +381,11 @@
 }
 
 .sidebar-coil__dot {
-    width: 0.7rem;
-    height: 0.7rem;
-    border-radius: 50%;
+    width: 4px;
+    height: 12px;
+    border-radius: 2px;
     flex: 0 0 auto;
-    border: 2.5px solid var(--c);
+    background: var(--c);
 }
 
 .sidebar-coil__idx {
