@@ -7,6 +7,7 @@ import VueAxios from 'vue-axios'
 import App from './App.vue'
 import router from './router'
 import { messages } from './assets/translations'
+import { applyTheme, storedTheme } from '@/ui/themes'
 import { useAuthStore } from '@/stores/auth'
 import { getAccessToken, isAuthEnabled, tryRenew } from '@/auth/oidc'
 
@@ -14,6 +15,9 @@ import '@/assets/main.scss'
 // CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
 // of <i> elements fights Vue's reactive re-renders and makes icons disappear.
 import '@fortawesome/fontawesome-free/css/all.css'
+
+// before anything paints, so the app never flashes the default theme
+applyTheme(storedTheme())
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 

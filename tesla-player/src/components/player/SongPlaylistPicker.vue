@@ -483,8 +483,9 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 }
 
 .play-row.is-current .row-btn--play {
-  color: var(--volt);
-  border-color: rgb(var(--volt-rgb) / 0.45);
+  color: var(--on-grad);
+  background: var(--grad);
+  border-color: transparent;
 }
 
 .play-row.is-incompatible {

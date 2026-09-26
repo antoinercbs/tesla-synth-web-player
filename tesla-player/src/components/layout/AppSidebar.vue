@@ -189,6 +189,15 @@
         <segmented-control :model-value="$i18n.locale" :options="localeOptions" :aria-label="$t('label.language')"
           @update:model-value="setLocale" />
       </div>
+      <!-- each swatch carries its theme's data-theme, so it paints with that theme's gradient -->
+      <div class="sidebar-menu__theme">
+        <span class="sidebar-menu__theme-head">{{ $t('theme.title') }}<b>{{ $t(`theme.${theme}`) }}</b></span>
+        <div class="theme-swatches" role="radiogroup" :aria-label="$t('theme.title')">
+          <button v-for="id in themes" :key="id" type="button" class="theme-swatch" :class="{ 'is-active': theme === id }"
+            :data-theme="id" role="radio" :aria-checked="theme === id" :title="$t(`theme.${id}`)"
+            :aria-label="$t(`theme.${id}`)" @click="pickTheme(id)"></button>
+        </div>
+      </div>
       <div class="sidebar-menu__sep"></div>
       <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('configOpen')">
         <span class="icon"><i class="fas fa-gear"></i></span>{{ $t('title.generalConfig') }}
@@ -230,6 +239,7 @@ import labelSrc from '@/assets/label_high_black.svg'
 import { useMidiStore } from '@/stores/midi'
 import { useAuthStore } from '@/stores/auth'
 import { coilColor } from '@/ui/coil-colors'
+import { THEMES, setTheme, storedTheme } from '@/ui/themes'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
@@ -254,6 +264,8 @@ export default {
   data() {
     return {
       labelSrc,
+      themes: THEMES,
+      theme: storedTheme(),
       // output-1 transport mode: 'synth' | 'midi' | 'serial' (persisted). Defaults
       // from the legacy persisted device id (synth vs a real MIDI output).
       output1Mode: localStorage.getItem('output1Mode')
@@ -477,6 +489,10 @@ export default {
     setLocale(locale) {
       this.$i18n.locale = locale
       localStorage.setItem('locale', locale)
+    },
+    pickTheme(id) {
+      this.theme = id
+      setTheme(id)
     },
     signOut() {
       this.menuOpen = false

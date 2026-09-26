@@ -220,8 +220,8 @@ function onKey(e: KeyboardEvent): void {
 .coil.is-dragging { cursor: grabbing; }
 .coil.is-disabled { cursor: not-allowed; opacity: 0.75; }
 .coil.is-static { cursor: default; }
-.secondary { stroke: rgba(120, 160, 205, 0.35); stroke-width: 1; }
-.secondary-core { fill: none; stroke: rgba(120, 160, 205, 0.18); stroke-width: 1; }
+.secondary { stroke: rgb(var(--line-rgb) / 0.35); stroke-width: 1; }
+.secondary-core { fill: none; stroke: rgb(var(--line-rgb) / 0.18); stroke-width: 1; }
 .secondary-label { font-size: 8.5px;fill: var(--text-mute); }
 .spire-out { stroke: #8d4a1f; stroke-width: 5.5; opacity: 0.32; }
 .spire-in { stroke: url(#coil-copper); stroke-width: 6; }

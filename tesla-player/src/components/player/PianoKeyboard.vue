@@ -336,7 +336,7 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
   padding: 0 0 5px;
   border-radius: 8px;
   overflow: hidden;
-  background: linear-gradient(180deg, #05080d, #0a0f16);
+  background: linear-gradient(180deg, var(--bg), var(--bg-2));
   border: 1px solid var(--line-strong);
   box-shadow:
     inset 0 8px 16px -10px rgba(0, 0, 0, 0.95),

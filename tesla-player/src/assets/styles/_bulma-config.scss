@@ -13,7 +13,9 @@ $light: #131c28;
 
 $body-background-color: $my-background-color;
 $text: $my-text-color;
-$link: #8db0ff; // = --volt (Sass needs a literal here)
+// Bulma's own colour maths needs literals; the theme layer overrides every
+// visible use (html/body backgrounds, links), so these never follow the theme.
+$link: #8db0ff;
 $link-hover: #b9ceff;
 
 $panel-heading-size: 1em;

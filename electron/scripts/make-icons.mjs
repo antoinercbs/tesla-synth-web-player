@@ -2,13 +2,14 @@
 //   tesla-player/src/assets/logo_tesla_player.svg   sidebar mask (shape only, CSS paints it)
 //   tesla-player/public/favicon.svg|.ico, icon.png, icon-maskable.png, apple-touch-icon.png
 //   electron/build-assets/icon.svg|.png|.ico
-//   electron/src/main.ts                            splash emblem (EMBLEM_VIEWBOX / EMBLEM_PATH)
+//   electron/src/main.ts                            splash emblem (EMBLEM_STOPS / _VIEWBOX / _PATH)
 //
 //   npm run icons                 write into the repo
 //   npm run icons -- --out <dir>  write everything flat into <dir> instead (to compare)
 //
 // Three drawings, picked by size: fine turns (≥ 64 px), coarse turns (sidebar,
 // 32–48 px), plain (16–24 px). PNGs are rendered by Electron (scripts/icons/render.cjs).
+// The colours are the default theme's arc, read from the app's _themes.scss.
 // They are not optimised: run them through a PNG optimiser if size matters.
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -29,8 +30,15 @@ const write = (rel, data) => {
 };
 const crlf = (s) => s.replace(/\r?\n/g, '\r\n'); // the working copy's line endings
 
-// arc palette (= --arc-core / --arc-mid / --arc-deep in _tokens.scss) + halo (= --arc-glow-rgb)
-const C1 = '#e6f0ff', C2 = '#7d9cff', C3 = '#7446ec', GLOW = '#7a70ff';
+// the default theme's arc (core, mid, deep); the halo is its mid colour, like --arc-glow-rgb
+const themesScss = readFileSync(join(repo, 'tesla-player', 'src', 'assets', 'styles', '_themes.scss'), 'utf8');
+const defaultTheme = themesScss.match(/^\$default-theme: ([\w-]+);/m)?.[1];
+const themeBlock = defaultTheme
+  && themesScss.match(new RegExp(`^ {4}${defaultTheme}: \\(([\\s\\S]*?)^ {4}\\),`, 'm'))?.[1];
+const arc = themeBlock?.match(/arc: \((#[0-9a-f]{6}), (#[0-9a-f]{6}), (#[0-9a-f]{6})\)/i);
+if (!arc) throw new Error('_themes.scss: the default theme\'s arc was not found');
+const [, C1, C2, C3] = arc;
+const GLOW = C2;
 
 const big = glyph('fine'), small = glyph('coarse'), tiny = glyph('none');
 // all drawings share the big one's frame, so they overlay exactly
@@ -135,7 +143,11 @@ let src = readFileSync(mainTs, 'utf8');
 const before = src;
 src = src.replace(/(const EMBLEM_VIEWBOX = ')[^']*(';)/, `$1${vb}$2`);
 src = src.replace(/(const EMBLEM_PATH =\s*')[^']*(';)/, `$1${dBig}$2`);
-if (!src.includes(dBig) || !src.includes(`'${vb}'`)) throw new Error('main.ts: EMBLEM_VIEWBOX / EMBLEM_PATH not found');
+const stops = `['${C1}', '${C2}', '${C3}']`;
+src = src.replace(/(const EMBLEM_STOPS = )\[[^\]]*\](;)/, `$1${stops}$2`);
+if (!src.includes(dBig) || !src.includes(`'${vb}'`) || !src.includes(stops)) {
+  throw new Error('main.ts: EMBLEM_STOPS / EMBLEM_VIEWBOX / EMBLEM_PATH not found');
+}
 if (outDir) write('electron/src/main.ts', src);
 else if (src !== before) write('electron/src/main.ts', src);
 else console.log('electron/src/main.ts unchanged');

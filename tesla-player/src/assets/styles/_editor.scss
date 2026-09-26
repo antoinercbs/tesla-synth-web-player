@@ -813,15 +813,15 @@ input[type="number"]::-webkit-inner-spin-button {
 }
 
 .btn--volt {
-    background: var(--volt);
-    border-color: var(--volt);
-    color: var(--ink);
+    background: var(--grad);
+    border-color: transparent;
+    color: var(--on-grad);
 }
 
 .btn--volt:hover {
-    color: var(--ink);
-    border-color: #a9c3ff;
-    background: #a9c3ff;
+    color: var(--on-grad);
+    border-color: transparent;
+    filter: brightness(1.12);
 }
 
 .btn--ghost {

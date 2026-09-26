@@ -51,6 +51,14 @@
     border-color: var(--danger);
     color: #fff;
 }
+a {
+    color: var(--volt);
+}
+
+a:hover {
+    color: color-mix(in srgb, var(--volt) 65%, #fff);
+}
+
 .button.is-link {
     background: var(--volt);
     border-color: var(--volt);

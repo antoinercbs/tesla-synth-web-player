@@ -362,6 +362,14 @@ export default {
     by: "by",
     app: "A web player for Tesla-coil music. Clubelek is the electronics and robotics club of INSA Lyon.",
   },
+  theme: {
+    title: "Colors",
+    electric: "Electric",
+    plasma: "Plasma",
+    ion: "Ionization",
+    spectrum: "Spectrum",
+    aurora: "Aurora",
+  },
   desktop: {
     downloadApp: "Download desktop app",
     downloadHint: "Offline desktop version, with a built-in server and sync",

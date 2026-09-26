@@ -3,20 +3,10 @@
 // ===========================================================================
 // Colour tints are derived from rgb-channel triplets via `rgb(var(--x-rgb) / α)`
 // so each colour has a SINGLE source of truth and any opacity is one token away.
-// `rgb(R G B / α)` is the exact equivalent of the old `rgba(R, G, B, α)`.
+// The surfaces, the accent (--volt), the primary gradient (--grad), the arc and
+// their triplets come from the selected theme (_themes.scss); what is here is
+// shared by every theme.
 :root {
-    // surfaces
-    --bg: #080b11;
-    --bg-2: #0c111a;
-    --panel: #0f1620;
-    --panel-2: #131c28;
-
-    // channel triplets (source of truth for the tints below)
-    --volt-rgb: 141 176 255;
-    --arc-glow-rgb: 122 112 255;
-    --line-rgb: 120 160 205;
-    --bg-rgb: 8 11 17;
-
     // hairlines / borders (were rgba(120,160,205,α))
     --line: rgb(var(--line-rgb) / 0.12);
     --line-strong: rgb(var(--line-rgb) / 0.24);
@@ -32,15 +22,7 @@
     --text-mute: #74859b; // 4.9:1 on --panel: the floor for small text
     --ink: #06090f;
 
-    // Tesla-coil arc = the logo gradient: bluish-white core, blue, violet at the
-    // foot (mirrored in electron/build-assets/icon.svg and the Electron splash)
-    --arc-core: #e6f0ff;
-    --arc-mid: #7d9cff;
-    --arc-deep: #7446ec;
-    // accents — the "energized" one is the arc's blue, a touch lighter so text and
-    // fills stay crisp; keep --volt-rgb in step with --volt
-    --volt: #8db0ff;
-    --plasma: #b15cff; // secondary (speakers / 2nd output): the arc's violet
+    --plasma: #b15cff; // secondary (speakers / 2nd output), the same in every theme
     // the "active" marker: a short micro-arc, only ever on the selected tab / nav item
     --micro-arc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'%3E%3Cpolyline points='0,3.5 7,2.3 12,4.7 19,2.1 26,4.4 32,2.5 39,4.9 46,2.3 53,4.3 60,2.2 67,4.7 74,2.4 81,4.5 88,2.2 94,4.2 100,3.5' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E");
     --micro-arc-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 30' preserveAspectRatio='none'%3E%3Cpolyline points='3.5,0.5 2.2,3.5 4.8,6.5 2.3,10 4.7,13 2.1,16.5 4.9,19.5 2.4,23 4.5,26 3.5,29.5' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E");

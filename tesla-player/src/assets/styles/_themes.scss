@@ -1,0 +1,94 @@
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+
+// ===========================================================================
+//  COLOUR THEMES: the only place their colours are defined
+// ===========================================================================
+// Every theme gives the same entries; the block below turns them into custom
+// properties, and the rest of the styles only ever use those properties.
+//   surfaces  bg · bg-2 · panel · panel-2
+//   line      tint of the hairlines and borders
+//   accent    light accent: icons, active text, focus rings, tints (dark ink on it)
+//   grad      the primary fill: main buttons, progress, toggles (white text on it)
+//   arc       core · mid · deep of the arc: the logo, the micro-arc
+// The user picks a theme in the sidebar menu; ui/themes.ts lists the ids (its spec
+// checks they match this map). The default theme also colours the app icons and
+// the Electron splash (`npm run icons` in electron/ reads this file).
+$default-theme: electric;
+
+$themes: (
+    electric: (
+        surfaces: (#060a17, #0a1021, #0c1328, #111a34),
+        line: #6e8ceb,
+        accent: #7aa7ff,
+        grad: (#2f6bff, #6a3dff),
+        arc: (#eaf2ff, #5b8cff, #6a3dff),
+    ),
+    plasma: (
+        surfaces: (#0b0812, #110c1a, #150f21, #1b142a),
+        line: #aa8ce1,
+        accent: #c29bff,
+        grad: (#7c3aed, #d0258e),
+        arc: (#f6ebff, #b27bff, #d6338a),
+    ),
+    ion: (
+        surfaces: (#051015, #08161d, #0a1b23, #0f242e),
+        line: #6ebed7,
+        accent: #4fd4f5,
+        grad: (#0781b4, #4f46e5),
+        arc: (#e6fdff, #38bdf8, #6366f1),
+    ),
+    spectrum: (
+        surfaces: (#070a14, #0b0f1d, #0e1323, #131a2e),
+        line: #8291e1,
+        accent: #a98bff,
+        grad: (#0784b0, #7c3aed, #c9267f),
+        arc: (#a5f3fc, #a78bfa, #f472b6),
+    ),
+    aurora: (
+        surfaces: (#0d0a0e, #130e14, #171119, #1e1620),
+        line: #cd96b4,
+        accent: #ff8fbd,
+        grad: (#d4145f, #c2410c),
+        arc: (#fff1e8, #ff7a59, #d61f69),
+    ),
+);
+
+// "R G B" channels, for the rgb(var(--x-rgb) / α) tints in _tokens.scss
+@function -channels($c) {
+    @return color.channel($c, "red", $space: rgb) color.channel($c, "green", $space: rgb)
+        color.channel($c, "blue", $space: rgb);
+}
+
+@mixin -theme($t) {
+    $s: map.get($t, surfaces);
+    $arc: map.get($t, arc);
+    --bg: #{list.nth($s, 1)};
+    --bg-2: #{list.nth($s, 2)};
+    --panel: #{list.nth($s, 3)};
+    --panel-2: #{list.nth($s, 4)};
+    --bg-rgb: #{-channels(list.nth($s, 1))};
+    --line-rgb: #{-channels(map.get($t, line))};
+    --volt: #{map.get($t, accent)};
+    --volt-rgb: #{-channels(map.get($t, accent))};
+    --grad: linear-gradient(135deg, #{map.get($t, grad)});
+    --on-grad: #fff;
+    --arc-core: #{list.nth($arc, 1)};
+    --arc-mid: #{list.nth($arc, 2)};
+    --arc-deep: #{list.nth($arc, 3)};
+    --arc-glow-rgb: #{-channels(list.nth($arc, 2))};
+}
+
+// the default first, on :root, so a page without data-theme still has every colour
+:root {
+    @include -theme(map.get($themes, $default-theme));
+}
+
+// [data-theme] on <html> picks the theme; on any other element (the picker's
+// swatches) it scopes that theme's colours to the element
+@each $name, $t in $themes {
+    [data-theme="#{$name}"] {
+        @include -theme($t);
+    }
+}

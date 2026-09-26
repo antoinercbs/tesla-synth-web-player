@@ -31,7 +31,9 @@ app.commandLine.appendSwitch('disable-gpu-sandbox');
 registerAppSchemes();
 
 // Tesla Player glyph (same artwork as electron/build-assets/icon.svg, detailed
-// drawing), painted with the arc gradient (--arc-core/--arc-mid/--arc-deep in the app's tokens).
+// drawing), painted with the default theme's arc: core, mid, deep. These three
+// constants are written by `npm run icons` (from the app's _themes.scss).
+const EMBLEM_STOPS = ['#eaf2ff', '#5b8cff', '#6a3dff'];
 const EMBLEM_VIEWBOX = '55.9 62.1 400.3 387.8';
 const EMBLEM_PATH =
   'M114.2 146.9A74 31 0 1 1 262.2 146.9A74 31 0 1 1 114.2 146.9ZM155.2 146.9A33 10.5 0 1 0 221.2 146.9A33 10.5 0 1 0 155.2 146.9ZM92.7 423.8A62 45 -20 1 1 209.2 381.4A62 45 -20 1 1 92.7 423.8ZM165.2 160.9L211.2 160.9L211.2 190.9L165.2 190.9ZM165.2 196.9L211.2 196.9L211.2 203.9L165.2 203.9ZM165.2 209.9L211.2 209.9L211.2 216.9L165.2 216.9ZM165.2 222.9L211.2 222.9L211.2 229.9L165.2 229.9ZM165.2 235.9L211.2 235.9L211.2 242.9L165.2 242.9ZM165.2 248.9L211.2 248.9L211.2 255.9L165.2 255.9ZM165.2 261.9L211.2 261.9L211.2 268.9L165.2 268.9ZM165.2 274.9L211.2 274.9L211.2 281.9L165.2 281.9ZM165.2 287.9L211.2 287.9L211.2 294.9L165.2 294.9ZM165.2 300.9L211.2 300.9L211.2 307.9L165.2 307.9ZM165.2 313.9L211.2 313.9L211.2 320.9L165.2 320.9ZM165.2 326.9L211.2 326.9L211.2 392.9L165.2 397.9ZM245.6 141.4L269.9 119.2L289.8 134.5L317 109L336.5 124.8L363.8 102.1L385 115.8L419 95.3L456.1 112.8L438.6 161L452.8 199.3L436.8 237.3L450.5 274.6L438.2 311.5L447.8 347.9L442.3 387.5L408.6 382.9L413.2 350L402.8 310.3L414.5 275.2L400.2 236.5L416.2 198.5L402.3 160.9L414.8 129L419.9 130.5L383.4 150L364.7 135.7L335.9 157L317.4 140.8L290.6 163.3L270.6 146.6L258.9 156.4ZM133.3 141.8L108.5 128.9L100.1 107.7L79.4 98.1L71.2 73.9L55.9 63.7L56.6 62.1L77.2 67.9L89 87.7L112.3 94.1L123.9 112.9L143.2 120ZM324 420.1A62 45 -20 1 1 440.5 377.7A62 45 -20 1 1 324 420.1Z';
@@ -63,13 +65,13 @@ font-family:system-ui,-apple-system,'Segoe UI',sans-serif;display:flex;align-ite
 .club{height:20px;width:auto;align-self:flex-end;margin-right:.18rem}
 .bar{margin-top:2rem;width:170px;height:3px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
 .bar::before{content:"";position:absolute;top:0;bottom:0;width:40%;left:-40%;
-background:linear-gradient(90deg,transparent,#8db0ff,transparent);animation:slide 1.25s ease-in-out infinite}
+background:linear-gradient(90deg,transparent,${EMBLEM_STOPS[1]},transparent);animation:slide 1.25s ease-in-out infinite}
 .s{margin-top:.8rem;font-size:.78rem;color:#8b949e}
-@keyframes pulse{from{filter:drop-shadow(0 0 4px rgba(122,112,255,.3))}to{filter:drop-shadow(0 0 16px rgba(122,112,255,.85))}}
+@keyframes pulse{from{filter:drop-shadow(0 0 4px ${EMBLEM_STOPS[1]}4d)}to{filter:drop-shadow(0 0 16px ${EMBLEM_STOPS[1]}d9)}}
 @keyframes slide{to{left:110%}}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}}</style></head>
 <body><div class="box"><div class="lk">
-<svg class="emblem" viewBox="${EMBLEM_VIEWBOX}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="62.1" x2="0" y2="449.9"><stop offset="0" stop-color="#e6f0ff"/><stop offset=".45" stop-color="#7d9cff"/><stop offset="1" stop-color="#7446ec"/></linearGradient></defs><path fill="url(#g)" d="${EMBLEM_PATH}"/></svg>
+<svg class="emblem" viewBox="${EMBLEM_VIEWBOX}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="0" y1="62.1" x2="0" y2="449.9"><stop offset="0" stop-color="${EMBLEM_STOPS[0]}"/><stop offset=".45" stop-color="${EMBLEM_STOPS[1]}"/><stop offset="1" stop-color="${EMBLEM_STOPS[2]}"/></linearGradient></defs><path fill="url(#g)" d="${EMBLEM_PATH}"/></svg>
 <span class="sep"></span>
 <div class="txt"><div class="title">Tesla Player</div>
 <svg class="club" viewBox="0 0 1766 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="clubelek"><path fill="#9aa4b2" d="${CLUB_INK_A}"/><path fill="#0c0e14" d="${CLUB_HOLE}"/><path fill="#9aa4b2" d="${CLUB_INK_B}"/></svg></div></div>

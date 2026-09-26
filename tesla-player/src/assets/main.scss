@@ -9,6 +9,7 @@
 @import "styles/bulma-config"; // Bulma $variable overrides (dark theme)
 @import "styles/bulma-import"; // compile Bulma with those overrides
 @import "styles/tokens"; // :root design tokens
+@import "styles/themes"; // colour themes (the only place their colours are defined)
 @import "styles/base"; // base elements, typography, scrollbar
 @import "styles/layout"; // app shell, sidebar, brand/nav, view scaffolding
 @import "styles/editor"; // song editor (forms, coil cards, readouts, modal, MIDI library)

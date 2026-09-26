@@ -366,6 +366,14 @@ export default {
     by: "par",
     app: "Un lecteur web de musique pour bobines Tesla. Clubelek est le club d'électronique et de robotique de l'INSA Lyon.",
   },
+  theme: {
+    title: "Couleurs",
+    electric: "Électrique",
+    plasma: "Plasma",
+    ion: "Ionisation",
+    spectrum: "Spectre",
+    aurora: "Aurore",
+  },
   desktop: {
     downloadApp: "Télécharger l'app desktop",
     downloadHint: "Version desktop hors ligne, avec serveur intégré et synchro",
