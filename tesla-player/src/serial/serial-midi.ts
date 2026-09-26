@@ -12,11 +12,11 @@ import type { MidiSink } from '@/audio/tesla-synth';
 import { buildRead, decodeFrame, type DecodedFrame } from '@/sysex/syntherrupter';
 import { openSerialLink, DEFAULT_SERIAL_BAUD, type SerialLink } from '@/serial/web-serial';
 import { logTx, logRx, logSerial } from '@/serial/serial-log';
+import { READ_TIMEOUT_MS, type DeviceLink } from '@/serial/device-link';
 
 export const SERIAL_OUTPUT_ID = '__serial__';
-const READ_TIMEOUT_MS = 600;
 
-export class SerialMidiOutput implements MidiSink {
+export class SerialMidiOutput implements MidiSink, DeviceLink {
   readonly id = SERIAL_OUTPUT_ID;
   readonly name: string;
   private link: SerialLink | null = null;

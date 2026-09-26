@@ -82,6 +82,14 @@ describe('Syntherrupter general command builder + read-back', () => {
     expect(reassembleString(frames.map(decodeFrame))).toBe('MyCoilName');
   });
 
+  it('packs each char[4] group as a 32-bit little-endian value (firmware/Syfoh format)', () => {
+    // 'Tesl' = 0x6C736554 → 7-bit groups 54 4a 4d 63 06; the firmware rebuilds the
+    // 32-bit value and reads value.chr[0..3] from it.
+    const [f] = buildStringFrames(0x240, 0, 'Tesl');
+    expect(bytesToHex(f)).toBe('f0 00 26 05 01 7f 40 02 00 00 54 4a 4d 63 06 f7');
+    expect(decodeFrame(f).valueInt).toBe(0x6c736554);
+  });
+
   it('empty string emits one group-0 clear frame', () => {
     const frames = buildStringFrames(0x241, 0, '');
     expect(frames.length).toBe(1);

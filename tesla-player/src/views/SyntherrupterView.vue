@@ -10,14 +10,15 @@ import {
   COIL_PARAMS, SYSTEM_PARAMS, UI_PARAMS, SYSTEM_INFO, USER_PARAMS, USER_COUNT, ACTION_PN,
   type SynthParam,
 } from '@/sysex/syntherrupter-params';
-import type { SerialMidiOutput } from '@/serial/serial-midi';
+import type { DeviceLink } from '@/serial/device-link';
 import ParamRow from '@/components/settings/ParamRow.vue';
 import ParamCell from '@/components/settings/ParamCell.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 
 /**
- * Syntherrupter hardware config page (serial only). Reads the static device
+ * Syntherrupter hardware config page (needs a link with read-back: Web Serial, or
+ * a Web MIDI port whose input carries the device's replies). Reads the static device
  * settings on open — a single-parameter wildcard GET to discover the coils, then
  * targeted per-coil GETs for the rest, one GET for the system range, one per
  * user — then lets the operator edit + Apply per section (with a confirm on
@@ -50,8 +51,7 @@ const confirm = ref<{ title: string; message: string; action: () => void } | nul
 const info = ref<SynthParam | null>(null);
 function showInfo(p: SynthParam): void { info.value = p; }
 
-const link = (): SerialMidiOutput | null =>
-  (midiStore.midiOutput as unknown as SerialMidiOutput | null) ?? null;
+const link = (): DeviceLink | null => midiStore.deviceLink;
 
 const coilKey = (c: number, pn: number): string => `c${c}:${pn}`;
 const sysKey = (pn: number): string => `s${pn}`;
@@ -184,7 +184,7 @@ function clampDisplay(p: SynthParam, value: number): number {
   return v;
 }
 
-function writeEntry(out: SerialMidiOutput, e: Entry): void {
+function writeEntry(out: DeviceLink, e: Entry): void {
   if (unread[e.key]) return; // never write a value we couldn't read back
   const v = edited[e.key];
   if (e.p.kind === 'string') {
@@ -260,11 +260,12 @@ function runConfirm(): void {
   c?.action();
 }
 
-// leaving serial (unplug / reboot) closes the page — there's nothing to configure
-watch(() => midiStore.serialConnected, (up) => { if (!up) router.replace({ name: 'play' }); });
+// losing the link (unplug / reboot / output change) closes the page — there's
+// nothing to configure
+watch(() => midiStore.deviceLink, (l) => { if (!l) router.replace({ name: 'play' }); });
 
 onMounted(() => {
-  if (!midiStore.serialConnected) { router.replace({ name: 'play' }); return; }
+  if (!midiStore.deviceLink) { router.replace({ name: 'play' }); return; }
   void loadAll();
 });
 </script>

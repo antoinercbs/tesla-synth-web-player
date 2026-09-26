@@ -46,8 +46,9 @@
         <span class="icon"><i class="fas fa-bullseye"></i></span><span class="nav-item__label">{{ $t('nav.tune')
         }}</span>
       </router-link>
-      <!-- device config: only reachable over a live bidirectional serial link -->
-      <router-link v-if="midiStore.serialConnected" class="nav-item" :to="{ name: 'syntherrupter' }"
+      <!-- device config: only reachable over a link with read-back (serial, or a
+           Web MIDI output paired with the device's input, e.g. native USB-MIDI) -->
+      <router-link v-if="midiStore.deviceLink" class="nav-item" :to="{ name: 'syntherrupter' }"
         :title="sidebarCompact ? $t('nav.syntherrupter') : null">
         <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
         }}</span>
@@ -230,6 +231,7 @@ import { coilColor } from '@/ui/coil-colors'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
+import { WebMidiLink } from '@/serial/webmidi-link'
 import SegmentedControl from '@/components/ui/SegmentedControl.vue'
 import GeneralConfigModal from '@/components/settings/GeneralConfigModal.vue'
 import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
@@ -341,11 +343,22 @@ export default {
       } else if (this.output1Mode === 'midi') {
         const dev = this.outputs.find(o => o.id === this.selectedOutputId) || null;
         this.midiStore.setMidiOutput(dev || getTeslaSynth());
+        this.setMidiDeviceLink(dev);
       } else {
         this.midiStore.setMidiOutput(getTeslaSynth());
         this.selectedOutputId = SYNTH_OUTPUT_ID;
+        this.setMidiDeviceLink(null);
       }
       this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null);
+    },
+    // Config read-back over Web MIDI: pair the output with the device's input of
+    // the same name (e.g. the ESP32 Syntherrupter's native USB-MIDI port). A
+    // plain interface without such an input gives no link (config page stays off).
+    setMidiDeviceLink(dev) {
+      const cur = this.midiStore.deviceLink
+      if (cur instanceof WebMidiLink) cur.dispose()
+      const link = dev && WebMidi.enabled ? WebMidiLink.pair(dev, WebMidi.inputs) : null
+      this.midiStore.setDeviceLink(link ? markRaw(link) : null)
     },
     refreshOutputs() {
       this.midiStore.setMidiOutputList(WebMidi.outputs)
@@ -365,6 +378,7 @@ export default {
     onMode1Change(mode) {
       localStorage.setItem('output1Mode', mode)
       if (mode !== 'serial' && this.midiStore.serialConnected) this.closeSerial()
+      if (mode === 'serial') this.setMidiDeviceLink(null) // the serial link provides it once connected
       if (mode === 'synth') {
         const synth = getTeslaSynth()
         synth.resume() // the click is a user gesture → unlock the AudioContext
@@ -392,11 +406,13 @@ export default {
       const label = this.portLabel(port)
       const out = await SerialMidiOutput.open(port, label, () => this.onSerialClosed())
       this.midiStore.setMidiOutput(markRaw(out))
+      this.midiStore.setDeviceLink(out)
       this.midiStore.setSerialConnection(label)
     },
     async closeSerial() {
       const out = this.midiStore.midiOutput
       this.midiStore.setSerialConnection(null)
+      if (this.midiStore.deviceLink === out) this.midiStore.setDeviceLink(null)
       if (out && out.id === SERIAL_OUTPUT_ID) { try { await out.close() } catch { /* */ } }
     },
     async disconnectSerial() {
@@ -406,6 +422,7 @@ export default {
     onSerialClosed() {
       // stream ended (physical unplug or close) — drop the link + fall back
       this.midiStore.setSerialConnection(null)
+      if (this.midiStore.deviceLink instanceof SerialMidiOutput) this.midiStore.setDeviceLink(null)
       if (this.output1Mode === 'serial') this.resolveOutputs()
     },
     portLabel(port) {

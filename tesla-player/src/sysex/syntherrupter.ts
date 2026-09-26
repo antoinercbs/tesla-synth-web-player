@@ -206,6 +206,11 @@ export const STRING_GROUP_SIZE = 4;
  * char-group position; writing group 0 first clears the old string on-device, so
  * the returned frames (group 0 onward) fully replace it. An empty string emits a
  * single group-0 clear frame.
+ *
+ * The firmware rebuilds the 32-bit value from the 7-bit groups like any other
+ * value and reads the 4 chars from it (little endian, `value.chr[0..3]` in
+ * Sysex.cpp) — so the chars are packed into a 32-bit value first (Syfoh does the
+ * same), not laid out raw in v0..v3.
  */
 export function buildStringFrames(
   pn: number,
@@ -218,7 +223,8 @@ export function buildStringFrames(
   const frames: number[][] = [];
   for (let g = 0; g < groups; g++) {
     const chunk = [0, 1, 2, 3].map((k) => bytes[g * STRING_GROUP_SIZE + k] ?? 0);
-    frames.push(buildCommand({ pn, target: (user & 0x7f) | (g << 8), deviceId, rawValue: [...chunk, 0] }));
+    const value = chunk[0] + chunk[1] * 0x100 + chunk[2] * 0x10000 + chunk[3] * 0x1000000;
+    frames.push(buildCommand({ pn, target: (user & 0x7f) | (g << 8), deviceId, value }));
   }
   return frames;
 }
@@ -228,7 +234,7 @@ export function reassembleString(frames: DecodedFrame[]): string {
   const sorted = [...frames].sort((a, b) => (a.target >> 8) - (b.target >> 8));
   const chars: number[] = [];
   for (const f of sorted) {
-    for (let k = 0; k < STRING_GROUP_SIZE; k++) chars.push(f.valueBytes[k] ?? 0);
+    for (let k = 0; k < STRING_GROUP_SIZE; k++) chars.push((f.valueInt >>> (8 * k)) & 0xff);
   }
   const end = chars.indexOf(0);
   return String.fromCharCode(...(end >= 0 ? chars.slice(0, end) : chars));
@@ -384,9 +390,13 @@ export function compileSimpleConfig(coils: SimpleCoil[]): number[][] {
   const m = MODE_BYTE.simple;
   const frames: number[][] = [];
   for (const coil of coils) {
+    // BPS first: the firmware converts a Simple-mode duty into an ontime with
+    // the frequency known at that moment. Sent before the BPS (first run after
+    // boot: BPS 0), the Tiva firmware divides by zero and ends up at the coil's
+    // max ontime.
+    frames.push(encodeBps(coil.coilIndex, coil.frequencyHz, m));
     frames.push(encodeOntime(coil.coilIndex, coil.ontimeUs, m));
     frames.push(encodeDuty(coil.coilIndex, coil.duty, m));
-    frames.push(encodeBps(coil.coilIndex, coil.frequencyHz, m));
   }
   frames.push(encodeEnable(m, true));
   return frames;

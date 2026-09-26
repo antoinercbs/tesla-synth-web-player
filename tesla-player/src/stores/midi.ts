@@ -8,6 +8,7 @@ import {
 } from '@/utils/live-sysex-helper';
 import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
 import { SERIAL_OUTPUT_ID } from '@/serial/serial-midi';
+import type { DeviceLink } from '@/serial/device-link';
 import type { AppConfig, AppTag, CoilConfig, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
@@ -33,6 +34,9 @@ interface MidiState {
   serialConnected: boolean;
   /** Human label of the connected serial port (for the sidebar). */
   serialPortLabel: string;
+  /** Link with read-back to the device, used by the config page: the serial
+   *  link, or a Web MIDI output paired with the device's input. null = none. */
+  deviceLink: DeviceLink | null;
 }
 
 /** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
@@ -54,6 +58,7 @@ export const useMidiStore = defineStore('midi', {
     dataRevision: 0,
     serialConnected: false,
     serialPortLabel: '',
+    deviceLink: null,
   }),
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
@@ -85,6 +90,10 @@ export const useMidiStore = defineStore('midi', {
     setSerialConnection(label: string | null) {
       this.serialConnected = label != null;
       this.serialPortLabel = label ?? '';
+    },
+    /** Set the read-back link used by the config page (pass a markRaw'd object). */
+    setDeviceLink(link: DeviceLink | null) {
+      this.deviceLink = link;
     },
     setMidiOutput2(output: Output | null) {
       this.midiOutput2 = output;

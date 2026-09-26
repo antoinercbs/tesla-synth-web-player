@@ -155,7 +155,8 @@ export const messages = {
       serialPort: "Serial port",
       serialUnsupported: "Serial not supported in this browser",
       serialError: "Could not open the serial port",
-      serialNeededForConfig: "Connect over serial to configure the device",
+      serialNeededForConfig:
+        "Connect over serial, or select the Syntherrupter's USB-MIDI port (ESP32) as MIDI output, to configure the device",
       info: "Info",
       close: "Close",
       emulationHint: "Emulated",
@@ -789,7 +790,7 @@ export const messages = {
       serialUnsupported: "Série non supporté par ce navigateur",
       serialError: "Impossible d'ouvrir le port série",
       serialNeededForConfig:
-        "Connectez-vous en série pour configurer l'appareil",
+        "Connectez-vous en série, ou choisissez le port USB-MIDI du Syntherrupter (ESP32) en sortie MIDI, pour configurer l'appareil",
       info: "Info",
       close: "Fermer",
       emulationHint: "Émulé, sans matériel",

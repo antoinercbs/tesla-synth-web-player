@@ -148,14 +148,14 @@ describe('Syntherrupter encoder — byte-exact against the production DB', () =>
     ]);
   });
 
-  it('compiles fixed (Simple) config: per-coil ontime/duty/bps, enable LAST', () => {
+  it('compiles fixed (Simple) config: per-coil bps/ontime/duty, enable LAST', () => {
     const hex = compileSimpleConfig([
       { coilIndex: 0, ontimeUs: 50, duty: 0.05, frequencyHz: 100 },
     ]).map(bytesToHex);
     expect(hex).toEqual([
+      'f0 00 26 05 01 7f 23 00 00 01 64 00 00 00 00 f7', // bps 100Hz (first: the duty needs it)
       'f0 00 26 05 01 7f 21 00 00 01 32 00 00 00 00 f7', // ontime 50µs
       'f0 00 26 05 01 7f 22 20 00 01 4d 19 33 6a 03 f7', // duty 0.05 (float)
-      'f0 00 26 05 01 7f 23 00 00 01 64 00 00 00 00 f7', // bps 100Hz
       'f0 00 26 05 01 7f 20 00 00 01 01 00 00 00 00 f7', // enable simple (last)
     ]);
   });
