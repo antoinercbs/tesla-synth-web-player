@@ -36,29 +36,40 @@ const ICON: Record<string, string> = {
 }
 
 .toast {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 0.55rem;
-  padding: 0.6rem 1rem;
-  border-radius: 10px;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  padding: 0.6rem 1rem 0.6rem 1.15rem;
+  border-radius: var(--radius);
+  background: var(--panel-2);
   border: 1px solid var(--line-strong);
   box-shadow: 0 16px 40px -16px rgba(0, 0, 0, 0.7);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   color: var(--text);
   max-width: 90vw;
+  overflow: hidden;
 }
 
-.toast--success {
-  border-color: var(--volt);
+/* the micro-arc on the left edge, like the active nav item; an error keeps the shape in red */
+.toast::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+  -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+  mask: var(--micro-arc-v) center / 100% 100% no-repeat;
 }
 
 .toast--success .icon {
   color: var(--volt);
 }
 
-.toast--error {
-  border-color: var(--danger);
+.toast--error::before {
+  background: var(--danger);
 }
 
 .toast--error .icon {

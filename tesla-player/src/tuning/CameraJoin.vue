@@ -58,10 +58,10 @@ function openHere(): void { window.open(props.url, '_blank', 'noopener'); }
 .cam-join { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
 .cam-join__qr { border-radius: 8px; flex: 0 0 auto; max-width: 100%; height: auto; }
 .cam-join__side { flex: 1 1 14rem; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-.cam-url { font-family: var(--font-mono); font-size: 0.72rem; word-break: break-all; color: var(--text-dim); background: var(--bg-2); padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); }
+.cam-url { font-family: var(--font-mono); font-size: var(--fs-xs); word-break: break-all; color: var(--text-dim); background: var(--bg-2); padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); }
 .cam-join__btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.dim { color: var(--text-dim); font-size: 0.85rem; margin: 0; }
-.small { font-size: 0.72rem; }
+.dim { color: var(--text-dim); font-size: var(--fs-md); margin: 0; }
+.small { font-size: var(--fs-xs); }
 .mono { font-family: var(--font-mono); }
-.cam-warn { color: var(--danger); font-size: 0.8rem; display: inline-flex; gap: 0.4rem; align-items: center; margin: 0; }
+.cam-warn { color: var(--danger); font-size: var(--fs-sm); display: inline-flex; gap: 0.4rem; align-items: center; margin: 0; }
 </style>

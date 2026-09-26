@@ -199,14 +199,16 @@ function doDelete(): void {
               <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ songById(songId)!.coilCount }}
             </span>
             <div class="pl-row__actions">
-              <button class="icon-btn" type="button" :disabled="idx === 0" @click="moveUp(idx)">
+              <button class="icon-btn" type="button" :disabled="idx === 0" :title="$t('label.moveUp')"
+                :aria-label="$t('label.moveUp')" @click="moveUp(idx)">
                 <span class="icon"><i class="fas fa-angle-up"></i></span>
               </button>
               <button class="icon-btn" type="button" :disabled="idx === draft.songIds.length - 1"
-                @click="moveDown(idx)">
+                :title="$t('label.moveDown')" :aria-label="$t('label.moveDown')" @click="moveDown(idx)">
                 <span class="icon"><i class="fas fa-angle-down"></i></span>
               </button>
-              <button class="icon-btn icon-btn--danger" type="button" @click="removeSong(idx)">
+              <button class="icon-btn icon-btn--danger" type="button" :title="$t('label.removeFromPlaylist')"
+                :aria-label="$t('label.removeFromPlaylist')" @click="removeSong(idx)">
                 <span class="icon"><i class="fas fa-minus"></i></span>
               </button>
             </div>
@@ -220,7 +222,7 @@ function doDelete(): void {
 
     <!-- sticky footer: delete (left) + save (right) -->
     <div class="pl-footer">
-      <button v-if="draft.id" class="btn btn--danger" type="button" @click="confirmDelete = true">
+      <button v-if="draft.id" class="btn btn--danger-ghost" type="button" @click="confirmDelete = true">
         <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.delete') }}
       </button>
       <button class="btn btn--volt pl-footer__save" type="button" @click="savePlaylist">
@@ -272,7 +274,7 @@ function doDelete(): void {
 
 .field-label {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-dim);
 }
 
@@ -304,7 +306,7 @@ function doDelete(): void {
   padding: 0.7rem 1rem;
   border-bottom: 1px solid var(--line);
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: var(--fs-lg);
   font-weight: 600;
 }
 
@@ -315,7 +317,7 @@ function doDelete(): void {
 .pl-pane__count {
   margin-left: auto;
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   color: var(--text-dim);
   background: var(--bg-2);
   border: 1px solid var(--line-strong);
@@ -325,7 +327,7 @@ function doDelete(): void {
 
 .pl-pane__total {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   text-transform: none;
   letter-spacing: 0;
   color: var(--text-mute);
@@ -359,7 +361,7 @@ function doDelete(): void {
   transform: translateY(-50%);
   color: var(--text-mute);
   pointer-events: none;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .coil-filter-toggle {
@@ -374,12 +376,12 @@ function doDelete(): void {
   border: 1px solid var(--line-strong);
   color: var(--text-dim);
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   transition: 0.13s;
 }
 
 .coil-filter-toggle .icon {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
 }
 
 .coil-filter-toggle:hover {
@@ -425,7 +427,7 @@ function doDelete(): void {
 }
 
 .pl-row:hover {
-  background: rgba(120, 160, 205, 0.05);
+  background: var(--line-005);
 }
 
 .pl-row.is-added {
@@ -443,7 +445,7 @@ function doDelete(): void {
 .pl-row__grip {
   flex: 0 0 auto;
   color: var(--text-mute);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 
 .pl-row__idx {
@@ -452,7 +454,7 @@ function doDelete(): void {
   text-align: right;
   color: var(--text-mute);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 
 .pl-row__name {
@@ -472,7 +474,7 @@ function doDelete(): void {
 .pl-row__dur {
   flex: 0 0 auto;
   color: var(--text-mute);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
 }
 
@@ -480,6 +482,19 @@ function doDelete(): void {
   flex: 0 0 auto;
   display: flex;
   gap: 0.3rem;
+}
+
+/* pointer devices: reorder / remove only on the row being worked on (always shown on touch) */
+@media (hover: hover) {
+  .pl-row--queue .pl-row__actions {
+    opacity: 0;
+    transition: opacity 0.13s;
+  }
+
+  .pl-row--queue:hover .pl-row__actions,
+  .pl-row--queue:focus-within .pl-row__actions {
+    opacity: 1;
+  }
 }
 
 .coil-dots {
@@ -502,7 +517,7 @@ function doDelete(): void {
   flex: 0 0 auto;
   color: var(--coil-1);
   font-family: var(--font-body);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
 }
 
 .pl-empty {
@@ -510,7 +525,7 @@ function doDelete(): void {
   color: var(--text-mute);
   text-align: center;
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .pl-empty--drop {

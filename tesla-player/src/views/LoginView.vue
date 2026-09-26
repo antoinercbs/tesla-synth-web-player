@@ -65,6 +65,6 @@ function signOut(): void {
 }
 .login__title { font-size: 1.25rem; font-weight: 600; margin: 0; }
 .login__hint { color: var(--text-mute); margin: 0 0 0.4rem; }
-.login__who { display: flex; align-items: center; gap: 0.4rem; color: var(--volt, #ffd24d); font-size: 0.85rem; margin: 0 0 0.2rem; }
+.login__who { display: flex; align-items: center; gap: 0.4rem; color: var(--volt, #ffd24d); font-size: var(--fs-md); margin: 0 0 0.2rem; }
 .login__btn { margin-top: 0.3rem; }
 </style>

@@ -58,6 +58,10 @@ const routes: RouteRecordRaw[] = [
     name: "auth-callback",
     component: () => import("@/views/AuthCallbackView.vue"),
   },
+  // Dev-only reference sheet of the tokens + shared pieces (dropped from builds).
+  ...(import.meta.env.DEV
+    ? [{ path: "/styleguide", name: "styleguide", component: () => import("@/views/StyleGuideView.vue") }]
+    : []),
 ];
 
 const router = createRouter({

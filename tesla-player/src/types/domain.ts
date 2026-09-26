@@ -32,6 +32,8 @@ export interface MidiFile {
   path: string;
   /** The number of channels, computed server-side. Null/undefined if unknown */
   channels?: number | null;
+  /** Starting instrument of each note-bearing channel ({ channel: program }), computed server-side. */
+  programs?: Record<number, number> | null;
   /** Total play length in ms, computed server-side. Null/undefined if unknown. */
   durationMs?: number | null;
   /** Who last uploaded/edited this (server-stamped from the OIDC token), or null. */

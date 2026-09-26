@@ -45,6 +45,14 @@ body {
     background-clip: padding-box;
 }
 
+// --- keyboard focus ----------------------------------------------------------
+// one ring for every control (mouse clicks don't show it); zero specificity, so a
+// component can still draw its own
+:where(button, a, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+}
+
 // --- typography ------------------------------------------------------------
 h1,
 h2,
@@ -55,4 +63,38 @@ h3,
 }
 .mono {
     font-family: var(--font-mono);
+}
+
+// --- indeterminate loading ---------------------------------------------------
+// a pulse running along the micro-arc (the "active" mark, in motion). Determinate
+// progress keeps a plain bar: an arc there would mean nothing.
+.arc-loader {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 3.5rem;
+    height: 7px;
+    vertical-align: middle;
+    background: linear-gradient(90deg, var(--line-strong) 0 30%, var(--arc-mid) 42%, var(--arc-core) 50%,
+            var(--arc-mid) 58%, var(--line-strong) 70% 100%) 0 0 / 300% 100%;
+    -webkit-mask: var(--micro-arc) center / 100% 100% no-repeat;
+    mask: var(--micro-arc) center / 100% 100% no-repeat;
+    animation: arc-travel 1.1s linear infinite;
+}
+
+@keyframes arc-travel {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: 0 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arc-loader {
+        animation: none;
+        background: var(--arc-mid);
+        opacity: 0.6;
+    }
 }

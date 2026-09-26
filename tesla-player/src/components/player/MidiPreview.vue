@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
 import { coilColor } from '@/ui/coil-colors';
 import { useMidiStore } from '@/stores/midi';
 import { effectiveRatio } from '@/midi/automation';
@@ -144,7 +144,8 @@ const patterns = computed(() => {
   return [...seen.values()];
 });
 
-interface Rect { x: number; y: number; w: number; h: number; fill: string; roll: boolean }
+/** lane = coil index (or the speaker lane's index); -1 for score notes. */
+interface Rect { x: number; y: number; w: number; h: number; fill: string; roll: boolean; lane: number }
 const rects = computed<Rect[]>(() => {
   const notes = props.analysis?.notes ?? [];
   const h = laneH.value; const rr = rollRow.value; const lt = lanesTopY.value;
@@ -153,19 +154,21 @@ const rects = computed<Rect[]>(() => {
     const x = (n.startMs / 1000) * PX_PER_SEC;
     const w = Math.max(1.5, ((n.endMs - n.startMs) / 1000) * PX_PER_SEC);
     if (showRoll.value) {
-      out.push({ x, w, y: rollTopY + (pitch.value.max - n.note) * rr, h: Math.max(2, rr - 1), fill: rollFill(n.channel), roll: true });
+      out.push({ x, w, y: rollTopY + (pitch.value.max - n.note) * rr, h: Math.max(2, rr - 1), fill: rollFill(n.channel), roll: true, lane: -1 });
     }
     if (showLanes.value) {
       for (const c of coilsForChannel(n.channel)) {
-        out.push({ x, w, y: lt + c * h + 3, h: h - 6, fill: coilColor(c), roll: false });
+        out.push({ x, w, y: lt + c * h + 3, h: h - 6, fill: coilColor(c), roll: false, lane: c });
       }
       if (inSpeaker(n.channel)) {
-        out.push({ x, w, y: lt + speakerLaneIndex.value * h + 3, h: h - 6, fill: SPEAKER, roll: false });
+        out.push({ x, w, y: lt + speakerLaneIndex.value * h + 3, h: h - 6, fill: SPEAKER, roll: false, lane: speakerLaneIndex.value });
       }
     }
   }
   return out;
 });
+const rollRects = computed(() => rects.value.filter((r) => r.roll));
+const laneRects = computed(() => rects.value.filter((r) => !r.roll));
 
 const octaveLines = computed(() => {
   if (!showRoll.value) return [];
@@ -237,6 +240,56 @@ const autoCurves = computed(() =>
   showLanes.value && showAutomation.value ? Array.from({ length: props.coilCount }, (_, c) => ({
     coilIdx: c, points: staircase(c), baseY: valueY(c, 1), color: coilColor(c),
   })) : []);
+
+// Under automation the blocks are cut at the curve and their rim follows it, so a block's
+// height reads as the level; the bare curve only stays visible (faintly) between notes.
+const uid = useId();
+function laneBottom(c: number): number { return lanesTopY.value + (c + 1) * laneH.value; }
+function spansOf(rs: Rect[]): [number, number][] {
+  const out: [number, number][] = [];
+  for (const r of [...rs].sort((a, b) => a.x - b.x)) {
+    const last = out[out.length - 1];
+    if (last && r.x <= last[1] + 0.5) last[1] = Math.max(last[1], r.x + r.w);
+    else out.push([r.x, r.x + r.w]);
+  }
+  return out;
+}
+/** The staircase, drawn only over the given spans. */
+function rimPath(c: number, spans: [number, number][]): string {
+  const evs = eventsFor(c);
+  let d = '';
+  for (const [x0, x1] of spans) {
+    let v = 1;
+    let k = 0;
+    while (k < evs.length && timeX(evs[k].atMs) <= x0) v = evs[k++].value;
+    d += `M${x0.toFixed(1)},${valueY(c, v).toFixed(1)}`;
+    for (; k < evs.length && timeX(evs[k].atMs) < x1; k++) {
+      d += `H${timeX(evs[k].atMs).toFixed(1)}V${valueY(c, evs[k].value).toFixed(1)}`;
+    }
+    d += `H${x1.toFixed(1)}`;
+  }
+  return d;
+}
+const laneGroups = computed(() => {
+  const byLane = new Map<number, Rect[]>();
+  for (const r of laneRects.value) {
+    const list = byLane.get(r.lane);
+    if (list) list.push(r);
+    else byLane.set(r.lane, [r]);
+  }
+  return [...byLane].map(([lane, rs]) => {
+    const auto = showAutomation.value && lane < props.coilCount; // the speaker lane has no automation
+    const bottom = laneBottom(lane);
+    return {
+      lane,
+      rects: rs,
+      clipId: auto ? `${uid}-lvl-${lane}` : '',
+      area: auto ? `${staircase(lane)} ${widthPx.value.toFixed(1)},${bottom} 0,${bottom}` : '',
+      rim: auto ? rimPath(lane, spansOf(rs)) : '',
+    };
+  });
+});
+
 const handles = computed(() => {
   if (!showLanes.value) return [];
   const out: { i: number; cx: number; cy: number; color: string; pct: number }[] = [];
@@ -370,6 +423,11 @@ watch(() => props.playheadMs, () => {
                   <rect v-for="(col, k) in p.colors" :key="k" :x="k * 4" :y="0" :width="4" :height="p.colors.length * 4"
                     :fill="col" />
                 </pattern>
+                <template v-for="g in laneGroups" :key="`c${g.lane}`">
+                  <clipPath v-if="g.clipId" :id="g.clipId">
+                    <polygon :points="g.area" />
+                  </clipPath>
+                </template>
               </defs>
               <line v-for="(t, i) in timeTicks" :key="`t${i}`" :x1="t.x" :x2="t.x" :y1="RULER_H" :y2="heightPx"
                 class="preview__tick" :class="{ 'is-major': t.major }" />
@@ -381,8 +439,22 @@ watch(() => props.playheadMs, () => {
                 class="preview__divider" />
               <line v-for="(y, i) in laneLines" :key="`l${i}`" :x1="0" :x2="widthPx" :y1="y" :y2="y"
                 class="preview__grid" />
-              <rect v-for="(r, i) in rects" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" :fill="r.fill"
-                :opacity="r.roll ? 1 : (events.length ? 0.3 : 1)" rx="1.5" />
+              <rect v-for="(r, i) in rollRects" :key="`r${i}`" :x="r.x" :y="r.y" :width="r.w" :height="r.h"
+                :fill="r.fill" rx="1.5" />
+              <!-- opacity on the group, not per block: overlapping notes would stack back up to full colour -->
+              <g opacity="0.32">
+                <g v-for="g in laneGroups" :key="`g${g.lane}`" :clip-path="g.clipId ? `url(#${g.clipId})` : undefined">
+                  <rect v-for="(r, i) in g.rects" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" :fill="r.fill"
+                    rx="1.5" />
+                </g>
+              </g>
+              <template v-for="g in laneGroups" :key="`m${g.lane}`">
+                <path v-if="g.rim" :d="g.rim" class="lane-rim" :stroke="g.rects[0].fill" />
+                <template v-else>
+                  <rect v-for="(r, i) in g.rects" :key="i" :x="r.x" :y="r.y" :width="r.w" height="2" :fill="r.fill"
+                    rx="1" />
+                </template>
+              </template>
 
               <g v-for="a in autoCurves" :key="`a${a.coilIdx}`">
                 <line :x1="0" :x2="widthPx" :y1="a.baseY" :y2="a.baseY" class="auto-base" :stroke="a.color" />
@@ -448,7 +520,7 @@ watch(() => props.playheadMs, () => {
 .preview__param button {
   flex: 1 1 0;
   padding: 0.35rem;
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
 }
 
 .preview__body {
@@ -522,9 +594,8 @@ watch(() => props.playheadMs, () => {
 }
 
 .preview__rail-id {
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  color: var(--text);
+  font-size: var(--fs-sm);
+  color: #eef3ff;
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -552,7 +623,7 @@ watch(() => props.playheadMs, () => {
 
 .preview__rail-cnum {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   color: var(--text);
   flex: 0 0 auto;
@@ -598,10 +669,12 @@ watch(() => props.playheadMs, () => {
   font-size: 9px;
 }
 
+/* the arc's white-blue core, shared by score / lanes / combined */
 .preview__playhead {
-  stroke: var(--volt);
-  stroke-width: 2;
+  stroke: var(--arc-core);
+  stroke-width: 1.5;
 }
+
 
 .preview__empty {
   height: 100%;
@@ -610,7 +683,7 @@ watch(() => props.playheadMs, () => {
   place-items: center;
   color: var(--text-mute);
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .preview__hint {
@@ -626,11 +699,16 @@ watch(() => props.playheadMs, () => {
   opacity: 0.4;
 }
 
+/* the rim carries the level over notes; this thin line only shows it across the gaps */
 .auto-line {
   fill: none;
+  stroke-width: 1;
+  opacity: 0.45;
+}
+
+.lane-rim {
+  fill: none;
   stroke-width: 2;
-  opacity: 0.95;
-  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.4));
 }
 
 .auto-pct {

@@ -4,12 +4,14 @@ import axios from 'axios';
 import { analyzeMidi } from '@/midi/analyze';
 import { ENVELOPES, envelope, envelopeIcon } from '@/sysex/envelopes';
 import { notify } from '@/utils/toast';
+import { useMidiStore } from '@/stores/midi';
 import type { MidiFile } from '@/types/domain';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import BaseModal from '@/components/ui/BaseModal.vue';
 
 const props = defineProps<{ open: boolean; file: MidiFile | null }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved', file: MidiFile): void }>();
+const midiStore = useMidiStore();
 
 interface Row { channel: number; original: number; current: number }
 const rows = ref<Row[]>([]);
@@ -67,9 +69,10 @@ async function save(): Promise<void> {
     const programs = rows.value
       .filter((r) => r.current !== r.original)
       .map((r) => ({ channel: r.channel, program: r.current }));
-    await axios.patch(`/api/midi/${props.file.id}/programs`, { programs });
+    const { data } = await axios.patch<MidiFile>(`/api/midi/${props.file.id}/programs`, { programs });
+    midiStore.updateMidiFile(data); // the library's Instruments column reads it
     notify('label.instrumentsSaved');
-    emit('saved', props.file);
+    emit('saved', data);
     emit('close');
   } catch (err) {
     console.error('MIDI instrument edit failed', err);
@@ -91,7 +94,9 @@ async function save(): Promise<void> {
     </p>
 
     <div class="instr-body">
-      <div v-if="loading" class="instr-state">{{ $t('label.loading') }}…</div>
+      <div v-if="loading" class="instr-state is-loading">
+        <span class="arc-loader" aria-hidden="true"></span>{{ $t('label.loading') }}…
+      </div>
       <div v-else-if="error" class="instr-state is-error">
         <i class="fas fa-circle-exclamation"></i> {{ $t('label.instrumentsLoadError') }}
       </div>
@@ -123,7 +128,7 @@ async function save(): Promise<void> {
 .instr-file {
   margin: -0.4rem 0 0.8rem;
   font-family: var(--font-mono);
-  font-size: 0.82rem;
+  font-size: var(--fs-md);
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
@@ -145,7 +150,7 @@ async function save(): Promise<void> {
   border-radius: 8px;
   background: rgba(255, 90, 90, 0.08);
   color: var(--text);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   line-height: 1.4;
 }
 
@@ -160,12 +165,19 @@ async function save(): Promise<void> {
   overflow-y: auto;
 }
 
+.instr-state.is-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .instr-state {
   padding: 1.4rem;
   text-align: center;
   color: var(--text-mute);
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .instr-state.is-error {
@@ -195,7 +207,7 @@ async function save(): Promise<void> {
 
 .instr-row__ch {
   font-family: var(--font-mono);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   color: var(--text-dim);
   white-space: nowrap;

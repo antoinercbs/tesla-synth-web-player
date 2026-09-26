@@ -36,6 +36,14 @@ cd ../nest-backend && npm run build   # once; sqlite3 must match Electron's ABI
 cd ../electron && npm run dev:fork
 ```
 
+Logo assets (app icons, favicons, the sidebar mark, the splash emblem) are all
+generated from one drawing, `scripts/icons/glyph.mjs`. After changing it:
+
+```bash
+npm run icons                  # rewrites them in place (PNGs rendered by Electron)
+npm run icons -- --out /tmp/x  # or write them elsewhere to compare first
+```
+
 ## Package
 
 The scripts are cross-platform (env vars go through `cross-env`). `dist` builds

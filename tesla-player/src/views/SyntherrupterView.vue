@@ -408,7 +408,7 @@ onMounted(() => {
       <button class="btn" type="button" @click="loadAll">
         <span class="icon"><i class="fas fa-rotate-left"></i></span>{{ $t('sp.reload') }}
       </button>
-      <button class="btn btn--danger sy-bar__reboot" type="button" @click="reboot">
+      <button class="btn btn--danger-ghost sy-bar__reboot" type="button" @click="reboot">
         <span class="icon"><i class="fas fa-power-off"></i></span>{{ $t('sp.reboot') }}
       </button>
     </footer>
@@ -444,7 +444,7 @@ onMounted(() => {
 .sy-content { display: flex; flex-direction: column; gap: 1.7rem; }
 .sy-port {
   display: inline-flex; align-items: center; gap: 0.45rem; margin-left: auto;
-  font-family: var(--font-mono); font-size: 0.8rem; color: var(--volt);
+  font-family: var(--font-mono); font-size: var(--fs-sm); color: var(--volt);
 }
 .sy-port .conn__dot { background: var(--ok); }
 .sy-state { padding: 3rem; text-align: center; color: var(--text-mute); font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; gap: 0.7rem; }
@@ -452,15 +452,15 @@ onMounted(() => {
 
 /* serial-load progress bar + step subtitle */
 .sy-load { max-width: 30rem; margin: 4rem auto; display: flex; flex-direction: column; gap: 0.6rem; }
-.sy-load__title { text-align: center; color: var(--text); font-family: var(--font-mono); font-size: 0.95rem; }
+.sy-load__title { text-align: center; color: var(--text); font-size: var(--fs-lg); }
 .sy-load__bar { height: 7px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .sy-load__fill {
-  height: 100%; border-radius: 999px; background: var(--volt);
+  height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--arc-mid), var(--arc-deep));
   transition: width 0.3s ease;
 }
 .sy-load__sub {
   display: flex; align-items: center; justify-content: space-between; gap: 0.7rem;
-  color: var(--text-mute); font-family: var(--font-mono); font-size: 0.8rem;
+  color: var(--text-mute); font-family: var(--font-mono); font-size: var(--fs-sm);
 }
 .sy-load__pct { color: var(--volt); flex: 0 0 auto; }
 
@@ -468,11 +468,11 @@ onMounted(() => {
 .sy-block__head { margin-bottom: 0.85rem; }
 .sy-block__title {
   display: flex; align-items: center; gap: 0.55rem; margin: 0;
-  font-family: var(--font-body); font-size: 1.05rem;
+  font-family: var(--font-body); font-size: var(--fs-xl);
   font-weight: 600;
 }
 .sy-block__title i { color: var(--volt); }
-.sy-block__hint { margin: 0.3rem 0 0; color: var(--text-mute); font-size: 0.82rem; line-height: 1.4; }
+.sy-block__hint { margin: 0.3rem 0 0; color: var(--text-mute); font-size: var(--fs-md); line-height: 1.4; }
 
 /* tables — one row per coil / user; horizontal dividers only (no vertical lines) */
 .sy-panel {
@@ -482,37 +482,37 @@ onMounted(() => {
 .sy-tbl { width: 100%; border-collapse: collapse; }
 .sy-tbl th, .sy-tbl td { padding: 0.5rem 0.7rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line); }
 .sy-tbl thead th {
-  font-family: var(--font-body); font-size: 0.76rem; font-weight: 500;
+  font-family: var(--font-body); font-size: var(--fs-sm); font-weight: 500;
 color: var(--text-mute);
   white-space: nowrap; background: var(--volt-06);
 }
 .sy-tbl tbody tr:last-child th, .sy-tbl tbody tr:last-child td { border-bottom: 0; }
 .sy-tbl tbody tr:hover td, .sy-tbl tbody tr:hover th { background: var(--line-005); }
-.sy-tbl__rowhead { font-family: var(--font-display);font-size: 0.8rem; color: var(--text); white-space: nowrap; }
+.sy-tbl__rowhead { font-family: var(--font-display);font-size: var(--fs-sm); color: var(--text); white-space: nowrap; }
 .sy-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--c); margin-right: 0.5rem; vertical-align: middle; }
 .sy-tbl__usericon { color: var(--volt); margin-right: 0.4rem; }
 .sy-tbl__unit { color: var(--text-mute); margin-left: 0.3rem; text-transform: none; }
 .sy-tbl__flag { margin-left: 0.3rem; color: var(--text-mute); }
 .sy-tbl__flag.is-safety { color: var(--danger); }
 .sy-tbl__act { width: 1%; white-space: nowrap; text-align: right; }
-.sy-tbl__apply { padding: 0.3rem 0.85rem; font-size: 0.72rem; }
+.sy-tbl__apply { padding: 0.3rem 0.85rem; font-size: var(--fs-xs); }
 .sy-tbl td .param-cell { min-width: 5.5rem; }
 
 /* per-field info button + explanation modal */
 .sy-info {
   border: 0; background: transparent; cursor: pointer; color: var(--text-mute);
-  padding: 0; margin-left: 0.3rem; font-size: 0.8rem; line-height: 1; vertical-align: middle;
+  padding: 0; margin-left: 0.3rem; font-size: var(--fs-sm); line-height: 1; vertical-align: middle;
 }
 .sy-info:hover { color: var(--volt); }
 .sy-info__body { margin: 0 0 1rem; color: var(--text-dim); line-height: 1.55; }
 .sy-info__meta {
   list-style: none; margin: 0; padding: 0.8rem 0 0; border-top: 1px solid var(--line);
-  display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.85rem;
+  display: flex; flex-direction: column; gap: 0.45rem; font-size: var(--fs-md);
 }
 .sy-info__meta li { display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); }
 .sy-info__meta li.is-safety, .sy-info__meta li.is-safety i { color: var(--danger); }
 .sy-info__meta li i { color: var(--text-mute); }
-.sy-info__k { color: var(--text-mute); font-family: var(--font-body); font-size: 0.76rem;min-width: 4rem; }
+.sy-info__k { color: var(--text-mute); font-family: var(--font-body); font-size: var(--fs-sm);min-width: 4rem; }
 
 /* system card — single entity, params flow in a responsive grid */
 .sy-card {
@@ -523,8 +523,8 @@ color: var(--text-mute);
   display: flex; align-items: center; gap: 0.55rem; padding: 0.6rem 0.8rem;
   border-bottom: 1px solid var(--line);
 }
-.sy-card__title { font-family: var(--font-body); font-size: 0.92rem; color: var(--text); font-weight: 600; }
-.sy-card__apply { margin-left: auto; padding: 0.3rem 0.85rem; font-size: 0.72rem; }
+.sy-card__title { font-family: var(--font-body); font-size: var(--fs-lg); color: var(--text); font-weight: 600; }
+.sy-card__apply { margin-left: auto; padding: 0.3rem 0.85rem; font-size: var(--fs-xs); }
 .sy-card__body { padding: 0.7rem; }
 .sy-card__body--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.4rem 1.2rem; }
 

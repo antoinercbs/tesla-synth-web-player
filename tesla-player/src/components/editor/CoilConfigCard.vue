@@ -100,7 +100,7 @@ const program = computed<number | null>({
 
 .coil-env__label .icon {
   color: var(--coil, var(--volt));
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 
 .coil-env {

@@ -28,8 +28,8 @@
 
     // text + near-black ink (on volt/coil fills)
     --text: #cdd9e6;
-    --text-dim: #7e90a6;
-    --text-mute: #55657d;
+    --text-dim: #93a3b8; // 7:1 on --panel
+    --text-mute: #74859b; // 4.9:1 on --panel: the floor for small text
     --ink: #06090f;
 
     // Tesla-coil arc = the logo gradient: bluish-white core, blue, violet at the
@@ -75,6 +75,24 @@
     --coil-5: #ff8c42;
 
     // radii
+    // type scale (px at the 16px root): 11.5 · 12.5 · 13.5 · 15 · 18 · 28. Form inputs
+    // stay at 1rem (iOS zooms on focus below 16px); visualisation micro-labels and
+    // display numbers keep their own sizes.
+    --fs-xs: 0.72rem;
+    --fs-sm: 0.78rem;
+    --fs-md: 0.85rem;
+    --fs-lg: 0.94rem;
+    --fs-xl: 1.125rem;
+    --fs-2xl: 1.75rem;
+
+    // spacing scale
+    --sp-1: 4px;
+    --sp-2: 8px;
+    --sp-3: 12px;
+    --sp-4: 16px;
+    --sp-5: 24px;
+    --sp-6: 32px;
+
     // three radii: inputs / chips, controls, panels
     --radius-sm: 6px;
     --radius: 10px;

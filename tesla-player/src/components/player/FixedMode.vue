@@ -202,7 +202,7 @@ onBeforeUnmount(() => { if (running.value) stop(); });
   gap: 0.45rem;
   margin-right: auto;
   font-family: var(--font-display);
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
 }
 
@@ -256,7 +256,7 @@ onBeforeUnmount(() => { if (running.value) stop(); });
   place-items: center;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line-strong);
   color: var(--text-mute);
@@ -289,7 +289,7 @@ onBeforeUnmount(() => { if (running.value) stop(); });
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: var(--fs-lg);
   color: var(--text);
   font-weight: 600;
 }

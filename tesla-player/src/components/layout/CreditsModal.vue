@@ -78,7 +78,7 @@ defineEmits<{ (e: 'close'): void }>();
 
 .credits__item p {
   margin: 0;
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   line-height: 1.5;
   color: var(--text-mute);
 }
@@ -97,7 +97,7 @@ defineEmits<{ (e: 'close'): void }>();
 .credits__by a {
   color: var(--volt);
   text-decoration: none;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .credits__links a:hover,
@@ -106,6 +106,6 @@ defineEmits<{ (e: 'close'): void }>();
 }
 
 .credits__links i {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
 }
 </style>

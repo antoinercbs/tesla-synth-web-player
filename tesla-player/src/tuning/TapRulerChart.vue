@@ -253,7 +253,7 @@ svg:focus-visible { box-shadow: 0 0 0 2px var(--volt-30); }
 .is-disabled svg { opacity: 0.75; }
 .is-disabled .handle { cursor: not-allowed; }
 .tap-chart__foot { display: flex; justify-content: space-between; gap: 0.6rem 1rem; flex-wrap: wrap; align-items: center; }
-.legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.76rem; color: var(--text-dim); font-family: var(--font-mono); }
+.legend { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: var(--fs-sm); color: var(--text-dim); font-family: var(--font-mono); }
 .legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
 .legend i { display: inline-block; width: 14px; height: 3px; border-radius: 2px; }
 .legend em { font-style: normal; color: var(--text-mute); }
@@ -264,8 +264,8 @@ svg:focus-visible { box-shadow: 0 0 0 2px var(--volt-30); }
 .legend i.dot--suggested { background: transparent; border: 1.5px dashed var(--volt); }
 .legend i.dot--previous { background: transparent; border: 1.5px dashed var(--amber); }
 .legend .sep { width: 1px; height: 0.9rem; background: var(--line-strong); }
-.caption { font-size: 0.74rem; color: var(--text-mute); }
+.caption { font-size: var(--fs-xs); color: var(--text-mute); }
 .mono { font-family: var(--font-mono); }
-.tip { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: 0.8rem; color: var(--text-dim); }
+.tip { display: flex; flex-wrap: wrap; gap: 0.3rem 1rem; font-size: var(--fs-sm); color: var(--text-dim); }
 .tip strong { color: var(--text); }
 </style>

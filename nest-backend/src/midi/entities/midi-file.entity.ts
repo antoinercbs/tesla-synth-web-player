@@ -20,6 +20,11 @@ export class MidiFile {
   @Column({ name: 'channels', type: 'integer', nullable: true })
   channels!: number | null;
 
+  /** Starting instrument of each note-bearing channel ({ channel: program }),
+   *  derived from the bytes like `channels`. */
+  @Column({ name: 'programs', type: 'simple-json', nullable: true })
+  programs!: Record<number, number> | null;
+
   /**
    * Sync identity (see SyncModule). Stable across instances: generated once on
    * create, preserved on apply. The UNIQUE index is created by the

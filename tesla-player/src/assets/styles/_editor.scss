@@ -113,7 +113,7 @@
 .edit-chooser__or {
     align-self: center;
     color: var(--text-mute);
-    font-size: 0.85rem;
+    font-size: var(--fs-md);
 }
 
 .edit-chooser__actions .btn {
@@ -253,7 +253,7 @@
 
 .edit-body__dock .player-transport .btn {
     padding: 0.45rem 0.7rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     min-width: 3.4rem;
 }
 
@@ -273,25 +273,11 @@
 }
 
 .edit-body__dock .player-coil__readout {
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
 }
 
 .edit-body__dock .player-coil__readout i {
     font-size: 0.62rem;
-}
-
-.dock-head {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.8rem;
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--text-dim);
-}
-
-.dock-head .icon {
-    color: var(--volt);
 }
 
 // sticky action bar pinned to the bottom of the viewport while editing
@@ -310,35 +296,12 @@
     backdrop-filter: blur(10px);
 }
 
+// delete left, save stays right
 .editor-footer__delete {
     margin-right: auto;
 }
 
-// delete left, save stays right
-
-// MIDI preview in the editor (view toggle on the section title)
-.editor-preview__toolbar {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.editor-preview__views button {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    min-width: 0;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
-    white-space: nowrap;
-}
-
-.editor-preview__param button {
-    padding: 0.3rem 0.7rem;
-    font-size: 0.8rem;
-}
-
+// MIDI preview in the editor
 .editor-preview {
     display: flex;
     min-width: 0;
@@ -439,7 +402,7 @@
     margin: 0;
     padding: 0;
     text-align: left;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     font-weight: 500;
     color: var(--text-dim);
 }
@@ -475,7 +438,7 @@
     border-radius: var(--radius-sm);
     color: var(--text);
     font-family: var(--font-body);
-    font-size: 0.95rem;
+    font-size: var(--fs-lg);
     padding: 0.55rem 2rem 0.55rem 0.75rem;
     outline: none;
     cursor: pointer;
@@ -513,7 +476,7 @@
     color: var(--text-dim);
     cursor: pointer;
     font-family: var(--font-body);
-    font-size: 0.88rem;
+    font-size: var(--fs-md);
     font-weight: 500;
     font-variant-numeric: tabular-nums;
     padding: 0.4rem 0.8rem;
@@ -550,6 +513,7 @@
 // content tabs (switch what is shown, not a mode or a value): underlined, and
 // the active one carries the micro-arc in the logo's gradient
 .segmented.segmented--tabs {
+    position: relative;
     background: none;
     border: 0;
     border-bottom: 1px solid var(--line);
@@ -571,7 +535,7 @@
 .segmented--tabs button .icon {
     width: auto;
     height: auto;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
 }
 
 .segmented--tabs button.is-active {
@@ -579,16 +543,31 @@
     color: #eef3ff;
 }
 
-.segmented--tabs button.is-active::after {
-    content: "";
+// the active tab's micro-arc: a single element sliding between tabs (SegmentedControl places it)
+.segmented__arc {
     position: absolute;
-    left: -2px;
-    right: -2px;
+    left: 0;
     bottom: -4px;
     height: 7px;
+    margin-left: -2px;
+    padding: 0 2px;
+    box-sizing: content-box;
     background: linear-gradient(90deg, var(--arc-mid), var(--arc-core) 50%, var(--arc-deep));
     -webkit-mask: var(--micro-arc) center / 100% 100% no-repeat;
     mask: var(--micro-arc) center / 100% 100% no-repeat;
+    pointer-events: none;
+}
+
+.segmented__arc.is-ready {
+    transition:
+        transform 0.18s ease,
+        width 0.18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .segmented__arc.is-ready {
+        transition: none;
+    }
 }
 
 // play-screen mode switch (Playback / Live / Fixed) — icon + label segments
@@ -596,43 +575,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 0.88rem;
+    font-size: var(--fs-md);
     min-width: 0;
     white-space: nowrap;
 }
 
 .mode-switch button .icon {
-    font-size: 0.85rem;
-}
-
-// placeholder for not-yet-built play modes
-.mode-stub {
-    flex: 1;
-    min-height: 50vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.6rem;
-    color: var(--text-mute);
-    text-align: center;
-}
-
-.mode-stub__icon {
-    font-size: 2.4rem;
-    color: var(--volt);
-    opacity: 0.65;
-}
-
-.mode-stub__title {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 1.15rem;
-    color: var(--text-dim);
-}
-
-.mode-stub__hint {
-    font-size: 0.88rem;
+    font-size: var(--fs-md);
 }
 
 // --- coil cards ------------------------------------------------------------
@@ -689,14 +638,14 @@
     place-items: center;
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
     color: var(--coil, var(--volt));
     border: 3px solid var(--coil, var(--volt));
 }
 
 .coil-card__title {
     font-weight: 600;
-    font-size: 0.98rem;
+    font-size: var(--fs-lg);
     color: #eef3ff;
 }
 
@@ -704,7 +653,7 @@
     margin-left: auto;
     font-family: var(--font-mono);
     color: var(--text-dim);
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
 }
 
 // channel toggle grid
@@ -716,7 +665,7 @@
 
 .chan-cell {
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
     color: var(--text-dim);
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid var(--line);
@@ -755,7 +704,7 @@
 // numeric readouts (ontime / duty)
 .readout-label {
     display: block;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     color: var(--text-dim);
     margin: 0 0 0.5rem;
 }
@@ -772,7 +721,7 @@
 
 .readout__key {
     display: block;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     color: var(--text-dim);
     margin-bottom: 0.32rem;
 }
@@ -795,7 +744,7 @@
     outline: none;
     color: var(--text);
     font-family: var(--font-mono);
-    font-size: 1.06rem;
+    font-size: var(--fs-xl);
     padding: 0.45rem 0;
 }
 
@@ -803,7 +752,7 @@
     font-style: normal;
     color: var(--text-mute);
     font-family: var(--font-mono);
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
     padding-left: 0.3rem;
 }
 
@@ -826,7 +775,7 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .editor-section__title {
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: var(--fs-lg);
     color: var(--text);
     margin-bottom: 0.85rem;
     display: flex;
@@ -838,16 +787,9 @@ input[type="number"]::-webkit-inner-spin-button {
     color: var(--volt);
 }
 
-// action bar
-.editor-actions {
-    display: flex;
-    gap: 0.7rem;
-    align-items: center;
-}
-
 .btn {
     font-family: var(--font-body);
-    font-size: 0.88rem;
+    font-size: var(--fs-md);
     font-weight: 600;
     border-radius: var(--radius);
     padding: 0.6rem 1.1rem;
@@ -896,6 +838,25 @@ input[type="number"]::-webkit-inner-spin-button {
 .btn--danger:hover {
     color: #fff;
     filter: brightness(1.04);
+}
+
+// destructive but secondary (delete, reboot): red text, no fill. The fill stays
+// for a screen's main action and for confirmation dialogs.
+.btn--danger-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: #ff8a96;
+}
+
+.btn--danger-ghost:hover {
+    color: #ffb3bb;
+    background: rgb(255 84 104 / 0.1);
+    border-color: rgb(255 84 104 / 0.35);
+}
+
+// transport Stop is a neutral button: the red lives on its icon
+.btn--stop:not(:disabled) .icon {
+    color: #ff8a96;
 }
 
 // MIDI file field: combobox + a button to open the library/upload modal
@@ -965,7 +926,7 @@ input[type="number"]::-webkit-inner-spin-button {
 .modal-card__title {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.1rem;
+    font-size: var(--fs-xl);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -975,58 +936,128 @@ input[type="number"]::-webkit-inner-spin-button {
     color: var(--volt);
 }
 
-// drag-and-drop upload zone (also opens the file picker on click)
-.dropzone {
+// MIDI library (editor modal + MIDI files page)
+.midi-lib {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    container-type: inline-size; // the channels column drops out when narrow
+}
+
+.midi-lib__bar {
+    display: flex;
+    gap: var(--sp-2);
+}
+
+.midi-lib__bar .btn {
+    flex: 0 0 auto;
+}
+
+.midi-lib__search {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.midi-lib__search .text-field {
+    width: 100%;
+    height: 100%;
+    padding-left: 2.2rem;
+}
+
+.midi-lib__search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-mute);
+    pointer-events: none;
+    font-size: var(--fs-md);
+}
+
+.midi-lib__hint {
+    margin: var(--sp-2) 0 var(--sp-3);
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+.midi-lib__drop {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
-    padding: 1.6rem;
-    margin-bottom: 1rem;
-    cursor: pointer;
-    text-align: center;
-    border: 1.5px dashed var(--line-strong);
-    border-radius: var(--radius);
-    color: var(--text-dim);
-    transition: 0.15s;
-}
-
-.dropzone:hover,
-.dropzone.is-drag {
-    border-color: var(--volt);
+    gap: 0.6rem;
+    border: 1.5px dashed var(--volt);
+    border-radius: var(--radius-lg);
+    background: rgb(var(--bg-rgb) / 0.85);
     color: var(--text);
-    background: var(--volt-05);
+    font-size: var(--fs-lg);
+    pointer-events: none;
 }
 
-.dropzone__icon {
-    font-size: 1.7rem;
+.midi-lib__drop-icon {
+    font-size: var(--fs-2xl);
     color: var(--volt);
 }
 
-.dropzone__hint {
-    font-size: 0.82rem;
-}
-
-.dropzone__name {
-    font-size: 0.85rem;
-    color: var(--volt);
-}
-
-.midi-lib__search {
-    margin-bottom: 0.8rem;
+// hugs its rows; only scrolls once they outgrow the space
+.midi-lib__table {
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    overflow: hidden;
 }
 
 .midi-lib__list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
+    --midi-cols: minmax(0, 1fr) 4.2rem 4.2rem minmax(0, 10rem) 7.5rem 4.6rem;
+    flex: 1 1 auto;
+    min-height: 0;
     max-height: 42vh;
+    overflow-x: hidden;
     overflow-y: auto;
 }
 
 .midi-files__panel .midi-lib__list {
-    max-height: 100%;
+    max-height: none;
+}
+
+.midi-lib__head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: var(--midi-cols);
+    gap: var(--sp-3);
+    align-items: center;
+    padding: 0.55rem var(--sp-3);
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-mute);
+}
+
+.midi-lib__head .is-num {
+    text-align: right;
+}
+
+@container (max-width: 540px) {
+    .midi-lib__list {
+        --midi-cols: minmax(0, 1fr) 3.4rem 6rem 4.6rem;
+    }
+
+    .midi-lib__col-ch,
+    .midi-lib__col-prog {
+        display: none;
+    }
 }
 
 .midi-lib__dl {
@@ -1044,19 +1075,14 @@ input[type="number"]::-webkit-inner-spin-button {
     color: var(--volt);
 }
 
-.midi-lib__del.is-armed {
-    color: #fff;
-    background: var(--danger);
-}
-
 .midi-lib__msg {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     padding: 0.55rem 0.75rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    margin-bottom: 0.9rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-md);
+    margin-bottom: var(--sp-3);
 }
 
 .midi-lib__msg.success {
@@ -1091,5 +1117,5 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .midi-lib__msg .btn {
     padding: 0.4rem 0.85rem;
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
 }

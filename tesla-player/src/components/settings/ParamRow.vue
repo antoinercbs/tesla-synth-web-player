@@ -52,13 +52,13 @@ const emit = defineEmits<{ (e: 'info', param: SynthParam): void }>();
   align-items: center;
   gap: 0.4rem;
   min-width: 0;
-  font-size: 0.82rem;
+  font-size: var(--fs-md);
   color: var(--text);
 }
 
 .param-row__flag {
   color: var(--text-mute);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
 }
 
 .param-row__flag.is-safety {
@@ -72,7 +72,7 @@ const emit = defineEmits<{ (e: 'info', param: SynthParam): void }>();
   color: var(--text-mute);
   padding: 0;
   margin-left: 0.15rem;
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   line-height: 1;
   flex: 0 0 auto;
 }

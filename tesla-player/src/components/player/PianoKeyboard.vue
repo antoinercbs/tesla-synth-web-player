@@ -278,7 +278,7 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line-strong);
   color: var(--text-dim);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   transition: 0.13s;
 }
 
@@ -317,7 +317,7 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
 
 .piano__range {
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   min-width: 5.6rem;
   text-align: center;
@@ -357,47 +357,56 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
     box-shadow 0.12s ease-out;
 }
 
+/* light grey, not white: the keybed mustn't be the brightest thing on screen */
 .pkey--white {
   flex: 1 1 0;
   min-width: 0;
-  background: linear-gradient(180deg, #dce4ee 0%, #c6d1dd 72%, #b1bfcd 100%);
+  background: linear-gradient(180deg, #c9d2de 0%, #aab5c4 100%);
   border-right: 1px solid rgba(5, 8, 13, 0.7);
   border-radius: 0 0 4px 4px;
-  box-shadow: inset 0 -7px 0 rgba(5, 8, 13, 0.14);
+  box-shadow: inset 0 -6px 0 rgba(5, 8, 13, 0.12);
 }
 
 .pkey--white:last-child {
   border-right: 0;
 }
 
+/* the interface's night blue */
 .pkey--black {
   position: absolute;
   top: 0;
   height: 62%;
   z-index: 2;
-  background: linear-gradient(180deg, #1c2532 0%, #0b1017 80%, #060a10 100%);
+  background: linear-gradient(180deg, #212b3b 0%, #1a2230 55%, #131a26 100%);
   border: 1px solid rgba(3, 5, 9, 0.95);
   border-top: 0;
   border-radius: 0 0 4px 4px;
   box-shadow:
-    0 4px 7px rgba(0, 0, 0, 0.65),
-    inset 0 -5px 0 rgba(255, 255, 255, 0.045),
-    inset 1px 0 0 rgba(255, 255, 255, 0.05);
+    0 3px 6px rgba(0, 0, 0, 0.55),
+    inset 0 -4px 0 rgba(255, 255, 255, 0.04);
 }
 
-/* lit = the coil colour(s) of the channel(s) holding the note */
+/* lit = a wash of the coil colour(s) driving the note, the full colour as a rim at the foot.
+   --k may be a stripe gradient (several coils), hence layers rather than color-mix(). */
 .pkey.is-on {
-  background: var(--k, var(--volt));
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.28),
-    inset 0 -7px 0 rgba(5, 8, 13, 0.2);
+  background: linear-gradient(180deg, rgb(236 240 247 / 0.45), rgb(236 240 247 / 0.15)), var(--k, var(--volt));
+  box-shadow: none;
 }
 
 .pkey--black.is-on {
-  box-shadow:
-    0 4px 12px rgba(0, 0, 0, 0.55),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
-    inset 0 -5px 0 rgba(5, 8, 13, 0.25);
+  background: linear-gradient(180deg, rgb(8 11 17 / 0.3), rgb(8 11 17 / 0.1)), var(--k, var(--volt));
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.55);
+}
+
+.pkey.is-on::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  border-radius: 0 0 4px 4px;
+  background: var(--k, var(--volt));
 }
 
 /* only a playable keyboard invites the hand */
@@ -407,11 +416,11 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
 
 @media (hover: hover) {
   .piano__keys.is-interactive .pkey--white:not(.is-on):hover {
-    background: linear-gradient(180deg, #eaf0f6 0%, #d5dee8 72%, #c0ccd9 100%);
+    background: linear-gradient(180deg, #d6dee8 0%, #b8c2d0 100%);
   }
 
   .piano__keys.is-interactive .pkey--black:not(.is-on):hover {
-    background: linear-gradient(180deg, #2a3545 0%, #141b25 80%, #0a0f16 100%);
+    background: linear-gradient(180deg, #2b3649 0%, #222c3d 55%, #19212f 100%);
   }
 }
 
@@ -423,8 +432,8 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
   bottom: 0.45rem;
   text-align: center;
   font-family: var(--font-mono);
-  font-size: 0.58rem;
-  color: rgba(5, 8, 13, 0.5);
+  font-size: 0.56rem;
+  color: rgba(5, 8, 13, 0.36);
   pointer-events: none;
 }
 

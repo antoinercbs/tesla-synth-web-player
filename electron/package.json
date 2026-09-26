@@ -12,6 +12,7 @@
     "build:front": "cross-env VITE_BASE_URL= npm --prefix ../tesla-player run build",
     "build:back": "npm --prefix ../nest-backend run build",
     "stage": "node scripts/stage.mjs",
+    "icons": "node scripts/make-icons.mjs",
     "rebuild:native": "electron-rebuild -m resources/backend -w sqlite3",
     "dist": "electron-builder",
     "dist:win": "electron-builder --win",

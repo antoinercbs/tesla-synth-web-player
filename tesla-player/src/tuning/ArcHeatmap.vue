@@ -72,7 +72,7 @@ watch(() => props.heat, draw);
 <style scoped>
 .arc-heat { margin: 0; max-width: 100%; position: relative; display: flex; flex-direction: column; gap: 0.25rem; }
 .arc-heat__canvas { width: 100%; height: auto; display: block; background: #05070c; border-radius: 8px; border: 1px solid var(--line); image-rendering: auto; min-height: 2rem; }
-.arc-heat__cap { display: flex; justify-content: space-between; gap: 0.5rem; font-size: 0.72rem; color: var(--text-dim); }
+.arc-heat__cap { display: flex; justify-content: space-between; gap: 0.5rem; font-size: var(--fs-xs); color: var(--text-dim); }
 .mono { font-family: var(--font-mono); }
 .arc-heat__empty { position: absolute; inset: 0; display: grid; place-items: center; color: var(--text-mute); pointer-events: none; }
 </style>

@@ -17,6 +17,7 @@ import { AddSyncColumns1717600000000 } from './migrations/1717600000000-AddSyncC
 import { AddEditorName1717700000000 } from './migrations/1717700000000-AddEditorName';
 import { MidiChannelsAndTags1717800000000 } from './migrations/1717800000000-MidiChannelsAndTags';
 import { CoilTuning1717900000000 } from './migrations/1717900000000-CoilTuning';
+import { MidiPrograms1718000000000 } from './migrations/1718000000000-MidiPrograms';
 
 /**
  * Shared TypeORM configuration, used both by the Nest app (app.module) and the
@@ -37,6 +38,7 @@ export const dataSourceOptions: DataSourceOptions = {
     AddEditorName1717700000000,
     MidiChannelsAndTags1717800000000,
     CoilTuning1717900000000,
+    MidiPrograms1718000000000,
   ],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,

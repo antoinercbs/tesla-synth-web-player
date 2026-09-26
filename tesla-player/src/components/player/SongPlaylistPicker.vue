@@ -2,7 +2,6 @@
 import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import { coilColor } from '@/ui/coil-colors';
@@ -57,9 +56,6 @@ const selectedPlaylistId = ref<number | null>(null);
 const selectedPlaylist = computed<Playlist | null>(
   () => playlists.value.find((p) => p.id === selectedPlaylistId.value) ?? null,
 );
-const playlistItems = computed(() =>
-  playlists.value.map((p) => ({ id: p.id, label: `${p.name} · ${p.coilCount} ⚡` })),
-);
 function songById(id: number): Song | undefined {
   return songs.value.find((s) => s.id === id);
 }
@@ -75,6 +71,15 @@ const playlistEntries = computed<PlaylistEntry[]>(() => {
 const compatibleSongs = computed<Song[]>(() =>
   playlistEntries.value.filter((e) => e.compatible).map((e) => e.song),
 );
+/** Songs of a playlist that match its coil count (what "play all" plays). */
+function compatibleOf(pl: Playlist): Song[] {
+  return pl.songIds
+    .map((id) => songById(id))
+    .filter((s): s is Song => !!s && s.coilCount === pl.coilCount);
+}
+function playlistDurationMs(pl: Playlist): number {
+  return pl.songIds.reduce((sum, id) => sum + (songById(id)?.midiFile?.durationMs ?? 0), 0);
+}
 
 function loadPlaylists(): void {
   axios.get('/api/playlists').then((r) => {
@@ -121,88 +126,143 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
             :title="$t('label.playNow')">
             <i class="fas" :class="song.id === currentId ? 'fa-volume-high' : 'fa-play'"></i>
           </button>
-          <button class="row-btn" type="button" @click="emit('enqueue', song)" :title="$t('label.addToQueue')">
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="play-row__name-wrapper">
+          <div class="play-row__main">
             <span class="play-row__name">{{ song.name }}</span>
-            <div v-if="song.tags?.length" class="song-tags-display">
+            <div v-if="song.tags?.length" class="play-row__meta">
               <span v-for="tag in song.tags" :key="tag.id ?? tag.name" class="song-tag-pill"
-                :style="{ '--tag-c': tag.color }">
-                {{ tag.name }}
-              </span>
+                :style="{ '--tag-c': tag.color }">{{ tag.name }}</span>
             </div>
           </div>
-          <span class="play-row__dur">{{ formatDuration(song.midiFile?.durationMs) }}</span>
-          <span class="coil-dots">
-            <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot"
-              :style="{ '--c': coilColor(i) }"></span>
-            <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
-                class="fas fa-volume-high"></i></span>
-          </span>
-          <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(song.id) } }" :title="$t('nav.edit')">
-            <i class="fas fa-pen"></i>
+          <!-- secondary actions take the facts' place on hover / keyboard focus (both shown on touch screens) -->
+          <div class="play-row__end">
+            <div class="play-row__facts">
+              <span class="play-row__dur">{{ formatDuration(song.midiFile?.durationMs) }}</span>
+              <span class="coil-dots">
+                <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot"
+                  :style="{ '--c': coilColor(i) }"></span>
+                <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
+                    class="fas fa-volume-high"></i></span>
+              </span>
+            </div>
+            <div class="play-row__acts">
+              <button class="row-btn" type="button" @click="emit('enqueue', song)" :title="$t('label.addToQueue')">
+                <i class="fas fa-plus"></i>
+              </button>
+              <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(song.id) } }"
+                :title="$t('nav.edit')">
+                <i class="fas fa-pen"></i>
+              </RouterLink>
+            </div>
+          </div>
+        </li>
+        <li v-if="songs.length === 0" class="play-empty">
+          <empty-state variant="stub" icon="fa-music">{{ $t('label.noSongsYet') }}</empty-state>
+          <RouterLink class="btn btn--volt play-empty__cta" :to="{ name: 'edit' }">
+            <span class="icon"><i class="fas fa-plus"></i></span>{{ $t('label.newSong') }}
           </RouterLink>
         </li>
-        <li v-if="filteredSongs.length === 0" class="play-empty">{{ $t('label.noResults') }}</li>
+        <li v-else-if="filteredSongs.length === 0" class="play-empty">{{ $t('label.noResults') }}</li>
       </ul>
     </template>
 
-    <!-- playlists -->
-    <template v-else>
-      <div class="play-pick play-pick--combo">
-        <searchable-select v-model="selectedPlaylistId" :items="playlistItems" :placeholder="$t('label.pickPlaylist')"
-          clearable />
-      </div>
-      <template v-if="selectedPlaylist">
-        <div class="playlist-bar">
-          <span class="coil-badge"><span class="icon"><i class="fas fa-bolt"></i></span>{{ selectedPlaylist.coilCount
-          }}</span>
-          <button class="btn btn--volt playlist-bar__play" type="button" :disabled="compatibleSongs.length === 0"
-            @click="emit('play-playlist', compatibleSongs)">
-            <span class="icon"><i class="fas fa-play"></i></span>{{ $t('label.playAll') }}
+    <!-- playlists: the list itself, then one playlist's songs -->
+    <template v-else-if="!selectedPlaylist">
+      <ul class="play-rows">
+        <li v-for="pl in playlists" :key="pl.id" class="play-row">
+          <button class="row-btn row-btn--play" type="button" :disabled="compatibleOf(pl).length === 0"
+            @click="emit('play-playlist', compatibleOf(pl))" :title="$t('label.playAll')">
+            <i class="fas fa-play"></i>
           </button>
-        </div>
-        <ul class="play-rows">
-          <li v-for="entry in playlistEntries" :key="entry.song.id" class="play-row"
-            :class="{ 'is-current': entry.song.id === currentId, 'is-incompatible': !entry.compatible }">
-            <button class="row-btn row-btn--play" type="button" :disabled="!entry.compatible"
-              @click="entry.compatible && emit('play-now', entry.song)" :title="$t('label.playNow')">
-              <i class="fas" :class="entry.song.id === currentId ? 'fa-volume-high' : 'fa-play'"></i>
-            </button>
-            <button class="row-btn" type="button" :disabled="!entry.compatible"
-              @click="entry.compatible && emit('enqueue', entry.song)" :title="$t('label.addToQueue')">
-              <i class="fas fa-plus"></i>
-            </button>
-            <div class="play-row__name-wrapper">
-              <span class="play-row__name">{{ entry.song.name }}</span>
-              <div v-if="entry.song.tags?.length" class="song-tags-display">
-                <span v-for="tag in entry.song.tags" :key="tag.id ?? tag.name" class="song-tag-pill"
-                  :style="{ '--tag-c': tag.color }">
-                  {{ tag.name }}
-                </span>
-              </div>
+          <button class="play-row__main play-row__open" type="button" @click="selectedPlaylistId = pl.id">
+            <span class="play-row__name">{{ pl.name }}</span>
+            <span class="play-row__meta">{{ $t('label.songsCount', pl.songIds.length) }}</span>
+          </button>
+          <div class="play-row__end">
+            <div class="play-row__facts">
+              <span class="play-row__dur">{{ formatDuration(playlistDurationMs(pl)) }}</span>
+              <span class="coil-dots">
+                <span v-for="i in coilChips(pl.coilCount)" :key="i" class="coil-dot"
+                  :style="{ '--c': coilColor(i) }"></span>
+              </span>
             </div>
-            <span v-if="!entry.compatible" class="incompat-flag"
-              :title="$t('label.incompatibleCoils', { n: entry.song.coilCount })">
-              <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ entry.song.coilCount }}
-            </span>
-            <span v-else class="coil-dots">
-              <span v-for="i in coilChips(entry.song.coilCount)" :key="i" class="coil-dot"
-                :style="{ '--c': coilColor(i) }"></span>
-              <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
-                  class="fas fa-volume-high"></i></span>
-            </span>
-            <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(entry.song.id) } }"
-              :title="$t('nav.edit')">
-              <i class="fas fa-pen"></i>
-            </RouterLink>
-          </li>
-          <li v-if="playlistEntries.length === 0" class="play-empty">{{ $t('label.emptyPlaylist') }}</li>
-          <li v-else-if="compatibleSongs.length === 0" class="play-empty">{{ $t('label.noCompatibleSongs') }}</li>
-        </ul>
-      </template>
-      <empty-state v-else variant="stub" icon="fa-list">{{ $t('label.pickPlaylist') }}</empty-state>
+            <div class="play-row__acts">
+              <RouterLink class="row-btn" :to="{ name: 'playlists', params: { id: String(pl.id) } }"
+                :title="$t('nav.edit')">
+                <i class="fas fa-pen"></i>
+              </RouterLink>
+            </div>
+          </div>
+        </li>
+        <li v-if="playlists.length === 0" class="play-empty">
+          <empty-state variant="stub" icon="fa-list">{{ $t('label.noPlaylistsYet') }}</empty-state>
+        </li>
+      </ul>
+      <RouterLink class="play-new" :to="{ name: 'playlists' }">
+        <i class="fas fa-plus"></i>{{ $t('label.newPlaylist') }}
+      </RouterLink>
+    </template>
+
+    <template v-else>
+      <div class="playlist-bar">
+        <button class="row-btn" type="button" :title="$t('label.allPlaylists')" :aria-label="$t('label.allPlaylists')"
+          @click="selectedPlaylistId = null">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="playlist-bar__name">{{ selectedPlaylist.name }}</span>
+        <button class="btn btn--volt playlist-bar__play" type="button" :disabled="compatibleSongs.length === 0"
+          @click="emit('play-playlist', compatibleSongs)">
+          <span class="icon"><i class="fas fa-play"></i></span>{{ $t('label.playAll') }}
+        </button>
+      </div>
+      <ul class="play-rows">
+        <li v-for="entry in playlistEntries" :key="entry.song.id" class="play-row"
+          :class="{ 'is-current': entry.song.id === currentId, 'is-incompatible': !entry.compatible }">
+          <button class="row-btn row-btn--play" type="button" :disabled="!entry.compatible"
+            @click="entry.compatible && emit('play-now', entry.song)" :title="$t('label.playNow')">
+            <i class="fas" :class="entry.song.id === currentId ? 'fa-volume-high' : 'fa-play'"></i>
+          </button>
+          <div class="play-row__main">
+            <span class="play-row__name">{{ entry.song.name }}</span>
+            <div v-if="entry.song.tags?.length" class="play-row__meta">
+              <span v-for="tag in entry.song.tags" :key="tag.id ?? tag.name" class="song-tag-pill"
+                :style="{ '--tag-c': tag.color }">{{ tag.name }}</span>
+            </div>
+          </div>
+          <div class="play-row__end">
+            <div class="play-row__facts">
+              <span class="play-row__dur">{{ formatDuration(entry.song.midiFile?.durationMs) }}</span>
+              <span v-if="!entry.compatible" class="incompat-flag"
+                :title="$t('label.incompatibleCoils', { n: entry.song.coilCount })">
+                <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ entry.song.coilCount }}
+              </span>
+              <span v-else class="coil-dots">
+                <span v-for="i in coilChips(entry.song.coilCount)" :key="i" class="coil-dot"
+                  :style="{ '--c': coilColor(i) }"></span>
+                <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
+                    class="fas fa-volume-high"></i></span>
+              </span>
+            </div>
+            <div class="play-row__acts">
+              <button class="row-btn" type="button" :disabled="!entry.compatible"
+                @click="entry.compatible && emit('enqueue', entry.song)" :title="$t('label.addToQueue')">
+                <i class="fas fa-plus"></i>
+              </button>
+              <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(entry.song.id) } }"
+                :title="$t('nav.edit')">
+                <i class="fas fa-pen"></i>
+              </RouterLink>
+            </div>
+          </div>
+        </li>
+        <li v-if="playlistEntries.length === 0" class="play-empty">
+          <empty-state variant="stub" icon="fa-list">{{ $t('label.emptyPlaylist') }}</empty-state>
+          <RouterLink class="btn btn--volt play-empty__cta"
+            :to="{ name: 'playlists', params: { id: String(selectedPlaylist.id) } }">
+            <span class="icon"><i class="fas fa-plus"></i></span>{{ $t('label.addSongs') }}
+          </RouterLink>
+        </li>
+        <li v-else-if="compatibleSongs.length === 0" class="play-empty">{{ $t('label.noCompatibleSongs') }}</li>
+      </ul>
     </template>
   </article>
 </template>
@@ -243,17 +303,17 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   position: relative;
   width: 2rem;
   height: 2rem;
-  border-radius: var(--radius-3, 7px);
+  border-radius: 50%;
   flex: 0 0 auto;
   display: grid;
   place-items: center;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--panel-2);
   border: 1px solid var(--line-strong);
   color: var(--text-dim);
-  font-size: 0.8rem;
+  font-size: var(--fs-xs);
   transition: 0.13s;
-  padding: 3px 0 0 0;
+  padding: 0;
 }
 
 .row-btn:hover {
@@ -271,11 +331,6 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   border-color: var(--line-strong);
 }
 
-.row-btn--play:hover {
-  color: var(--plasma);
-  border-color: var(--plasma);
-}
-
 .coil-dots {
   display: inline-flex;
   align-items: center;
@@ -284,8 +339,8 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 }
 
 .coil-dot {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   border: 2px solid var(--c);
 }
@@ -296,7 +351,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   align-items: center;
   margin-left: 2px;
   color: var(--plasma);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
 }
 
 /* search row */
@@ -306,10 +361,6 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   gap: 0.6rem;
   padding: 0.8rem 1rem;
   flex: 0 0 auto;
-}
-
-.play-pick--combo {
-  display: block;
 }
 
 .play-search {
@@ -330,7 +381,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   transform: translateY(-50%);
   color: var(--text-mute);
   pointer-events: none;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .coil-select {
@@ -342,64 +393,71 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 .coil-select select {
   padding: 0.5rem 1.9rem 0.5rem 0.7rem;
   height: 100%;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
-/* playlist action bar */
+/* one playlist opened: back · name · play all */
 .playlist-bar {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0 1rem 0.7rem;
+  padding: 0.8rem 1rem 0.6rem;
   flex: 0 0 auto;
 }
 
-.coil-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  padding: 0.3rem 0.6rem;
-  border-radius: 8px;
-  background: var(--volt-10);
-  border: 1px solid var(--line-strong);
-  color: var(--volt);
-  font-family: var(--font-mono);
+.playlist-bar__name {
+  flex: 1 1 auto;
+  min-width: 0;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--fs-lg);
+  color: #eef3ff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .playlist-bar__play {
-  flex: 1 1 auto;
-  justify-content: center;
+  flex: 0 0 auto;
   padding: 0.45rem 0.9rem;
 }
 
 /* rows + empty */
 .play-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   padding: 1.2rem 1rem;
   color: var(--text-mute);
   text-align: center;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
+}
+
+.play-empty :deep(.empty-stub) {
+  padding: 1rem 1rem 0.6rem;
+}
+
+.play-empty__cta {
+  margin-top: 0.3rem;
 }
 
 .play-rows {
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 0 0.4rem 0.4rem;
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
 }
 
+/* title over tags on the left; duration over coils in a right-aligned column */
 .play-row {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.5rem 1rem;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
   min-width: 0;
-  border-top: 1px solid var(--line);
+  border-radius: 0 var(--radius) var(--radius) 0;
   transition: background 0.13s;
 }
 
@@ -407,31 +465,124 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   background: var(--line-005);
 }
 
+/* the song on air carries the micro-arc on its edge, like the active nav item */
 .play-row.is-current {
   background: var(--volt-08);
+}
+
+.play-row.is-current::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+  -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+  mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+}
+
+.play-row.is-current .row-btn--play {
+  color: var(--volt);
+  border-color: rgb(var(--volt-rgb) / 0.45);
 }
 
 .play-row.is-incompatible {
   opacity: 0.5;
 }
 
+.play-row__main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+/* a playlist row opens the playlist: the text block is the button */
+.play-row__open {
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
 .play-row__name {
   min-width: 0;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: var(--fs-lg);
+  color: #eef3ff;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.play-row.is-current .play-row__name {
-  color: var(--volt);
+.play-row__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  color: var(--text-mute);
 }
 
 .play-row__dur {
   flex: 0 0 auto;
-  color: var(--text-mute);
-  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
   font-variant-numeric: tabular-nums;
+}
+
+.play-row__end {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.play-row__facts {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  font-size: var(--fs-xs);
+}
+
+.play-row__acts {
+  display: flex;
+  gap: 0.35rem;
+}
+
+/* pointer devices: the actions swap in over the facts (same cell, so nothing shifts) */
+@media (hover: hover) {
+  .play-row__end {
+    display: grid;
+    justify-items: end;
+  }
+
+  .play-row__facts,
+  .play-row__acts {
+    grid-area: 1 / 1;
+    transition: opacity 0.13s;
+  }
+
+  .play-row__acts {
+    opacity: 0;
+  }
+
+  .play-row:hover .play-row__acts,
+  .play-row:focus-within .play-row__acts {
+    opacity: 1;
+  }
+
+  .play-row:hover .play-row__facts,
+  .play-row:focus-within .play-row__facts {
+    opacity: 0;
+  }
 }
 
 .incompat-flag {
@@ -440,33 +591,36 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   gap: 0.25rem;
   flex: 0 0 auto;
   color: var(--coil-1);
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-}
-
-.play-row__name-wrapper {
-  display: flex;
-  justify-content: start;
-  flex: 1 1 auto;
-  min-width: 0;
-  gap: 0.6rem
-}
-
-.song-tags-display {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+  font-size: var(--fs-xs);
 }
 
 .song-tag-pill {
-  font-size: 0.76rem;
-  font-weight: 600;
-  padding: 0.15rem 0.4rem;
-  border-radius: 4px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  padding: 0 0.45rem;
+  border-radius: var(--radius-pill);
   color: var(--tag-c);
-  background-color: color-mix(in srgb, var(--tag-c) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--tag-c) 30%, transparent);
+  background-color: color-mix(in srgb, var(--tag-c) 12%, transparent);
   white-space: nowrap;
+}
+
+.play-new {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0.9rem 0.9rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius);
+  border: 1px dashed var(--line-strong);
+  color: var(--text-dim);
+  font-weight: 500;
+  text-decoration: none;
+  flex: 0 0 auto;
+}
+
+.play-new:hover {
+  color: var(--volt);
+  border-color: var(--volt);
 }
 
 @media (max-width: 1000px) {
@@ -480,8 +634,14 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
     display: none !important;
   }
 
+  /* touch targets */
   .play-row {
-    padding: 0.5rem;
+    min-height: 52px;
+  }
+
+  .row-btn {
+    width: 2.4rem;
+    height: 2.4rem;
   }
 }
 </style>

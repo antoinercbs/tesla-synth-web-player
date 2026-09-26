@@ -239,7 +239,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 0.45rem;
   font-weight: 600;
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   color: #ffd966;
   margin-bottom: 0.45rem;
 }
@@ -252,7 +252,7 @@ onUnmounted(() => {
   margin: 0;
   padding-left: 1.15rem;
   color: var(--text-mute);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   line-height: 1.5;
 }
 
@@ -284,7 +284,7 @@ onUnmounted(() => {
 
 .sync-group__title {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
   margin-bottom: 0.4rem;
 }
@@ -312,7 +312,7 @@ onUnmounted(() => {
 
 .sync-row__badge {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   align-self: flex-start;
   padding: 0.05rem 0.4rem;
   border-radius: 4px;
@@ -339,7 +339,7 @@ onUnmounted(() => {
 }
 
 .sync-modal__progress {
-  font-size: 0.78rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
   margin: 0 0 0.6rem;
 }
@@ -358,7 +358,7 @@ onUnmounted(() => {
 }
 
 .sync-modal__warnings {
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
   margin-bottom: 1rem;
 }
@@ -370,7 +370,7 @@ onUnmounted(() => {
 
 .field-label {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
 }
 </style>

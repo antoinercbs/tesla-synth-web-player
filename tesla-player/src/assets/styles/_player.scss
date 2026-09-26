@@ -20,7 +20,7 @@
     gap: 0.5rem;
     padding: 0.75rem 1rem;
     font-weight: 600;
-    font-size: 0.92rem;
+    font-size: var(--fs-lg);
     color: #eef3ff;
     border-bottom: 1px solid var(--line);
 }
@@ -41,7 +41,7 @@
     gap: 0.3rem;
     padding: 0.1rem 0.55rem;
     border-radius: var(--radius-pill);
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
     font-weight: 500;
     color: var(--volt);
     background: var(--volt-10);
@@ -80,24 +80,6 @@
     color: var(--text-mute);
 }
 
-// per-coil colour legend — sits at the right of the song name line
-.player-legend {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-left: auto;
-    flex-wrap: wrap;
-}
-
-.player-legend__label {
-    display: flex;
-    align-items: center;
-}
-
-.player-legend__label .icon {
-    color: var(--volt);
-}
-
 .coil-legend {
     display: flex;
     gap: 4px;
@@ -126,7 +108,7 @@
     border-radius: 8px;
     background: var(--volt-08);
     color: var(--text-dim);
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
 }
 
 .player-hint .icon {
@@ -146,7 +128,7 @@
 
 .vu__label {
     display: block;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     color: var(--text-mute);
     margin-bottom: 0.5rem;
 }
@@ -220,13 +202,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-size: 0.85rem;
+    font-size: var(--fs-md);
     color: var(--text-dim);
 }
 
 .power-head__key .icon {
     color: var(--volt);
-    font-size: 1.15rem;
+    font-size: var(--fs-xl);
 }
 
 .power-scope {
@@ -236,11 +218,11 @@
 
 .power-scope button {
     padding: 0.22rem 0.65rem;
-    font-size: 0.8rem;
+    font-size: var(--fs-sm);
 }
 
 .power-head__val {
-    font-size: 1.08rem;
+    font-size: var(--fs-xl);
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
@@ -261,7 +243,7 @@
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--line-strong);
     color: var(--text-dim);
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
     transition: 0.13s;
 }
 
@@ -338,7 +320,7 @@
 .power-zones {
     display: flex;
     justify-content: space-between;
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
     color: var(--text-mute);
 }
 
@@ -368,7 +350,7 @@
 
 .coil-bias__chip {
     font-family: var(--font-mono);
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
     font-weight: 700;
     color: var(--c);
     text-align: center;
@@ -383,7 +365,7 @@
 }
 
 .coil-bias__key {
-    font-size: 0.74rem;
+    font-size: var(--fs-xs);
     color: var(--text-dim);
 }
 
@@ -463,7 +445,6 @@
 .player-song,
 .player-hint,
 .player-progress,
-.player-options,
 .player-power,
 .player-transport,
 .vu-legend {
@@ -524,7 +505,7 @@
 .player-progress__time {
     flex: 0 0 auto;
     font-family: var(--font-mono);
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
     color: var(--text-mute);
     font-variant-numeric: tabular-nums;
 }
@@ -550,23 +531,8 @@
     }
 }
 
-.player-viz__param {
-    margin: 0 1rem 0.5rem;
-    align-self: flex-start;
-    flex: 0 0 auto;
-}
-
-.player-viz__param button {
-    padding: 0.3rem 0.7rem;
-    font-size: 0.8rem;
-}
-
 .player-viz__tabs button {
     white-space: nowrap;
-}
-
-.editor-preview__views button .icon {
-    color: var(--text);
 }
 
 .player-viz__body {
@@ -591,13 +557,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-size: 0.76rem;
+    font-size: var(--fs-sm);
     color: var(--text-dim);
 }
 
 .vu-legend__label .icon {
     color: var(--volt);
-    font-size: 1.05rem;
+    font-size: var(--fs-xl);
 }
 
 .env-chip {
@@ -609,12 +575,12 @@
     background: var(--bg-2);
     border: 1px solid var(--line-strong);
     color: var(--text-dim);
-    font-size: 0.78rem;
+    font-size: var(--fs-sm);
 }
 
 .env-chip .icon {
     color: var(--volt);
-    font-size: 0.72rem;
+    font-size: var(--fs-xs);
 }
 
 .env-chip__pn {
@@ -629,7 +595,7 @@
 
 .env-chip__chs {
     font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     color: var(--text-mute);
 }
 
@@ -673,20 +639,15 @@
 
 .player-coil__readout {
     font-family: var(--font-mono);
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     color: var(--text);
 }
 
 .player-coil__readout i {
     color: var(--text-mute);
     font-style: normal;
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     margin-left: 1px;
-}
-
-// autoplay toggle (and any future player switches)
-.player-options {
-    padding: 0.2rem 1rem 0.5rem;
 }
 
 .switch {
@@ -742,40 +703,42 @@
 }
 
 .switch__text {
-    font-size: 0.82rem;
+    font-size: var(--fs-md);
     color: var(--text-dim);
 }
 
 .midi-lib__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-3) var(--sp-5);
     color: var(--text-mute);
-    font-size: 0.88rem;
-    padding: 0.4rem 0;
+    font-size: var(--fs-md);
+    text-align: center;
 }
 
 .midi-lib__item {
-    display: flex;
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--midi-cols);
+    gap: var(--sp-3);
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.5rem;
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: 8px;
-    transition: background ease 300ms;
+    min-height: 2.9rem;
+    padding: 0.3rem var(--sp-3);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.13s;
 }
 
-.midi-lib__item:has(.midi-lib__action:hover) {
-    background-color: var(--panel-2);
-}
-
-.midi-lib__item:has(.midi-lib__dropdown:hover) {
-    background-color: var(--panel-2);
+.midi-lib__item:hover {
+    background: var(--line-005);
 }
 
 .midi-lib__item-actions {
     display: flex;
     align-items: center;
+    justify-content: flex-end;
     gap: 0.25rem;
-    margin-left: auto;
 }
 
 .midi-lib__action {
@@ -788,7 +751,7 @@
     display: grid;
     place-items: center;
     transition: 0.15s ease;
-    font-size: 1.1rem;
+    font-size: var(--fs-xl);
 }
 
 .midi-lib__action:hover {
@@ -851,7 +814,7 @@
     border-radius: 4px;
     cursor: pointer;
     text-align: left;
-    font-size: 0.85rem;
+    font-size: var(--fs-md);
     transition: 0.15s;
 
     span {
@@ -884,21 +847,34 @@
     margin: 0.3rem 0;
 }
 
+/* the song's file: same micro-arc edge as the song on air */
 .midi-lib__item.is-current {
-    border-color: var(--volt);
+    background: var(--volt-08);
+}
+
+.midi-lib__item.is-current::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+    mask: var(--micro-arc-v) center / 100% 100% no-repeat;
 }
 
 .midi-lib__item-name {
-    flex: 1;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    color: #eef3ff;
 }
 
 .midi-lib__item-name-edit {
-    flex: 1;
     display: flex;
     align-items: center;
     gap: 0.3rem;
@@ -927,7 +903,7 @@
     place-items: center;
     border-radius: 4px;
     transition: 0.15s;
-    font-size: 0.9rem;
+    font-size: var(--fs-lg);
 }
 
 .midi-lib__edit-icon:hover {
@@ -940,58 +916,85 @@
     background: rgba(255, 77, 98, 0.12);
 }
 
+.midi-lib__item-dur,
 .midi-lib__item-ch {
-    flex: 0 0 auto;
-    color: var(--text-mute);
-    font-size: 0.78rem;
-    margin-left: 0.5rem;
-}
-
-.midi-lib__item-dur {
-    flex: 0 0 auto;
-    color: var(--text-mute);
-    font-size: 0.78rem;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
     font-variant-numeric: tabular-nums;
 }
 
-.midi-lib__usages {
-    margin-left: 0.5rem;
-}
-
-.midi-lib__usages-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
+.midi-lib__item-prog {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
     color: var(--text-dim);
-    font-size: 0.78rem;
-    cursor: default;
-    transition: 0.15s;
+}
+
+.midi-lib__usages-text {
+    display: block;
     padding: 0.3rem 0;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    white-space: nowrap;
+    cursor: default;
+    transition: color 0.15s;
 }
 
-.midi-lib__usages-badge i {
-    padding-top: 3px;
+.midi-lib__usages-text.is-none {
+    color: var(--text-mute);
 }
 
-.midi-lib__usages-badge:hover {
+.midi-lib__usages:hover .midi-lib__usages-text:not(.is-none) {
     color: var(--volt);
 }
 
+/* opens leftwards, over the number columns: the table clips anything past its right edge */
 .midi-lib__dropdown-menu.is-usages {
     min-width: 200px;
     width: auto;
     max-width: 300px;
-    right: auto;
-    left: -50px;
-    animation: usagesFadeDown 0.15s ease forwards;
 }
 
-.midi-lib__usages:hover .midi-lib__dropdown-menu.is-usages {
-    transform: translate(-50%, 0);
+/* phones: two-line rows (name, then duration · used by) instead of starving the name column */
+@container (max-width: 420px) {
+    .midi-lib__head {
+        display: none;
+    }
+
+    .midi-lib__item {
+        grid-template-columns: auto auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            "name name name acts"
+            "dur uses . acts";
+        row-gap: 0;
+        padding-block: 0.45rem;
+    }
+
+    .midi-lib__item-name,
+    .midi-lib__item-name-edit {
+        grid-area: name;
+    }
+
+    .midi-lib__item-dur {
+        grid-area: dur;
+        text-align: left;
+    }
+
+    .midi-lib__usages {
+        grid-area: uses;
+    }
+
+    .midi-lib__item-actions {
+        grid-area: acts;
+    }
 }
 
 .midi-lib__dropdown-header {
-    font-size: 0.7rem;
+    font-size: var(--fs-xs);
     letter-spacing: 0.5px;
     color: var(--text-mute, #888);
     padding: 0.4rem 0.6rem;
@@ -1060,38 +1063,7 @@
     }
 }
 
-@keyframes usagesFadeDown {
-    from {
-        opacity: 0;
-        transform: translate(-50%, -5px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-}
-
-@keyframes usagesFadeUp {
-    from {
-        opacity: 0;
-        transform: translate(-50%, 5px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translate(-50%, 0);
-    }
-}
-
 .midi-lib__dropdown:hover .midi-lib__dropdown-menu.is-dropup {
     transform: translateY(0);
 }
 
-.midi-lib__dropdown-menu.is-usages.is-dropup {
-    animation: usagesFadeUp 0.15s ease forwards;
-}
-
-.midi-lib__usages:hover .midi-lib__dropdown-menu.is-usages.is-dropup {
-    transform: translate(-50%, 0);
-}

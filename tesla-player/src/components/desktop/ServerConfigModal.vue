@@ -126,7 +126,7 @@ async function signOut(): Promise<void> {
 <style scoped>
 .srv-modal__hint {
   color: var(--text-mute);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   margin: 0 0 1.1rem;
 }
 
@@ -139,7 +139,7 @@ async function signOut(): Promise<void> {
 
 .srv-modal__error {
   color: var(--danger);
-  font-size: 0.82rem;
+  font-size: var(--fs-md);
   margin: 0 0 0.8rem;
 }
 
@@ -159,18 +159,18 @@ async function signOut(): Promise<void> {
   align-items: center;
   gap: 0.45rem;
   color: var(--volt, #ffd24d);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
 }
 
 .srv-auth__req {
   color: var(--text-mute);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   flex: 1;
 }
 
 .srv-auth__note {
   color: var(--text-mute);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   margin: 0;
 }
 </style>

@@ -342,7 +342,7 @@ const showLibrary = ref(false);
     </section>
 
     <div class="editor-footer">
-      <button v-if="draft.id" class="btn btn--danger editor-footer__delete" type="button"
+      <button v-if="draft.id" class="btn btn--danger-ghost editor-footer__delete" type="button"
         @click="confirmDeleteSong = true">
         <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.deleteSong') }}
       </button>
@@ -371,7 +371,7 @@ const showLibrary = ref(false);
   align-items: center;
   gap: 0.35rem;
   margin-top: 0.35rem;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-mute);
 }
 
@@ -402,7 +402,7 @@ const showLibrary = ref(false);
   display: inline-flex;
   align-items: center;
   gap: 0.2rem;
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   font-weight: 600;
   padding: 0.15rem 0.2rem 0.15rem 0.6rem;
   border-radius: 4px;
@@ -439,7 +439,7 @@ const showLibrary = ref(false);
   place-items: center;
   cursor: pointer;
   transition: 0.15s;
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   padding: 0.15rem 0.2rem 0.15rem 0.2rem;
 }
 
@@ -450,7 +450,7 @@ const showLibrary = ref(false);
 }
 
 .editor-tags__empty {
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   color: var(--text-mute);
   font-style: italic;
 }

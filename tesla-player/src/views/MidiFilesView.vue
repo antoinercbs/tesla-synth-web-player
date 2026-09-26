@@ -35,10 +35,10 @@ function openInstruments(file: MidiFile): void {
 </template>
 
 <style scoped>
-/* Centre the manager in a comfortable column rather than stretching it full-width. */
-.midi-files { display: flex; justify-content: center; min-height: 0; height: 100%; }
+/* Full-width table; the manager fills the page so a file can be dropped anywhere on it. */
+.midi-files { display: flex; min-height: 0; height: 100%; }
 .midi-files__panel {
-  width: 100%; max-width: 720px; min-height: 0;
+  width: 100%; min-height: 0;
   display: flex; flex-direction: column;
 }
 .midi-files__panel :deep(.midi-lib) { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }

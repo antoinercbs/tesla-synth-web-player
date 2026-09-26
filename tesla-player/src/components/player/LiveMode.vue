@@ -59,6 +59,25 @@ watch(cfg, () => {
   if (running.value) scheduleResend(); // coalesce a burst of edits into one push
 }, { deep: true });
 
+/* --------------------------------- source --------------------------------- */
+// ONE source at a time: a MIDI controller (relayed; the on-screen keyboard only
+// mirrors it) or the computer (pointer on the keys + letter rows). Switching ends
+// a running session, like changing the input does.
+type LiveSource = 'midi' | 'pc';
+const storedSource = localStorage.getItem('liveSource')
+  ?? (localStorage.getItem('livePianoMode') === 'monitor' ? 'midi' : 'pc'); // pre-switch setting
+const source = ref<LiveSource>(storedSource === 'midi' ? 'midi' : 'pc');
+localStorage.removeItem('livePianoMode');
+watch(source, (s) => {
+  localStorage.setItem('liveSource', s);
+  if (running.value) stop();
+  bindInput();
+});
+const sourceOptions = computed(() => [
+  { value: 'midi' as LiveSource, label: t('label.liveSourceMidi'), icon: 'fa-plug' },
+  { value: 'pc' as LiveSource, label: t('label.liveSourcePc'), icon: 'fa-keyboard' },
+]);
+
 /* ------------------------------ MIDI input -------------------------------- */
 // shallowRef: a deep ref would run Input through Vue's UnwrapRef and strip the
 // class's private members, breaking assignability to the nominal `Input` type.
@@ -74,25 +93,26 @@ function onInputChange(): void {
   if (running.value) stop(); // input changed → require an explicit restart
 }
 
-// The selected input is MONITORED as soon as it's picked (the keyboard lights up
-// before the coils are armed — a pre-flight "is my controller talking?"); its
-// messages are only FORWARDED to the outputs while `running`.
+// With the MIDI source, the selected input is MONITORED as soon as it's picked (the
+// keyboard lights up before the coils are armed — a pre-flight "is my controller
+// talking?"); its messages are only FORWARDED to the outputs while `running`.
+// With the computer source, no input is bound at all.
 let boundInput: Input | null = null;
 function bindInput(): void {
   if (boundInput) { boundInput.removeListener('midimessage', onMidiMessage); boundInput = null; }
   clearAllNotes(); // whatever the previous device held is gone
-  boundInput = selectedInput.value;
+  boundInput = source.value === 'midi' ? selectedInput.value : null;
   boundInput?.addListener('midimessage', onMidiMessage);
 }
 watch(selectedInput, (input, prev) => {
   bindInput();
-  if (!input && prev && running.value) stop(); // the bound device went away
+  if (!input && prev && running.value && source.value === 'midi') stop(); // the bound device went away
 });
 
 /* ---------------------------- passthrough engine -------------------------- */
 const running = ref(false);
-// Starting only needs an output: the on-screen keyboard plays without a controller.
-const canRun = computed(() => !!midiStore.midiOutput);
+// an output, plus a controller when relaying one
+const canRun = computed(() => !!midiStore.midiOutput && (source.value === 'pc' || !!selectedInput.value));
 let resendTimer: ReturnType<typeof setTimeout> | null = null;
 
 // channel -> forced envelope program, derived from the per-coil overrides
@@ -201,11 +221,7 @@ function channelLit(ch: number): boolean {
 }
 
 /* ---------------------------- on-screen keyboard -------------------------- */
-type PianoMode = 'play' | 'monitor';
 const PIANO_VELOCITY = 100;
-const storedMode = localStorage.getItem('livePianoMode');
-const pianoMode = ref<PianoMode>(storedMode === 'monitor' ? 'monitor' : 'play');
-watch(pianoMode, (m) => localStorage.setItem('livePianoMode', m));
 /** persisted integer, or `d` when absent/garbage (`Number(null)` would be 0, not NaN) */
 function storedInt(key: string, d: number): number {
   const raw = localStorage.getItem(key);
@@ -216,17 +232,7 @@ watch(pianoStart, (s) => localStorage.setItem('livePianoStart', String(s)));
 const playChannel = ref(Math.min(MIDI_CHANNEL_COUNT - 1, Math.max(0, storedInt('livePianoChannel', 0))));
 watch(playChannel, (c) => localStorage.setItem('livePianoChannel', String(c)));
 
-// Monitor only means something with a controller plugged in
-const monitorAvailable = computed(() => !!selectedInput.value);
-watch(monitorAvailable, (ok) => { if (!ok && pianoMode.value === 'monitor') pianoMode.value = 'play'; });
-const pianoInteractive = computed(() => pianoMode.value === 'play' && running.value);
-const pianoModeOptions = computed(() => [
-  { value: 'play' as PianoMode, label: t('label.pianoPlay'), icon: 'fa-hand-pointer', title: t('label.pcKeysHint') },
-  {
-    value: 'monitor' as PianoMode, label: t('label.pianoMonitor'), icon: 'fa-eye',
-    disabled: !monitorAvailable.value, title: monitorAvailable.value ? '' : t('label.pianoMonitorNeedsInput'),
-  },
-]);
+const pianoInteractive = computed(() => source.value === 'pc' && running.value);
 
 // notes the on-screen keyboard is holding, with the channel each was SENT on
 // (so a channel change mid-hold still releases the right note)
@@ -301,76 +307,73 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="live">
-    <!-- control bar: input + output status + start/stop -->
-    <article class="live-bar">
-      <div class="live-bar__field">
-        <label class="field-label" for="live-midi-input">{{ $t('label.midiInput') }}</label>
-        <div class="select-field">
-          <select id="live-midi-input" v-model="selectedInputId" @change="onInputChange">
-            <option :value="null">—</option>
-            <option v-for="i in inputs" :key="i.id" :value="i.id">{{ i.name }}</option>
-          </select>
+    <!-- one console: where the notes come from, start/stop, the keyboard and the channels -->
+    <article class="live-console">
+      <header class="live-console__head">
+        <segmented-control v-model="source" class="live-source" pressed :aria-label="$t('label.liveSource')"
+          :options="sourceOptions" />
+        <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{
+          $t('label.synthActive') }}</span>
+        <div class="live-console__run">
+          <span class="live-status" :class="{ 'is-live': running }">
+            <span class="live-dot"></span>{{ running ? $t('label.liveRunning') : $t('label.liveStopped') }}
+          </span>
+          <button class="btn" :class="running ? 'btn--danger' : 'btn--volt'" type="button" :disabled="!canRun"
+            @click="toggle">
+            <span class="icon"><i class="fas" :class="running ? 'fa-stop' : 'fa-play'"></i></span>
+            {{ running ? $t('label.stop') : $t('label.start') }}
+          </button>
         </div>
-        <span v-if="inputs.length === 0" class="live-bar__warn">{{ $t('label.noMidiInput') }}</span>
-      </div>
+      </header>
 
-      <div class="live-bar__status" :class="{ 'is-live': running }">
-        <span class="live-dot"></span>{{ running ? $t('label.liveRunning') : $t('label.liveStopped') }}
-      </div>
-
-      <button class="btn" :class="running ? 'btn--danger' : 'btn--volt'" type="button" :disabled="!canRun"
-        @click="toggle">
-        <span class="icon"><i class="fas" :class="running ? 'fa-stop' : 'fa-play'"></i></span>
-        {{ running ? $t('label.stop') : $t('label.start') }}
-      </button>
-
-      <p v-if="!midiStore.midiOutput" class="player-hint live-bar__hint">
+      <p v-if="!midiStore.midiOutput" class="player-hint live-console__hint">
         <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.selectOutputHint') }}
       </p>
-      <p v-else-if="!selectedInput" class="player-hint live-bar__hint">
-        <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.keyboardOnlyHint') }}
-      </p>
-    </article>
 
-    <!-- keyboard: plays the coils (Play) or mirrors the MIDI input (Monitor) -->
-    <article class="live-monitor">
+      <!-- MIDI: the keyboard mirrors the controller (before Start too: "is it talking?"); PC: it plays -->
       <piano-keyboard v-model:start-note="pianoStart" :held="noteChannels" :color-of="noteColor"
         :interactive="pianoInteractive" @note-on="onPianoNoteOn" @note-off="onPianoNoteOff">
         <template #toolbar>
-          <div class="live-piano__head">
-            <segmented-control v-model="pianoMode" class="live-piano__mode" pressed :aria-label="$t('label.keyboard')"
-              :options="pianoModeOptions" />
-            <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{
-              $t('label.synthActive') }}</span>
-          </div>
+          <template v-if="source === 'midi'">
+            <div v-if="inputs.length" class="select-field live-device">
+              <select v-model="selectedInputId" :aria-label="$t('label.midiInput')" @change="onInputChange">
+                <option :value="null">{{ $t('label.chooseMidiInput') }}</option>
+                <option v-for="i in inputs" :key="i.id" :value="i.id">{{ i.name }}</option>
+              </select>
+            </div>
+            <span v-else class="live-warn">
+              <i class="fas fa-triangle-exclamation"></i>{{ $t('label.noMidiInput') }}
+            </span>
+          </template>
+          <span v-else class="live-pc-hint">{{ $t('label.pcKeysHint') }}</span>
         </template>
         <template #overlay>
-          <button v-if="pianoMode === 'play' && !running && canRun" type="button" class="live-piano__arm"
+          <button v-if="source === 'pc' && !running && canRun" type="button" class="live-piano__arm"
             @click="start">
             <span class="icon"><i class="fas fa-play"></i></span>{{ $t('label.startToPlay') }}
           </button>
         </template>
       </piano-keyboard>
 
-      <!-- channel strip: activity LEDs; in Play mode it also picks the keyboard's output channel -->
+      <!-- channel strip: activity LEDs; from the computer it also picks the output channel -->
       <div class="live-chans">
         <span class="live-chans__label">
-          {{ pianoMode === 'play' ? $t('label.outputChannel') : $t('label.channels') }}
+          {{ source === 'pc' ? $t('label.outputChannel') : $t('label.channels') }}
         </span>
         <div class="live-chans__grid" role="group"
-          :aria-label="pianoMode === 'play' ? $t('label.outputChannel') : $t('label.channels')">
+          :aria-label="source === 'pc' ? $t('label.outputChannel') : $t('label.channels')">
           <button v-for="i in MIDI_CHANNEL_COUNT" :key="i - 1" type="button" class="live-chan" :class="{
             'is-lit': channelLit(i - 1),
             'is-unmapped': !channelMapped(i - 1),
-            'is-pick': pianoMode === 'play',
-            'is-selected': pianoMode === 'play' && playChannel === i - 1,
-          }" :style="{ '--c': channelBackground(i - 1) }" :disabled="pianoMode !== 'play'"
-            :aria-pressed="pianoMode === 'play' ? playChannel === i - 1 : undefined"
+            'is-pick': source === 'pc',
+            'is-selected': source === 'pc' && playChannel === i - 1,
+          }" :style="{ '--c': channelBackground(i - 1) }" :disabled="source !== 'pc'"
+            :aria-pressed="source === 'pc' ? playChannel === i - 1 : undefined"
             :title="channelMapped(i - 1) ? undefined : $t('label.channelUnmapped')" @click="playChannel = i - 1">
             {{ i - 1 }}
           </button>
         </div>
-        <span v-if="pianoMode === 'play' && !channelMapped(playChannel)" class="live-chans__warn">
+        <span v-if="source === 'pc' && !channelMapped(playChannel)" class="live-chans__warn">
           <i class="fas fa-triangle-exclamation"></i>{{ $t('label.channelUnmapped') }}
         </span>
       </div>
@@ -400,53 +403,76 @@ onBeforeUnmount(() => {
   gap: 1.2rem;
 }
 
-/* the hint lives INSIDE the control-bar card, full-width on its own line */
-.live-bar__hint {
-  flex: 1 1 100%;
-  margin: 0.2rem 0 0;
-}
-
-/* control bar */
-.live-bar {
+/* the console: source + run controls, then the keyboard, then the channels */
+.live-console {
   display: flex;
-  align-items: flex-end;
-  gap: 1.1rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 0.9rem;
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 1rem 1.2rem;
+  padding: 1rem 1.1rem 1.1rem;
 }
 
-.live-bar__field {
+.live-console__head {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-  flex: 1 1 16rem;
+  align-items: center;
+  gap: 0.7rem 1rem;
+  flex-wrap: wrap;
+}
+
+.live-console__run {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.live-console__hint {
+  margin: 0;
+}
+
+.live-source button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  font-size: var(--fs-md);
+}
+
+.live-source button .icon {
+  font-size: var(--fs-sm);
+}
+
+/* the line above the keys: what the source needs (device, or how to play) */
+.live-device {
+  flex: 0 1 22rem;
   min-width: 0;
 }
 
-.live-bar__field .select-field {
-  width: 100%;
-}
-
-.live-bar__warn {
-  color: var(--coil-1);
-  font-family: var(--font-body);
-  font-size: 0.78rem;
-}
-
-.live-bar__status {
+.live-warn {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: var(--font-display);
-  font-size: 0.78rem;
-  color: var(--text-mute);
-  padding-bottom: 0.55rem;
+  color: var(--coil-1);
+  font-size: var(--fs-sm);
 }
 
-.live-bar__status.is-live {
+.live-pc-hint {
+  min-width: 0;
+  color: var(--text-mute);
+  font-size: var(--fs-sm);
+}
+
+.live-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: var(--fs-sm);
+  color: var(--text-mute);
+}
+
+.live-status.is-live {
   color: var(--volt);
 }
 
@@ -458,7 +484,7 @@ onBeforeUnmount(() => {
   transition: 0.2s;
 }
 
-.live-bar__status.is-live .live-dot {
+.live-status.is-live .live-dot {
   background: var(--volt);
   animation: live-pulse 1.4s ease-in-out infinite;
 }
@@ -473,42 +499,6 @@ onBeforeUnmount(() => {
   50% {
     opacity: 0.45;
   }
-}
-
-/* keyboard card */
-.live-monitor {
-  display: flex;
-  flex-direction: column;
-  gap: 0.9rem;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 0.9rem 1rem 1rem;
-}
-
-.live-piano__head {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  flex-wrap: wrap;
-}
-
-.live-piano__mode button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.3rem 0.7rem;
-  font-family: var(--font-body);
-  font-size: 0.76rem;
-}
-
-.live-piano__mode button .icon {
-  font-size: 0.72rem;
-  color: var(--text);
-}
-
-.live-piano__mode button.is-active .icon {
-  color: var(--ink);
 }
 
 /* "arm the coils" pill floating over an idle, playable keyboard */
@@ -528,7 +518,7 @@ onBeforeUnmount(() => {
   border: 1px solid var(--volt);
   color: var(--volt);
   font-family: var(--font-body);
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   font-weight: 600;
   box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
   -webkit-backdrop-filter: blur(6px);
@@ -545,7 +535,7 @@ onBeforeUnmount(() => {
 }
 
 .live-piano__arm .icon {
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
 }
 
 /* channel strip */
@@ -557,7 +547,7 @@ onBeforeUnmount(() => {
 
 .live-chans__label {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-dim);
 }
 
@@ -574,7 +564,7 @@ onBeforeUnmount(() => {
   padding: 0;
   border-radius: 6px;
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   color: var(--text-dim);
   background: rgba(255, 255, 255, 0.02);
   border: 1px solid var(--line);
@@ -647,7 +637,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.4rem;
   font-family: var(--font-body);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--coil-1);
 }
 
@@ -673,7 +663,7 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.5rem;
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: var(--fs-lg);
   color: var(--text);
   font-weight: 600;
 }

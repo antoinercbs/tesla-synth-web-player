@@ -9,7 +9,7 @@ import { createReadStream, existsSync, promises as fs } from 'fs';
 import { basename, join } from 'path';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
-import { computeChannels } from '../midi/midi-channels';
+import { computeChannels, computePrograms } from '../midi/midi-channels';
 import { computeDurationMs } from '../midi/midi-duration';
 import { MidiFile } from '../midi/entities/midi-file.entity';
 import { PlaylistSong } from '../playlists/entities/playlist-song.entity';
@@ -264,6 +264,7 @@ export class SyncService {
       }
       const durationMs = this.durationOf(buffer);
       const channels = this.channelsOf(buffer);
+      const programs = computePrograms(buffer);
 
       const existing = await this.midiFileRepository.findOne({
         where: { uuid: dto.uuid },
@@ -279,6 +280,7 @@ export class SyncService {
         existing.contentHash = actualHash;
         existing.durationMs = durationMs;
         existing.channels = channels;
+        existing.programs = programs;
         existing.name = dto.name;
         existing.updatedAt = dto.updatedAt;
         existing.editorName = dto.editorName ?? null;
@@ -296,6 +298,7 @@ export class SyncService {
         contentHash: actualHash,
         durationMs,
         channels,
+        programs,
         updatedAt: dto.updatedAt,
         editorName: dto.editorName ?? null,
       });

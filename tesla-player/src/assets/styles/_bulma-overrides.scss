@@ -15,7 +15,7 @@
     background: none !important;
     color: #eef3ff !important;
     font-weight: 600;
-    font-size: 0.92rem !important;
+    font-size: var(--fs-lg) !important;
     border-bottom: 1px solid var(--line);
 }
 .panel-block {

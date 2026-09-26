@@ -28,8 +28,9 @@
         }}</span>
       </router-link>
       <router-link class="nav-item" :to="{ name: 'midi' }" :title="sidebarCompact ? $t('nav.midi') : null">
-        <span class="icon"><i class="fas fa-folder-open"></i></span><span class="nav-item__label">{{ $t('nav.midi')
-        }}</span>
+        <span class="icon"><i class="fas fa-folder-open"></i></span>
+        <span class="nav-item__label nav-item__label--long">{{ $t('nav.midi') }}</span>
+        <span class="nav-item__label nav-item__label--short">{{ $t('nav.midiShort') }}</span>
       </router-link>
       <!-- content above, hardware below -->
       <span class="nav__sep" aria-hidden="true"></span>

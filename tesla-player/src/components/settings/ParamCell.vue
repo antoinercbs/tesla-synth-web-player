@@ -78,7 +78,7 @@ const dirty = computed(
   outline: none;
   color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: var(--fs-md);
   padding: 0.35rem 0;
 }
 
@@ -88,7 +88,7 @@ const dirty = computed(
   padding-left: 0.35rem;
   color: var(--text-mute);
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
 }
 
 .param-cell__box:focus-within {
@@ -108,14 +108,14 @@ const dirty = computed(
 
 .param-cell__ro {
   font-family: var(--font-mono);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   color: var(--volt);
 }
 
 /* unread — device returned no value: disabled control + orange warning */
 .param-cell__warn {
   color: var(--warn, #f5a623);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   flex: 0 0 auto;
 }
 

@@ -677,7 +677,7 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
         <span class="icon"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></span>{{ isPlaying ? 'Pause'
           : 'Play' }}
       </button>
-      <button class="btn" :class="{ 'btn--danger': isPlaying }" type="button" :disabled="!canStop" @click="stop">
+      <button class="btn btn--stop" type="button" :disabled="!canStop" @click="stop">
         <span class="icon"><i class="fas fa-stop"></i></span>Stop
       </button>
       <button class="btn" type="button" :disabled="!canPanic" @click="panic">

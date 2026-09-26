@@ -173,7 +173,7 @@ function move(delta: number): void {
 
 .combo__icon {
   color: var(--text-mute);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   pointer-events: none;
 }
 
@@ -185,7 +185,7 @@ function move(delta: number): void {
   outline: none;
   color: var(--text);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: var(--fs-lg);
   padding: 0.55rem 0;
 }
 
@@ -207,7 +207,7 @@ function move(delta: number): void {
 
 .combo__chevron {
   color: var(--text-mute);
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
   transition: transform 0.15s;
   pointer-events: none;
 }
@@ -239,7 +239,7 @@ function move(delta: number): void {
   border-radius: 6px;
   cursor: pointer;
   color: var(--text);
-  font-size: 0.92rem;
+  font-size: var(--fs-lg);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

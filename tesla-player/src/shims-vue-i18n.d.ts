@@ -6,7 +6,11 @@ import 'vue';
  */
 declare module 'vue' {
   interface ComponentCustomProperties {
-    $t: (key: string, named?: Record<string, unknown>) => string;
+    $t: {
+      (key: string, named?: Record<string, unknown>): string;
+      // plural: picks the "a | b | c" form for the count, which is also exposed as {n}
+      (key: string, plural: number, named?: Record<string, unknown>): string;
+    };
     $i18n: {
       locale: string;
       availableLocales: string[];

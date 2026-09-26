@@ -34,7 +34,7 @@ withDefaults(
    is the editor's display variant — don't inherit that here). */
 .field-label {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
 }
 
@@ -46,7 +46,7 @@ withDefaults(
 .form-field__hint {
   display: block;
   margin-top: 0.3rem;
-  font-size: 0.74rem;
+  font-size: var(--fs-xs);
   color: var(--text-mute);
 }
 </style>

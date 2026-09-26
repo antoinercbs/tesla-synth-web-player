@@ -129,7 +129,7 @@ const shownCount = computed(() => draft.defaultCoilCount);
   align-self: flex-start;
   text-align: left;
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
 }
 
@@ -168,7 +168,7 @@ const shownCount = computed(() => draft.defaultCoilCount);
 }
 
 .cfg-empty-tags {
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   color: var(--text-mute);
   font-style: italic;
   padding: 0.2rem 0;
@@ -178,7 +178,7 @@ const shownCount = computed(() => draft.defaultCoilCount);
   align-self: flex-start;
   margin-top: 0.2rem;
   margin-bottom: 1px;
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   padding: 0.4rem 0.6rem;
 }
 
@@ -190,7 +190,7 @@ const shownCount = computed(() => draft.defaultCoilCount);
   padding: 0.4rem;
   border-radius: 4px;
   transition: 0.15s;
-  font-size: 0.9rem;
+  font-size: var(--fs-lg);
 }
 
 .cfg-tag-del:hover {

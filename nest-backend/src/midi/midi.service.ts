@@ -14,7 +14,7 @@ import { hashBytes } from '../sync/content-hash';
 import { computeDurationMs } from './midi-duration';
 import { setMidiPrograms, type ProgramSetting } from './midi-programs';
 import { MidiFile } from './entities/midi-file.entity';
-import { computeChannels } from './midi-channels';
+import { computeChannels, computePrograms } from './midi-channels';
 
 /** JSON shape returned to the front, identical to the original Flask output. */
 export interface MidiFileResponse {
@@ -22,6 +22,8 @@ export interface MidiFileResponse {
   name: string;
   path: string;
   channels: number | null;
+  /** Starting instrument per note-bearing channel ({ channel: program }). */
+  programs: Record<number, number> | null;
   durationMs: number | null;
   /** Who last uploaded/edited this (server-stamped from the OIDC token), or null. */
   editorName: string | null;
@@ -47,12 +49,14 @@ export class MidiService implements OnModuleInit {
       const needDuration = file.durationMs == null;
       const needHash = !file.contentHash;
       const needChannels = file.channels == null;
-      if (needDuration || needHash || needChannels) {
+      const needPrograms = file.programs == null;
+      if (needDuration || needHash || needChannels || needPrograms) {
         const buffer = await this.readUpload(basename(file.path));
         if (buffer) {
           if (needDuration) patch.durationMs = this.durationFromBuffer(buffer);
           if (needHash) patch.contentHash = hashBytes(buffer);
           if (needChannels) patch.channels = this.channelsFromBuffer(buffer);
+          if (needPrograms) patch.programs = computePrograms(buffer);
         }
       }
       if (!file.uuid) patch.uuid = randomUUID();
@@ -84,6 +88,7 @@ export class MidiService implements OnModuleInit {
       path: `./uploads/${storedName}`,
       durationMs: this.durationFromBuffer(buffer),
       channels: this.channelsFromBuffer(buffer),
+      programs: buffer ? computePrograms(buffer) : null,
       uuid: randomUUID(),
       updatedAt: Date.now(),
       contentHash: buffer ? hashBytes(buffer) : undefined,
@@ -155,6 +160,7 @@ export class MidiService implements OnModuleInit {
     // The file bytes changed → its sync identity must change too, otherwise two
     // peers would carry different bytes while reporting the same contentHash.
     midiFile.contentHash = hashBytes(rewritten);
+    midiFile.programs = computePrograms(rewritten);
     midiFile.updatedAt = Date.now();
     midiFile.editorName = editorName;
     const saved = await this.midiFileRepository.save(midiFile);
@@ -179,6 +185,7 @@ export class MidiService implements OnModuleInit {
 
     midiFile.durationMs = this.durationFromBuffer(buffer);
     midiFile.channels = this.channelsFromBuffer(buffer);
+    midiFile.programs = computePrograms(buffer);
     midiFile.contentHash = hashBytes(buffer);
     midiFile.updatedAt = Date.now();
     midiFile.editorName = editorName;
@@ -229,6 +236,7 @@ export class MidiService implements OnModuleInit {
       name: midiFile.name,
       path: midiFile.path,
       channels: midiFile.channels,
+      programs: midiFile.programs ?? null,
       durationMs: midiFile.durationMs,
       editorName: midiFile.editorName ?? null,
     };

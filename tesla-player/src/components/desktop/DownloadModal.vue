@@ -96,7 +96,7 @@ function fmtSize(bytes?: number): string {
     <p class="dl-modal__hint">{{ $t('desktop.downloadHint') }}</p>
 
     <p v-if="loading" class="dl-modal__note">
-      <span class="icon"><i class="fas fa-circle-notch fa-spin"></i></span>{{ $t('label.loading') }}
+      <span class="arc-loader" aria-hidden="true"></span>{{ $t('label.loading') }}
     </p>
     <p v-else-if="failed || !targets.length" class="dl-modal__note">{{ $t('desktop.noBuild') }}</p>
 
@@ -122,7 +122,7 @@ function fmtSize(bytes?: number): string {
 <style scoped>
 .dl-modal__hint {
   color: var(--text-mute);
-  font-size: 0.85rem;
+  font-size: var(--fs-md);
   margin: 0 0 1.1rem;
 }
 
@@ -183,7 +183,7 @@ function fmtSize(bytes?: number): string {
 
 .dl-option__size {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   color: var(--text-mute);
 }
 

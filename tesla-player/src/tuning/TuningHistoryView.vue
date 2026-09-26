@@ -62,7 +62,7 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
       <segmented-control v-model="coilFilter" pressed :options="coilOptions" :aria-label="t('tune.coil')" />
       <input class="text-field hist-search" type="search" v-model="search" :placeholder="t('tune.hist.search')" />
       <span class="dim mono">{{ t('tune.hist.count', { n: filtered.length }) }}</span>
-      <span v-if="loading" class="dim"><i class="fas fa-spinner fa-spin"></i></span>
+      <span v-if="loading" class="arc-loader" role="status" :aria-label="t('label.loading')"></span>
     </div>
 
     <p v-if="!loading && !filtered.length" class="hist-empty">{{ t('tune.hist.empty') }}</p>
@@ -148,9 +148,9 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
 .hist-search { max-width: 20rem; }
 .hist-empty { color: var(--text-dim); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem; }
 .hist-table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); }
-.hist-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.hist-table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
 .hist-table th, .hist-table td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
-.hist-table thead th { font-family: var(--font-body); font-size: 0.76rem;color: var(--text-mute); font-weight: 500; white-space: nowrap; }
+.hist-table thead th { font-family: var(--font-body); font-size: var(--fs-sm);color: var(--text-mute); font-weight: 500; white-space: nowrap; }
 .hist-table .num { text-align: right; }
 .hist-row { cursor: pointer; transition: background 0.12s; }
 .hist-row:hover td { background: var(--volt-05); }
@@ -159,20 +159,20 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
 .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .strong { color: var(--volt); font-weight: 600; }
 .dim { color: var(--text-dim); margin: 0; }
-.small { font-size: 0.78rem; }
+.small { font-size: var(--fs-sm); }
 .coil-dot { display: inline-block; width: 0.6rem; height: 0.6rem; border-radius: 50%; margin-right: 0.45rem; vertical-align: middle; }
 .hist-place { max-width: 22rem; }
-.hist-cond { display: flex; gap: 0.7rem; align-items: center; color: var(--text-dim); font-size: 0.8rem; white-space: nowrap; }
+.hist-cond { display: flex; gap: 0.7rem; align-items: center; color: var(--text-dim); font-size: var(--fs-sm); white-space: nowrap; }
 .hist-actions { text-align: right; white-space: nowrap; }
 .hist-actions__inner { display: inline-flex; align-items: center; gap: 0.5rem; }
-.hist-chevron { color: var(--text-mute); margin-left: 0.3rem; font-size: 0.75rem; }
-.btn--xs { padding: 0.25rem 0.6rem; font-size: 0.75rem; }
-.icon-btn--sm { width: 1.9rem; height: 1.9rem; font-size: 0.75rem; }
+.hist-chevron { color: var(--text-mute); margin-left: 0.3rem; font-size: var(--fs-xs); }
+.btn--xs { padding: 0.25rem 0.6rem; font-size: var(--fs-xs); }
+.icon-btn--sm { width: 1.9rem; height: 1.9rem; font-size: var(--fs-xs); }
 .hist-detail td { background: var(--bg-2); padding: 1rem 1.1rem 1.2rem; }
 .hist-detail__grid { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) minmax(14rem, 20rem); gap: 1.2rem; align-items: start; }
 @media (max-width: 1200px) { .hist-detail__grid { grid-template-columns: minmax(0, 1fr); } }
 .hist-detail__block { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
-.hist-detail__block h4 { margin: 0; font-family: var(--font-display); font-size: 0.74rem;color: var(--text-mute); font-weight: 600; }
-.hist-comment { margin: 0; white-space: pre-wrap; font-size: 0.9rem; }
+.hist-detail__block h4 { margin: 0; font-family: var(--font-display); font-size: var(--fs-xs);color: var(--text-mute); font-weight: 600; }
+.hist-comment { margin: 0; white-space: pre-wrap; font-size: var(--fs-lg); }
 .hist-heats { display: flex; flex-wrap: wrap; gap: 0.6rem; }
 </style>

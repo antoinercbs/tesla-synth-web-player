@@ -142,7 +142,7 @@ function onDrop(toPos: number): void {
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--line-strong);
   color: var(--text-dim);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   transition: 0.13s;
 }
 
@@ -187,7 +187,7 @@ function onDrop(toPos: number): void {
   align-items: center;
   gap: 0.45rem;
   font-family: var(--font-body);
-  font-size: 0.92rem;
+  font-size: var(--fs-lg);
   color: var(--text);
   font-weight: 600;
 }
@@ -198,7 +198,7 @@ function onDrop(toPos: number): void {
 
 .queue-head__total {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
+  font-size: var(--fs-xs);
   font-weight: 400;
   letter-spacing: 0;
   text-transform: none;
@@ -230,7 +230,7 @@ function onDrop(toPos: number): void {
 
 .queue-now__label {
   font-family: var(--font-body);
-  font-size: 0.76rem;
+  font-size: var(--fs-sm);
   color: var(--text-mute);
 }
 
@@ -282,7 +282,7 @@ function onDrop(toPos: number): void {
 .queue-item__grip {
   flex: 0 0 auto;
   color: var(--text-mute);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
   cursor: grab;
 }
 
@@ -292,7 +292,7 @@ function onDrop(toPos: number): void {
   text-align: right;
   color: var(--text-mute);
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: var(--fs-sm);
 }
 
 .queue-item__name {
@@ -306,7 +306,7 @@ function onDrop(toPos: number): void {
 .queue-item__dur {
   flex: 0 0 auto;
   color: var(--text-mute);
-  font-size: 0.75rem;
+  font-size: var(--fs-xs);
   font-variant-numeric: tabular-nums;
 }
 
@@ -323,7 +323,7 @@ function onDrop(toPos: number): void {
 .queue-item__remove {
   width: 1.7rem;
   height: 1.7rem;
-  font-size: 0.7rem;
+  font-size: var(--fs-xs);
 }
 
 .queue-item__remove:hover {

@@ -123,8 +123,8 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 <style scoped>
 .cam-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
 .cam-card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
-.cam-card__title { font-family: var(--font-body); font-weight: 600;font-size: 0.92rem; display: inline-flex; align-items: center; gap: 0.5rem; }
-.cam-dot { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-mute); display: inline-flex; align-items: center; gap: 0.4rem; }
+.cam-card__title { font-family: var(--font-body); font-weight: 600;font-size: var(--fs-lg); display: inline-flex; align-items: center; gap: 0.5rem; }
+.cam-dot { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--text-mute); display: inline-flex; align-items: center; gap: 0.4rem; }
 .cam-dot::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--text-mute); }
 .cam-dot.is-on { color: var(--amber); } .cam-dot.is-on::before { background: var(--amber); }
 .cam-dot.is-ready { color: var(--ok); } .cam-dot.is-ready::before { background: var(--ok); }
@@ -134,13 +134,13 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 .cam-connect { font-size: 1rem; padding: 0.7rem 1.4rem; }
 
 .cam-card__head-right { display: inline-flex; align-items: center; gap: 0.7rem; }
-.btn--xs { padding: 0.25rem 0.65rem; font-size: 0.74rem; }
+.btn--xs { padding: 0.25rem 0.65rem; font-size: var(--fs-xs); }
 .cam-card__join.is-compact { padding-bottom: 0.9rem; border-bottom: 1px solid var(--line); }
 .cam-card__join-modal { margin-top: 0.8rem; min-width: min(30rem, 80vw); }
-.dim { color: var(--text-dim); font-size: 0.85rem; margin: 0; }
-.small { font-size: 0.72rem; }
+.dim { color: var(--text-dim); font-size: var(--fs-md); margin: 0; }
+.small { font-size: var(--fs-xs); }
 .mono { font-family: var(--font-mono); }
-.cam-warn { color: var(--danger); font-size: 0.8rem; display: inline-flex; gap: 0.4rem; align-items: center; margin: 0; }
+.cam-warn { color: var(--danger); font-size: var(--fs-sm); display: inline-flex; gap: 0.4rem; align-items: center; margin: 0; }
 
 /* the silhouette is what you watch during a trial: it gets the width, the figures a single narrow column */
 .cam-live { display: grid; grid-template-columns: minmax(6.5rem, 8.5rem) minmax(0, 1fr); gap: 0.8rem 1rem; align-items: start; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.9rem 1rem; }
@@ -150,10 +150,10 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 .cam-live__l { display: flex; align-items: baseline; gap: 0.35rem; }
 .cam-live__value { font-family: var(--font-display); font-size: 2.4rem; font-weight: 700; line-height: 1; color: var(--volt); font-variant-numeric: tabular-nums; }
 .cam-live__unit { color: var(--text-dim); font-family: var(--font-mono); }
-.cam-live__state { font-size: 0.85rem; color: var(--text); }
-.cam-live__meta { display: grid; grid-template-columns: 1fr; gap: 0.15rem; margin: 0; font-size: 0.74rem; }
+.cam-live__state { font-size: var(--fs-md); color: var(--text); }
+.cam-live__meta { display: grid; grid-template-columns: 1fr; gap: 0.15rem; margin: 0; font-size: var(--fs-xs); }
 .cam-live__meta div { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
-.cam-live__meta dt { color: var(--text-mute);font-size: 0.76rem; }
+.cam-live__meta dt { color: var(--text-mute);font-size: var(--fs-sm); }
 .cam-live__meta dd { margin: 0; color: var(--text); font-variant-numeric: tabular-nums; }
 .cam-live__meta .is-warn dd { color: var(--danger); }
 .cam-live__heat { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; position: relative; }
@@ -161,7 +161,7 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 /* one compact line under the drawing, never a paragraph */
 .cam-live__heat :deep(.arc-heat__cap) { font-size: 0.68rem; line-height: 1.2; white-space: nowrap; overflow: hidden; }
 .cam-live__heat :deep(.arc-heat__cap span:first-child) { overflow: hidden; text-overflow: ellipsis; }
-.cam-live__note { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); max-width: 80%; text-align: center; font-size: 0.72rem; color: var(--text-mute); pointer-events: none; }
+.cam-live__note { position: absolute; left: 50%; top: 45%; transform: translate(-50%, -50%); max-width: 80%; text-align: center; font-size: var(--fs-xs); color: var(--text-mute); pointer-events: none; }
 
 .cam-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: start; }
 .cam-compare :deep(.arc-heat) { width: 100% !important; }
