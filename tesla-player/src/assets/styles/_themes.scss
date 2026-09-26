@@ -1,6 +1,7 @@
 @use "sass:color";
 @use "sass:list";
 @use "sass:map";
+@use "sass:math";
 
 // ===========================================================================
 //  COLOUR THEMES: the only place their colours are defined
@@ -13,11 +14,24 @@
 //   grad      the primary fill: main buttons, progress, toggles
 //   on-grad   text on that fill; white unless given (light gradients need dark text)
 //   arc       core · mid · deep of the arc: the logo, the micro-arc
+//   coils     optional tone of the coil colours (see $coil-base below)
 // The order here is the picker's order (roughly round the colour wheel). The user
 // picks a theme in the sidebar menu; ui/themes.ts lists the ids (its spec checks
 // they match this map). The default theme also colours the app icons and the
 // Electron splash (`npm run icons` in electron/ reads this file).
 $default-theme: electric;
+
+// Coil identity colours, the same hues in every theme (they carry meaning: the VU,
+// the markers, the cards): red, yellow, green, cyan, violet, orange, then the
+// speakers' violet. A theme only TONES them, in OKLCH so a hue stays that hue:
+//   lightness  added to the lightness (pastel themes lift it)
+//   chroma     multiplies the saturation (sober themes lower it)
+//   harmony    at most this much hue pull toward the theme's accent; capped so a
+//              coil far round the wheel (orange vs a blue theme) cannot drift into
+//              its neighbour
+$coil-base: (#ff4d6d, #ffd23f, #3ddc97, #4cc9f0, #b15cff, #ff8c42);
+$speaker-base: #b15cff;
+$coil-tone-default: (lightness: 0%, chroma: 1, harmony: 6deg);
 
 $themes: (
     electric: (
@@ -57,6 +71,7 @@ $themes: (
         accent: #f5c56b,
         grad: (#a0520c, #7c2d12),
         arc: (#fff5dc, #f0b04a, #b45309),
+        coils: (chroma: 0.9, harmony: 8deg),
     ),
     // navy with gold; the gold is close to the power slider's amber zone
     midnight: (
@@ -66,6 +81,7 @@ $themes: (
         grad: (#d4a445, #a3721c),
         on-grad: #0b0d12,
         arc: (#fff8e7, #e8c170, #a77b23),
+        coils: (chroma: 0.95),
     ),
     // close to the "danger" red and coils 0 (red) and 5 (orange)
     aurora: (
@@ -81,6 +97,7 @@ $themes: (
         accent: #f9a8d4,
         grad: (#c81e6a, #9d174d),
         arc: (#fff0f6, #f472b6, #be185d),
+        coils: (lightness: 3%, chroma: 0.85),
     ),
     plasma: (
         surfaces: (#0b0812, #110c1a, #150f21, #1b142a),
@@ -110,6 +127,7 @@ $themes: (
         grad: (#c4b5fd, #f9a8d4),
         on-grad: #1a1033,
         arc: (#fdf4ff, #d8b4fe, #f9a8d4),
+        coils: (lightness: 7%, chroma: 0.8, harmony: 10deg),
     ),
     steel: (
         surfaces: (#08090c, #0d0f14, #111419, #171b22),
@@ -117,6 +135,7 @@ $themes: (
         accent: #c3cfe0,
         grad: (#64748b, #334155),
         arc: (#f1f5fb, #9fb0c8, #5a6b86),
+        coils: (lightness: 2%, chroma: 0.72, harmony: 4deg),
     ),
     // true black: the least light on stage at night
     noir: (
@@ -126,6 +145,7 @@ $themes: (
         grad: (#f1f5f9, #b8c2d0),
         on-grad: #0b0d12,
         arc: (#ffffff, #cbd5e1, #7c8798),
+        coils: (lightness: 4%, harmony: 0deg),
     ),
 );
 
@@ -133,6 +153,27 @@ $themes: (
 @function -channels($c) {
     @return color.channel($c, "red", $space: rgb) color.channel($c, "green", $space: rgb)
         color.channel($c, "blue", $space: rgb);
+}
+
+// one coil colour, toned for a theme (see $coil-base)
+@function -tone($c, $tone, $accent) {
+    $t: map.merge($coil-tone-default, $tone);
+    $c: color.to-space($c, oklch);
+    $gap: color.channel($accent, "hue", $space: oklch) - color.channel($c, "hue", $space: oklch);
+    @if $gap > 180deg {
+        $gap: $gap - 360deg;
+    } @else if $gap < -180deg {
+        $gap: $gap + 360deg;
+    }
+    $pull: math.clamp(-1 * map.get($t, harmony), $gap * 0.1, map.get($t, harmony));
+    $c: color.adjust($c, $lightness: map.get($t, lightness), $hue: $pull, $space: oklch);
+    $c: color.change($c, $chroma: color.channel($c, "chroma", $space: oklch) * map.get($t, chroma), $space: oklch);
+    $c: color.to-space(color.to-gamut($c, $space: rgb, $method: local-minde), rgb);
+    @return rgb(
+        math.round(color.channel($c, "red", $space: rgb)),
+        math.round(color.channel($c, "green", $space: rgb)),
+        math.round(color.channel($c, "blue", $space: rgb))
+    );
 }
 
 @mixin -theme($t) {
@@ -156,6 +197,14 @@ $themes: (
     --arc-mid: #{list.nth($arc, 2)};
     --arc-deep: #{list.nth($arc, 3)};
     --arc-glow-rgb: #{-channels(list.nth($arc, 2))};
+    $tone: ();
+    @if map.has-key($t, coils) {
+        $tone: map.get($t, coils);
+    }
+    @for $i from 1 through list.length($coil-base) {
+        --coil-#{$i - 1}: #{-tone(list.nth($coil-base, $i), $tone, map.get($t, accent))};
+    }
+    --plasma: #{-tone($speaker-base, $tone, map.get($t, accent))};
 }
 
 // the default first, on :root, so a page without data-theme still has every colour
