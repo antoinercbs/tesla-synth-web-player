@@ -383,6 +383,107 @@ export default {
     steel: "Acier",
     noir: "Noir",
   },
+  welcome: {
+    title: "Bienvenue sur Tesla Player",
+    intro: "Le lecteur de musique pour bobines Tesla du Clubelek. Choisis ta langue et tes couleurs, puis laisse-toi guider si c'est ta première fois.",
+    later: "Tout se change ensuite dans le menu ⋯.",
+    tour: "Lancer la visite guidée",
+    skip: "Commencer",
+  },
+  tour: {
+    start: "Visite guidée",
+    stepOf: "{n} / {total}",
+    next: "Suivant",
+    prev: "Précédent",
+    finish: "Terminer",
+    skip: "Passer la visite",
+    steps: {
+      welcome: {
+        title: "La visite",
+        text: "Un tour rapide de l'app, sur des données de démo : rien de ce que tu vois pendant la visite n'est enregistré. Échap pour la quitter, les flèches pour avancer.",
+      },
+      nav: {
+        title: "Les pages",
+        text: "Lecture pour jouer, Édition pour préparer un morceau, Playlists pour les enchaîner, Fichiers MIDI pour ta bibliothèque. Accord aide à régler une bobine.",
+      },
+      output: {
+        title: "La sortie",
+        text: "Où partent les notes. Synthé : une émulation dans le navigateur, sans matériel. MIDI : une interface MIDI ou un Syntherrupter. Série : un Syntherrupter branché en USB.",
+      },
+      coils: {
+        title: "Les bobines",
+        text: "Chaque bobine a sa couleur, la même partout dans l'app. Leurs noms se règlent dans la configuration générale, depuis le menu ⋯.",
+      },
+      modes: {
+        title: "Trois façons de jouer",
+        text: "Playback joue des morceaux préparés. Live MIDI relaie un clavier MIDI ou le clavier de l'ordinateur. Fixe envoie une note continue à chaque bobine.",
+      },
+      songs: {
+        title: "Les morceaux",
+        text: "▶ lance un morceau, + l'ajoute à la file, le crayon ouvre l'édition. L'onglet Playlists joue une playlist entière.",
+      },
+      timeline: {
+        title: "La timeline du morceau",
+        text: "Les notes en haut, une ligne par bobine en dessous. Chaque point change le réglage d'une bobine à ce moment du morceau, et la hauteur des blocs suit ce niveau. Clic pour ajouter un point, glisser pour le déplacer, clic droit pour le supprimer.",
+      },
+      timelineDuty: {
+        title: "Ontime ou duty",
+        text: "Les onglets Ontime et Duty choisissent le réglage que les points font varier. Chaque niveau est un pourcentage de la valeur de la fiche de la bobine : 100 % la laisse telle quelle.",
+      },
+      vizVu: {
+        title: "Visualisation : le VU",
+        text: "Une colonne par canal MIDI. Pendant la lecture, elle s'allume dans la couleur de la bobine que ce canal fait jouer, ou de plusieurs à la fois.",
+      },
+      vizScore: {
+        title: "Visualisation : la partition",
+        text: "Toutes les notes du fichier MIDI, colorées selon la bobine qui les joue. Les hachures signalent une note jouée par plusieurs bobines.",
+      },
+      vizLanes: {
+        title: "Visualisation : l'occupation",
+        text: "Une ligne par bobine, et une pour les enceintes : on voit d'un coup d'œil quand chacune joue. Dans l'éditeur, la même vue sert à faire varier l'ontime et le duty au fil du morceau.",
+      },
+      vizCombined: {
+        title: "Visualisation : le combiné",
+        text: "La partition au-dessus des lignes de bobines, pour relier chaque note à la bobine qu'elle fait jouer.",
+      },
+      power: {
+        title: "La puissance",
+        text: "Règle l'intensité de toutes les bobines pendant la lecture. À 100 %, les réglages du morceau s'appliquent tels quels. Au-delà, c'est de la surpuissance.",
+      },
+      transport: {
+        title: "Lecture et sécurité",
+        text: "Le morceau de démo joue, en silence : pendant la visite, rien ne part vers les bobines. Play et Stop pilotent la lecture, Panic coupe immédiatement toutes les notes : en cas de doute, c'est le bon bouton.",
+      },
+      editor: {
+        title: "Préparer un morceau",
+        text: "Un morceau associe un fichier MIDI à des réglages de bobines. Ouvre un morceau existant ou crées-en un, puis choisis son fichier MIDI.",
+      },
+      coilCards: {
+        title: "Canaux et réglages",
+        text: "Pour chaque bobine, choisis les canaux MIDI qu'elle joue, puis son ontime et son duty. Plus ils sont hauts, plus l'arc est puissant.",
+      },
+      midi: {
+        title: "Tes fichiers MIDI",
+        text: "Importe des fichiers .mid ici, ou glisse-les n'importe où sur la page. Le tableau montre leur durée, leurs canaux, leurs instruments et les morceaux qui les utilisent.",
+      },
+      playlists: {
+        title: "Les playlists",
+        text: "Compose une playlist depuis ta bibliothèque, puis réordonne-la. Elle se joue ensuite depuis la page Lecture.",
+      },
+      tune: {
+        title: "L'accord",
+        text: "Un assistant pour trouver la bonne prise sur le primaire, avec la caméra d'un téléphone qui mesure la longueur des arcs.",
+      },
+      menu: {
+        title: "Réglages",
+        text: "La langue, les couleurs de l'interface, la configuration générale, et cette visite à relancer quand tu veux.",
+      },
+      done: {
+        title: "C'est parti",
+        text: "Choisis une sortie, lance un morceau et regarde les bobines jouer.",
+      },
+    },
+  },
   desktop: {
     downloadApp: "Télécharger l'app desktop",
     downloadHint: "Version desktop hors ligne, avec serveur intégré et synchro",

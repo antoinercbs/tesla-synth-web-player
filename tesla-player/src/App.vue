@@ -7,6 +7,7 @@
       <router-view />
     </main>
     <app-toaster />
+    <tour-overlay v-if="showChrome" />
   </div>
 </template>
 
@@ -16,10 +17,11 @@ import { useMidiStore } from '@/stores/midi'
 import { useAuthStore } from '@/stores/auth'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppToaster from '@/components/ui/AppToaster.vue'
+import TourOverlay from '@/components/tour/TourOverlay.vue'
 
 export default {
   name: 'App',
-  components: { AppSidebar, AppToaster },
+  components: { AppSidebar, AppToaster, TourOverlay },
   computed: {
     ...mapStores(useMidiStore, useAuthStore),
     // Full app chrome (sidebar) is shown unless we're gated at the login /

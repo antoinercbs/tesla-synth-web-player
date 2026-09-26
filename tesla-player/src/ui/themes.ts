@@ -1,3 +1,5 @@
+import { ref } from 'vue';
+
 /**
  * Colour themes. Their colours live only in assets/styles/_themes.scss: this
  * module lists the ids (for the picker) and applies the chosen one, a
@@ -25,9 +27,13 @@ export function storedTheme(): ThemeId {
   }
 }
 
+/** The applied theme, shared by every picker. */
+export const currentTheme = ref<ThemeId>(storedTheme());
+
 /** Paint the page with a theme (no persistence: boot uses this). */
 export function applyTheme(id: ThemeId): void {
   document.documentElement.dataset.theme = id;
+  currentTheme.value = id;
 }
 
 /** The user's pick: applied now and remembered on this device. */

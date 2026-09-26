@@ -534,48 +534,7 @@
 }
 
 .sidebar-menu__theme {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
     padding: 0.35rem 0.3rem 0.45rem 0.6rem;
-}
-
-.sidebar-menu__theme-head {
-    display: flex;
-    justify-content: space-between;
-    font-size: var(--fs-sm);
-    color: var(--text-dim);
-}
-
-.sidebar-menu__theme-head b {
-    font-weight: 500;
-    color: var(--text);
-}
-
-.theme-swatches {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 0.45rem;
-}
-
-.theme-swatch {
-    width: 100%;
-    aspect-ratio: 1;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: var(--grad);
-    cursor: pointer;
-    transition: transform 0.12s ease;
-}
-
-.theme-swatch:hover {
-    transform: scale(1.08);
-}
-
-.theme-swatch.is-active {
-    outline: 2px solid var(--text);
-    outline-offset: 2px;
 }
 
 .sidebar-menu__sep {

@@ -379,6 +379,107 @@ export default {
     steel: "Steel",
     noir: "Noir",
   },
+  welcome: {
+    title: "Welcome to Tesla Player",
+    intro: "Clubelek's music player for Tesla coils. Pick your language and colours, then take the tour if this is your first time.",
+    later: "You can change all of this later from the ⋯ menu.",
+    tour: "Take the guided tour",
+    skip: "Get started",
+  },
+  tour: {
+    start: "Guided tour",
+    stepOf: "{n} / {total}",
+    next: "Next",
+    prev: "Back",
+    finish: "Finish",
+    skip: "Skip the tour",
+    steps: {
+      welcome: {
+        title: "The tour",
+        text: "A quick round of the app, on demo data: nothing you see during the tour is saved. Esc leaves it, the arrow keys move through it.",
+      },
+      nav: {
+        title: "The pages",
+        text: "Play to perform, Edit to prepare a song, Playlists to chain them, MIDI files for your library. Tuning helps you adjust a coil.",
+      },
+      output: {
+        title: "The output",
+        text: "Where the notes go. Synth: an emulation in the browser, no hardware needed. MIDI: a MIDI interface or a Syntherrupter. Serial: a Syntherrupter plugged in over USB.",
+      },
+      coils: {
+        title: "The coils",
+        text: "Each coil has its own colour, the same everywhere in the app. Their names are set in the general configuration, from the ⋯ menu.",
+      },
+      modes: {
+        title: "Three ways to play",
+        text: "Playback plays prepared songs. Live MIDI relays a MIDI keyboard or the computer keyboard. Fixed sends a steady note to each coil.",
+      },
+      songs: {
+        title: "The songs",
+        text: "▶ plays a song, + adds it to the queue, the pencil opens it in the editor. The Playlists tab plays a whole playlist.",
+      },
+      timeline: {
+        title: "The song's timeline",
+        text: "Notes on top, one lane per coil below. Each point changes a coil's setting at that moment of the song, and the height of the blocks follows that level. Click to add a point, drag to move it, right-click to delete it.",
+      },
+      timelineDuty: {
+        title: "Ontime or duty",
+        text: "The Ontime and Duty tabs choose which setting the points vary. Each level is a percentage of the value on the coil's card: 100% leaves it as it is.",
+      },
+      vizVu: {
+        title: "Views: the VU",
+        text: "One column per MIDI channel. During playback it lights up in the colour of the coil that channel drives, or of several at once.",
+      },
+      vizScore: {
+        title: "Views: the score",
+        text: "Every note of the MIDI file, coloured by the coil that plays it. Hatching marks a note played by several coils.",
+      },
+      vizLanes: {
+        title: "Views: the coils",
+        text: "One lane per coil, plus one for the speakers: you see at a glance when each one plays. In the editor, the same view lets you vary ontime and duty along the song.",
+      },
+      vizCombined: {
+        title: "Views: combined",
+        text: "The score above the coil lanes, to link each note to the coil it makes play.",
+      },
+      power: {
+        title: "Power",
+        text: "Sets the drive of every coil during playback. At 100%, the song's settings apply as they are. Above that is overdrive.",
+      },
+      transport: {
+        title: "Playback and safety",
+        text: "The demo song is playing, silently: during the tour nothing is sent to the coils. Play and Stop control playback, Panic cuts every note at once: when in doubt, it is the right button.",
+      },
+      editor: {
+        title: "Preparing a song",
+        text: "A song pairs a MIDI file with coil settings. Open an existing song or create one, then pick its MIDI file.",
+      },
+      coilCards: {
+        title: "Channels and settings",
+        text: "For each coil, pick the MIDI channels it plays, then its ontime and duty. The higher they are, the stronger the arc.",
+      },
+      midi: {
+        title: "Your MIDI files",
+        text: "Import .mid files here, or drop them anywhere on the page. The table shows their length, channels, instruments and the songs that use them.",
+      },
+      playlists: {
+        title: "Playlists",
+        text: "Build a playlist from your library, then reorder it. It then plays from the Play page.",
+      },
+      tune: {
+        title: "Tuning",
+        text: "An assistant to find the right tap on the primary, with a phone camera measuring the length of the arcs.",
+      },
+      menu: {
+        title: "Settings",
+        text: "The language, the interface colours, the general configuration, and this tour, to replay whenever you like.",
+      },
+      done: {
+        title: "Off you go",
+        text: "Pick an output, play a song and watch the coils sing.",
+      },
+    },
+  },
   desktop: {
     downloadApp: "Download desktop app",
     downloadHint: "Offline desktop version, with a built-in server and sync",

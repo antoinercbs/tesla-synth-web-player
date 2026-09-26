@@ -186,18 +186,9 @@
     <div v-if="menuOpen" ref="menu" class="sidebar-menu" :style="menuStyle" role="menu">
       <div class="sidebar-menu__lang">
         <span>{{ $t('label.language') }}</span>
-        <segmented-control :model-value="$i18n.locale" :options="localeOptions" :aria-label="$t('label.language')"
-          @update:model-value="setLocale" />
+        <locale-picker />
       </div>
-      <!-- each swatch carries its theme's data-theme, so it paints with that theme's gradient -->
-      <div class="sidebar-menu__theme">
-        <span class="sidebar-menu__theme-head">{{ $t('theme.title') }}<b>{{ $t(`theme.${theme}`) }}</b></span>
-        <div class="theme-swatches" role="radiogroup" :aria-label="$t('theme.title')">
-          <button v-for="id in themes" :key="id" type="button" class="theme-swatch" :class="{ 'is-active': theme === id }"
-            :data-theme="id" role="radio" :aria-checked="theme === id" :title="$t(`theme.${id}`)"
-            :aria-label="$t(`theme.${id}`)" @click="pickTheme(id)"></button>
-        </div>
-      </div>
+      <theme-picker class="sidebar-menu__theme" />
       <div class="sidebar-menu__sep"></div>
       <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('configOpen')">
         <span class="icon"><i class="fas fa-gear"></i></span>{{ $t('title.generalConfig') }}
@@ -208,6 +199,9 @@
       </button>
       <button v-else class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('downloadOpen')">
         <span class="icon"><i class="fas fa-download"></i></span>{{ $t('desktop.downloadApp') }}
+      </button>
+      <button class="sidebar-menu__item" type="button" role="menuitem" @click="startTourFromMenu">
+        <span class="icon"><i class="fas fa-route"></i></span>{{ $t('tour.start') }}
       </button>
       <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('creditsOpen')">
         <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('credits.title') }}
@@ -239,7 +233,7 @@ import labelSrc from '@/assets/label_high_black.svg'
 import { useMidiStore } from '@/stores/midi'
 import { useAuthStore } from '@/stores/auth'
 import { coilColor } from '@/ui/coil-colors'
-import { THEMES, setTheme, storedTheme } from '@/ui/themes'
+import { startTour } from '@/tour/tour'
 import { notify } from '@/utils/toast'
 import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
@@ -250,6 +244,8 @@ import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
 import SyncModal from '@/components/desktop/SyncModal.vue'
 import DownloadModal from '@/components/desktop/DownloadModal.vue'
 import CreditsModal from '@/components/layout/CreditsModal.vue'
+import LocalePicker from '@/components/settings/LocalePicker.vue'
+import ThemePicker from '@/components/settings/ThemePicker.vue'
 
 /**
  * The application sidebar: brand, navigation, the collapse/compact toggle, MIDI
@@ -260,12 +256,12 @@ import CreditsModal from '@/components/layout/CreditsModal.vue'
  */
 export default {
   name: 'AppSidebar',
-  components: { SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal },
+  components: {
+    SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal, LocalePicker, ThemePicker,
+  },
   data() {
     return {
       labelSrc,
-      themes: THEMES,
-      theme: storedTheme(),
       // output-1 transport mode: 'synth' | 'midi' | 'serial' (persisted). Defaults
       // from the legacy persisted device id (synth vs a real MIDI output).
       output1Mode: localStorage.getItem('output1Mode')
@@ -321,9 +317,6 @@ export default {
     },
     connLabel() {
       return this.isConnected ? this.$t('label.online') : this.$t('label.offline')
-    },
-    localeOptions() {
-      return this.$i18n.availableLocales.map(l => ({ value: l, label: l.toUpperCase() }))
     },
     /** Web Serial available (Chromium; also Electron with the main-process handler). */
     serialSupported() {
@@ -486,13 +479,9 @@ export default {
         this.onOutput2Change()
       }
     },
-    setLocale(locale) {
-      this.$i18n.locale = locale
-      localStorage.setItem('locale', locale)
-    },
-    pickTheme(id) {
-      this.theme = id
-      setTheme(id)
+    startTourFromMenu() {
+      this.menuOpen = false
+      startTour()
     },
     signOut() {
       this.menuOpen = false
