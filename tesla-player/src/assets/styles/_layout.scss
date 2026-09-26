@@ -30,23 +30,25 @@
     display: none;
 }
 
+// Sidebar visual rules: one container style (titled sections on the bare panel,
+// only the controls themselves are boxed), and the volt fill is reserved for the
+// active nav item — everything else stays neutral or tinted so it doesn't compete.
 .brand {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.75rem;
     font-family: var(--font-display);
     font-weight: 700;
     letter-spacing: 0.05em;
-    font-size: 1.15rem;
-    padding: 0.2rem 0.2rem 1.3rem;
+    padding: 0.1rem 0.25rem 1.5rem;
 }
 
-// Clubelek emblem: the black SVG painted in volt via a CSS mask (shape only,
-// holes stay transparent). Links to the home (Play) view; softly irradiates a
-// volt halo (pulsing), intensifying on hover.
+// Tesla Player glyph: the black SVG painted in volt via a CSS mask (shape only),
+// so it takes the accent + halo. Links to the home (Play) view; softly irradiates
+// (pulsing), intensifying on hover.
 .brand__emblem {
-    width: 58px;
-    height: 56px;
+    width: 28px;
+    height: 46px;
     flex: 0 0 auto;
     display: inline-block;
     background-color: var(--volt);
@@ -93,7 +95,7 @@
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.28rem;
+    gap: 0.35rem;
     min-width: 0;
 }
 
@@ -103,7 +105,7 @@
     color: inherit;
     text-decoration: none;
     transition: color 0.15s ease;
-    font-size: 1rem;
+    font-size: 1.05rem;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -114,27 +116,28 @@
     color: var(--volt);
 }
 
-// Clubelek wordmark (links to clubelek.fr), left-aligned under "Tesla Player"
+// Clubelek wordmark (links to clubelek.fr), a discreet byline under the name
 .brand__label-link {
     display: inline-flex;
 }
 
 .brand__label {
-    height: 18px;
+    height: 12px;
     width: auto;
     display: block;
-    opacity: 0.85;
+    opacity: 0.5;
     filter: invert(1);
+    transition: opacity 0.15s;
 }
 
 .brand__label-link:hover .brand__label {
-    opacity: 1;
+    opacity: 0.9;
 }
 
 .nav {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: 0.15rem;
     margin-bottom: 0.6rem;
 }
 
@@ -142,7 +145,7 @@
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.5rem 0.85rem;
+    padding: 0.55rem 0.75rem;
     border-radius: var(--radius);
     color: var(--text-dim);
     font-family: var(--font-display);
@@ -180,9 +183,9 @@
     filter: drop-shadow(0 0 5px var(--volt));
 }
 
-// device-config item, locked until a serial link is up
+// device-config item, locked until a link with read-back is up
 .nav-item.is-disabled {
-    opacity: 0.4;
+    opacity: 0.45;
     cursor: not-allowed;
 }
 
@@ -191,13 +194,83 @@
     color: var(--text-dim);
 }
 
-// output-1 mode chooser: three segments must fit the narrow sidebar, so stack
-// the icon over a smaller label and trim the padding (the shared .segmented is
-// sized for the wider main-pane toggles).
-.segmented.output-modes button {
+.nav-item__lock {
+    margin-left: auto;
+    font-size: 0.62rem;
+}
+
+// splits content views (play → files) from the hardware ones (tuning, config)
+.nav__sep {
+    height: 1px;
+    margin: 0.4rem 0.75rem;
+    background: var(--line);
+}
+
+.sidebar__spacer {
+    flex: 1;
+}
+
+.sidebar-section {
+    padding: 0 0.25rem;
+}
+
+.sidebar-section + .sidebar-section {
+    margin-top: 1.3rem;
+}
+
+.sidebar-section__title {
+    margin: 0 0 0.55rem;
+    font-family: var(--font-display);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: var(--text-mute);
+}
+
+// The shared .segmented is sized for the main pane and fills its active segment
+// with volt; here three segments must fit the narrow column, and a tint keeps
+// the active nav item the only solid accent.
+.sidebar .segmented button,
+.sidebar-menu .segmented button {
     min-width: 0;
-    padding: 0.4rem 0.3rem;
-    font-size: 0.78rem;
+    padding: 0.35rem 0.3rem;
+    font-family: var(--font-body);
+    font-size: 0.76rem;
+}
+
+.sidebar .segmented button.is-active,
+.sidebar-menu .segmented button.is-active {
+    color: var(--volt);
+    background: var(--volt-10);
+    box-shadow: inset 0 0 0 1px var(--volt-30);
+}
+
+.sidebar-select {
+    margin-top: 0.5rem;
+}
+
+.select-field.sidebar-select select {
+    padding: 0.42rem 1.8rem 0.42rem 0.65rem;
+    font-size: 0.8rem;
+}
+
+.select-field.sidebar-select select:disabled {
+    color: var(--text-mute);
+    cursor: default;
+}
+
+.sidebar-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.5rem 0 0;
+    font-size: 0.7rem;
+    color: var(--text-mute);
+}
+
+.sidebar-hint.is-error {
+    color: var(--danger);
 }
 
 // output-1 serial (Syntherrupter) connect control
@@ -208,12 +281,15 @@
     gap: 0.5rem;
 }
 
+.sidebar-serial .sidebar-hint {
+    margin-top: 0;
+}
+
 .sidebar-serial__btn {
     justify-content: center;
     padding: 0.45rem 0.6rem;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     white-space: nowrap;
-    margin: 0 3px 3px 3px;
 }
 
 .sidebar-serial__on {
@@ -221,8 +297,8 @@
     align-items: center;
     gap: 0.45rem;
     font-family: var(--font-mono);
-    font-size: 0.78rem;
-    color: var(--volt);
+    font-size: 0.74rem;
+    color: var(--text);
 }
 
 .sidebar-serial__on .conn__dot {
@@ -230,40 +306,147 @@
     box-shadow: 0 0 8px var(--ok);
 }
 
-.output-emul.is-error {
-    color: var(--danger);
-}
-
-.sidebar__spacer {
-    flex: 1;
-}
-
-.sidebar__foot {
+// label + switch on one line (second output)
+.sidebar-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.8rem;
+}
+
+.sidebar-row__label {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    cursor: pointer;
+}
+
+.sidebar-offset {
+    margin-top: 0.6rem;
+}
+
+.sidebar-offset__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    color: var(--text-mute);
+}
+
+.sidebar-offset__val {
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dim);
+}
+
+.sidebar-offset__range {
+    width: 100%;
+    accent-color: var(--volt);
+}
+
+.sidebar-coils {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.sidebar-coil {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+}
+
+.sidebar-coil__dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    background: var(--c);
+    box-shadow: 0 0 7px -1px var(--c);
+}
+
+.sidebar-coil__idx {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--text-mute);
+    width: 0.7rem;
+    text-align: center;
+    flex: 0 0 auto;
+}
+
+.sidebar-coil__name {
+    font-size: 0.78rem;
+    color: var(--text);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-coil__name.is-empty {
+    color: var(--text-mute);
+    font-style: italic;
+}
+
+// desktop app: Sync, once a remote server is configured
+.sidebar-sync {
+    justify-content: center;
+    margin-top: 1.3rem;
+}
+
+// --- footer: account / server status + the "more" menu --------------------
+.sidebar-foot {
+    display: flex;
+    align-items: center;
     gap: 0.6rem;
-    padding: 0.7rem 0.4rem 0.2rem;
-    margin-top: 0.2rem;
+    margin-top: 1.1rem;
+    padding: 0.8rem 0.25rem 0;
     border-top: 1px solid var(--line);
 }
 
-.sidebar__foot .select-field {
-    width: auto;
-}
-
-.sidebar__foot .select-field select {
-    padding: 0.35rem 1.7rem 0.35rem 0.55rem;
-    font-size: 0.8rem;
-}
-
-.conn {
+.sidebar-user {
+    flex: 1;
+    min-width: 0;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 0.72rem;
+    gap: 0.55rem;
+}
+
+.sidebar-user__avatar {
+    flex: 0 0 auto;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+    background: var(--line-006);
     color: var(--text-dim);
-    font-family: var(--font-mono);
+    font-family: var(--font-display);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.sidebar-user__name {
+    font-size: 0.78rem;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-conn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.74rem;
+    color: var(--text-dim);
 }
 
 .conn__dot {
@@ -274,57 +457,110 @@
     box-shadow: 0 0 8px var(--danger);
 }
 
-.conn.is-up .conn__dot {
+.sidebar-conn.is-up .conn__dot {
     background: var(--ok);
     box-shadow: 0 0 8px var(--ok);
 }
 
-// synthetic credits line (sidebar footer) → opens the verbose credits modal
-.sidebar-credits {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.45rem;
-    width: 100%;
-    margin-top: 0.6rem;
-    padding: 0.5rem 0.55rem;
-    background: var(--line-005);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm, 9px);
-    cursor: pointer;
-    text-align: center;
+.sidebar-more {
+    margin-left: auto;
+    flex: 0 0 auto;
+    width: 1.9rem;
+    height: 1.9rem;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
     color: var(--text-mute);
-    font-size: 0.62rem;
-    font-family: var(--font-mono);
+    cursor: pointer;
     transition:
         color 0.15s,
-        background 0.15s,
-        border-color 0.15s;
+        background 0.15s;
 }
 
-.sidebar-credits:hover {
+.sidebar-more:hover,
+.sidebar-more.is-open {
+    color: var(--text);
+    background: var(--line-006);
+}
+
+.sidebar-more:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 1px;
+}
+
+// teleported to <body>; positioned inline (viewport coords) from the button
+.sidebar-menu {
+    position: fixed;
+    z-index: 60;
+    width: 236px;
+    padding: 0.35rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.7);
+    font-family: var(--font-body);
+}
+
+.sidebar-menu__lang {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.3rem 0.3rem 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.sidebar-menu__lang .segmented button {
+    padding: 0.25rem 0.55rem;
+}
+
+.sidebar-menu__sep {
+    height: 1px;
+    margin: 0.3rem 0.25rem;
+    background: var(--line);
+}
+
+.sidebar-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.5rem 0.6rem;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: 0.8rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.sidebar-menu__item .icon {
+    width: 1rem;
+    color: var(--text-mute);
+    transition: color 0.15s;
+}
+
+.sidebar-menu__item:hover,
+.sidebar-menu__item:focus-visible {
+    outline: none;
+    color: var(--text);
+    background: var(--line-006);
+}
+
+.sidebar-menu__item:hover .icon,
+.sidebar-menu__item:focus-visible .icon {
     color: var(--volt);
-    background: var(--volt-06);
-    border-color: var(--volt-30);
-}
-
-.sidebar-credits i {
-    flex: 0 0 auto;
-    font-size: 0.62rem;
-    opacity: 0.8;
-    margin-top: 2px;
-}
-
-.sidebar-credits__text {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
 }
 
 // --- collapsible "compact" sidebar -----------------------------------------
-// A toggle (last nav row) narrows the sidebar to an icon-only rail: the brand
-// shrinks to the emblem, nav labels hide (tooltips take over), and the verbose
-// output/coils cards + footer collapse away (they reappear on expand).
+// The brand toggle narrows the sidebar to an icon-only rail: the brand shrinks
+// to the glyph, nav labels hide (tooltips take over), the output/coils sections
+// collapse away (they reappear on expand), and the footer keeps only its menu.
 .sidebar {
     transition:
         flex-basis 0.2s ease,
@@ -335,26 +571,25 @@
 .brand__toggle {
     margin-left: auto;
     flex: 0 0 auto;
-    width: 1.6rem;
-    height: 1.6rem;
+    width: 1.7rem;
+    height: 1.7rem;
     display: grid;
     place-items: center;
-    border: 1px solid var(--line-strong, var(--line));
-    border-radius: var(--radius-sm, 9px);
-    background: var(--line-005);
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
     color: var(--text-mute);
     cursor: pointer;
     font-size: 0.8rem;
     padding: 1px 0 0 0;
     transition:
         color 0.15s,
-        border-color 0.15s,
         background 0.15s;
 }
 
 .brand__toggle:hover {
-    color: var(--volt);
-    border-color: var(--volt);
+    color: var(--text);
+    background: var(--line-006);
 }
 
 .sidebar--compact {
@@ -364,11 +599,11 @@
     padding-right: 0.55rem;
 }
 
-// stack the emblem above the toggle when compact (brand text hidden)
+// stack the glyph above the toggle when compact (brand text hidden)
 .sidebar--compact .brand {
     flex-direction: column;
-    gap: 0.55rem;
-    padding: 0.2rem 0 1.1rem;
+    gap: 0.7rem;
+    padding: 0.1rem 0 1.1rem;
 }
 
 .sidebar--compact .brand__toggle {
@@ -380,8 +615,8 @@
 }
 
 .sidebar--compact .brand__emblem {
-    width: 44px;
-    height: 42px;
+    width: 24px;
+    height: 40px;
 }
 
 .sidebar--compact .nav-item {
@@ -395,16 +630,32 @@
     width: auto;
 }
 
-.sidebar--compact .nav-item__label {
+.sidebar--compact .nav-item__label,
+.sidebar--compact .nav-item__lock {
     display: none;
 }
 
+.sidebar--compact .nav__sep {
+    margin: 0.4rem 0.6rem;
+}
+
 // these need real width to be usable — hidden while compact, back on expand
-.sidebar--compact .sidebar-card,
-.sidebar--compact .sidebar__foot,
-.sidebar--compact .sidebar-foot-el,
-.sidebar--compact .sidebar__action {
+.sidebar--compact .sidebar-section,
+.sidebar--compact .sidebar-sync,
+.sidebar--compact .sidebar-user,
+.sidebar--compact .sidebar-conn {
     display: none;
+}
+
+.sidebar--compact .sidebar-foot {
+    justify-content: center;
+    margin-top: 0.55rem;
+    padding: 0;
+    border-top: 0;
+}
+
+.sidebar--compact .sidebar-more {
+    margin-left: 0;
 }
 
 // compact rail status: the selected output(s) + connection, as icon chips
@@ -550,7 +801,7 @@
         display: none;
     }
     .sidebar-cstatus,
-    .sidebar__foot {
+    .sidebar-foot {
         display: none;
     }
 }

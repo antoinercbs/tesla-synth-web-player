@@ -1,19 +1,7 @@
 <template>
   <aside class="sidebar" :class="{ 'sidebar--compact': sidebarCompact }">
-    <!-- Signed-in identity + sign-out, at the very top (web, OIDC-enabled server). -->
-    <div v-if="authStore.enabled && authStore.authenticated && !sidebarCompact" class="sidebar-auth">
-      <span class="sidebar-auth__who" :title="authStore.displayName">
-        <i class="fas fa-user"></i><span class="sidebar-auth__name">{{ authStore.displayName || $t('auth.signedIn')
-        }}</span>
-      </span>
-      <button class="sidebar-auth__out" type="button" :title="$t('auth.signOut')" @click="signOut">
-        <i class="fas fa-right-from-bracket"></i>
-      </button>
-    </div>
-
     <div class="brand">
-      <router-link class="brand__emblem" :to="{ name: 'play' }" aria-label="Tesla Player"
-        :style="{ '--emblem-src': 'url(' + emblemSrc + ')' }" />
+      <router-link class="brand__emblem" :to="{ name: 'play' }" aria-label="Tesla Player" :style="emblemStyle" />
       <div class="brand__text">
         <router-link class="brand__app" :to="{ name: 'play' }">Tesla Player</router-link>
         <a class="brand__label-link" href="https://clubelek.fr" target="_blank" rel="noopener" title="clubelek.fr">
@@ -42,6 +30,8 @@
         <span class="icon"><i class="fas fa-folder-open"></i></span><span class="nav-item__label">{{ $t('nav.midi')
         }}</span>
       </router-link>
+      <!-- content above, hardware below -->
+      <span class="nav__sep" aria-hidden="true"></span>
       <router-link class="nav-item" :to="{ name: 'tune' }" :title="sidebarCompact ? $t('nav.tune') : null">
         <span class="icon"><i class="fas fa-bullseye"></i></span><span class="nav-item__label">{{ $t('nav.tune')
         }}</span>
@@ -56,17 +46,17 @@
       <span v-else class="nav-item is-disabled" :title="$t('label.serialNeededForConfig')">
         <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
         }}</span>
+        <i class="fas fa-lock nav-item__lock"></i>
       </span>
     </nav>
 
     <div class="sidebar__spacer"></div>
 
-    <section class="sidebar-card">
-      <div class="sidebar-card__title">{{ $t('title.outputSelection') }}</div>
-      <div class="sidebar-output">
-        <label class="sidebar-output__label">{{ $t('label.firstOutput') }}</label>
-        <!-- output 1 transport: virtual synth · MIDI device · bidirectional serial -->
-        <segmented-control v-model="output1Mode" fill class="output-modes" @update:model-value="onMode1Change" :options="[
+    <section class="sidebar-section">
+      <h2 class="sidebar-section__title">{{ $t('title.output') }}</h2>
+      <!-- output 1 transport: virtual synth · MIDI device · bidirectional serial -->
+      <segmented-control v-model="output1Mode" fill class="output-modes" :aria-label="$t('label.firstOutput')"
+        @update:model-value="onMode1Change" :options="[
           { value: 'synth', label: $t('label.outSynth') },
           { value: 'midi', label: $t('label.outMidi') },
           {
@@ -75,70 +65,69 @@
           },
         ]" />
 
-        <span v-if="output1Mode === 'synth'" class="output-emul">
-          <span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('label.emulationHint') }}
-        </span>
+      <p v-if="output1Mode === 'synth'" class="sidebar-hint">
+        <i class="fas fa-wave-square"></i>{{ $t('label.emulationHint') }}
+      </p>
 
-        <template v-else-if="output1Mode === 'midi'">
-          <div class="select-field">
-            <select v-model="selectedOutputId" @change="onOutputChange">
-              <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-            </select>
-          </div>
-          <span v-if="outputs.length === 0" class="output-emul">{{ $t('label.noMidiOutput') }}</span>
-        </template>
-
-        <div v-else class="sidebar-serial">
-          <template v-if="midiStore.serialConnected">
-            <span class="sidebar-serial__on"><span class="conn__dot"></span>{{ midiStore.serialPortLabel }}</span>
-            <button class="btn btn--ghost sidebar-serial__btn" type="button" @click="disconnectSerial">
-              <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('label.serialDisconnect') }}
-            </button>
-          </template>
-          <template v-else>
-            <button class="btn btn--volt sidebar-serial__btn" type="button" :disabled="!serialSupported"
-              @click="connectSerial">
-              <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('label.serialConnect') }}
-            </button>
-            <span v-if="!serialSupported" class="output-emul">{{ $t('label.serialUnsupported') }}</span>
-            <span v-else-if="serialError" class="output-emul is-error">{{ serialError }}</span>
-          </template>
-        </div>
+      <div v-else-if="output1Mode === 'midi'" class="select-field sidebar-select">
+        <select v-if="outputs.length" v-model="selectedOutputId" :aria-label="$t('label.firstOutput')"
+          @change="onOutputChange">
+          <option v-if="!selectedOutputListed" :value="selectedOutputId" disabled>{{ $t('label.chooseMidiOutput') }}
+          </option>
+          <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
+        </select>
+        <!-- nothing to pick: the empty state lives in the field itself -->
+        <select v-else disabled :aria-label="$t('label.firstOutput')">
+          <option>{{ $t('label.noMidiOutput') }}</option>
+        </select>
       </div>
-      <div class="sidebar-output">
-        <!-- second output is off by default (compact); the toggle reveals the picker -->
-        <div class="sidebar-output__head">
-          <label class="sidebar-output__label">{{ $t('label.secondOutput') }}</label>
-          <label class="switch sidebar-output__toggle" :title="$t('label.secondOutput')">
-            <input type="checkbox" v-model="showSecondOutput" @change="onSecondToggle">
-            <span class="switch__track"></span>
-          </label>
+
+      <div v-else class="sidebar-serial">
+        <template v-if="midiStore.serialConnected">
+          <span class="sidebar-serial__on"><span class="conn__dot"></span>{{ midiStore.serialPortLabel }}</span>
+          <button class="btn btn--ghost sidebar-serial__btn" type="button" @click="disconnectSerial">
+            <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('label.serialDisconnect') }}
+          </button>
+        </template>
+        <template v-else>
+          <button class="btn btn--volt sidebar-serial__btn" type="button" :disabled="!serialSupported"
+            @click="connectSerial">
+            <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('label.serialConnect') }}
+          </button>
+          <p v-if="!serialSupported" class="sidebar-hint">{{ $t('label.serialUnsupported') }}</p>
+          <p v-else-if="serialError" class="sidebar-hint is-error">{{ serialError }}</p>
+        </template>
+      </div>
+
+      <!-- second output is off by default (compact); the toggle reveals the picker -->
+      <div class="sidebar-row">
+        <label class="sidebar-row__label" for="out2-toggle">{{ $t('label.secondOutput') }}</label>
+        <label class="switch">
+          <input id="out2-toggle" type="checkbox" v-model="showSecondOutput" @change="onSecondToggle">
+          <span class="switch__track"></span>
+        </label>
+      </div>
+      <template v-if="showSecondOutput">
+        <div class="select-field sidebar-select">
+          <select v-model="selectedOutput2Id" :aria-label="$t('label.secondOutput')" @change="onOutput2Change">
+            <option :value="null">—</option>
+            <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
+          </select>
         </div>
-        <template v-if="showSecondOutput">
-          <div class="select-field">
-            <select v-model="selectedOutput2Id" @change="onOutput2Change">
-              <option :value="null">—</option>
-              <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-            </select>
-          </div>
-          <!-- manual latency offset to align the 2nd output with the 1st (hardware calibration) -->
-          <div v-if="selectedOutput2Id" class="sidebar-offset" :title="$t('label.output2OffsetHint')">
-            <label class="sidebar-offset__label" for="out2-offset">{{ $t('label.output2Offset') }}</label>
-            <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
-              v-model.number="output2Offset">
+        <!-- manual latency offset to align the 2nd output with the 1st (hardware calibration) -->
+        <div v-if="selectedOutput2Id" class="sidebar-offset" :title="$t('label.output2OffsetHint')">
+          <div class="sidebar-offset__head">
+            <label for="out2-offset">{{ $t('label.output2Offset') }}</label>
             <span class="sidebar-offset__val">{{ output2Offset > 0 ? '+' : '' }}{{ output2Offset }} ms</span>
           </div>
-        </template>
-      </div>
+          <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
+            v-model.number="output2Offset">
+        </div>
+      </template>
     </section>
 
-    <section class="sidebar-card">
-      <div class="sidebar-card__title">
-        {{ $t('title.coils') }}
-        <button class="sidebar-card__cfg" type="button" :title="$t('label.generalConfig')" @click="configOpen = true">
-          <i class="fas fa-gear"></i>
-        </button>
-      </div>
+    <section class="sidebar-section">
+      <h2 class="sidebar-section__title">{{ $t('title.coils') }}</h2>
       <ul class="sidebar-coils">
         <li v-for="n in midiStore.appConfig.defaultCoilCount" :key="n - 1" class="sidebar-coil">
           <span class="sidebar-coil__dot" :style="{ '--c': coilColor(n - 1) }"></span>
@@ -150,48 +139,10 @@
       </ul>
     </section>
 
-    <!-- Desktop app: a prominent Sync button, then server config + language.
-         No online/offline (the backend is local). -->
-    <section v-if="isElectron" class="sidebar-foot-el">
-      <button v-if="serverConfigured" class="btn btn--volt sidebar-foot-el__sync" type="button"
-        @click="syncOpen = true">
-        <span class="icon"><i class="fas fa-rotate"></i></span>{{ $t('desktop.sync') }}
-      </button>
-      <div class="sidebar-foot-el__row">
-        <button class="btn btn--ghost sidebar-foot-el__cfg" type="button" :title="$t('desktop.serverConfig')"
-          @click="serverOpen = true">
-          <span class="icon"><i class="fas fa-server"></i></span>{{ $t('desktop.serverConfig') }}
-        </button>
-        <div class="select-field">
-          <select v-model="$i18n.locale" @change="onLanguageChange">
-            <option v-for="locale in $i18n.availableLocales" :key="locale" :value="locale">{{ locale }}</option>
-          </select>
-        </div>
-      </div>
-    </section>
-
-    <!-- Web: online/offline + language, then a discreet "download app" link -->
-    <template v-else>
-      <div class="sidebar__foot">
-        <div class="conn" :class="{ 'is-up': isConnected }">
-          <span class="conn__dot"></span>
-          {{ isConnected ? 'online' : 'offline' }}
-        </div>
-        <div class="select-field">
-          <select v-model="$i18n.locale" @change="onLanguageChange">
-            <option v-for="locale in $i18n.availableLocales" :key="locale" :value="locale">{{ locale }}</option>
-          </select>
-        </div>
-      </div>
-      <button class="sidebar__action" type="button" @click="downloadOpen = true">
-        <span class="icon"><i class="fas fa-download"></i></span>{{ $t('desktop.downloadApp') }}
-      </button>
-    </template>
-
-    <!-- Synthetic credits → verbose modal (foremost: the Syntherrupter author). -->
-    <button v-if="!sidebarCompact" class="sidebar-credits" type="button" :title="$t('credits.title')"
-      @click="creditsOpen = true">
-      <i class="fas fa-circle-info"></i><span class="sidebar-credits__text">{{ $t('credits.footer') }}</span>
+    <!-- Desktop app: Sync only makes sense once a remote server is configured. -->
+    <button v-if="isElectron && serverConfigured" class="btn btn--volt sidebar-sync" type="button"
+      @click="syncOpen = true">
+      <span class="icon"><i class="fas fa-rotate"></i></span>{{ $t('desktop.sync') }}
     </button>
 
     <!-- Compact rail keeps the essentials visible: selected output(s) + connection. -->
@@ -203,12 +154,61 @@
       <span v-if="selectedOutput2Id" class="cstat cstat--spk" :title="$t('label.secondOutput') + ' · ' + output2Name">
         <i class="fas fa-volume-high"></i>
       </span>
-      <span v-if="!isElectron" class="cstat-conn" :class="{ 'is-up': isConnected }"
-        :title="isConnected ? 'online' : 'offline'">
+      <span v-if="!isElectron" class="cstat-conn" :class="{ 'is-up': isConnected }" :title="connLabel">
         <span class="conn__dot"></span>
       </span>
     </div>
+
+    <!-- One footer row: who is signed in (or the server status) + a menu for the
+         rarely used settings. No online/offline on desktop (the backend is local). -->
+    <footer class="sidebar-foot">
+      <div v-if="showUser" class="sidebar-user" :title="authStore.displayName">
+        <span class="sidebar-user__avatar" aria-hidden="true">
+          <template v-if="userInitials">{{ userInitials }}</template><i v-else class="fas fa-user"></i>
+        </span>
+        <span class="sidebar-user__name">{{ authStore.displayName || $t('auth.signedIn') }}</span>
+      </div>
+      <span v-if="!isElectron" class="sidebar-conn" :class="{ 'is-up': isConnected }" :title="connLabel">
+        <span class="conn__dot"></span><span v-if="!showUser" class="sidebar-conn__text">{{ connLabel }}</span>
+      </span>
+      <button ref="moreBtn" class="sidebar-more" :class="{ 'is-open': menuOpen }" type="button"
+        :title="$t('label.moreOptions')" :aria-label="$t('label.moreOptions')" aria-haspopup="menu"
+        :aria-expanded="menuOpen" @click="toggleMenu">
+        <i class="fas fa-ellipsis"></i>
+      </button>
+    </footer>
   </aside>
+
+  <!-- Teleported: the sidebar scrolls, so an in-flow popover would be clipped. -->
+  <Teleport to="body">
+    <div v-if="menuOpen" ref="menu" class="sidebar-menu" :style="menuStyle" role="menu">
+      <div class="sidebar-menu__lang">
+        <span>{{ $t('label.language') }}</span>
+        <segmented-control :model-value="$i18n.locale" :options="localeOptions" :aria-label="$t('label.language')"
+          @update:model-value="setLocale" />
+      </div>
+      <div class="sidebar-menu__sep"></div>
+      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('configOpen')">
+        <span class="icon"><i class="fas fa-gear"></i></span>{{ $t('title.generalConfig') }}
+      </button>
+      <button v-if="isElectron" class="sidebar-menu__item" type="button" role="menuitem"
+        @click="openFromMenu('serverOpen')">
+        <span class="icon"><i class="fas fa-server"></i></span>{{ $t('desktop.serverConfig') }}
+      </button>
+      <button v-else class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('downloadOpen')">
+        <span class="icon"><i class="fas fa-download"></i></span>{{ $t('desktop.downloadApp') }}
+      </button>
+      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('creditsOpen')">
+        <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('credits.title') }}
+      </button>
+      <template v-if="showUser">
+        <div class="sidebar-menu__sep"></div>
+        <button class="sidebar-menu__item" type="button" role="menuitem" @click="signOut">
+          <span class="icon"><i class="fas fa-right-from-bracket"></i></span>{{ $t('auth.signOut') }}
+        </button>
+      </template>
+    </div>
+  </Teleport>
 
   <!-- sidebar action modals (config / desktop sync+server / download) -->
   <general-config-modal :open="configOpen" :config="midiStore.appConfig" @save="saveConfig" @close="configOpen = false"
@@ -223,7 +223,7 @@
 import { markRaw } from 'vue'
 import { mapStores } from 'pinia'
 import { WebMidi } from 'webmidi'
-import emblemSrc from '@/assets/emblem_high_black.svg'
+import logoSrc from '@/assets/logo_tesla_player.svg'
 import labelSrc from '@/assets/label_high_black.svg'
 import { useMidiStore } from '@/stores/midi'
 import { useAuthStore } from '@/stores/auth'
@@ -242,8 +242,8 @@ import CreditsModal from '@/components/layout/CreditsModal.vue'
 /**
  * The application sidebar: brand, navigation, the collapse/compact toggle, MIDI
  * output selection (incl. the built-in synth + WebMIDI device resolution), the
- * coil legend, connection status / language, and the desktop sync/server/config
- * action modals. Owns the WebMIDI lifecycle + output resolution (it IS the
+ * coil legend, and a footer (account / connection status + a menu holding the
+ * language, config, desktop sync/server, download and credits actions). Owns the WebMIDI lifecycle + output resolution (it IS the
  * output picker) and the connection ping. App.vue stays a thin shell.
  */
 export default {
@@ -251,7 +251,6 @@ export default {
   components: { SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal },
   data() {
     return {
-      emblemSrc,
       labelSrc,
       // output-1 transport mode: 'synth' | 'midi' | 'serial' (persisted). Defaults
       // from the legacy persisted device id (synth vs a real MIDI output).
@@ -279,14 +278,38 @@ export default {
       showSecondOutput: !!localStorage.getItem('midiOutput2Id'),
       // narrow icon-rail sidebar (persisted); nav stays, the verbose cards collapse
       sidebarCompact: localStorage.getItem('sidebarCompact') === '1',
-      creditsOpen: false
+      creditsOpen: false,
+      menuOpen: false,
+      menuStyle: {}
     }
   },
   computed: {
     ...mapStores(useMidiStore, useAuthStore),
+    // quoted: Vite inlines this small SVG as a data URI whose ' and ( are
+    // illegal in an unquoted url(), which silently drops the whole declaration
+    emblemStyle() {
+      return { '--emblem-src': `url("${logoSrc}")` }
+    },
     isSynthSelected() { return this.selectedOutputId === SYNTH_OUTPUT_ID },
     outputs() {
       return this.midiStore.midiOutputList || []
+    },
+    // false while output 1 is still the synth fallback (no device picked yet)
+    selectedOutputListed() {
+      return this.outputs.some(o => o.id === this.selectedOutputId)
+    },
+    showUser() {
+      return this.authStore.enabled && this.authStore.authenticated
+    },
+    userInitials() {
+      const words = (this.authStore.displayName || '').trim().split(/\s+/).filter(Boolean)
+      return words.slice(0, 2).map(w => w[0].toUpperCase()).join('')
+    },
+    connLabel() {
+      return this.isConnected ? this.$t('label.online') : this.$t('label.offline')
+    },
+    localeOptions() {
+      return this.$i18n.availableLocales.map(l => ({ value: l, label: l.toUpperCase() }))
     },
     /** Web Serial available (Chromium; also Electron with the main-process handler). */
     serialSupported() {
@@ -313,6 +336,10 @@ export default {
       get() { return this.midiStore.output2OffsetMs },
       set(v) { this.midiStore.setOutput2Offset(Number(v)) }
     }
+  },
+  watch: {
+    menuOpen(open) { this.setMenuListeners(open) },
+    $route() { this.menuOpen = false }
   },
   methods: {
     coilColor,
@@ -445,11 +472,49 @@ export default {
         this.onOutput2Change()
       }
     },
-    onLanguageChange() {
-      localStorage.setItem('locale', this.$i18n.locale)
+    setLocale(locale) {
+      this.$i18n.locale = locale
+      localStorage.setItem('locale', locale)
     },
     signOut() {
+      this.menuOpen = false
       this.authStore.logout()
+    },
+    // --- footer menu ---
+    toggleMenu() {
+      if (this.menuOpen) {
+        this.menuOpen = false
+        return
+      }
+      // pinned in viewport coords (the menu is teleported out of the sidebar):
+      // above the button when expanded, beside the rail when compact
+      const r = this.$refs.moreBtn.getBoundingClientRect()
+      this.menuStyle = this.sidebarCompact
+        ? { left: `${r.right + 10}px`, bottom: `${window.innerHeight - r.bottom}px` }
+        : { right: `${window.innerWidth - r.right}px`, bottom: `${window.innerHeight - r.top + 8}px` }
+      this.menuOpen = true
+    },
+    closeMenu() {
+      this.menuOpen = false
+    },
+    onDocPointer(e) {
+      if (this.$refs.menu?.contains(e.target) || this.$refs.moreBtn?.contains(e.target)) return
+      this.menuOpen = false
+    },
+    onMenuKey(e) {
+      if (e.key !== 'Escape') return
+      this.menuOpen = false
+      this.$refs.moreBtn?.focus()
+    },
+    setMenuListeners(on) {
+      const fn = on ? 'addEventListener' : 'removeEventListener'
+      document[fn]('pointerdown', this.onDocPointer, true)
+      document[fn]('keydown', this.onMenuKey)
+      window[fn]('resize', this.closeMenu)
+    },
+    openFromMenu(modalFlag) {
+      this.menuOpen = false
+      this[modalFlag] = true
     },
     toggleSidebar() {
       this.sidebarCompact = !this.sidebarCompact
@@ -501,6 +566,7 @@ export default {
     }
   },
   beforeUnmount() {
+    this.setMenuListeners(false)
     if (this.pingTimer) clearInterval(this.pingTimer)
     if (this.unsubServerConfig) this.unsubServerConfig()
     if (WebMidi.enabled) {
@@ -510,51 +576,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-.sidebar-auth {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: 0 0 0.7rem;
-  padding-bottom: 0.6rem;
-  border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.08));
-  font-size: 0.72rem;
-  color: var(--text-mute);
-}
-
-.sidebar-auth__who {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  min-width: 0;
-  flex: 1;
-}
-
-.sidebar-auth__name {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.sidebar-auth__out {
-  flex: 0 0 auto;
-  background: transparent;
-  border: none;
-  color: var(--text-mute);
-  cursor: pointer;
-  padding: 0.2rem 0.3rem;
-  border-radius: 4px;
-}
-
-.sidebar-auth__out:hover {
-  color: var(--volt, #ffd24d);
-  background: var(--line-005, rgba(255, 255, 255, 0.04));
-}
-
-@media (max-width: 1000px) {
-  .sidebar-auth {
-    display: none;
-  }
-}
-</style>
