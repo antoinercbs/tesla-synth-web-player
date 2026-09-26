@@ -553,13 +553,14 @@
 }
 
 .theme-swatches {
-    display: flex;
-    gap: 0.55rem;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.45rem;
 }
 
 .theme-swatch {
-    width: 1.6rem;
-    height: 1.6rem;
+    width: 100%;
+    aspect-ratio: 1;
     padding: 0;
     border: 0;
     border-radius: 50%;

@@ -698,7 +698,7 @@
 
 .switch input:checked + .switch__track::after {
     transform: translateX(1rem);
-    background: var(--ink);
+    background: var(--on-grad);
 }
 
 .switch input:focus-visible + .switch__track {

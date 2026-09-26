@@ -3,7 +3,10 @@
  * module lists the ids (for the picker) and applies the chosen one, a
  * `data-theme` attribute on <html>. The choice is per device, like the language.
  */
-export const THEMES = ['electric', 'plasma', 'ion', 'spectrum', 'aurora'] as const;
+export const THEMES = [
+  'electric', 'ion', 'emerald', 'borealis', 'brass', 'midnight', 'aurora',
+  'sakura', 'plasma', 'dusk', 'spectrum', 'candy', 'steel', 'noir',
+] as const;
 export type ThemeId = (typeof THEMES)[number];
 export const DEFAULT_THEME: ThemeId = 'electric';
 

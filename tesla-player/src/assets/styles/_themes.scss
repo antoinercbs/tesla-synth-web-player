@@ -10,11 +10,13 @@
 //   surfaces  bg · bg-2 · panel · panel-2
 //   line      tint of the hairlines and borders
 //   accent    light accent: icons, active text, focus rings, tints (dark ink on it)
-//   grad      the primary fill: main buttons, progress, toggles (white text on it)
+//   grad      the primary fill: main buttons, progress, toggles
+//   on-grad   text on that fill; white unless given (light gradients need dark text)
 //   arc       core · mid · deep of the arc: the logo, the micro-arc
-// The user picks a theme in the sidebar menu; ui/themes.ts lists the ids (its spec
-// checks they match this map). The default theme also colours the app icons and
-// the Electron splash (`npm run icons` in electron/ reads this file).
+// The order here is the picker's order (roughly round the colour wheel). The user
+// picks a theme in the sidebar menu; ui/themes.ts lists the ids (its spec checks
+// they match this map). The default theme also colours the app icons and the
+// Electron splash (`npm run icons` in electron/ reads this file).
 $default-theme: electric;
 
 $themes: (
@@ -25,6 +27,61 @@ $themes: (
         grad: (#2f6bff, #6a3dff),
         arc: (#eaf2ff, #5b8cff, #6a3dff),
     ),
+    ion: (
+        surfaces: (#051015, #08161d, #0a1b23, #0f242e),
+        line: #6ebed7,
+        accent: #4fd4f5,
+        grad: (#0781b4, #4f46e5),
+        arc: (#e6fdff, #38bdf8, #6366f1),
+    ),
+    // close to coil 2's green and the "ok" green
+    emerald: (
+        surfaces: (#04100d, #071813, #0a1d18, #0f2620),
+        line: #6ec8aa,
+        accent: #5eead4,
+        grad: (#047857, #0e7490),
+        arc: (#e8fff8, #34d399, #0e7490),
+    ),
+    // the northern lights: green into violet (the green is near coil 2's)
+    borealis: (
+        surfaces: (#060c12, #0a1219, #0d1720, #121e2a),
+        line: #7cb8c8,
+        accent: #6ee7b7,
+        grad: (#047857, #6d28d9),
+        arc: (#ecfdf5, #34d399, #8b5cf6),
+    ),
+    // close to coil 1's yellow and the power slider's amber zone
+    brass: (
+        surfaces: (#0d0b08, #14110c, #191510, #211c15),
+        line: #c8aa78,
+        accent: #f5c56b,
+        grad: (#a0520c, #7c2d12),
+        arc: (#fff5dc, #f0b04a, #b45309),
+    ),
+    // navy with gold; the gold is close to the power slider's amber zone
+    midnight: (
+        surfaces: (#05070f, #090c18, #0c1020, #11172b),
+        line: #8a9ad0,
+        accent: #e8c170,
+        grad: (#d4a445, #a3721c),
+        on-grad: #0b0d12,
+        arc: (#fff8e7, #e8c170, #a77b23),
+    ),
+    // close to the "danger" red and coils 0 (red) and 5 (orange)
+    aurora: (
+        surfaces: (#0d0a0e, #130e14, #171119, #1e1620),
+        line: #cd96b4,
+        accent: #ff8fbd,
+        grad: (#d4145f, #c2410c),
+        arc: (#fff1e8, #ff7a59, #d61f69),
+    ),
+    sakura: (
+        surfaces: (#110a0e, #170e13, #1c1118, #24161f),
+        line: #d696b4,
+        accent: #f9a8d4,
+        grad: (#c81e6a, #9d174d),
+        arc: (#fff0f6, #f472b6, #be185d),
+    ),
     plasma: (
         surfaces: (#0b0812, #110c1a, #150f21, #1b142a),
         line: #aa8ce1,
@@ -32,12 +89,12 @@ $themes: (
         grad: (#7c3aed, #d0258e),
         arc: (#f6ebff, #b27bff, #d6338a),
     ),
-    ion: (
-        surfaces: (#051015, #08161d, #0a1b23, #0f242e),
-        line: #6ebed7,
-        accent: #4fd4f5,
-        grad: (#0781b4, #4f46e5),
-        arc: (#e6fdff, #38bdf8, #6366f1),
+    dusk: (
+        surfaces: (#08081a, #0d0c22, #11102a, #171534),
+        line: #8c87e6,
+        accent: #b4a0ff,
+        grad: (#4338ca, #be185d),
+        arc: (#eef0ff, #8b8cf8, #db2777),
     ),
     spectrum: (
         surfaces: (#070a14, #0b0f1d, #0e1323, #131a2e),
@@ -46,12 +103,29 @@ $themes: (
         grad: (#0784b0, #7c3aed, #c9267f),
         arc: (#a5f3fc, #a78bfa, #f472b6),
     ),
-    aurora: (
-        surfaces: (#0d0a0e, #130e14, #171119, #1e1620),
-        line: #cd96b4,
-        accent: #ff8fbd,
-        grad: (#d4145f, #c2410c),
-        arc: (#fff1e8, #ff7a59, #d61f69),
+    candy: (
+        surfaces: (#0e0b14, #14101c, #181322, #1f192c),
+        line: #b4a0d2,
+        accent: #d8b4fe,
+        grad: (#c4b5fd, #f9a8d4),
+        on-grad: #1a1033,
+        arc: (#fdf4ff, #d8b4fe, #f9a8d4),
+    ),
+    steel: (
+        surfaces: (#08090c, #0d0f14, #111419, #171b22),
+        line: #96a0b4,
+        accent: #c3cfe0,
+        grad: (#64748b, #334155),
+        arc: (#f1f5fb, #9fb0c8, #5a6b86),
+    ),
+    // true black: the least light on stage at night
+    noir: (
+        surfaces: (#000000, #050506, #0a0a0c, #111114),
+        line: #9aa0ac,
+        accent: #e6ebf3,
+        grad: (#f1f5f9, #b8c2d0),
+        on-grad: #0b0d12,
+        arc: (#ffffff, #cbd5e1, #7c8798),
     ),
 );
 
@@ -64,6 +138,10 @@ $themes: (
 @mixin -theme($t) {
     $s: map.get($t, surfaces);
     $arc: map.get($t, arc);
+    $on-grad: #fff;
+    @if map.has-key($t, on-grad) {
+        $on-grad: map.get($t, on-grad);
+    }
     --bg: #{list.nth($s, 1)};
     --bg-2: #{list.nth($s, 2)};
     --panel: #{list.nth($s, 3)};
@@ -73,7 +151,7 @@ $themes: (
     --volt: #{map.get($t, accent)};
     --volt-rgb: #{-channels(map.get($t, accent))};
     --grad: linear-gradient(135deg, #{map.get($t, grad)});
-    --on-grad: #fff;
+    --on-grad: #{$on-grad};
     --arc-core: #{list.nth($arc, 1)};
     --arc-mid: #{list.nth($arc, 2)};
     --arc-deep: #{list.nth($arc, 3)};
