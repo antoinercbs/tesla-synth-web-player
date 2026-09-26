@@ -2,10 +2,13 @@ import { reactive } from 'vue';
 
 /**
  * Guided-tour state, shared by the overlay (components/tour/TourOverlay.vue) and
- * whatever starts it (the sidebar menu, the welcome dialog). `welcome` = show the
- * welcome dialog once, on a device that has never seen it; starting the tour or
+ * whatever starts it (the sidebar menu, the welcome dialog, the tuning page's
+ * help button). `id` = which tour (steps.ts). `welcome` = show the welcome
+ * dialog once, on a device that has never seen it; starting a tour or
  * dismissing it counts as seen.
  */
+export type TourId = 'main' | 'tune';
+
 const SEEN_KEY = 'tourSeen';
 
 function seen(): boolean {
@@ -24,10 +27,11 @@ function markSeen(): void {
   }
 }
 
-export const tour = reactive({ active: false, welcome: !seen() });
+export const tour = reactive({ active: false, id: 'main' as TourId, welcome: !seen() });
 
-export function startTour(): void {
+export function startTour(id: TourId = 'main'): void {
   tour.welcome = false;
+  tour.id = id;
   tour.active = true;
   markSeen();
 }

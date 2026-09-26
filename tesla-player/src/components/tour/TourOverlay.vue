@@ -2,10 +2,12 @@
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { useRoute, useRouter } from 'vue-router';
-import { TOUR_STEPS, VIZ_ORDER, vizTab, type TourPlacement } from '@/tour/steps';
+import { TOURS, VIZ_ORDER, vizTab, type TourPlacement, type TourStep } from '@/tour/steps';
 import { stopTour, tour } from '@/tour/tour';
 import { enterDemo, exitDemo, isDemoOutputActive, reassertDemo } from '@/tour/demo/demo-mode';
 import { DEMO_PLAYLIST_ID, DEMO_SONG_ID } from '@/tour/demo/data';
+import { phoneView } from '@/tour/demo/fake-camera';
+import FakePhone from './FakePhone.vue';
 import WelcomeDialog from './WelcomeDialog.vue';
 
 /**
@@ -22,6 +24,7 @@ const PAD = 8; // hole margin round the target
 const GAP = 14; // hole to card
 const EDGE = 12; // card to viewport edge
 const WIDE = 640; // narrower: the card docks to the bottom
+const UNTIL_MAX = 20_000; // a step waiting for the page never locks the tour: Next comes back after this
 
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -32,6 +35,9 @@ const index = ref(0);
 // the state (and the motion: a playing song) the text talks about
 const cursor = reactive({ x: 0, y: 0, shown: false, pressing: false });
 const pending = ref(false); // between steps the card hides; the hole slides on once the target is found
+const ready = ref(true); // false while the step waits for its `until`
+const acted = new Set<string>(); // `once` steps whose clicks already ran in this tour
+let untilTimer: ReturnType<typeof setTimeout> | undefined;
 const rect = ref<DOMRect | null>(null);
 const cardEl = ref<HTMLElement | null>(null);
 const cardPos = ref<{ left: number; top: number } | null>(null);
@@ -39,9 +45,10 @@ let target: HTMLElement | null = null;
 let showSeq = 0; // a newer step wins over a slower, earlier one still resolving
 let ro: ResizeObserver | null = null;
 
-const step = computed(() => TOUR_STEPS[index.value]);
-const isLast = computed(() => index.value === TOUR_STEPS.length - 1);
-const progress = computed(() => ((index.value + 1) / TOUR_STEPS.length) * 100);
+const steps = computed(() => TOURS[tour.id]);
+const step = computed(() => steps.value[index.value]);
+const isLast = computed(() => index.value === steps.value.length - 1);
+const progress = computed(() => ((index.value + 1) / steps.value.length) * 100);
 
 function isVisible(el: Element): boolean {
   const r = el.getBoundingClientRect();
@@ -52,16 +59,32 @@ function findTarget(selector: string): HTMLElement | null {
   return null;
 }
 // a page opened by the tour renders its target a few frames later
-function waitForTarget(selector: string, timeoutMs = 1200): Promise<HTMLElement | null> {
+function waitFor<T>(find: () => T | null, timeoutMs: number): Promise<T | null> {
   return new Promise((resolve) => {
     const t0 = performance.now();
     const tick = (): void => {
-      const el = findTarget(selector);
-      if (el || performance.now() - t0 > timeoutMs) resolve(el);
+      const found = find();
+      if (found || performance.now() - t0 > timeoutMs) resolve(found);
       else requestAnimationFrame(tick);
     };
     tick();
   });
+}
+const waitForTarget = (selector: string, timeoutMs = 1200): Promise<HTMLElement | null> =>
+  waitFor(() => findTarget(selector), timeoutMs);
+
+function aim(el: HTMLElement | null): void {
+  ro?.disconnect();
+  target = el;
+  if (target) {
+    // scrolled only when cut off, and no further: the tuning page's header is sticky and transparent
+    const r = target.getBoundingClientRect();
+    if (r.top < 0 || r.bottom > window.innerHeight || r.left < 0 || r.right > window.innerWidth) {
+      target.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+    ro?.observe(target);
+  }
+  measure();
 }
 
 /** Glide the pointer onto `el`, press, click; the click only happens if `allowed()`
@@ -90,38 +113,69 @@ async function clickWithCursor(el: HTMLElement, allowed: () => boolean): Promise
 
 async function show(i: number): Promise<void> {
   const seq = ++showSeq;
+  const s = steps.value[i];
   index.value = i;
   pending.value = true;
-  const s = TOUR_STEPS[i];
+  ready.value = true;
+  clearTimeout(untilTimer);
   reassertDemo();
   if (router.resolve(s.route).fullPath !== route.fullPath) await router.push(s.route).catch(() => {});
-  const el = s.target ? await waitForTarget(s.target) : null;
   if (seq !== showSeq) return;
-  ro?.disconnect();
-  target = el;
-  if (target) {
-    target.scrollIntoView({ block: 'center', inline: 'nearest' });
-    ro?.observe(target);
-  }
-  measure();
-  // the hole lands on the target first, then the pointer shows the click inside it
+  s.enter?.();
+  const clicks = s.click === undefined ? [] : ([] as string[]).concat(s.click);
+  // the page is there once it shows the target, or a control whose click opens it
+  const onPage = (): HTMLElement | null =>
+    (s.target ? findTarget(s.target) : null) ?? clicks.map(findTarget).find((el) => el !== null) ?? null;
+  await waitFor(onPage, s.target || clicks.length ? 1200 : 0);
+  if (seq !== showSeq) return;
+  // the hole lands on the target first, then the pointer clicks inside it; no
+  // target yet: the hole stays put until a control or the target takes it
+  const el = s.target ? findTarget(s.target) : null;
+  if (el || !clicks.length) aim(el);
   const canClick = (): boolean => seq === showSeq && tour.active && (!s.plays || isDemoOutputActive());
-  if (s.click && canClick()) {
-    const control = await waitForTarget(s.click);
-    if (seq !== showSeq) return;
-    if (control) {
+  if (clicks.length && canClick() && !(s.once && acted.has(s.id))) {
+    if (s.once) acted.add(s.id);
+    let clicked = false;
+    for (const selector of clicks) {
+      // after a click, the next control may take a moment to show (a confirmation)
+      const control = clicked ? await waitForTarget(selector, 400) : findTarget(selector);
+      if (seq !== showSeq) return;
+      if (!control) continue;
+      if (!target?.contains(control)) aim(control);
       if (!reduceMotion) await wait(300);
       await clickWithCursor(control, canClick);
       if (seq !== showSeq) return;
+      clicked = true;
       await nextTick();
-      await frame(); // let the switched view render before measuring it
-      measure();
+      await frame(); // let the switched view render
     }
+    if (clicked || !target) aim(s.target ? await waitForTarget(s.target) : null);
+    if (seq !== showSeq) return;
   }
   cursor.shown = false;
+  if (s.until && !findTarget(s.until)) waitUntil(seq, s);
   pending.value = false;
   await nextTick();
   cardEl.value?.querySelector<HTMLElement>('[data-primary]')?.focus();
+}
+
+/** Next waits for `until` (a trial running to its end); the page may have moved on by then. */
+function waitUntil(seq: number, s: TourStep): void {
+  ready.value = false;
+  const t0 = performance.now();
+  const tick = (): void => {
+    if (seq !== showSeq) return;
+    if (!findTarget(s.until!) && performance.now() - t0 < UNTIL_MAX) {
+      untilTimer = setTimeout(tick, 150);
+      return;
+    }
+    ready.value = true;
+    const el = s.target ? findTarget(s.target) : null;
+    if (el && el !== target) aim(el);
+    else remeasure();
+    nextTick(() => cardEl.value?.querySelector<HTMLElement>('[data-primary]')?.focus());
+  };
+  tick();
 }
 
 function measure(): void {
@@ -174,6 +228,7 @@ const holeStyle = computed(() => {
 const cardStyle = computed(() => (cardPos.value ? { left: `${cardPos.value.left}px`, top: `${cardPos.value.top}px` } : undefined));
 
 function next(): void {
+  if (!ready.value) return;
   if (isLast.value) finish();
   else show(index.value + 1);
 }
@@ -201,9 +256,17 @@ function onKey(e: KeyboardEvent): void {
   e.stopPropagation();
 }
 
-watch(() => tour.active, (on) => {
+watch(() => tour.active, async (on) => {
   if (on) {
+    // the tuning page reads its saved setup as it mounts: leave it, so the tour
+    // opens it again on the demo's (its help button only shows with no session running)
+    if (route.name === 'tune') {
+      await router.replace({ name: 'play' }).catch(() => {});
+      await nextTick();
+      if (!tour.active) return;
+    }
     enterDemo(locale.value);
+    acted.clear();
     ro = 'ResizeObserver' in window ? new ResizeObserver(remeasure) : null;
     window.addEventListener('keydown', onKey, true);
     window.addEventListener('resize', remeasure);
@@ -211,6 +274,8 @@ watch(() => tour.active, (on) => {
     show(0);
   } else {
     showSeq++;
+    clearTimeout(untilTimer);
+    ready.value = true;
     cursor.shown = false;
     cursor.pressing = false;
     ro?.disconnect();
@@ -222,12 +287,15 @@ watch(() => tour.active, (on) => {
     document.removeEventListener('scroll', remeasure, true);
     // left mid-tour on the demo song or playlist: back to that page's chooser first,
     // so the demo song's player (maybe playing, silently) unmounts and stops before
-    // the real outputs come back
+    // the real outputs come back. The tuning page is left too (its trial stops, the
+    // fake session ends), then opened again on the user's own setup
     const onDemoPage = [String(DEMO_SONG_ID), String(DEMO_PLAYLIST_ID)].includes(String(route.params.id));
-    const leave = onDemoPage ? router.replace({ name: route.name ?? 'play' }).catch(() => {}) : Promise.resolve();
-    void leave.then(async () => {
+    const onTune = route.name === 'tune';
+    const leave = onDemoPage || onTune ? router.replace({ name: onTune ? 'play' : route.name ?? 'play' }) : Promise.resolve();
+    void leave.catch(() => {}).then(async () => {
       await nextTick();
       const viz = exitDemo() ?? 'vu';
+      if (onTune) await router.replace({ name: 'tune' }).catch(() => {});
       // the view steps switched the player's tab; a player still on screen gets the user's back
       findTarget(vizTab(VIZ_ORDER.indexOf(viz) + 1))?.click();
     });
@@ -242,6 +310,9 @@ onBeforeUnmount(() => stopTour());
       <!-- catches every click: the tour is read, not clicked through -->
       <div class="tour__block" :class="{ 'is-dim': !rect }"></div>
       <div v-if="rect" class="tour__hole" :style="holeStyle"></div>
+      <Transition name="tour-phone">
+        <fake-phone v-if="step.phone && phoneView.step !== 'off'" @move="remeasure" />
+      </Transition>
       <div class="tour__cursor" :class="{ 'is-shown': cursor.shown, 'is-pressing': cursor.pressing }"
         :style="{ transform: `translate(${cursor.x}px, ${cursor.y}px)` }" aria-hidden="true">
         <span class="tour__ripple"></span><i class="fas fa-arrow-pointer"></i>
@@ -250,14 +321,15 @@ onBeforeUnmount(() => stopTour());
         role="dialog"
         aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
         <div class="tour__progress"><span :style="{ width: `${progress}%` }"></span></div>
-        <span class="tour__count">{{ $t('tour.stepOf', { n: index + 1, total: TOUR_STEPS.length }) }}</span>
+        <span class="tour__count">{{ $t('tour.stepOf', { n: index + 1, total: steps.length }) }}</span>
         <h2 id="tour-title" class="tour__title">{{ $t(`tour.steps.${step.id}.title`) }}</h2>
         <p id="tour-text" class="tour__text">{{ $t(`tour.steps.${step.id}.text`) }}</p>
         <footer class="tour__foot">
           <button v-if="!isLast" class="tour__skip" type="button" @click="finish">{{ $t('tour.skip') }}</button>
           <span class="tour__nav">
             <button v-if="index > 0" class="btn" type="button" @click="prev">{{ $t('tour.prev') }}</button>
-            <button class="btn btn--volt" type="button" data-primary @click="next">
+            <button class="btn btn--volt" type="button" data-primary :disabled="!ready" @click="next">
+              <span v-if="!ready" class="icon"><i class="fas fa-spinner fa-spin"></i></span>
               {{ isLast ? $t('tour.finish') : $t('tour.next') }}
             </button>
           </span>
@@ -285,9 +357,11 @@ onBeforeUnmount(() => stopTour());
   background: rgb(var(--bg-rgb) / 0.72);
 }
 
-/* the dimming is the hole's own shadow, so it follows the hole as it moves */
+/* the dimming is the hole's own shadow, so it follows the hole as it moves; above
+   the fake phone, which then stands out only when the step points into it */
 .tour__hole {
   position: fixed;
+  z-index: 1;
   border-radius: var(--radius-lg);
   box-shadow: 0 0 0 200vmax rgb(var(--bg-rgb) / 0.72);
   outline: 2px solid var(--volt);
@@ -352,8 +426,20 @@ onBeforeUnmount(() => stopTour());
   }
 }
 
+.tour-phone-enter-active,
+.tour-phone-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.tour-phone-enter-from,
+.tour-phone-leave-to {
+  opacity: 0;
+  transform: translateY(1rem);
+}
+
 .tour__card {
   position: fixed;
+  z-index: 1;
   width: min(340px, calc(100vw - 24px));
   display: flex;
   flex-direction: column;

@@ -4,25 +4,53 @@ import type { Output } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
 import type { MidiSink } from '@/audio/tesla-synth';
 import type { AppConfig, AppTag, MidiFile, Song } from '@/types/domain';
+import type { TuningDraft, TuningRecord } from '@/tuning/api';
+import { SessionLink } from '@/tuning/session-link';
 import { buildDemoLibrary, DEMO_PATH_PREFIX, type DemoLibrary } from './data';
+import { fakeTuningRequest, resetFakeCamera } from './fake-camera';
 
 /**
  * Demo mode, for the guided tour: the app runs on the sample library of data.ts
  * without any component knowing. Reads the app makes through axios (songs, files,
  * playlists, settings, MIDI bytes) are answered from the library; every write to
- * /api is refused, so nothing reaches the server. On exit the store gets the real
+ * /api is refused, so nothing reaches the server, except saving a tuning, kept
+ * in the library for the rest of the tour. The tuning form's weather and place
+ * name (fetch, not axios) get demo answers too. On exit the store gets the real
  * data back and views holding their own (playlists, tunings) re-read it.
  *
- * The tour presses Play on a demo song: the outputs are swapped for a silent sink
- * for the whole demo (and put back if anything re-selects a real one meanwhile),
- * so no note ever reaches real coils.
+ * The tour presses Play on a demo song and runs tuning trials: the outputs are
+ * swapped for a silent sink for the whole demo (and put back if anything
+ * re-selects a real one meanwhile), so no note ever reaches real coils. The
+ * tuning relay talks to a fake phone (fake-camera.ts).
  */
 // the store hands outputs back unwrapped by Vue; they are the same (markRaw'd) objects
 type Outputs = { output: MidiSink | null; output2: Output | null };
 let lib: DemoLibrary | null = null;
 let interceptor: number | null = null;
 let guard: WatchStopHandle | null = null;
-let saved: ({ files: MidiFile[]; songs: Song[]; tags: AppTag[]; config: AppConfig; viz: string | null } & Outputs) | null = null;
+let saved: ({ files: MidiFile[]; songs: Song[]; tags: AppTag[]; config: AppConfig; storage: Record<string, string | null> } & Outputs) | null = null;
+const realTransport = SessionLink.defaultTransport;
+const realFetch = window.fetch;
+
+const DEMO_WEATHER = { current: { temperature_2m: 17.4, relative_humidity_2m: 63, surface_pressure: 1014, weather_code: 2, precipitation: 0, is_day: 1 } };
+const DEMO_ADDRESS = { address: { road: 'Jardin', city: 'Demo' } };
+function demoFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  const url = new URL(input instanceof Request ? input.url : String(input), window.location.origin);
+  const answer = url.hostname === 'api.open-meteo.com' ? DEMO_WEATHER : url.hostname === 'nominatim.openstreetmap.org' ? DEMO_ADDRESS : null;
+  if (!answer) return realFetch(input, init);
+  return Promise.resolve(new Response(JSON.stringify(answer), { headers: { 'Content-Type': 'application/json' } }));
+}
+
+// what the pages read from storage when they mount: the player opens on the coil
+// lanes (the editor's dock), the tuning page on short trials over the fake phone's range
+const DEMO_STORAGE: Record<string, string> = {
+  playerViz: 'lanes',
+  tuneMode: 'tune',
+  tuningSetup: JSON.stringify({
+    coilIndex: 0, fiberIndex: 0, primaryTurns: 8, tapMin: 4, tapMax: 8, tapStep: 0.25,
+    notes: [48, 60], holdMs: 2000, gapMs: 500, ontimeUs: 40, duty: 0.05, program: null,
+  }),
+};
 
 const silent: MidiSink = markRaw({
   id: '__tour_demo__',
@@ -43,8 +71,24 @@ const reply = (config: InternalAxiosRequestConfig, data: unknown): Promise<Axios
   Promise.resolve({ data, status: 200, statusText: 'OK', headers: {}, config, request: {} });
 
 function adapterFor(config: InternalAxiosRequestConfig, l: DemoLibrary): ((c: InternalAxiosRequestConfig) => Promise<AxiosResponse>) | null {
-  const path = new URL(axios.getUri(config), window.location.origin).pathname;
-  if ((config.method ?? 'get').toLowerCase() !== 'get') {
+  const url = new URL(axios.getUri(config), window.location.origin);
+  const path = url.pathname;
+  const method = (config.method ?? 'get').toLowerCase();
+  if (path.startsWith('/api/tuning/sessions')) {
+    return (c) => {
+      const data = fakeTuningRequest(method, url, typeof c.data === 'string' ? JSON.parse(c.data) : c.data);
+      return data === undefined ? Promise.reject(new AxiosError('Demo mode: no such session', 'ERR_DEMO', c)) : reply(c, data);
+    };
+  }
+  if (method === 'post' && path === '/api/tunings') {
+    return (c) => {
+      const draft = (typeof c.data === 'string' ? JSON.parse(c.data) : c.data) as TuningDraft;
+      const record: TuningRecord = { ...draft, id: 9400 + l.tunings.length, uuid: null, updatedAt: null, editorName: null };
+      l.tunings.unshift(record);
+      return reply(c, structuredClone(record));
+    };
+  }
+  if (method !== 'get') {
     return path.startsWith('/api/')
       ? (c) => Promise.reject(new AxiosError('Demo mode: nothing is saved', 'ERR_DEMO', c))
       : null;
@@ -55,7 +99,7 @@ function adapterFor(config: InternalAxiosRequestConfig, l: DemoLibrary): ((c: In
     '/api/tags': l.tags,
     '/api/settings': l.config,
     '/api/playlists': l.playlists,
-    '/api/tunings': [],
+    '/api/tunings': l.tunings,
   };
   if (path in json) return (c) => reply(c, structuredClone(json[path]));
   const bytes = path.startsWith(DEMO_PATH_PREFIX) ? l.bytes.get(path) : undefined;
@@ -90,7 +134,7 @@ export function enterDemo(lang: string): void {
     songs: store.midiSongList,
     tags: store.tagList,
     config: store.appConfig,
-    viz: localStorage.getItem('playerViz'),
+    storage: Object.fromEntries(Object.keys(DEMO_STORAGE).map((k) => [k, localStorage.getItem(k)])),
     output: store.midiOutput,
     output2: store.midiOutput2 as Output | null,
   };
@@ -109,8 +153,9 @@ export function enterDemo(lang: string): void {
       store.setMidiOutput2(null);
     }
   });
-  // the tour shows the player in the editor's dock: open it on the coil lanes
-  localStorage.setItem('playerViz', 'lanes');
+  for (const [k, v] of Object.entries(DEMO_STORAGE)) localStorage.setItem(k, v);
+  SessionLink.defaultTransport = () => 'poll';
+  window.fetch = demoFetch;
   store.bumpDataRevision();
 }
 
@@ -127,12 +172,15 @@ export function reassertDemo(): void {
 /** Leave demo mode; returns the player view the user had (see the overlay's cleanup). */
 export function exitDemo(): string | null {
   if (!lib) return null;
-  const viz = saved?.viz ?? null;
+  const viz = saved?.storage.playerViz ?? null;
   guard?.();
   guard = null;
   if (interceptor !== null) axios.interceptors.request.eject(interceptor);
   interceptor = null;
   lib = null;
+  SessionLink.defaultTransport = realTransport;
+  window.fetch = realFetch;
+  resetFakeCamera();
   const store = useMidiStore();
   if (saved) {
     // instant restore, then the server's current state (also covers a raced start)
@@ -140,8 +188,10 @@ export function exitDemo(): string | null {
     store.setMidiSongList(saved.songs);
     store.setTagList(saved.tags);
     store.setAppConfig(saved.config);
-    if (saved.viz === null) localStorage.removeItem('playerViz');
-    else localStorage.setItem('playerViz', saved.viz);
+    for (const [k, v] of Object.entries(saved.storage)) {
+      if (v === null) localStorage.removeItem(k);
+      else localStorage.setItem(k, v);
+    }
     store.setMidiOutput(saved.output);
     store.setMidiOutput2(saved.output2);
   }

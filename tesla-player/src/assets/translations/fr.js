@@ -397,6 +397,9 @@ export default {
     prev: "Précédent",
     finish: "Terminer",
     skip: "Passer la visite",
+    tuneStart: "Visite de l'accord",
+    phoneCaption: "L'écran du téléphone (simulé)",
+    phoneMove: "Déplacer le téléphone",
     steps: {
       welcome: {
         title: "La visite",
@@ -472,7 +475,7 @@ export default {
       },
       tune: {
         title: "L'accord",
-        text: "Un assistant pour trouver la bonne prise sur le primaire, avec la caméra d'un téléphone qui mesure la longueur des arcs.",
+        text: "Un assistant pour trouver la bonne prise sur le primaire, avec la caméra d'un téléphone qui mesure la longueur des arcs. Le bouton ? à côté du titre lance une visite détaillée, avec un faux téléphone.",
       },
       menu: {
         title: "Réglages",
@@ -481,6 +484,90 @@ export default {
       done: {
         title: "C'est parti",
         text: "Choisis une sortie, lance un morceau et regarde les bobines jouer.",
+      },
+      tuneIntro: {
+        title: "L'accord du primaire",
+        text: "L'accord cherche la position de prise qui donne les arcs les plus longs. Un téléphone filme la bobine, l'app joue quelques notes et mesure les arcs, et tu compares les essais. Pour cette visite, un faux téléphone répond, et rien ne part vers les bobines.",
+      },
+      tuneCoil: {
+        title: "La bobine",
+        text: "La bobine à accorder et la sortie fibre du Syntherrupter qui la commande. Ontime, duty et enveloppe font le son de test : garde les mêmes d'une séance à l'autre pour pouvoir comparer.",
+      },
+      tuneTone: {
+        title: "Le son de test",
+        text: "Les notes jouées à chaque essai, leur tenue et le silence entre deux. Plusieurs notes donnent une mesure plus fiable. Pour la visite, deux notes de deux secondes ; en vrai, compte une dizaine de secondes par note.",
+      },
+      tunePrimary: {
+        title: "Le primaire",
+        text: "Le nombre de tours et la plage où la prise peut aller. Le pas, c'est la précision avec laquelle tu déplaces la prise à la main : 1/8, 1/4 ou 1/2 tour.",
+      },
+      tuneCamera: {
+        title: "La caméra",
+        text: "Un téléphone suffit, sans rien installer : il filme la bobine, repère les arcs image par image et renvoie leur longueur. Pose-le sur un support, bien immobile, à distance de sécurité. La webcam de l'ordi marche aussi.",
+      },
+      tuneConnect: {
+        title: "Relier le téléphone",
+        text: "Connecter une caméra affiche un QR code. Scanne-le avec le téléphone : la page caméra s'ouvre dans son navigateur. Avec l'app de bureau, le téléphone passe par le Wi-Fi, sur le même réseau que l'ordi.",
+      },
+      tunePhoneOpen: {
+        title: "Sur le téléphone",
+        text: "Le téléphone a scanné le QR code : la page caméra s'ouvre dans son navigateur. Pose-le sur un support, la bobine et l'espace au-dessus du tore dans le cadre, puis démarre la caméra.",
+      },
+      tuneBreakout: {
+        title: "Le point de sortie",
+        text: "Touche l'image là où les arcs partent, en haut du tore. La zone de mesure se place autour de ce point.",
+      },
+      tuneZone: {
+        title: "La zone de mesure",
+        text: "Agrandis la zone pour que les arcs les plus longs y tiennent, et tourne-la du côté où ils partent (ici, vers le haut). Remonte la ligne basse au-dessus du pied de la bobine et des LED : rien n'est mesuré en dessous.",
+      },
+      tuneZoneOk: {
+        title: "Zone OK",
+        text: "Le téléphone est prêt : l'ordinateur le voit et passe tout seul aux essais. À partir de là, on ne touche plus au téléphone, sinon la mesure dérive.",
+      },
+      tuneTap: {
+        title: "La position de la prise",
+        text: "Tu déplaces la prise sur la bobine, à la main, puis tu reportes sa position ici avec − et +. « Dernier accord ici » rappelle la prise trouvée la dernière fois au même endroit.",
+      },
+      tuneRun: {
+        title: "Lancer un essai",
+        text: "Après confirmation, le téléphone capture le décor bobine éteinte, puis l'app joue les notes pendant qu'il mesure les arcs. Pendant l'essai, cette colonne montre ce que voit la caméra. Ici, tout est simulé.",
+      },
+      tuneResult: {
+        title: "Le résultat",
+        text: "Le score d'un essai, c'est la longueur d'arc (P90, en pixels) moyennée sur les notes. Le graphe place chaque essai sur la plage du primaire ; le tableau garde le détail par note et la silhouette des arcs.",
+      },
+      tuneSuggest: {
+        title: "L'essai suivant",
+        text: "La suggestion essaie d'abord les deux bouts et le milieu de la plage, puis se resserre autour du meilleur point. Utiliser y place le compteur ; en vrai, tu déplaces aussi la prise sur la bobine avant de lancer.",
+      },
+      tunePhoneTrial: {
+        title: "L'essai, côté téléphone",
+        text: "Le téléphone suit chaque essai : la note mesurée, la longueur des arcs en direct, puis le score comparé au meilleur. Son bouton STOP arrête tout depuis la bobine.",
+      },
+      tuneCompare: {
+        title: "Meilleur et dernier",
+        text: "Côté caméra, la silhouette des arcs du meilleur essai à côté de celle du dernier : la différence se voit d'un coup d'œil.",
+      },
+      tuneSave: {
+        title: "Le récap",
+        text: "Une dizaine d'essais suffisent en général pour que la suggestion annonce l'optimum. Terminer et enregistrer ouvre le récap : la meilleure prise, la silhouette de ses arcs, le son et le primaire utilisés.",
+      },
+      tuneForm: {
+        title: "La fiche",
+        text: "Le lieu reprend celui du dernier accord ici, la position vient du téléphone et la météo se remplit toute seule. Indique intérieur ou extérieur, sol sec ou mouillé, et note ce qui a changé : c'est ce qui expliquera un écart la prochaine fois.",
+      },
+      tuneSaved: {
+        title: "Enregistré",
+        text: "L'accord rejoint l'historique. La prochaine fois près d'ici, sa prise apparaîtra sur le schéma du primaire comme dernier accord. Pendant la visite, rien n'est envoyé au serveur.",
+      },
+      tuneHistory: {
+        title: "L'historique",
+        text: "Le nouvel accord en tête, avec les précédents, par bobine : la prise, la longueur d'arc, le lieu et les conditions. « Reprendre cette position » recharge une prise pour repartir de là.",
+      },
+      tuneDone: {
+        title: "À toi",
+        text: "Pour un vrai accord : une sortie MIDI choisie, un téléphone sur un support, la bobine à distance de sécurité. Le bouton ? de la page Accord relance cette visite.",
       },
     },
   },

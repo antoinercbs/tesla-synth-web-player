@@ -27,7 +27,7 @@ const emblemStyle = { '--emblem-src': `url("${logoSrc}")` };
     </div>
     <template #actions>
       <button class="btn btn--ghost" type="button" @click="dismissWelcome">{{ $t('welcome.skip') }}</button>
-      <button class="btn btn--volt" type="button" @click="startTour">
+      <button class="btn btn--volt" type="button" @click="startTour()">
         <span class="icon"><i class="fas fa-route"></i></span>{{ $t('welcome.tour') }}
       </button>
     </template>

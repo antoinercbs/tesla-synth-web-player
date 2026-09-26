@@ -1,4 +1,5 @@
 import type { AppConfig, AppTag, MidiFile, Playlist, Song } from '@/types/domain';
+import type { TuningRecord } from '@/tuning/api';
 import { drums, smf, voice, type Smf } from './smf';
 
 /**
@@ -9,11 +10,19 @@ import { drums, smf, voice, type Smf } from './smf';
 export const DEMO_SONG_ID = 9001;
 export const DEMO_PLAYLIST_ID = 9101;
 export const DEMO_PATH_PREFIX = '/uploads/tour-demo-';
+// where the tuning tour's phone says it is: the garden of Zeus's last tuning
+export const DEMO_PLACE = { lat: 45.7578, lon: 4.832 };
 
 type Lang = 'en' | 'fr';
 const WORDS: Record<Lang, Record<string, string>> = {
-  en: { game: 'Video game', classical: 'Classical', folk: 'Folk', demo: 'Demo', playlist: 'Demo night', ode: 'Ode to Joy', hall: 'In the Hall of the Mountain King' },
-  fr: { game: 'Jeu vidéo', classical: 'Classique', folk: 'Folklore', demo: 'Démo', playlist: 'Soirée démo', ode: 'Ode à la joie', hall: 'Dans l’antre du roi de la montagne' },
+  en: {
+    game: 'Video game', classical: 'Classical', folk: 'Folk', demo: 'Demo', playlist: 'Demo night', ode: 'Ode to Joy', hall: 'In the Hall of the Mountain King',
+    garden: 'Garden', workshop: 'Workshop', fair: 'Village fair', raised: 'Toroid raised by 2 cm', wet: 'Wet grass: tap lower than in the garden',
+  },
+  fr: {
+    game: 'Jeu vidéo', classical: 'Classique', folk: 'Folklore', demo: 'Démo', playlist: 'Soirée démo', ode: 'Ode à la joie', hall: 'Dans l’antre du roi de la montagne',
+    garden: 'Jardin', workshop: 'Atelier', fair: 'Fête du village', raised: 'Toroïde remonté de 2 cm', wet: 'Herbe mouillée : prise plus basse qu’au jardin',
+  },
 };
 
 const TUNES: { key: string; bpm: number; build: () => Smf }[] = [
@@ -54,6 +63,8 @@ export interface DemoLibrary {
   tags: AppTag[];
   playlists: Playlist[];
   config: AppConfig;
+  /** The tuning history, newest first (as the API sends it). */
+  tunings: TuningRecord[];
   /** MIDI bytes by request path (/uploads/tour-demo-<key>.mid) */
   bytes: Map<string, Uint8Array>;
 }
@@ -120,5 +131,25 @@ export function buildDemoLibrary(lang: string): DemoLibrary {
   ];
   // the gods of lightning, for the coils
   const config: AppConfig = { coilNames: ['Zeus', 'Thor', 'Raijin', 'Perun', 'Indra', 'Taranis'], defaultCoilCount: 3 };
-  return { files, songs, tags, playlists, config, bytes };
+  const tunings = [
+    tuning(9301, 0, 12, w.garden, DEMO_PLACE, 6.25, 214, { indoor: false, tempC: 18, humidityPct: 62, weatherCode: 1, ground: 'dry', comment: w.raised }),
+    tuning(9302, 1, 30, w.workshop, { lat: 45.7702, lon: 4.8561 }, 5.5, 168, { indoor: true, tempC: 21, humidityPct: 45, primaryTurns: 7, tapMin: 3, tapMax: 7 }),
+    tuning(9303, 0, 75, w.fair, { lat: 45.8127, lon: 4.9385 }, 5.75, 176, { indoor: false, tempC: 12, humidityPct: 88, weatherCode: 61, ground: 'wet', comment: w.wet }),
+    tuning(9304, 2, 110, w.workshop, { lat: 45.7702, lon: 4.8561 }, 7, 191, { indoor: true, tempC: 19, humidityPct: 50, primaryTurns: 10, tapMin: 5, tapMax: 9, tapStep: 0.5 }),
+  ];
+  return { files, songs, tags, playlists, config, tunings, bytes };
+}
+
+function tuning(
+  id: number, coilIndex: number, daysAgo: number, location: string, at: { lat: number; lon: number },
+  tapTurns: number, bestPx: number, more: Partial<TuningRecord>,
+): TuningRecord {
+  return {
+    id, coilIndex, coilName: null, createdAt: new Date().setHours(17, 30, 0, 0) - daysAgo * 86_400_000, location, lat: at.lat, lon: at.lon,
+    indoor: null, tempC: null, humidityPct: null, pressureHpa: null, weatherCode: null, ground: null, comment: null,
+    primaryTurns: 8, tapStep: 0.25, tapMin: 4, tapMax: 8, tapTurns, bestPx,
+    tone: { notes: [48, 55, 60], holdMs: 10000, gapMs: 3000, ontimeUs: 40, duty: 0.05, program: null, channel: 0, fiberIndex: coilIndex },
+    camera: null, trials: null, uuid: null, updatedAt: null, editorName: null,
+    ...more,
+  };
 }

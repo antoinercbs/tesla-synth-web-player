@@ -381,7 +381,7 @@ export default {
   },
   welcome: {
     title: "Welcome to Tesla Player",
-    intro: "Clubelek's music player for Tesla coils. Pick your language and colours, then take the tour if this is your first time.",
+    intro: "Clubelek's music player for Tesla coils. Pick your language and colors, then take the tour if this is your first time.",
     later: "You can change all of this later from the ⋯ menu.",
     tour: "Take the guided tour",
     skip: "Get started",
@@ -393,6 +393,9 @@ export default {
     prev: "Back",
     finish: "Finish",
     skip: "Skip the tour",
+    tuneStart: "Tuning tour",
+    phoneCaption: "The phone's screen (simulated)",
+    phoneMove: "Move the phone",
     steps: {
       welcome: {
         title: "The tour",
@@ -408,7 +411,7 @@ export default {
       },
       coils: {
         title: "The coils",
-        text: "Each coil has its own colour, the same everywhere in the app. Their names are set in the general configuration, from the ⋯ menu.",
+        text: "Each coil has its own color, the same everywhere in the app. Their names are set in the general configuration, from the ⋯ menu.",
       },
       modes: {
         title: "Three ways to play",
@@ -428,11 +431,11 @@ export default {
       },
       vizVu: {
         title: "Views: the VU",
-        text: "One column per MIDI channel. During playback it lights up in the colour of the coil that channel drives, or of several at once.",
+        text: "One column per MIDI channel. During playback it lights up in the color of the coil that channel drives, or of several at once.",
       },
       vizScore: {
         title: "Views: the score",
-        text: "Every note of the MIDI file, coloured by the coil that plays it. Hatching marks a note played by several coils.",
+        text: "Every note of the MIDI file, colored by the coil that plays it. Hatching marks a note played by several coils.",
       },
       vizLanes: {
         title: "Views: the coils",
@@ -468,15 +471,99 @@ export default {
       },
       tune: {
         title: "Tuning",
-        text: "An assistant to find the right tap on the primary, with a phone camera measuring the length of the arcs.",
+        text: "An assistant to find the right tap on the primary, with a phone camera measuring the length of the arcs. The ? button next to the title starts a detailed tour, with a simulated phone.",
       },
       menu: {
         title: "Settings",
-        text: "The language, the interface colours, the general configuration, and this tour, to replay whenever you like.",
+        text: "The language, the interface colors, the general configuration, and this tour, to replay whenever you like.",
       },
       done: {
         title: "Off you go",
         text: "Pick an output, play a song and watch the coils sing.",
+      },
+      tuneIntro: {
+        title: "Tuning the primary",
+        text: "Tuning looks for the tap position that gives the longest arcs. A phone films the coil, the app plays a few notes and measures the arcs, and you compare the trials. For this tour a simulated phone answers, and nothing is sent to the coils.",
+      },
+      tuneCoil: {
+        title: "The coil",
+        text: "The coil to tune and the Syntherrupter fiber output that drives it. Ontime, duty and envelope make the test sound: keep them the same from one session to the next so the results compare.",
+      },
+      tuneTone: {
+        title: "The test sound",
+        text: "The notes played at each trial, how long each is held and the gap between them. Several notes give a steadier measurement. For the tour, two notes of two seconds; for real, count about ten seconds per note.",
+      },
+      tunePrimary: {
+        title: "The primary",
+        text: "The number of turns and the range the tap can move over. The step is how finely you move the tap by hand: 1/8, 1/4 or 1/2 turn.",
+      },
+      tuneCamera: {
+        title: "The camera",
+        text: "A phone is enough, with nothing to install: it films the coil, finds the arcs frame by frame and sends back their length. Put it on a stand, perfectly still, at a safe distance. The computer's webcam works too.",
+      },
+      tuneConnect: {
+        title: "Linking the phone",
+        text: "Connect a camera shows a QR code. Scan it with the phone: the camera page opens in its browser. With the desktop app, the phone goes through Wi-Fi, on the same network as the computer.",
+      },
+      tunePhoneOpen: {
+        title: "On the phone",
+        text: "The phone has scanned the QR code: the camera page opens in its browser. Put it on a stand with the coil and the space above the toroid in frame, then start the camera.",
+      },
+      tuneBreakout: {
+        title: "The breakout",
+        text: "Tap the picture where the arcs start, at the top of the toroid. The measurement zone sets itself around that point.",
+      },
+      tuneZone: {
+        title: "The measurement zone",
+        text: "Enlarge the zone so the longest arcs fit, and turn it towards the side they go (up, here). Raise the floor line above the coil base and any LEDs: nothing below it is measured.",
+      },
+      tuneZoneOk: {
+        title: "Zone OK",
+        text: "The phone is ready: the computer sees it and moves on to the trials by itself. From now on, leave the phone alone, or the measurement drifts.",
+      },
+      tuneTap: {
+        title: "The tap position",
+        text: "You move the tap on the coil by hand, then report its position here with − and +. “Last tuning here” recalls the tap found last time at the same place.",
+      },
+      tuneRun: {
+        title: "Running a trial",
+        text: "Once you confirm, the phone captures the background with the coil off, then the app plays the notes while the phone measures the arcs. During the trial, this column shows what the camera sees. Here, all of it is simulated.",
+      },
+      tuneResult: {
+        title: "The result",
+        text: "A trial's score is the arc length (P90, in pixels) averaged over the notes. The chart places each trial along the primary's range; the table keeps the per-note detail and the silhouette of the arcs.",
+      },
+      tuneSuggest: {
+        title: "The next trial",
+        text: "The suggestion first tries both ends and the middle of the range, then closes in on the best point. Use sets the counter on it; for real, you also move the tap on the coil before running.",
+      },
+      tunePhoneTrial: {
+        title: "The trial, on the phone",
+        text: "The phone follows each trial: the note being measured, the arc length live, then the score against the best. Its STOP button stops everything from the coil's side.",
+      },
+      tuneCompare: {
+        title: "Best and last",
+        text: "On the camera side, the silhouette of the best trial's arcs next to the last one's: the difference shows at a glance.",
+      },
+      tuneSave: {
+        title: "The summary",
+        text: "About ten trials are usually enough for the suggestion to name the optimum. Finish and save opens the summary: the best tap, the silhouette of its arcs, the sound and the primary used.",
+      },
+      tuneForm: {
+        title: "The record",
+        text: "The place comes from the last tuning here, the position from the phone, and the weather fills itself in. Say indoors or outdoors, dry or wet ground, and note what changed: it will explain a difference next time.",
+      },
+      tuneSaved: {
+        title: "Saved",
+        text: "The tuning joins the history. Next time near here, its tap will show on the primary's diagram as the last tuning. During the tour, nothing is sent to the server.",
+      },
+      tuneHistory: {
+        title: "History",
+        text: "The new tuning on top, with the earlier ones, by coil: the tap, the arc length, the place and the conditions. “Use this position” loads a tap to start from there.",
+      },
+      tuneDone: {
+        title: "Your turn",
+        text: "For a real tuning: a MIDI output selected, a phone on a stand, the coil at a safe distance. The ? button on the Tuning page replays this tour.",
       },
     },
   },
