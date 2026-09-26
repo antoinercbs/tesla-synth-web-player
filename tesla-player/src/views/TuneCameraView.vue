@@ -522,11 +522,11 @@ body.tune-cam-body { background: #000; }
 
 <style scoped>
 .cam { min-height: 100dvh; display: flex; flex-direction: column; background: #000; color: #cdd9e6; font-family: var(--font-body); }
-.cam__head { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.9rem; font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; color: #7e90a6; }
+.cam__head { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.9rem; font-family: var(--font-display);font-size: 0.76rem; color: #7e90a6; }
 .cam__title { display: inline-flex; gap: 0.5rem; align-items: center; color: #cdd9e6; }
 .cam__link { display: inline-flex; align-items: center; gap: 0.4rem; }
 .cam__link::before { content: ""; width: 0.55rem; height: 0.55rem; border-radius: 50%; background: #ff4d62; }
-.cam__link.is-ok { color: #3ddc97; } .cam__link.is-ok::before { background: #3ddc97; box-shadow: 0 0 8px #3ddc97; }
+.cam__link.is-ok { color: #3ddc97; } .cam__link.is-ok::before { background: #3ddc97; }
 .cam__stage { position: relative; flex: 1 1 auto; min-height: 42vh; background: #000; touch-action: none; }
 .cam__video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: #000; }
 .cam__overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -537,42 +537,42 @@ body.tune-cam-body { background: #000; }
 .cam__hint { margin: 0; display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.92rem; }
 .cam__hint.dim { color: #7e90a6; font-size: 0.8rem; }
 /* placing the zone: the picture asks for the first tap, the panel shows where you are */
-.cam__tapme { position: absolute; left: 50%; bottom: 1.1rem; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 0.5rem; max-width: calc(100% - 2rem); padding: 0.55rem 0.95rem; border-radius: 999px; background: rgb(8 17 26 / 0.86); border: 1px solid #46e0ff; color: #cdd9e6; font-size: 0.85rem; text-align: center; pointer-events: none; animation: tapme 1.6s ease-in-out infinite; }
-.cam__tapme i { color: #46e0ff; }
+.cam__tapme { position: absolute; left: 50%; bottom: 1.1rem; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 0.5rem; max-width: calc(100% - 2rem); padding: 0.55rem 0.95rem; border-radius: 999px; background: rgb(8 17 26 / 0.86); border: 1px solid var(--volt); color: #cdd9e6; font-size: 0.85rem; text-align: center; pointer-events: none; animation: tapme 1.6s ease-in-out infinite; }
+.cam__tapme i { color: var(--volt); }
 @keyframes tapme { 0%, 100% { opacity: 0.75; } 50% { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .cam__tapme { animation: none; } }
 .cam__steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
 .cam__steps li { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; color: #7e90a6; }
 .cam__steps li.is-current { color: #cdd9e6; }
 .cam__steps-n { flex: 0 0 auto; width: 1.4rem; height: 1.4rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.72rem; border: 1px solid #22303f; color: #7e90a6; }
-.cam__steps li.is-current .cam__steps-n { background: #46e0ff; border-color: #46e0ff; color: #06090f; font-weight: 700; }
+.cam__steps li.is-current .cam__steps-n { background: var(--volt); border-color: var(--volt); color: #06090f; font-weight: 700; }
 .cam__steps li.is-done .cam__steps-n { border-color: #3ddc97; color: #3ddc97; }
 .cam__sliders { display: flex; flex-direction: column; gap: 0.5rem; transition: opacity 0.2s; }
 .cam__sliders.is-idle { opacity: 0.4; }
 .cam__slider { display: grid; grid-template-columns: 6.5rem 1fr 3rem; align-items: center; gap: 0.6rem; font-size: 0.82rem; color: #7e90a6; }
 .cam__slider b { text-align: right; color: #cdd9e6; font-weight: 500; }
-.cam__slider input { width: 100%; accent-color: #46e0ff; height: 2rem; }
+.cam__slider input { width: 100%; accent-color: var(--volt); height: 2rem; }
 .cam-btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem; padding: 0.85rem 1.2rem; border-radius: 12px; border: 1px solid rgba(120, 160, 205, 0.3); background: #131c28; color: #cdd9e6; font-family: var(--font-display); font-weight: 600; letter-spacing: 0.04em; font-size: 1rem; cursor: pointer; min-height: 3rem; }
 .cam-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.cam-btn--volt { background: #46e0ff; color: #06090f; border-color: #46e0ff; }
+.cam-btn--volt { background: var(--volt); color: #06090f; border-color: var(--volt); }
 .cam-btn--danger { background: #ff4d62; color: #fff; border-color: #ff4d62; font-size: 1.15rem; flex: 1; }
 .cam__panel--ready { gap: 0.6rem; }
 .cam__trial { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.7rem 0.8rem; border-radius: 12px; border: 1px solid rgba(120, 160, 205, 0.18); background: #0c111a; }
 .cam__trial.is-done { border-color: rgba(120, 160, 205, 0.3); }
-.cam__trial.is-best { border-color: #3ddc97; box-shadow: 0 0 18px -8px #3ddc97; }
+.cam__trial.is-best { border-color: #3ddc97; }
 .cam__trial-head { display: flex; flex-wrap: wrap; gap: 0.2rem 0.8rem; align-items: baseline; }
-.cam__trial-n { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; color: #7e90a6; }
-.cam__trial-tap { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: #46e0ff; }
+.cam__trial-n { font-family: var(--font-display);font-size: 0.76rem; color: #7e90a6; }
+.cam__trial-tap { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; color: var(--volt); }
 .cam__trial-best { font-size: 0.74rem; }
 .cam__bg { display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem; color: #cdd9e6; }
 .cam__notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.3rem; }
 .cam__note { display: grid; grid-template-columns: 6.2rem 1fr; align-items: center; gap: 0.6rem; min-height: 1.5rem; }
 .cam__note-name { font-family: var(--font-mono); font-weight: 600; color: #7e90a6; white-space: nowrap; }
 .cam__note-name small { font-weight: 400; font-size: 0.72rem; opacity: 0.8; }
-.cam__note.is-measuring .cam__note-name { color: #46e0ff; }
+.cam__note.is-measuring .cam__note-name { color: var(--volt); }
 .cam__note.is-done .cam__note-name { color: #cdd9e6; }
-.cam__note-bar { display: block; height: 0.55rem; border-radius: 999px; background: rgba(70, 224, 255, 0.15); overflow: hidden; }
-.cam__note-bar i { display: block; height: 100%; background: #46e0ff; box-shadow: 0 0 10px #46e0ff; transition: width 0.1s linear; }
+.cam__note-bar { display: block; height: 0.55rem; border-radius: 999px; background: rgb(var(--volt-rgb) / 0.15); overflow: hidden; }
+.cam__note-bar i { display: block; height: 100%; background: var(--volt); transition: width 0.1s linear; }
 .cam__note-val { font-size: 0.9rem; color: #cdd9e6; }
 .cam__note-val small { color: #7e90a6; }
 .cam__result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.9rem; padding-top: 0.4rem; border-top: 1px dashed rgba(120, 160, 205, 0.25); }
@@ -584,8 +584,8 @@ body.tune-cam-body { background: #000; }
 .cam__result-tag.is-down { color: #ff8c42; }
 .cam__p90 { color: #7e90a6; font-size: 0.85rem; }
 .cam__readout { display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; padding: 0.5rem 0.8rem; border-radius: 12px; border: 1px solid rgba(120, 160, 205, 0.15); }
-.cam__readout.is-measuring { border-color: #46e0ff; box-shadow: 0 0 22px -8px #46e0ff; }
-.cam__value { font-family: var(--font-display); font-size: 3rem; font-weight: 700; line-height: 1; color: #46e0ff; font-variant-numeric: tabular-nums; }
+.cam__readout.is-measuring { border-color: var(--volt); }
+.cam__value { font-family: var(--font-display); font-size: 3rem; font-weight: 700; line-height: 1; color: var(--volt); font-variant-numeric: tabular-nums; }
 .cam__unit { color: #7e90a6; font-family: var(--font-mono); }
 .cam__state { margin-left: auto; color: #cdd9e6; font-size: 0.9rem; }
 .cam__meta { display: flex; flex-wrap: wrap; gap: 0.2rem 1rem; font-family: var(--font-mono); font-size: 0.74rem; color: #7e90a6; }

@@ -13,8 +13,8 @@ $light: #131c28;
 
 $body-background-color: $my-background-color;
 $text: $my-text-color;
-$link: #46e0ff;
-$link-hover: #8af0ff;
+$link: #8db0ff; // = --volt (Sass needs a literal here)
+$link-hover: #b9ceff;
 
 $panel-heading-size: 1em;
 $panel-block-color: $my-text-color;

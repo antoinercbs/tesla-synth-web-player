@@ -412,9 +412,9 @@ onBeforeUnmount(() => {
   align-items: flex-end;
   gap: 1.1rem;
   flex-wrap: wrap;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 1rem 1.2rem;
 }
 
@@ -432,7 +432,7 @@ onBeforeUnmount(() => {
 
 .live-bar__warn {
   color: var(--coil-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.78rem;
 }
 
@@ -441,8 +441,6 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.45rem;
   font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   font-size: 0.78rem;
   color: var(--text-mute);
   padding-bottom: 0.55rem;
@@ -462,7 +460,6 @@ onBeforeUnmount(() => {
 
 .live-bar__status.is-live .live-dot {
   background: var(--volt);
-  box-shadow: 0 0 10px var(--volt);
   animation: live-pulse 1.4s ease-in-out infinite;
 }
 
@@ -483,9 +480,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 0.9rem 1rem 1rem;
 }
 
@@ -501,10 +498,8 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.4rem;
   padding: 0.3rem 0.7rem;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  font-size: 0.72rem;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
 }
 
 .live-piano__mode button .icon {
@@ -532,14 +527,10 @@ onBeforeUnmount(() => {
   background: var(--scrim-90);
   border: 1px solid var(--volt);
   color: var(--volt);
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
+  font-family: var(--font-body);
   font-size: 0.74rem;
   font-weight: 600;
-  box-shadow:
-    0 10px 30px -10px rgba(0, 0, 0, 0.9),
-    0 0 18px -6px var(--volt);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.9);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   transition: 0.15s;
@@ -565,10 +556,8 @@ onBeforeUnmount(() => {
 }
 
 .live-chans__label {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  font-size: 0.6rem;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-dim);
 }
 
@@ -622,7 +611,6 @@ onBeforeUnmount(() => {
   font-weight: 700;
   background: var(--c, var(--volt));
   border-color: transparent;
-  box-shadow: 0 0 10px -3px rgba(255, 255, 255, 0.35);
   opacity: 1;
 }
 
@@ -631,13 +619,15 @@ onBeforeUnmount(() => {
   color: var(--text);
   font-weight: 700;
   border-color: var(--volt);
-  box-shadow: 0 0 0 1px var(--volt), 0 0 10px -3px var(--volt);
+  box-shadow: 0 0 0 1px var(--volt);
   opacity: 1;
 }
 
 .live-chan.is-selected.is-lit {
   color: var(--ink);
-  box-shadow: 0 0 0 1px var(--volt), 0 0 0 3px var(--panel), 0 0 12px -2px var(--volt);
+  box-shadow:
+    0 0 0 1px var(--volt),
+    0 0 0 3px var(--panel);
 }
 
 .live-chan.is-selected::after {
@@ -656,7 +646,7 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.72rem;
   color: var(--coil-1);
 }
@@ -682,11 +672,10 @@ onBeforeUnmount(() => {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  font-size: 0.9rem;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
   color: var(--text);
+  font-weight: 600;
 }
 
 .live-section__title .icon {

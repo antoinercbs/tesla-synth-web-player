@@ -128,10 +128,8 @@ const shownCount = computed(() => draft.defaultCoilCount);
 .field-label {
   align-self: flex-start;
   text-align: left;
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-mute);
 }
 
@@ -147,13 +145,13 @@ const shownCount = computed(() => draft.defaultCoilCount);
   gap: 0.6rem;
 }
 
+/* coil identity = a ring (the toroid), as in the sidebar */
 .cfg-name-dot {
   width: 0.7rem;
   height: 0.7rem;
   border-radius: 50%;
   flex: 0 0 auto;
-  background: var(--c);
-  box-shadow: 0 0 8px -1px var(--c);
+  border: 2.5px solid var(--c);
 }
 
 .cfg-name-idx {

@@ -121,13 +121,13 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 </template>
 
 <style scoped>
-.cam-card { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
+.cam-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 1rem; }
 .cam-card__head { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
-.cam-card__title { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 0.5rem; }
+.cam-card__title { font-family: var(--font-body); font-weight: 600;font-size: 0.92rem; display: inline-flex; align-items: center; gap: 0.5rem; }
 .cam-dot { font-family: var(--font-mono); font-size: 0.74rem; color: var(--text-mute); display: inline-flex; align-items: center; gap: 0.4rem; }
 .cam-dot::before { content: ""; width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--text-mute); }
-.cam-dot.is-on { color: var(--amber); } .cam-dot.is-on::before { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
-.cam-dot.is-ready { color: var(--ok); } .cam-dot.is-ready::before { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.cam-dot.is-on { color: var(--amber); } .cam-dot.is-on::before { background: var(--amber); }
+.cam-dot.is-ready { color: var(--ok); } .cam-dot.is-ready::before { background: var(--ok); }
 
 .cam-card__connect { display: flex; flex-direction: column; gap: 0.9rem; align-items: center; text-align: center; padding: 1.4rem 0.5rem 1.6rem; }
 .cam-card__connect .player-hint { max-width: 40ch; }
@@ -145,7 +145,7 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 /* the silhouette is what you watch during a trial: it gets the width, the figures a single narrow column */
 .cam-live { display: grid; grid-template-columns: minmax(6.5rem, 8.5rem) minmax(0, 1fr); gap: 0.8rem 1rem; align-items: start; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.9rem 1rem; }
 @media (max-width: 460px) { .cam-live { grid-template-columns: 1fr; } }
-.cam-live.is-measuring { border-color: var(--volt-30); box-shadow: inset 0 0 0 1px var(--volt-10), 0 0 18px -8px var(--volt); }
+.cam-live.is-measuring { border-color: var(--volt-30); box-shadow: inset 0 0 0 1px var(--volt-10); }
 .cam-live__readout { display: flex; flex-direction: column; gap: 0.5rem; }
 .cam-live__l { display: flex; align-items: baseline; gap: 0.35rem; }
 .cam-live__value { font-family: var(--font-display); font-size: 2.4rem; font-weight: 700; line-height: 1; color: var(--volt); font-variant-numeric: tabular-nums; }
@@ -153,7 +153,7 @@ const moved = computed(() => !!props.live && (Math.abs(props.live.dx) > 6 || Mat
 .cam-live__state { font-size: 0.85rem; color: var(--text); }
 .cam-live__meta { display: grid; grid-template-columns: 1fr; gap: 0.15rem; margin: 0; font-size: 0.74rem; }
 .cam-live__meta div { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
-.cam-live__meta dt { color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.64rem; }
+.cam-live__meta dt { color: var(--text-mute);font-size: 0.76rem; }
 .cam-live__meta dd { margin: 0; color: var(--text); font-variant-numeric: tabular-nums; }
 .cam-live__meta .is-warn dd { color: var(--danger); }
 .cam-live__heat { display: flex; flex-direction: column; gap: 0.25rem; min-width: 0; position: relative; }

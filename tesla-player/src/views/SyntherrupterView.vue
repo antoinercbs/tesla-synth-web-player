@@ -446,7 +446,7 @@ onMounted(() => {
   display: inline-flex; align-items: center; gap: 0.45rem; margin-left: auto;
   font-family: var(--font-mono); font-size: 0.8rem; color: var(--volt);
 }
-.sy-port .conn__dot { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+.sy-port .conn__dot { background: var(--ok); }
 .sy-state { padding: 3rem; text-align: center; color: var(--text-mute); font-family: var(--font-mono); display: flex; align-items: center; justify-content: center; gap: 0.7rem; }
 .sy-state.is-error { color: var(--danger); }
 
@@ -456,7 +456,7 @@ onMounted(() => {
 .sy-load__bar { height: 7px; border-radius: 999px; background: var(--line); overflow: hidden; }
 .sy-load__fill {
   height: 100%; border-radius: 999px; background: var(--volt);
-  box-shadow: 0 0 10px var(--volt-30); transition: width 0.3s ease;
+  transition: width 0.3s ease;
 }
 .sy-load__sub {
   display: flex; align-items: center; justify-content: space-between; gap: 0.7rem;
@@ -468,27 +468,28 @@ onMounted(() => {
 .sy-block__head { margin-bottom: 0.85rem; }
 .sy-block__title {
   display: flex; align-items: center; gap: 0.55rem; margin: 0;
-  font-family: var(--font-display); font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.05em;
+  font-family: var(--font-body); font-size: 1.05rem;
+  font-weight: 600;
 }
 .sy-block__title i { color: var(--volt); }
 .sy-block__hint { margin: 0.3rem 0 0; color: var(--text-mute); font-size: 0.82rem; line-height: 1.4; }
 
 /* tables — one row per coil / user; horizontal dividers only (no vertical lines) */
 .sy-panel {
-  border: 1px solid var(--line); border-radius: var(--radius); overflow-x: auto;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-radius: var(--radius-lg); overflow-x: auto;
+  background: var(--panel);
 }
 .sy-tbl { width: 100%; border-collapse: collapse; }
 .sy-tbl th, .sy-tbl td { padding: 0.5rem 0.7rem; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--line); }
 .sy-tbl thead th {
-  font-family: var(--font-mono); font-size: 0.68rem; font-weight: 500;
-  text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-mute);
+  font-family: var(--font-body); font-size: 0.76rem; font-weight: 500;
+color: var(--text-mute);
   white-space: nowrap; background: var(--volt-06);
 }
 .sy-tbl tbody tr:last-child th, .sy-tbl tbody tr:last-child td { border-bottom: 0; }
 .sy-tbl tbody tr:hover td, .sy-tbl tbody tr:hover th { background: var(--line-005); }
-.sy-tbl__rowhead { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8rem; color: var(--text); white-space: nowrap; }
-.sy-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--c); box-shadow: 0 0 6px -1px var(--c); margin-right: 0.5rem; vertical-align: middle; }
+.sy-tbl__rowhead { font-family: var(--font-display);font-size: 0.8rem; color: var(--text); white-space: nowrap; }
+.sy-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--c); margin-right: 0.5rem; vertical-align: middle; }
 .sy-tbl__usericon { color: var(--volt); margin-right: 0.4rem; }
 .sy-tbl__unit { color: var(--text-mute); margin-left: 0.3rem; text-transform: none; }
 .sy-tbl__flag { margin-left: 0.3rem; color: var(--text-mute); }
@@ -511,18 +512,18 @@ onMounted(() => {
 .sy-info__meta li { display: flex; align-items: center; gap: 0.5rem; color: var(--text-dim); }
 .sy-info__meta li.is-safety, .sy-info__meta li.is-safety i { color: var(--danger); }
 .sy-info__meta li i { color: var(--text-mute); }
-.sy-info__k { color: var(--text-mute); font-family: var(--font-mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.04em; min-width: 4rem; }
+.sy-info__k { color: var(--text-mute); font-family: var(--font-body); font-size: 0.76rem;min-width: 4rem; }
 
 /* system card — single entity, params flow in a responsive grid */
 .sy-card {
-  border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden;
+  background: var(--panel);
 }
 .sy-card__head {
   display: flex; align-items: center; gap: 0.55rem; padding: 0.6rem 0.8rem;
-  background: var(--volt-06); border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
-.sy-card__title { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.8rem; color: var(--text); }
+.sy-card__title { font-family: var(--font-body); font-size: 0.92rem; color: var(--text); font-weight: 600; }
 .sy-card__apply { margin-left: auto; padding: 0.3rem 0.85rem; font-size: 0.72rem; }
 .sy-card__body { padding: 0.7rem; }
 .sy-card__body--grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 0.4rem 1.2rem; }

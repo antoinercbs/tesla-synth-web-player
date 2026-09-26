@@ -33,10 +33,8 @@ withDefaults(
 /* the mono label variant the config/server modals used (the global .field-label
    is the editor's display variant — don't inherit that here). */
 .field-label {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-mute);
 }
 

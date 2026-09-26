@@ -179,7 +179,7 @@ defineExpose({ submit });
 .save-inline.wrap { flex-wrap: wrap; }
 .save-inline .text-field { flex: 1; min-width: 0; }
 .save-field { display: flex; flex-direction: column; gap: 0.35rem; }
-.tf-label { display: block; width: 100%; padding: 0; margin: 0; text-align: left; font-family: var(--font-mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-mute); line-height: 1.3; }
+.tf-label { display: block; width: 100%; padding: 0; margin: 0; text-align: left; font-family: var(--font-body); font-size: 0.76rem;color: var(--text-mute); line-height: 1.3; }
 label.form-field, label.form-field:hover { display: block; padding: 0; margin: 0; }
 .form-field .text-field { width: 100%; margin-top: 0.3rem; }
 .form-field__hint { display: block; margin-top: 0.3rem; font-size: 0.74rem; color: var(--text-mute); }

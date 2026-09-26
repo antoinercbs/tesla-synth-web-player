@@ -73,6 +73,5 @@ function onPointerUp(e: PointerEvent): void {
 .resize-handle:hover .resize-handle__grip,
 .resize-handle.is-active .resize-handle__grip {
   background: var(--volt);
-  box-shadow: 0 0 8px -1px var(--volt);
 }
 </style>

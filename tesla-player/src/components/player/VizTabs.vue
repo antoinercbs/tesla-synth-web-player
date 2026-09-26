@@ -43,11 +43,11 @@ const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
 
 <template>
   <div class="player-viz">
-    <segmented-control v-model="viz" class="player-viz__tabs" :options="[
-      { value: 'vu', label: $t('label.viewVu'), icon: 'fa-chart-simple' },
-      { value: 'roll', label: $t('label.viewScore'), icon: 'fa-music' },
-      { value: 'lanes', label: $t('label.viewCoils'), icon: 'fa-bolt' },
-      { value: 'combined', label: $t('label.viewCombined'), icon: 'fa-layer-group' },
+    <segmented-control v-model="viz" class="player-viz__tabs" tabs label-class="player-viz__label" :options="[
+      { value: 'vu', label: $t('label.viewVu'), icon: 'fa-chart-simple', title: $t('label.viewVu') },
+      { value: 'roll', label: $t('label.viewScore'), icon: 'fa-music', title: $t('label.viewScore') },
+      { value: 'lanes', label: $t('label.viewCoils'), icon: 'fa-bolt', title: $t('label.viewCoils') },
+      { value: 'combined', label: $t('label.viewCombined'), icon: 'fa-layer-group', title: $t('label.viewCombined') },
     ]" />
 
     <div class="player-viz__body">

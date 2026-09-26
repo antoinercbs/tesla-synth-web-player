@@ -33,25 +33,26 @@
 // Sidebar visual rules: one container style (titled sections on the bare panel,
 // only the controls themselves are boxed), and the volt fill is reserved for the
 // active nav item — everything else stays neutral or tinted so it doesn't compete.
+// Brand lockup: glyph | "TESLA PLAYER" over the clubelek wordmark. Sized so the name
+// never has to ellipsize next to the collapse toggle at the 268px sidebar width.
 .brand {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.6rem;
     font-family: var(--font-display);
     font-weight: 700;
-    letter-spacing: 0.05em;
     padding: 0.1rem 0.25rem 1.5rem;
 }
 
-// Tesla Player glyph: the black SVG painted in volt via a CSS mask (shape only),
-// so it takes the accent + halo. Links to the home (Play) view; softly irradiates
-// (pulsing), intensifying on hover.
+// Tesla Player glyph: the black SVG used as a CSS mask (shape only) over the arc
+// gradient, so it takes the accent + halo. Links to the home (Play) view; softly
+// irradiates (pulsing), intensifying on hover.
 .brand__emblem {
-    width: 28px;
-    height: 46px;
+    width: 43px;
+    height: 42px;
     flex: 0 0 auto;
     display: inline-block;
-    background-color: var(--volt);
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
     -webkit-mask: var(--emblem-src) no-repeat center / contain;
     mask: var(--emblem-src) no-repeat center / contain;
     mask-mode: alpha;
@@ -66,29 +67,37 @@
 
 @keyframes emblem-irradiate {
     from {
-        filter: drop-shadow(0 0 4px var(--volt-30));
+        filter: drop-shadow(0 0 4px rgb(var(--arc-glow-rgb) / 0.3));
     }
 
     to {
-        filter: drop-shadow(0 0 12px var(--volt-70));
+        filter: drop-shadow(0 0 12px rgb(var(--arc-glow-rgb) / 0.7));
     }
 }
 
 @keyframes emblem-irradiate-strong {
     from {
-        filter: drop-shadow(0 0 8px var(--volt-55));
+        filter: drop-shadow(0 0 8px rgb(var(--arc-glow-rgb) / 0.55));
     }
 
     to {
-        filter: drop-shadow(0 0 17px var(--volt-95));
+        filter: drop-shadow(0 0 17px rgb(var(--arc-glow-rgb) / 0.95));
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .brand__emblem {
         animation: none;
-        filter: drop-shadow(0 0 8px var(--volt-50));
+        filter: drop-shadow(0 0 8px rgb(var(--arc-glow-rgb) / 0.5));
     }
+}
+
+.brand__sep {
+    flex: 0 0 auto;
+    width: 1px;
+    align-self: stretch;
+    margin: 0.35rem 0.1rem;
+    background: var(--line-strong);
 }
 
 .brand__text {
@@ -99,13 +108,15 @@
     min-width: 0;
 }
 
-// "Tesla Player" — also a link home; keeps the brand font, no underline
+// "TESLA PLAYER" — also a link home; keeps the brand font, no underline
 .brand__app {
     line-height: 1;
-    color: inherit;
+    color: #eef3ff;
     text-decoration: none;
+    text-transform: uppercase;
+    letter-spacing: 0.11em;
     transition: color 0.15s ease;
-    font-size: 1.05rem;
+    font-size: 0.9rem;
     max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
@@ -116,21 +127,23 @@
     color: var(--volt);
 }
 
-// Clubelek wordmark (links to clubelek.fr), a discreet byline under the name
-.brand__label-link {
+// Clubelek wordmark (links to clubelek.fr), flush right under the name
+.brand__club {
+    align-self: flex-end;
+    margin-right: 0.1rem; // the name's tracking trails its last letter: flush with the R, not the box
     display: inline-flex;
 }
 
 .brand__label {
-    height: 12px;
+    height: 13px;
     width: auto;
     display: block;
-    opacity: 0.5;
+    opacity: 0.55;
     filter: invert(1);
     transition: opacity 0.15s;
 }
 
-.brand__label-link:hover .brand__label {
+.brand__club:hover .brand__label {
     opacity: 0.9;
 }
 
@@ -142,16 +155,16 @@
 }
 
 .nav-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.55rem 0.75rem;
+    padding: 0.55rem 0.75rem 0.55rem 0.85rem;
     border-radius: var(--radius);
     color: var(--text-dim);
     font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.09em;
-    font-size: 0.78rem;
+    letter-spacing: 0.02em;
+    font-size: 0.9rem;
     font-weight: 600;
     text-decoration: none;
     transition:
@@ -170,17 +183,27 @@
     background: var(--line-006);
 }
 
+// the arc is the item's left edge: full height, and the tint starts square on it
 .nav-item.router-link-active {
-    color: #eafcff;
-    background: linear-gradient(90deg, var(--volt-16), transparent 80%);
-    box-shadow:
-        inset 2px 0 0 var(--volt),
-        inset 0 0 26px -12px var(--volt);
+    color: #eef3ff;
+    background: var(--volt-08);
+    border-radius: 0 var(--radius) var(--radius) 0;
+}
+
+.nav-item.router-link-active::before {
+    content: "";
+    position: absolute;
+    left: -3px;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+    mask: var(--micro-arc-v) center / 100% 100% no-repeat;
 }
 
 .nav-item.router-link-active .icon {
     color: var(--volt);
-    filter: drop-shadow(0 0 5px var(--volt));
 }
 
 // device-config item, locked until a link with read-back is up
@@ -220,10 +243,7 @@
 
 .sidebar-section__title {
     margin: 0 0 0.55rem;
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.12em;
-    font-size: 0.62rem;
+    font-size: 0.74rem;
     font-weight: 600;
     color: var(--text-mute);
 }
@@ -303,7 +323,6 @@
 
 .sidebar-serial__on .conn__dot {
     background: var(--ok);
-    box-shadow: 0 0 8px var(--ok);
 }
 
 // label + switch on one line (second output)
@@ -362,12 +381,11 @@
 }
 
 .sidebar-coil__dot {
-    width: 0.55rem;
-    height: 0.55rem;
+    width: 0.7rem;
+    height: 0.7rem;
     border-radius: 50%;
     flex: 0 0 auto;
-    background: var(--c);
-    box-shadow: 0 0 7px -1px var(--c);
+    border: 2.5px solid var(--c);
 }
 
 .sidebar-coil__idx {
@@ -454,12 +472,10 @@
     height: 8px;
     border-radius: 50%;
     background: var(--danger);
-    box-shadow: 0 0 8px var(--danger);
 }
 
 .sidebar-conn.is-up .conn__dot {
     background: var(--ok);
-    box-shadow: 0 0 8px var(--ok);
 }
 
 .sidebar-more {
@@ -610,13 +626,14 @@
     margin-left: 0;
 }
 
-.sidebar--compact .brand__text {
+.sidebar--compact .brand__text,
+.sidebar--compact .brand__sep {
     display: none;
 }
 
 .sidebar--compact .brand__emblem {
-    width: 24px;
-    height: 40px;
+    width: 37px;
+    height: 36px;
 }
 
 .sidebar--compact .nav-item {
@@ -697,7 +714,6 @@
 
 .cstat-conn.is-up .conn__dot {
     background: var(--ok);
-    box-shadow: 0 0 8px var(--ok);
 }
 
 .app-main {
@@ -709,6 +725,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
+    background: radial-gradient(1100px 480px at 82% -12%, rgb(var(--arc-glow-rgb) / 0.075), transparent 62%);
 }
 
 // non-edit views provide their own padding (app-main has none, so the editor
@@ -725,21 +742,12 @@
 .view-head__title {
     font-family: var(--font-display);
     font-weight: 700;
-    font-size: 1.7rem;
-    letter-spacing: 0.02em;
+    font-size: 1.75rem;
+    letter-spacing: 0.01em;
     line-height: 1;
     display: flex;
     align-items: center;
     gap: 0.7rem;
-}
-
-.view-head__title::before {
-    content: "";
-    width: 4px;
-    height: 1.5rem;
-    border-radius: 3px;
-    background: var(--volt);
-    box-shadow: 0 0 12px var(--volt);
 }
 
 .view-head__sub {
@@ -787,6 +795,9 @@
     .nav-item.router-link-active {
         background: none;
         box-shadow: none;
+    }
+    .nav-item.router-link-active::before {
+        display: none;
     }
     .nav-item .icon {
         font-size: large;

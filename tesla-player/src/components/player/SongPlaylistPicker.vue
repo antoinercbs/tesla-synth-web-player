@@ -94,7 +94,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 <template>
   <article class="play-panel source-panel">
     <header class="play-panel__head">
-      <segmented-control v-model="source" fill :options="[
+      <segmented-control v-model="source" tabs :options="[
         { value: 'songs', label: $t('label.sourceSongs'), icon: 'fa-music' },
         { value: 'playlists', label: $t('label.sourcePlaylists'), icon: 'fa-list' },
       ]" />
@@ -210,10 +210,13 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 <style scoped>
 /* panel shell + compact row buttons + coil dots (shared play primitives) */
 .play-panel {
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.03),
+    0 12px 30px -18px rgb(0 0 0 / 0.7);
 }
 
 .source-panel {
@@ -228,9 +231,12 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   align-items: center;
   gap: 0.6rem;
   flex: 0 0 auto;
-  padding: 0.7rem 0.9rem;
-  background: var(--volt-06);
-  border-bottom: 1px solid var(--line);
+  padding: 0.45rem 0.9rem 0;
+}
+
+.play-panel__head .segmented--tabs {
+  display: flex;
+  flex: 1;
 }
 
 .row-btn {
@@ -281,8 +287,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--c);
-  box-shadow: 0 0 6px -1px var(--c);
+  border: 2px solid var(--c);
 }
 
 /* speaker (2nd output) indicator — matches the plasma colour used for the speaker lane elsewhere */
@@ -375,7 +380,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   padding: 1.2rem 1rem;
   color: var(--text-mute);
   text-align: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.85rem;
 }
 
@@ -435,7 +440,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
   gap: 0.25rem;
   flex: 0 0 auto;
   color: var(--coil-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.78rem;
 }
 
@@ -454,10 +459,8 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
 }
 
 .song-tag-pill {
-  font-size: 0.65rem;
+  font-size: 0.76rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   color: var(--tag-c);

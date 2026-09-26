@@ -6,18 +6,16 @@
 }
 
 .panel {
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
     overflow: hidden;
 }
 .panel-heading {
-    background: var(--volt-06) !important;
-    color: var(--text) !important;
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 0.82rem !important;
+    background: none !important;
+    color: #eef3ff !important;
+    font-weight: 600;
+    font-size: 0.92rem !important;
     border-bottom: 1px solid var(--line);
 }
 .panel-block {

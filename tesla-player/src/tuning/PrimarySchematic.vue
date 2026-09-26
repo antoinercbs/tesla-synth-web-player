@@ -166,8 +166,8 @@ function onKey(e: KeyboardEvent): void {
         <stop offset="1" stop-color="#0b1018" />
       </radialGradient>
       <radialGradient id="coil-ground" cx="0.5" cy="0.5" r="0.5">
-        <stop offset="0.6" stop-color="rgba(70,224,255,0.05)" />
-        <stop offset="1" stop-color="rgba(70,224,255,0)" />
+        <stop offset="0.6" style="stop-color: rgb(var(--volt-rgb) / 0.05)" />
+        <stop offset="1" style="stop-color: rgb(var(--volt-rgb) / 0)" />
       </radialGradient>
     </defs>
 
@@ -222,7 +222,7 @@ function onKey(e: KeyboardEvent): void {
 .coil.is-static { cursor: default; }
 .secondary { stroke: rgba(120, 160, 205, 0.35); stroke-width: 1; }
 .secondary-core { fill: none; stroke: rgba(120, 160, 205, 0.18); stroke-width: 1; }
-.secondary-label { font-size: 8.5px; letter-spacing: 0.08em; text-transform: uppercase; fill: var(--text-mute); }
+.secondary-label { font-size: 8.5px;fill: var(--text-mute); }
 .spire-out { stroke: #8d4a1f; stroke-width: 5.5; opacity: 0.32; }
 .spire-in { stroke: url(#coil-copper); stroke-width: 6; }
 .spire-in-light { stroke: #ffd9b8; stroke-width: 1.4; opacity: 0.55; }

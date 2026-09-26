@@ -2,9 +2,10 @@
   <aside class="sidebar" :class="{ 'sidebar--compact': sidebarCompact }">
     <div class="brand">
       <router-link class="brand__emblem" :to="{ name: 'play' }" aria-label="Tesla Player" :style="emblemStyle" />
+      <span class="brand__sep" aria-hidden="true"></span>
       <div class="brand__text">
         <router-link class="brand__app" :to="{ name: 'play' }">Tesla Player</router-link>
-        <a class="brand__label-link" href="https://clubelek.fr" target="_blank" rel="noopener" title="clubelek.fr">
+        <a class="brand__club" href="https://clubelek.fr" target="_blank" rel="noopener" title="clubelek.fr">
           <img class="brand__label" :src="labelSrc" alt="Clubelek" />
         </a>
       </div>

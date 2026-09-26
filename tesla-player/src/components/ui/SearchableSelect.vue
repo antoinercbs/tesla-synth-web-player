@@ -168,7 +168,7 @@ function move(delta: number): void {
 .combo.is-open .combo__control,
 .combo__control:focus-within {
   border-color: var(--volt);
-  box-shadow: 0 0 0 2px var(--volt), 0 0 20px -7px var(--volt);
+  box-shadow: 0 0 0 2px var(--volt);
 }
 
 .combo__icon {
@@ -246,12 +246,12 @@ function move(delta: number): void {
 }
 
 .combo__option.is-active {
-  background: rgba(70, 224, 255, 0.2);
+  background: rgb(var(--volt-rgb) / 0.2);
 }
 
 .combo__option.is-selected {
   color: var(--volt);
-  background: rgba(70, 224, 255, 0.08);
+  background: var(--volt-08);
 }
 
 .combo__option--muted {
@@ -262,7 +262,7 @@ function move(delta: number): void {
 .combo__empty {
   padding: 0.6rem 0.65rem;
   color: var(--text-mute);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   list-style: none;
 }
 </style>

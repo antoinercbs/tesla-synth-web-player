@@ -283,10 +283,8 @@ onUnmounted(() => {
 }
 
 .sync-group__title {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-mute);
   margin-bottom: 0.4rem;
 }
@@ -313,10 +311,8 @@ onUnmounted(() => {
 }
 
 .sync-row__badge {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   align-self: flex-start;
   padding: 0.05rem 0.4rem;
   border-radius: 4px;
@@ -373,10 +369,8 @@ onUnmounted(() => {
 }
 
 .field-label {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-mute);
 }
 </style>

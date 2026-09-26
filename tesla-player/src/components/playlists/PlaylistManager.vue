@@ -249,9 +249,9 @@ function doDelete(): void {
   gap: 1.2rem;
   flex-wrap: wrap;
   align-items: flex-end;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 0.9rem 1rem;
 }
 
@@ -271,10 +271,8 @@ function doDelete(): void {
 }
 
 .field-label {
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: 0.68rem;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-dim);
 }
 
@@ -292,9 +290,9 @@ function doDelete(): void {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
@@ -304,12 +302,10 @@ function doDelete(): void {
   gap: 0.5rem;
   flex: 0 0 auto;
   padding: 0.7rem 1rem;
-  background: rgba(70, 224, 255, 0.06);
   border-bottom: 1px solid var(--line);
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
+  font-weight: 600;
 }
 
 .pl-pane__head .icon {
@@ -496,8 +492,7 @@ function doDelete(): void {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--c);
-  box-shadow: 0 0 6px -1px var(--c);
+  border: 2px solid var(--c);
 }
 
 .incompat-flag {
@@ -506,7 +501,7 @@ function doDelete(): void {
   gap: 0.25rem;
   flex: 0 0 auto;
   color: var(--coil-1);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.78rem;
 }
 
@@ -514,7 +509,7 @@ function doDelete(): void {
   padding: 1.3rem 1rem;
   color: var(--text-mute);
   text-align: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.85rem;
 }
 
@@ -555,7 +550,6 @@ function doDelete(): void {
 .icon-btn:hover {
   color: var(--volt);
   border-color: var(--volt);
-  box-shadow: 0 0 14px -6px var(--volt);
 }
 
 .icon-btn:disabled {
@@ -572,7 +566,6 @@ function doDelete(): void {
 .icon-btn--danger:hover {
   color: var(--danger);
   border-color: var(--danger);
-  box-shadow: 0 0 14px -6px var(--danger);
 }
 
 /* sticky footer */

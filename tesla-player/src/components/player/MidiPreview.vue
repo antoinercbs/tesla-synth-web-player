@@ -519,7 +519,6 @@ watch(() => props.playheadMs, () => {
   bottom: 0;
   width: 3px;
   background: var(--c);
-  box-shadow: 0 0 7px -1px var(--c);
 }
 
 .preview__rail-id {
@@ -602,7 +601,6 @@ watch(() => props.playheadMs, () => {
 .preview__playhead {
   stroke: var(--volt);
   stroke-width: 2;
-  filter: drop-shadow(0 0 4px var(--volt));
 }
 
 .preview__empty {
@@ -611,13 +609,13 @@ watch(() => props.playheadMs, () => {
   display: grid;
   place-items: center;
   color: var(--text-mute);
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.85rem;
 }
 
 .preview__hint {
   margin: 0;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.68rem;
   color: var(--text-mute);
 }

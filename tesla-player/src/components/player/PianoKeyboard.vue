@@ -313,7 +313,6 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
   font-family: var(--font-mono);
   font-size: 0.58rem;
   font-weight: 700;
-  box-shadow: 0 0 8px -2px var(--volt);
 }
 
 .piano__range {
@@ -390,7 +389,6 @@ watch(() => props.interactive, (on) => { if (!on) releaseAll(); });
 .pkey.is-on {
   background: var(--k, var(--volt));
   box-shadow:
-    0 0 16px -2px var(--volt-50),
     inset 0 0 0 1px rgba(255, 255, 255, 0.28),
     inset 0 -7px 0 rgba(5, 8, 13, 0.2);
 }

@@ -105,10 +105,13 @@ function onDrop(toPos: number): void {
 <style scoped>
 /* panel shell + compact row buttons (shared play primitives) */
 .play-panel {
-  background: linear-gradient(180deg, var(--panel-2), var(--panel));
+  background: var(--panel);
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.03),
+    0 12px 30px -18px rgb(0 0 0 / 0.7);
 }
 
 .queue-panel {
@@ -124,7 +127,6 @@ function onDrop(toPos: number): void {
   gap: 0.6rem;
   flex: 0 0 auto;
   padding: 0.7rem 0.9rem;
-  background: var(--volt-06);
   border-bottom: 1px solid var(--line);
 }
 
@@ -184,11 +186,10 @@ function onDrop(toPos: number): void {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  font-family: var(--font-display);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-size: 0.8rem;
+  font-family: var(--font-body);
+  font-size: 0.92rem;
   color: var(--text);
+  font-weight: 600;
 }
 
 .queue-head__title .icon {
@@ -228,10 +229,8 @@ function onDrop(toPos: number): void {
 }
 
 .queue-now__label {
-  font-family: var(--font-mono);
-  font-size: 0.68rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-family: var(--font-body);
+  font-size: 0.76rem;
   color: var(--text-mute);
 }
 

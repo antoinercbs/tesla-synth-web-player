@@ -2,9 +2,12 @@
 //  PLAYER
 // ===========================================================================
 .player-panel {
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    background: var(--panel);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: var(--radius-lg);
+    box-shadow:
+        inset 0 1px 0 rgb(255 255 255 / 0.03),
+        0 12px 30px -18px rgb(0 0 0 / 0.7);
     overflow: hidden;
     display: flex;
     flex-direction: column; // sections stack; the VU grows to fill
@@ -15,13 +18,10 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.7rem 1rem;
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-size: 0.8rem;
-    color: var(--text);
-    background: var(--volt-06);
+    padding: 0.75rem 1rem;
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: #eef3ff;
     border-bottom: 1px solid var(--line);
 }
 
@@ -39,15 +39,12 @@
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    padding: 0.12rem 0.5rem;
+    padding: 0.1rem 0.55rem;
     border-radius: var(--radius-pill);
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.04em;
-    text-transform: none;
+    font-size: 0.74rem;
+    font-weight: 500;
     color: var(--volt);
-    border: 1px solid var(--volt);
-    background: var(--volt-08);
+    background: var(--volt-10);
 }
 
 .player-panel__autoplay {
@@ -110,15 +107,14 @@
 .coil-legend__chip {
     width: 1.4rem;
     height: 1.4rem;
-    border-radius: 5px;
+    border-radius: 50%;
     display: grid;
     place-items: center;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: var(--ink);
-    background: var(--c, var(--volt));
-    box-shadow: 0 0 5px -3px var(--c, var(--volt));
+    font-family: var(--font-display);
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--c, var(--volt));
+    border: 2px solid var(--c, var(--volt));
 }
 
 .player-hint {
@@ -150,11 +146,8 @@
 
 .vu__label {
     display: block;
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.07em;
-    font-size: 0.6rem;
-    color: var(--text-dim);
+    font-size: 0.76rem;
+    color: var(--text-mute);
     margin-bottom: 0.5rem;
 }
 
@@ -199,7 +192,6 @@
     height: 0;
     background: var(--volt);
     border-radius: 3px 3px 0 0;
-    box-shadow: 0 0 10px -1px rgba(255, 255, 255, 0.25);
     transition: height 0.16s ease-out;
 }
 
@@ -228,10 +220,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.66rem;
+    font-size: 0.85rem;
     color: var(--text-dim);
 }
 
@@ -246,13 +235,12 @@
 }
 
 .power-scope button {
-    padding: 0.22rem 0.6rem;
-    font-size: 0.68rem;
+    padding: 0.22rem 0.65rem;
+    font-size: 0.8rem;
 }
 
 .power-head__val {
-    font-family: var(--font-mono);
-    font-size: 1.05rem;
+    font-size: 1.08rem;
     font-weight: 600;
     color: var(--text);
     font-variant-numeric: tabular-nums;
@@ -333,27 +321,24 @@
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background: var(--text);
-    border: 3px solid var(--volt);
-    box-shadow: 0 0 7px -1px var(--volt);
+    background: var(--panel);
+    border: 4px solid #e8eef9;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
 }
 
 .power-range::-moz-range-thumb {
-    width: 20px;
-    height: 20px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    background: var(--text);
-    border: 3px solid var(--volt);
-    box-shadow: 0 0 7px -1px var(--volt);
+    background: var(--panel);
+    border: 4px solid #e8eef9;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
 }
 
 .power-zones {
     display: flex;
     justify-content: space-between;
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+    font-size: 0.74rem;
     color: var(--text-mute);
 }
 
@@ -398,10 +383,7 @@
 }
 
 .coil-bias__key {
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    font-size: 0.56rem;
+    font-size: 0.74rem;
     color: var(--text-dim);
 }
 
@@ -421,6 +403,11 @@
 
 @container (max-width: 380px) {
     .power-zones span:not(.power-zones__mid) {
+        display: none;
+    }
+
+    // keep the gauge icon, drop the word: the value + reset must fit beside the scope
+    .power-head__key-text {
         display: none;
     }
 
@@ -510,9 +497,8 @@
 
 .player-progress__fill {
     height: 100%;
-    background: var(--volt);
+    background: linear-gradient(90deg, var(--arc-mid), var(--arc-deep));
     border-radius: var(--radius-pill);
-    box-shadow: 0 0 6px -1px var(--volt);
     transition: width 0.08s linear;
     pointer-events: none;
 }
@@ -523,9 +509,8 @@
     width: 11px;
     height: 11px;
     border-radius: 50%;
-    background: var(--volt);
+    background: #e8eef9;
     transform: translate(-50%, -50%);
-    box-shadow: 0 0 6px -1px var(--volt);
     pointer-events: none;
     opacity: 0;
     transition: opacity 0.12s;
@@ -549,13 +534,20 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
+    container-type: inline-size; // tab labels drop to icons when the player is narrow
 }
 
 // display:flex (not width:100%) so the full-width tabs don't overflow with margins
 .player-viz__tabs {
     display: flex;
-    margin: 0.3rem 1rem 0.5rem;
+    margin: 0.3rem 1rem 0.6rem;
     flex: 0 0 auto;
+}
+
+@container (max-width: 380px) {
+    .player-viz__label {
+        display: none;
+    }
 }
 
 .player-viz__param {
@@ -566,34 +558,15 @@
 
 .player-viz__param button {
     padding: 0.3rem 0.7rem;
-    font-size: 0.72rem;
+    font-size: 0.8rem;
 }
 
 .player-viz__tabs button {
-    flex: 1 1 0;
-    min-width: 0;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    padding: 0.35rem 0.4rem;
-    font-size: 0.72rem;
     white-space: nowrap;
 }
 
-.player-viz__tabs .icon {
-    font-size: 0.74rem;
-}
-
-// view-toggle icons follow the selection: white when idle, near-black when active
-.player-viz__tabs button .icon,
 .editor-preview__views button .icon {
     color: var(--text);
-}
-
-.player-viz__tabs button.is-active .icon,
-.editor-preview__views button.is-active .icon {
-    color: var(--ink);
 }
 
 .player-viz__body {
@@ -618,10 +591,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    font-size: 0.6rem;
+    font-size: 0.76rem;
     color: var(--text-dim);
 }
 
@@ -684,17 +654,16 @@
 }
 
 .player-coil__chip {
-    width: 1.3rem;
-    height: 1.3rem;
-    border-radius: 5px;
+    width: 1.35rem;
+    height: 1.35rem;
+    border-radius: 50%;
     display: grid;
     place-items: center;
-    font-family: var(--font-mono);
-    font-size: 0.7rem;
+    font-family: var(--font-display);
+    font-size: 0.68rem;
     font-weight: 700;
-    color: var(--ink);
-    background: var(--c, var(--volt));
-    box-shadow: 0 0 5px -3px var(--c, var(--volt));
+    color: var(--c, var(--volt));
+    border: 2px solid var(--c, var(--volt));
 }
 
 .player-coil__readouts {
@@ -761,7 +730,6 @@
 .switch input:checked + .switch__track {
     background: var(--volt);
     border-color: var(--volt);
-    box-shadow: 0 0 8px -4px var(--volt);
 }
 
 .switch input:checked + .switch__track::after {
@@ -774,17 +742,13 @@
 }
 
 .switch__text {
-    font-family: var(--font-display);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 0.7rem;
+    font-size: 0.82rem;
     color: var(--text-dim);
 }
 
 .midi-lib__empty {
     color: var(--text-mute);
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
+    font-size: 0.88rem;
     padding: 0.4rem 0;
 }
 

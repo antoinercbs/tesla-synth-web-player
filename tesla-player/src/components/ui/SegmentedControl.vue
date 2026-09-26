@@ -20,13 +20,15 @@ withDefaults(
     ariaLabelledby?: string;
     labelClass?: string; // wrap the label (e.g. PlayView's responsive mode-switch__label)
     pressed?: boolean; // expose aria-pressed on each button (toggle semantics)
+    tabs?: boolean; // .segmented--tabs: switches content (underlined tabs), not a mode/value
   }>(),
-  { fill: false, ariaLabel: '', ariaLabelledby: '', labelClass: '', pressed: false },
+  { fill: false, ariaLabel: '', ariaLabelledby: '', labelClass: '', pressed: false, tabs: false },
 );
 </script>
 
 <template>
-  <div class="segmented" :class="{ 'segmented--fill': fill }" role="group" :aria-label="ariaLabel || undefined"
+  <div class="segmented" :class="{ 'segmented--fill': fill, 'segmented--tabs': tabs }" role="group"
+    :aria-label="ariaLabel || undefined"
     :aria-labelledby="ariaLabelledby || undefined">
     <button v-for="o in options" :key="String(o.value)" type="button" :class="{ 'is-active': model === o.value }"
       :disabled="o.disabled" :title="o.title || undefined" :aria-pressed="pressed ? model === o.value : undefined"
