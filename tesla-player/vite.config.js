@@ -9,7 +9,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       // Use the full build so runtime message compilation works (messages
-      // are provided as a plain JS object in src/assets/translations.js).
+      // are plain JS objects in src/assets/translations/, one file per language).
       'vue-i18n': 'vue-i18n/dist/vue-i18n.esm-bundler.js'
     }
   },
