@@ -72,6 +72,9 @@ export const TOUR_STEPS: TourStep[] = [
   { id: 'midi', route: { name: 'midi' }, target: '.midi-lib__table', placement: 'top' },
   { id: 'playlists', route: { name: 'playlists', params: { id: String(DEMO_PLAYLIST_ID) } }, target: '.pl-panes', placement: 'top' },
   { id: 'tune', route: { name: 'tune' }, target: '.stepper', placement: 'bottom' },
+  // the demo's device (demo/fake-device.ts) opens this page even with nothing plugged in
+  { id: 'syntherrupter', route: { name: 'syntherrupter' }, target: '.sy-block', placement: 'bottom' },
+  { id: 'syntherrupterBar', route: { name: 'syntherrupter' }, target: '.sy-bar', placement: 'top' },
   { id: 'menu', route: PLAY, target: '.sidebar-more', placement: 'right' },
   { id: 'done', route: PLAY },
 ];

@@ -24,6 +24,9 @@ const PAD = 8; // hole margin round the target
 const GAP = 14; // hole to card
 const EDGE = 12; // card to viewport edge
 const WIDE = 640; // narrower: the card docks to the bottom
+// pages that read their data as they mount (the tuning setup, the device's settings):
+// left before the demo starts and after it ends, so they read the right one
+const READS_ON_MOUNT = ['tune', 'syntherrupter'];
 const UNTIL_MAX = 20_000; // a step waiting for the page never locks the tour: Next comes back after this
 
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
@@ -258,9 +261,8 @@ function onKey(e: KeyboardEvent): void {
 
 watch(() => tour.active, async (on) => {
   if (on) {
-    // the tuning page reads its saved setup as it mounts: leave it, so the tour
-    // opens it again on the demo's (its help button only shows with no session running)
-    if (route.name === 'tune') {
+    // (the tuning page's help button only shows with no session running)
+    if (READS_ON_MOUNT.includes(String(route.name))) {
       await router.replace({ name: 'play' }).catch(() => {});
       await nextTick();
       if (!tour.active) return;
@@ -287,15 +289,15 @@ watch(() => tour.active, async (on) => {
     document.removeEventListener('scroll', remeasure, true);
     // left mid-tour on the demo song or playlist: back to that page's chooser first,
     // so the demo song's player (maybe playing, silently) unmounts and stops before
-    // the real outputs come back. The tuning page is left too (its trial stops, the
-    // fake session ends), then opened again on the user's own setup
+    // the real outputs come back. A page reading on mount is left too (a trial
+    // stops, the fake session ends), then opened again on the real data
     const onDemoPage = [String(DEMO_SONG_ID), String(DEMO_PLAYLIST_ID)].includes(String(route.params.id));
-    const onTune = route.name === 'tune';
-    const leave = onDemoPage || onTune ? router.replace({ name: onTune ? 'play' : route.name ?? 'play' }) : Promise.resolve();
+    const reopen = READS_ON_MOUNT.includes(String(route.name)) ? String(route.name) : null;
+    const leave = onDemoPage || reopen ? router.replace({ name: reopen ? 'play' : route.name ?? 'play' }) : Promise.resolve();
     void leave.catch(() => {}).then(async () => {
       await nextTick();
       const viz = exitDemo() ?? 'vu';
-      if (onTune) await router.replace({ name: 'tune' }).catch(() => {});
+      if (reopen) await router.replace({ name: reopen }).catch(() => {});
       // the view steps switched the player's tab; a player still on screen gets the user's back
       findTarget(vizTab(VIZ_ORDER.indexOf(viz) + 1))?.click();
     });

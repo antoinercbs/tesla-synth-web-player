@@ -3,11 +3,13 @@ import { markRaw, watch, type WatchStopHandle } from 'vue';
 import type { Output } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
 import type { MidiSink } from '@/audio/tesla-synth';
+import type { DeviceLink } from '@/serial/device-link';
 import type { AppConfig, AppTag, MidiFile, Song } from '@/types/domain';
 import type { TuningDraft, TuningRecord } from '@/tuning/api';
 import { SessionLink } from '@/tuning/session-link';
 import { buildDemoLibrary, DEMO_PATH_PREFIX, type DemoLibrary } from './data';
 import { fakeTuningRequest, resetFakeCamera } from './fake-camera';
+import { fakeDeviceLink } from './fake-device';
 
 /**
  * Demo mode, for the guided tour: the app runs on the sample library of data.ts
@@ -21,10 +23,11 @@ import { fakeTuningRequest, resetFakeCamera } from './fake-camera';
  * The tour presses Play on a demo song and runs tuning trials: the outputs are
  * swapped for a silent sink for the whole demo (and put back if anything
  * re-selects a real one meanwhile), so no note ever reaches real coils. The
- * tuning relay talks to a fake phone (fake-camera.ts).
+ * tuning relay talks to a fake phone (fake-camera.ts), the Syntherrupter page
+ * to a fake device (fake-device.ts), guarded the same way.
  */
 // the store hands outputs back unwrapped by Vue; they are the same (markRaw'd) objects
-type Outputs = { output: MidiSink | null; output2: Output | null };
+type Outputs = { output: MidiSink | null; output2: Output | null; deviceLink: DeviceLink | null };
 let lib: DemoLibrary | null = null;
 let interceptor: number | null = null;
 let guard: WatchStopHandle | null = null;
@@ -137,12 +140,14 @@ export function enterDemo(lang: string): void {
     storage: Object.fromEntries(Object.keys(DEMO_STORAGE).map((k) => [k, localStorage.getItem(k)])),
     output: store.midiOutput,
     output2: store.midiOutput2 as Output | null,
+    deviceLink: store.deviceLink,
   };
   applyLibrary(l);
   store.setMidiOutput(silent);
   store.setMidiOutput2(null);
+  store.setDeviceLink(fakeDeviceLink);
   // a device plugged in (or the sidebar re-resolving) must not slip a real output back in
-  guard = watch(() => [store.midiOutput, store.midiOutput2] as const, ([out, out2]) => {
+  guard = watch(() => [store.midiOutput, store.midiOutput2, store.deviceLink] as const, ([out, out2, link]) => {
     if (!saved) return;
     if (out !== silent) {
       saved.output = out;
@@ -151,6 +156,10 @@ export function enterDemo(lang: string): void {
     if (out2 !== null) {
       saved.output2 = out2 as Output;
       store.setMidiOutput2(null);
+    }
+    if (link !== fakeDeviceLink) {
+      saved.deviceLink = link;
+      store.setDeviceLink(fakeDeviceLink);
     }
   });
   for (const [k, v] of Object.entries(DEMO_STORAGE)) localStorage.setItem(k, v);
@@ -194,6 +203,7 @@ export function exitDemo(): string | null {
     }
     store.setMidiOutput(saved.output);
     store.setMidiOutput2(saved.output2);
+    store.setDeviceLink(saved.deviceLink);
   }
   saved = null;
   axios.get('/api/midi').then((r) => store.setMidiFileList(r.data)).catch(() => {});

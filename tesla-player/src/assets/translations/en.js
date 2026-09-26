@@ -403,7 +403,7 @@ export default {
       },
       nav: {
         title: "The pages",
-        text: "Play to perform, Edit to prepare a song, Playlists to chain them, MIDI files for your library. Tuning helps you adjust a coil.",
+        text: "Play to perform, Edit to prepare a song, Playlists to chain them, MIDI files for your library. Tuning helps you adjust a coil, Syntherrupter configures the device itself.",
       },
       output: {
         title: "The output",
@@ -472,6 +472,14 @@ export default {
       tune: {
         title: "Tuning",
         text: "An assistant to find the right tap on the primary, with a phone camera measuring the length of the arcs. The ? button next to the title starts a detailed tour, with a simulated phone.",
+      },
+      syntherrupter: {
+        title: "The Syntherrupter",
+        text: "The settings stored in the Syntherrupter itself, read from the device. For each coil, the safety limits the firmware enforces: max ontime and duty, min ontime and offtime, number of voices. Changing a safety limit asks for confirmation. The page only opens when the app can read the device: a serial link, or its native USB-MIDI port.",
+      },
+      syntherrupterBar: {
+        title: "Apply, save",
+        text: "Further down: the system, the touchscreen and each user account's limits. Apply sends a block to the device, but only Save to EEPROM keeps it after power-off. Reload reads the device again.",
       },
       menu: {
         title: "Settings",

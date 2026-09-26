@@ -407,7 +407,7 @@ export default {
       },
       nav: {
         title: "Les pages",
-        text: "Lecture pour jouer, Édition pour préparer un morceau, Playlists pour les enchaîner, Fichiers MIDI pour ta bibliothèque. Accord aide à régler une bobine.",
+        text: "Lecture pour jouer, Édition pour préparer un morceau, Playlists pour les enchaîner, Fichiers MIDI pour ta bibliothèque. Accord aide à régler une bobine, Syntherrupter configure l'appareil lui-même.",
       },
       output: {
         title: "La sortie",
@@ -476,6 +476,14 @@ export default {
       tune: {
         title: "L'accord",
         text: "Un assistant pour trouver la bonne prise sur le primaire, avec la caméra d'un téléphone qui mesure la longueur des arcs. Le bouton ? à côté du titre lance une visite détaillée, avec un faux téléphone.",
+      },
+      syntherrupter: {
+        title: "Le Syntherrupter",
+        text: "Les réglages enregistrés dans le Syntherrupter lui-même, lus sur l'appareil. Pour chaque bobine, les limites de sécurité imposées par le firmware : ontime et duty max, ontime et offtime min, nombre de voix. Changer une limite de sécurité demande une confirmation. La page ne s'ouvre que si l'app peut lire l'appareil : liaison série, ou son port USB-MIDI natif.",
+      },
+      syntherrupterBar: {
+        title: "Appliquer, sauver",
+        text: "Plus bas : le système, l'écran tactile et les limites de chaque compte utilisateur. Appliquer envoie un bloc à l'appareil, mais seul Sauver en EEPROM le garde après extinction. Recharger relit l'appareil.",
       },
       menu: {
         title: "Réglages",
