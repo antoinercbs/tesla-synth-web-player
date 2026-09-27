@@ -1,21 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { MidiFile } from '@/types/domain';
 import MidiLibraryPanel from '@/components/editor/MidiLibraryPanel.vue';
-import MidiInstrumentsModal from '@/components/settings/MidiInstrumentsModal.vue';
 
 /**
  * Standalone MIDI file management page (sidebar). Shows the same interface as the
  * editor's library modal — reusing {@link MidiLibraryPanel} so there's no
- * duplication — plus the channel-instruments editor. There's no song to select
- * for here, so the panel's `select` event is ignored.
+ * duplication. There's no song to select for here, so the panel's `select`
+ * event is ignored.
  */
-const instrumentsFile = ref<MidiFile | null>(null);
-const showInstruments = ref(false);
-function openInstruments(file: MidiFile): void {
-  instrumentsFile.value = file;
-  showInstruments.value = true;
-}
 </script>
 
 <template>
@@ -26,11 +17,10 @@ function openInstruments(file: MidiFile): void {
 
     <div class="screen-body midi-files">
       <section class="midi-files__panel">
-        <midi-library-panel @edit-instruments="openInstruments" />
+        <midi-library-panel />
       </section>
     </div>
 
-    <midi-instruments-modal :open="showInstruments" :file="instrumentsFile" @close="showInstruments = false" />
   </div>
 </template>
 

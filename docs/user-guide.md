@@ -12,7 +12,7 @@ How to play music on your Tesla coils and configure each song. This covers the w
 - [Live power control](#live-power-control)
 - [Editing a song](#editing-a-song)
 - [Playlists](#playlists)
-- [MIDI files & instruments](#midi-files--instruments)
+- [MIDI files & the MIDI editor](#midi-files--the-midi-editor)
 - [Envelopes](#envelopes)
 - [Language](#language)
 
@@ -106,15 +106,23 @@ In this 3-coil setup, **coils 0 and 1 play channel 1** and **coil 2 plays channe
 
 Go to **Playlists** to group songs into an ordered set for a show. A playlist targets a specific **coil count**; only songs authored for that count are meant to play. Reorder, add and remove songs, then play the playlist from the Play screen (with autoplay for a hands-off set).
 
-## MIDI files & instruments
+## MIDI files & the MIDI editor
 
-The **MIDI files** manager lets you **upload**, **download** and **delete** the `.mid` files your songs use. Each file also has a **per-channel instrument editor**: it rewrites the file's Program Changes so a given channel plays a chosen instrument from the start.
+The **MIDI files** manager lets you **upload**, **download**, **rename**, **replace** and **delete** the `.mid` files your songs use. The pen next to a file (and next to the file field of the song editor) opens the **MIDI editor**:
 
-> ⚠️ Editing a file's instruments changes the **file itself**, so it affects **every song** that uses that file.
+- **Channels (left)**: each channel's **instrument**, the Program Change it starts on, so the envelope it plays on the Syntherrupter. The eye hides a channel, the speaker mutes it while listening, the bin deletes it with its notes. Click a channel's name to select its notes.
+- **Selecting notes**: click, or drag a box; Shift adds, Ctrl toggles. **Select ▾** picks them by criterion, in one channel or all: shorter than a length (ghost notes), below a velocity, from or below a pitch (to split a bass from a melody), the top note of each chord or the rest, the notes beyond a number of voices at once, the same keys as the selection. Drag on the ruler to choose a **passage**: the criteria then stay inside it.
+- **The selection bar** appears at the bottom while notes are selected: move them to another **channel** (they take its instrument; a free channel starts on program 0, choose its instrument in the list), **transpose** (↑ ↓, Shift for an octave), **shift** them by a grid step (← →), set or scale their **velocity** (on the Syntherrupter it is each note's power), copy, duplicate, paste at the cursor, delete.
+- **Drawing**: the **Pencil** (P) adds notes on the channel chosen next to it, drag for their length. With **Select** (V), a double-click adds a note, a right-click deletes one, dragging moves the selection (on the grid, Alt for free) and a note's right edge sets its length. The lane at the bottom paints the velocity.
+- **Passages**: delete one (the rest closes up) or keep it alone; **Trim** removes the silence before the first note.
+- **Listen** (Space) plays the edit on the emulated synth, with its envelopes, from the cursor: everything, or the selection only. It never plays on the coils.
+- **Undo / redo** (Ctrl+Z / Ctrl+Y). **Save** (Ctrl+S) lists what changed and, for each song using the file, the notes now on a channel no coil plays and the coils left with nothing to play.
+
+> ⚠️ Saving rewrites the **file itself**, so it affects **every song** that uses it. The tempo, the controllers and the file's other events are kept.
 
 ## Envelopes
 
-An envelope shapes a note's ontime from note-on to note-off: a sharp piano-like attack, a slow pad, a pulsation… On the Syntherrupter a channel picks one by its **program number** (a MIDI Program Change), so the per-channel instrument editor above is where a file chooses its envelopes.
+An envelope shapes a note's ontime from note-on to note-off: a sharp piano-like attack, a slow pad, a pulsation… On the Syntherrupter a channel picks one by its **program number** (a MIDI Program Change), so the channel list of the MIDI editor above is where a file chooses its envelopes.
 
 The **Envelopes** screen lists the firmware's built-in envelopes (**P0–P19**, read-only) and your own (**P20–P63**):
 

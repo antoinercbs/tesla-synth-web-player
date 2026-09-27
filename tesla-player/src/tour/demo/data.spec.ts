@@ -3,7 +3,7 @@ import SmfParser from '@/smfplayer/js/smfParser.js';
 import { analyzeMidi } from '@/midi/analyze';
 import { buildDemoLibrary } from './data';
 
-// the app reads MIDI as a binary string (see MidiInstrumentsModal)
+// the app reads MIDI as a binary string (see SongEditor's refreshPreview)
 const asString = (bytes: Uint8Array): string => String.fromCharCode(...bytes);
 
 describe('tour demo library', () => {

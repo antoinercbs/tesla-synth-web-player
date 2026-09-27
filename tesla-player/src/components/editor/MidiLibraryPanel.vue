@@ -10,8 +10,8 @@ import EmptyState from "@/components/ui/EmptyState.vue";
 
 /**
  * The MIDI file manager interface: import (button or drop anywhere on it), searchable table,
- * download, delete, and "edit instruments". Owns all its own UI state; talks to
- * the host only through `select` (a file to use) and `edit-instruments`.
+ * download, delete, and a link to the file's editor. Owns all its own UI state; talks to
+ * the host only through `select` (a file to use).
  *
  * Presentational + self-contained, so it can be hosted either inside a modal
  * (the editor's MidiLibraryModal) or directly on a page (MidiFilesView) without
@@ -24,7 +24,6 @@ const props = withDefaults(defineProps<{ currentId?: number | null }>(), {
 });
 const emit = defineEmits<{
     (e: "select", id: number | null): void;
-    (e: "edit-instruments", file: MidiFile): void;
 }>();
 
 const midiStore = useMidiStore();
@@ -361,10 +360,10 @@ function alignDropdown(e: MouseEvent): void {
                         </div>
                     </div>
                     <div class="midi-lib__item-actions">
-                        <button class="midi-lib__dl" type="button" :title="$t('label.editInstruments')"
-                            @click="emit('edit-instruments', f)">
-                            <i class="fas fa-guitar"></i>
-                        </button>
+                        <RouterLink class="midi-lib__dl" :to="{ name: 'midi-edit', params: { id: f.id } }"
+                            :title="$t('midiEditor.open')" :aria-label="$t('midiEditor.open')">
+                            <i class="fas fa-pen-to-square"></i>
+                        </RouterLink>
                         <div class="midi-lib__dropdown" @mouseenter="alignDropdown">
                             <button class="midi-lib__action" type="button" :aria-label="$t('label.moreOptions')">
                                 <i class="fas fa-ellipsis-vertical"></i>

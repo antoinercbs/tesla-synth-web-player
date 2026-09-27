@@ -28,7 +28,7 @@
     <div class="edit-body">
       <div class="edit-body__editor" :style="editorStyle">
         <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" @saved="onSaved"
-          @change="onChange" @deleted="onDeleted" @instruments-saved="onInstrumentsSaved" />
+          @change="onChange" @deleted="onDeleted" />
       </div>
       <resize-handle class="edit-body__split" @resize-start="onDockResizeStart" @resize="onDockResize"
         @resize-end="saveDockWidth" />
@@ -155,11 +155,6 @@ export default {
     },
     onChange(song) {
       this.$refs.player?.loadSong(song)
-    },
-    onInstrumentsSaved() {
-      // the selected file was rewritten on disk → force the embedded player to
-      // re-fetch + re-parse so playback uses the new instruments.
-      this.$refs.player?.reloadMidi()
     },
     onDeleted() {
       // song removed from the store by the editor → back to the chooser

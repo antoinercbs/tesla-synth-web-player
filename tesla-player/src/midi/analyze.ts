@@ -7,6 +7,7 @@
  * It consumes the structure jasmid produces (header.ticksPerBeat + tracks of
  * channel/meta events), so no second byte-level parser is needed.
  */
+import { tempoMap } from "./tempo";
 
 interface ParsedEvent {
   deltaTime: number;
@@ -54,36 +55,6 @@ export interface MidiAnalysis {
   pitchRange: { min: number; max: number };
 }
 
-const DEFAULT_TEMPO = 500000; // µs per beat (120 BPM) until a setTempo appears
-
-/** Build a tick→ms converter from the (tick-stamped) tempo changes. */
-function tickToMsFn(
-  tempos: { tick: number; us: number }[],
-  ticksPerBeat: number,
-): (tick: number) => number {
-  const points = [...tempos].sort((a, b) => a.tick - b.tick);
-  if (points.length === 0 || points[0].tick > 0)
-    points.unshift({ tick: 0, us: DEFAULT_TEMPO });
-  // cumulative ms at the start of each tempo segment
-  const cum: { tick: number; ms: number; us: number }[] = [];
-  let ms = 0;
-  for (let i = 0; i < points.length; i++) {
-    if (i > 0) {
-      const dt = points[i].tick - points[i - 1].tick;
-      ms += (dt * points[i - 1].us) / ticksPerBeat / 1000;
-    }
-    cum.push({ tick: points[i].tick, ms, us: points[i].us });
-  }
-  return (tick: number) => {
-    let seg = cum[0];
-    for (const c of cum) {
-      if (c.tick <= tick) seg = c;
-      else break;
-    }
-    return seg.ms + ((tick - seg.tick) * seg.us) / ticksPerBeat / 1000;
-  };
-}
-
 export function analyzeMidi(parsed: unknown): MidiAnalysis {
   const midi = (parsed ?? {}) as ParsedMidi;
   const ticksPerBeat = midi.header?.ticksPerBeat || 480;
@@ -107,7 +78,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
         e.subtype === "setTempo" && typeof e.microsecondsPerBeat === "number",
     )
     .map((e) => ({ tick: e.tick, us: e.microsecondsPerBeat as number }));
-  const t2ms = tickToMsFn(tempos, ticksPerBeat);
+  const t2ms = tempoMap(tempos, ticksPerBeat).toMs;
 
   // 3. walk events: pair note-on/off, capture first program per channel
   const notes: MidiNote[] = [];

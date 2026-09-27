@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   NotFoundException,
   OnModuleInit,
@@ -12,7 +11,6 @@ import { Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
 import { hashBytes } from '../sync/content-hash';
 import { computeDurationMs } from './midi-duration';
-import { setMidiPrograms, type ProgramSetting } from './midi-programs';
 import { MidiFile } from './entities/midi-file.entity';
 import { computeChannels, computePrograms } from './midi-channels';
 
@@ -126,45 +124,6 @@ export class MidiService implements OnModuleInit {
     } catch {
       return null;
     }
-  }
-
-  /**
-   * Rewrite the on-disk MIDI file so each given channel plays the chosen
-   * instrument (program) from the start. This edits the FILE itself, so it
-   * affects every song that references it. Returns the (unchanged-metadata)
-   * file record.
-   */
-  async setPrograms(
-    id: number,
-    programs: ProgramSetting[],
-    editorName: string | null = null,
-  ): Promise<MidiFileResponse> {
-    const midiFile = await this.midiFileRepository.findOne({ where: { id } });
-    if (!midiFile) {
-      throw new NotFoundException(`MIDI file ${id} not found`);
-    }
-    const filePath = join(UPLOADS_DIR, basename(midiFile.path));
-    let buffer: Buffer;
-    try {
-      buffer = await fs.readFile(filePath);
-    } catch {
-      throw new NotFoundException(`MIDI file ${id} is missing on disk`);
-    }
-    let rewritten: Buffer;
-    try {
-      rewritten = setMidiPrograms(buffer, programs);
-    } catch {
-      throw new BadRequestException('Could not parse/rewrite the MIDI file');
-    }
-    await fs.writeFile(filePath, rewritten);
-    // The file bytes changed → its sync identity must change too, otherwise two
-    // peers would carry different bytes while reporting the same contentHash.
-    midiFile.contentHash = hashBytes(rewritten);
-    midiFile.programs = computePrograms(rewritten);
-    midiFile.updatedAt = Date.now();
-    midiFile.editorName = editorName;
-    const saved = await this.midiFileRepository.save(midiFile);
-    return this.toResponse(saved);
   }
 
   /**

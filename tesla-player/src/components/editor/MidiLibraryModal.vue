@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { MidiFile } from '@/types/domain';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import MidiLibraryPanel from '@/components/editor/MidiLibraryPanel.vue';
 
@@ -13,14 +12,12 @@ defineProps<{ open: boolean; currentId: number | null }>();
 const emit = defineEmits<{
   (e: 'close'): void;
   (e: 'select', id: number | null): void;
-  (e: 'edit-instruments', file: MidiFile): void;
 }>();
 </script>
 
 <template>
   <BaseModal :open="open" :title="$t('title.midiFileManager')" icon="fa-folder-open"
     :close-label="$t('label.closeEditor')" @close="emit('close')">
-    <midi-library-panel :current-id="currentId" @select="emit('select', $event)"
-      @edit-instruments="emit('edit-instruments', $event)" />
+    <midi-library-panel :current-id="currentId" @select="emit('select', $event)" />
   </BaseModal>
 </template>

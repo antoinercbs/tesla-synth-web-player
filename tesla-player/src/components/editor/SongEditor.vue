@@ -3,14 +3,13 @@ import { computed, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
-import type { AppTag, CoilConfig, CoilEvent, MidiFile, Song, SongStereo } from '@/types/domain';
+import type { AppTag, CoilConfig, CoilEvent, Song, SongStereo } from '@/types/domain';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { notify } from '@/utils/toast';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
-import MidiInstrumentsModal from '@/components/settings/MidiInstrumentsModal.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import MidiLibraryModal from '@/components/editor/MidiLibraryModal.vue';
 import StereoSection from '@/components/editor/StereoSection.vue';
@@ -27,7 +26,6 @@ const emit = defineEmits<{
   (e: 'saved', song: Song): void;
   (e: 'change', song: Song): void;
   (e: 'deleted', id: number): void;
-  (e: 'instruments-saved', file: MidiFile): void;
 }>();
 
 const midiStore = useMidiStore();
@@ -196,13 +194,11 @@ function bufferToString(buffer: ArrayBuffer): string {
   try { return decodeURIComponent(escape(binary)); } catch { return binary; }
 }
 
-async function refreshPreview(bust = false): Promise<void> {
+async function refreshPreview(): Promise<void> {
   const file = midiStore.midiFileList.find((f) => f.id === draft.midiFileId);
   if (!file) { analysis.value = null; return; }
   try {
-    // `bust` forces a fresh fetch after the file was rewritten (instrument edit)
-    const url = file.path.replace(/^\./, '') + (bust ? `?t=${Date.now()}` : '');
-    const { data } = await axios.get(url, { responseType: 'arraybuffer' });
+    const { data } = await axios.get(file.path.replace(/^\./, ''), { responseType: 'arraybuffer' });
     const parser = new SmfParser();
     analysis.value = analyzeMidi(parser.parse(bufferToString(data as ArrayBuffer)));
   } catch {
@@ -211,22 +207,7 @@ async function refreshPreview(bust = false): Promise<void> {
 }
 watch(() => draft.midiFileId, () => refreshPreview(), { immediate: true });
 
-// --- per-channel instrument editor (edits the MIDI FILE, affects all songs) ----
-const instrumentsFile = ref<MidiFile | null>(null);
-const showInstruments = ref(false);
 const selectedFile = computed(() => midiStore.midiFileList.find((f) => f.id === draft.midiFileId) ?? null);
-function openInstruments(file: MidiFile): void {
-  instrumentsFile.value = file;
-  showInstruments.value = true;
-}
-function onInstrumentsSaved(file: MidiFile): void {
-  // the file on disk changed → re-read the preview if it's the one in the editor,
-  // and tell the embedded player to re-fetch so playback isn't stale.
-  if (file.id === draft.midiFileId) {
-    refreshPreview(true);
-    emit('instruments-saved', file);
-  }
-}
 
 // Reflect every edit into the embedded debug player (no manual "load" step).
 function emitChange(): void {
@@ -273,9 +254,13 @@ const showLibrary = ref(false);
         <div class="midi-field">
           <SearchableSelect v-model="draft.midiFileId" :items="midiFileItems" :label="$t('label.midiFile')"
             :placeholder="$t('label.chooseAMidiFile')" :clear-label="$t('label.noAssociatedMidiFile')" clearable />
-          <button class="field-btn" type="button" :disabled="!selectedFile" :title="$t('label.editInstruments')"
-            @click="selectedFile && openInstruments(selectedFile)">
-            <i class="fas fa-guitar"></i>
+          <!-- leaves the song, as the sidebar does: what isn't saved here is not kept -->
+          <RouterLink v-if="selectedFile" class="field-btn" :to="{ name: 'midi-edit', params: { id: selectedFile.id } }"
+            :title="$t('midiEditor.open')" :aria-label="$t('midiEditor.open')">
+            <i class="fas fa-pen-to-square"></i>
+          </RouterLink>
+          <button v-else class="field-btn" type="button" disabled :title="$t('midiEditor.open')" :aria-label="$t('midiEditor.open')">
+            <i class="fas fa-pen-to-square"></i>
           </button>
           <button class="field-btn" type="button" :title="$t('title.midiFileManager')" @click="showLibrary = true">
             <i class="fas fa-folder-open"></i>
@@ -360,10 +345,8 @@ const showLibrary = ref(false);
       @close="confirmDeleteSong = false" />
 
     <MidiLibraryModal :open="showLibrary" :current-id="draft.midiFileId" @close="showLibrary = false"
-      @select="draft.midiFileId = $event" @edit-instruments="openInstruments" />
+      @select="draft.midiFileId = $event" />
 
-    <MidiInstrumentsModal :open="showInstruments" :file="instrumentsFile" @close="showInstruments = false"
-      @saved="onInstrumentsSaved" />
   </div>
 </template>
 

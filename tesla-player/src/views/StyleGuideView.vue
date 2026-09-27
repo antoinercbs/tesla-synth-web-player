@@ -125,7 +125,7 @@ const on = ref(true);
       <section class="sg-block">
         <h2 class="sg-title">Feedback</h2>
         <div class="sg-row">
-          <button class="btn" type="button" @click="notify('label.instrumentsSaved')">Toast: success</button>
+          <button class="btn" type="button" @click="notify('label.songSaved')">Toast: success</button>
           <button class="btn" type="button" @click="notify('label.loading', 'info')">Toast: info</button>
           <button class="btn" type="button" @click="notify('label.uploadFailed', 'error')">Toast: error</button>
         </div>

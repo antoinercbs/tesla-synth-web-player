@@ -27,6 +27,13 @@ const routes: RouteRecordRaw[] = [
     name: "midi",
     component: () => import("@/views/MidiFilesView.vue"),
   },
+  // `nav` lights the sidebar entry the page belongs to (it isn't a child route of it)
+  {
+    path: "/midi/:id/edit",
+    name: "midi-edit",
+    component: () => import("@/views/MidiEditView.vue"),
+    meta: { nav: "midi" },
+  },
   {
     path: "/envelopes/:program?",
     name: "envelopes",

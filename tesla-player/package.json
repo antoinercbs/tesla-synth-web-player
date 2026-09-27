@@ -20,6 +20,7 @@
     "bulma": "^0.9.3",
     "jzz": "^1.9.6",
     "leaflet": "^1.9.4",
+    "midi-file": "^1.2.4",
     "oidc-client-ts": "^3.5.0",
     "pinia": "^3.0.4",
     "qrcode": "^1.5.4",

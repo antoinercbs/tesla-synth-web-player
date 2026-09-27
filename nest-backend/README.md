@@ -55,7 +55,6 @@ All routes are under the global `/api` prefix.
 | POST   | `/api/midi`              | multipart `file` field |
 | PUT    | `/api/midi/:id/file`     | replaces the bytes in place, keeping the path/uuid (affects every song using it) |
 | PATCH  | `/api/midi/:id/name`     | renames the library entry (does not touch the file on disk) |
-| PATCH  | `/api/midi/:id/programs` | rewrites the file's per-channel instruments (affects every song using it) |
 | DELETE | `/api/midi/:id`          | also deletes the file on disk |
 | GET    | `/api/playlists`         | |
 | POST   | `/api/playlists`         | |

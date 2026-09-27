@@ -15,7 +15,6 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EditorName } from '../auth/editor-name.decorator';
-import { SetProgramsDto } from './dto/set-programs.dto';
 import { midiUploadOptions } from './midi-upload.config';
 import { MidiFileResponse, MidiService } from './midi.service';
 
@@ -42,22 +41,9 @@ export class MidiController {
   }
 
   /**
-   * Rewrite the per-channel instruments (Program Changes) of the MIDI FILE.
-   * This edits the file on disk → it affects every song that uses it.
-   */
-  @Patch(':id/programs')
-  setPrograms(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: SetProgramsDto,
-    @EditorName() editorName: string | null,
-  ): Promise<MidiFileResponse> {
-    return this.midiService.setPrograms(id, dto.programs, editorName);
-  }
-
-  /**
-   * Swap the bytes of an existing entry, keeping its path and uuid. Like
-   * :id/programs this edits the FILE → it affects every song that uses it (their
-   * per-coil channel masks are NOT remapped). The library name is kept: it may
+   * Swap the bytes of an existing entry, keeping its path and uuid (the MIDI
+   * editor saves through here). This edits the FILE → it affects every song that
+   * uses it (their per-coil channel masks are NOT remapped). The library name is kept: it may
    * have been chosen through :id/name and is not tied to the file on disk.
    *
    * No `storage` here on purpose — the default memory storage is what gives us
