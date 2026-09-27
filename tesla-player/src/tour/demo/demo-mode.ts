@@ -45,9 +45,11 @@ function demoFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Respon
 }
 
 // what the pages read from storage when they mount: the player opens on the coil
-// lanes (the editor's dock), the tuning page on short trials over the fake phone's range
+// lanes, the play page on songs (its tour switches to Live and back), the tuning
+// page on short trials over the fake phone's range
 const DEMO_STORAGE: Record<string, string> = {
   playerViz: 'lanes',
+  playMode: 'playback',
   tuneMode: 'tune',
   tuningSetup: JSON.stringify({
     coilIndex: 0, fiberIndex: 0, primaryTurns: 8, tapMin: 4, tapMax: 8, tapStep: 0.25,
@@ -181,10 +183,9 @@ export function reassertDemo(): void {
   if (!store.midiSongList.some((s) => s.id === lib?.songs[0].id)) applyLibrary(lib);
 }
 
-/** Leave demo mode; returns the player view the user had (see the overlay's cleanup). */
-export function exitDemo(): string | null {
-  if (!lib) return null;
-  const viz = saved?.storage.playerViz ?? null;
+/** Leave demo mode. The pages that read the demo are gone by then (see the overlay's cleanup). */
+export function exitDemo(): void {
+  if (!lib) return;
   guard?.();
   guard = null;
   if (interceptor !== null) axios.interceptors.request.eject(interceptor);
@@ -216,5 +217,4 @@ export function exitDemo(): string | null {
   axios.get('/api/tags').then((r) => store.setTagList(r.data)).catch(() => {});
   axios.get('/api/envelopes').then((r) => store.setEnvelopeList(r.data)).catch(() => {});
   store.bumpDataRevision();
-  return viz;
 }

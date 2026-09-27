@@ -22,6 +22,7 @@ How to play music on your Tesla coils and configure each song. This covers the w
 
 - **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, language, desktop download / sync).
 - **Main area**: the current screen (Play, Edit, ...)
+- **Guided tours**: the app tour (offered on the first visit, then in the **⋯** menu) shows how the pages fit together; the **?** beside each page's title runs that page's own, detailed tour. Both run on demo data: nothing is saved and nothing reaches the coils.
 
 ## Choosing your outputs
 

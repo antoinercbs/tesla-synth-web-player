@@ -16,6 +16,7 @@ import SelectMenu from '@/components/midi-editor/SelectMenu.vue';
 import SelectionBar from '@/components/midi-editor/SelectionBar.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 
 /**
  * The MIDI file editor: select notes in bulk and change their channel (so their
@@ -313,6 +314,7 @@ const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
         <span class="icon"><i class="fas fa-arrow-left"></i></span>{{ $t('nav.midi') }}
       </button>
       <h1 class="view-head__title me-head__title">{{ file?.name ?? $t('midiEditor.title') }}</h1>
+      <page-tour-button v-if="!dirty" id="midiEdit" />
       <span class="me-head__meta">{{ meta }}</span>
       <span v-if="uses.length" class="me-uses" :title="uses.map((s) => s.name).join('\n')">
         <i class="fas fa-music"></i>{{ $t('midiEditor.usedBy', uses.length) }}

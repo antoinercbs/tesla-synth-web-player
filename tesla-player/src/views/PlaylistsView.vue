@@ -5,6 +5,7 @@ import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import PlaylistManager from '@/components/playlists/PlaylistManager.vue';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 import type { Playlist } from '@/types/domain';
 
 const route = useRoute();
@@ -100,7 +101,7 @@ onBeforeUnmount(() => {
   <!-- chooser: pick an existing playlist or create a new one -->
   <div v-if="isChooser" class="edit-chooser">
     <div class="edit-chooser__card">
-      <h1 class="view-head__title">{{ $t('nav.playlists') }}</h1>
+      <h1 class="view-head__title">{{ $t('nav.playlists') }}<page-tour-button id="playlists" /></h1>
       <p class="edit-chooser__hint">{{ $t('label.chooseOrCreatePlaylist') }}</p>
       <div class="edit-chooser__actions">
         <searchable-select class="edit-chooser__pick" v-model="chooserPick" :items="playlistItems"
@@ -116,7 +117,7 @@ onBeforeUnmount(() => {
   <!-- editor -->
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
-      <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}</h1>
+      <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}<page-tour-button id="playlists" /></h1>
       <RouterLink class="icon-btn" :to="{ name: 'playlists', params: {} }" :title="$t('label.closeEditor')"
         :aria-label="$t('label.closeEditor')">
         <i class="fas fa-xmark"></i>

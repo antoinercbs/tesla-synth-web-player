@@ -388,161 +388,501 @@ export default {
     prev: "Précédent",
     finish: "Terminer",
     skip: "Passer la visite",
-    tuneStart: "Visite de l'accord",
+    pageStart: "Visite de cette page",
     phoneCaption: "L'écran du téléphone (simulé)",
     phoneMove: "Déplacer le téléphone",
+    names: {
+      main: "Visite générale",
+      play: "Visite · Lecture",
+      edit: "Visite · Édition",
+      playlists: "Visite · Playlists",
+      midi: "Visite · Fichiers MIDI",
+      midiEdit: "Visite · Éditeur MIDI",
+      envelopes: "Visite · Enveloppes",
+      tune: "Visite · Accord",
+      syntherrupter: "Visite · Syntherrupter",
+    },
     steps: {
       welcome: {
-        title: "La visite",
-        text: "Un tour rapide de l'app, sur des données de démo : rien de ce que tu vois pendant la visite n'est enregistré. Échap pour la quitter, les flèches pour avancer.",
+        title: "Bienvenue",
+        text: "Le chemin d'un morceau, des réglages jusqu'à la scène, en quelques étapes. Chaque page a ensuite sa visite détaillée.",
+        points: [
+          "Réglages",
+          "Lecture",
+          "Fichier MIDI",
+          "Morceau",
+          "Playlist",
+          "Matériel",
+        ],
+        note: "Sur des données de démo : rien n'est enregistré, rien ne part vers les bobines. [Échap] pour quitter, [←] [→] pour avancer.",
       },
       nav: {
         title: "Les pages",
-        text: "Lecture pour jouer, Édition pour préparer un morceau, Playlists pour les enchaîner, Fichiers MIDI pour ta bibliothèque. Accord aide à régler une bobine, Syntherrupter configure l'appareil lui-même.",
+        text: "Deux groupes de pages.",
+        points: [
+          "**En haut**, ce que tu prépares et joues : Lecture, Édition, Playlists, Fichiers MIDI, Enveloppes.",
+          "**En bas**, le matériel : Accord pour régler une bobine, Syntherrupter pour l'appareil lui-même, quand l'app peut le lire.",
+        ],
+      },
+      settings: {
+        title: "Les paramètres généraux",
+        text: "Le menu **⋯** ouvre les réglages de l'instance, à faire une fois :",
+        points: [
+          "**Configuration générale** : les bobines de l'installation, combien il y en a et leurs noms ;",
+          "les **étiquettes** qui classent les morceaux ;",
+          "la **langue** et les **couleurs** de l'interface.",
+        ],
       },
       output: {
         title: "La sortie",
-        text: "Où partent les notes. Synthé : une émulation dans le navigateur, sans matériel. MIDI : une interface MIDI ou un Syntherrupter. Série : un Syntherrupter branché en USB.",
+        text: "Où partent les notes :",
+        points: [
+          "**Synthé** : une émulation dans le navigateur, sans matériel ;",
+          "**MIDI** : une interface MIDI ou un Syntherrupter ;",
+          "**Série** : un Syntherrupter branché en USB.",
+        ],
       },
       coils: {
         title: "Les bobines",
-        text: "Chaque bobine a sa couleur, la même partout dans l'app. Leurs noms se règlent dans la configuration générale, depuis le menu ⋯.",
+        text: "Chaque bobine a sa couleur, la même partout dans l'app.",
+        note: "Leur nombre et leurs noms viennent de la configuration générale.",
       },
-      modes: {
-        title: "Trois façons de jouer",
-        text: "Playback joue des morceaux préparés. Live MIDI relaie un clavier MIDI ou le clavier de l'ordinateur. Fixe envoie une note continue à chaque bobine.",
+      pathPlay: {
+        title: "1. Sur scène",
+        text: "Tout commence ici : **Lecture** joue un morceau ou une playlist.",
+        points: [
+          "La **puissance** et le bouton **Panic** restent sous la main.",
+          "Le mode **Live** joue en direct, depuis un clavier MIDI ou celui de l'ordinateur.",
+        ],
       },
-      songs: {
-        title: "Les morceaux",
-        text: "▶ lance un morceau, + l'ajoute à la file, le crayon ouvre l'édition. L'onglet Playlists joue une playlist entière.",
+      pathMidi: {
+        title: "2. Un fichier MIDI",
+        text: "Un morceau part d'un fichier MIDI : importe-le ici.",
+        points: [
+          "Chaque **canal** du fichier est une voix que tu confieras aux bobines.",
+          "L'**éditeur MIDI** déplace des notes d'un canal à l'autre, change leur instrument ou en retire.",
+        ],
       },
-      dynamics: {
-        title: "Variations de puissance",
-        text: "La courbe Morceau règle la puissance de toutes les bobines au fil du morceau : un point la change à un moment, d'un coup ou progressivement depuis le point précédent. Par bobine ajoute une courbe par bobine par-dessus. Le curseur Puissance du lecteur s'applique toujours en plus.",
+      pathSong: {
+        title: "3. Un morceau",
+        text: "Un morceau relie un fichier aux bobines :",
+        points: [
+          "les **canaux** que joue chaque bobine, et sa puissance ;",
+          "leur **place sur scène** : la spatialisation ;",
+          "la **puissance** au fil du morceau.",
+        ],
       },
-      vizVu: {
-        title: "Visualisation : le VU",
-        text: "Une colonne par canal MIDI. Pendant la lecture, elle s'allume dans la couleur de la bobine que ce canal fait jouer, ou de plusieurs à la fois.",
+      pathPlaylist: {
+        title: "4. Une playlist",
+        text: "Une playlist enchaîne des morceaux écrits pour le même nombre de bobines, pour un spectacle d'un seul tenant.",
       },
-      vizScore: {
-        title: "Visualisation : la partition",
-        text: "Toutes les notes du fichier MIDI, colorées selon la bobine qui les joue. Les hachures signalent une note jouée par plusieurs bobines.",
+      pathTune: {
+        title: "Le matériel : l'accord",
+        text: "Un assistant pour accorder le primaire d'une bobine : un téléphone filme les arcs et mesure leur longueur à chaque essai.",
       },
-      vizLanes: {
-        title: "Visualisation : l'occupation",
-        text: "Une ligne par bobine, et une pour les enceintes : on voit d'un coup d'œil ce que joue chacune, et la hauteur des blocs suit le niveau que donnent les variations de puissance.",
+      pathSyntherrupter: {
+        title: "Le matériel : le Syntherrupter",
+        text: "Les réglages et les limites de sécurité enregistrés dans l'appareil lui-même.",
+        note: "La page n'apparaît dans le menu que lorsque l'app peut lire le Syntherrupter.",
       },
-      vizParam: {
-        title: "Ontime ou duty",
-        text: "Les onglets Ontime et Duty choisissent le réglage affiché dans les lignes des bobines. Chaque niveau est un pourcentage de la valeur de la fiche de la bobine : 100 % la laisse telle quelle.",
+      pathEnvelopes: {
+        title: "Pour aller plus loin : les enveloppes",
+        text: "Sur le Syntherrupter, l'instrument d'un canal est une enveloppe : l'attaque, la tenue et l'extinction de chaque note. Celles du firmware suffisent pour commencer.",
+        note: "Réglage avancé : ici, tu crées les tiennes, quand tu voudras un son à toi.",
       },
-      vizCombined: {
-        title: "Visualisation : le combiné",
-        text: "La partition au-dessus des lignes de bobines, pour relier chaque note à la bobine qu'elle fait jouer.",
-      },
-      power: {
-        title: "La puissance",
-        text: "Règle l'intensité de toutes les bobines pendant la lecture. À 100 %, les réglages du morceau s'appliquent tels quels. Au-delà, c'est de la surpuissance.",
-      },
-      transport: {
-        title: "Lecture et sécurité",
-        text: "Le morceau de démo joue, en silence : pendant la visite, rien ne part vers les bobines. Play et Stop pilotent la lecture, Panic coupe immédiatement toutes les notes : en cas de doute, c'est le bon bouton.",
-      },
-      editor: {
-        title: "Préparer un morceau",
-        text: "Un morceau associe un fichier MIDI à des réglages de bobines. Ouvre un morceau existant ou crées-en un, puis choisis son fichier MIDI.",
-      },
-      coilCards: {
-        title: "Canaux et réglages",
-        text: "Pour chaque bobine, choisis les canaux MIDI qu'elle joue, puis son ontime et son duty. Plus ils sont hauts, plus l'arc est puissant.",
-      },
-      midi: {
-        title: "Tes fichiers MIDI",
-        text: "Importe des fichiers .mid ici, ou glisse-les n'importe où sur la page. Le tableau montre leur durée, leurs canaux, leurs instruments et les morceaux qui les utilisent.",
-      },
-      playlists: {
-        title: "Les playlists",
-        text: "Compose une playlist depuis ta bibliothèque, puis réordonne-la. Elle se joue ensuite depuis la page Lecture.",
-      },
-      tune: {
-        title: "L'accord",
-        text: "Un assistant pour trouver la bonne prise sur le primaire, avec la caméra d'un téléphone qui mesure la longueur des arcs. Le bouton ? à côté du titre lance une visite détaillée, avec un faux téléphone.",
-      },
-      syntherrupter: {
-        title: "Le Syntherrupter",
-        text: "Les réglages enregistrés dans le Syntherrupter lui-même, lus sur l'appareil. Pour chaque bobine, les limites de sécurité imposées par le firmware : ontime et duty max, ontime et offtime min, nombre de voix. Changer une limite de sécurité demande une confirmation. La page ne s'ouvre que si l'app peut lire l'appareil : liaison série, ou son port USB-MIDI natif.",
-      },
-      syntherrupterBar: {
-        title: "Appliquer, sauver",
-        text: "Plus bas : le système, l'écran tactile et les limites de chaque compte utilisateur. Appliquer envoie un bloc à l'appareil, mais seul Sauver en EEPROM le garde après extinction. Recharger relit l'appareil.",
-      },
-      menu: {
-        title: "Réglages",
-        text: "La langue, les couleurs de l'interface, la configuration générale, et cette visite à relancer quand tu veux.",
+      pageTours: {
+        title: "Une visite par page",
+        text: "Chaque page a sa visite détaillée : le **?** à côté de son titre.",
+        points: [
+          "Il pulse tant que tu ne l'as pas ouverte.",
+          "Commence par celle de **Lecture**.",
+        ],
       },
       done: {
         title: "C'est parti",
         text: "Choisis une sortie, lance un morceau et regarde les bobines jouer.",
+        note: "En cas de doute sur une page, son **?** t'attend.",
+      },
+      modes: {
+        title: "Trois façons de jouer",
+        text: "Le sélecteur choisit comment jouer :",
+        points: [
+          "**Playback** joue des morceaux préparés ;",
+          "**Live MIDI** relaie un clavier MIDI ou le clavier de l'ordinateur ;",
+          "**Fixe** envoie une note continue à chaque bobine.",
+        ],
+      },
+      live: {
+        title: "Le mode Live",
+        text: "Joue en direct, sans morceau préparé.",
+        points: [
+          "Un **clavier MIDI** branché, le **clavier de l'ordinateur** ou le **piano** à l'écran.",
+          "Choisis le **canal** joué : les bobines qui l'écoutent suivent tes notes.",
+        ],
+      },
+      songs: {
+        title: "Les morceaux",
+        text: "Ta bibliothèque de morceaux.",
+        points: [
+          "**▶** lance un morceau, **+** l'ajoute à la file ;",
+          "le **crayon** l'ouvre dans l'édition ;",
+          "l'onglet **Playlists** joue une playlist entière.",
+        ],
+      },
+      transport: {
+        title: "Lecture et sécurité",
+        text: "Le morceau de démo joue, en silence : pendant la visite, rien ne part vers les bobines.",
+        points: [
+          "**Play** et **Stop** pilotent la lecture.",
+          "**Exécuter la config.** renvoie les réglages du morceau aux bobines.",
+        ],
+        note: "**Panic** coupe immédiatement toutes les notes : en cas de doute, c'est le bon bouton.",
+      },
+      vizVu: {
+        title: "Vue : le VU",
+        text: "Une colonne par canal MIDI : pendant la lecture, elle s'allume dans la couleur de la bobine que ce canal fait jouer, ou de plusieurs à la fois.",
+      },
+      vizScore: {
+        title: "Vue : la partition",
+        text: "Toutes les notes du fichier, colorées selon la bobine qui les joue.",
+        note: "Les hachures signalent une note jouée par plusieurs bobines.",
+      },
+      vizLanes: {
+        title: "Vue : l'occupation",
+        text: "Une ligne par bobine, et une pour les enceintes : ce que joue chacune, d'un coup d'œil.",
+        note: "La hauteur des blocs suit le niveau que donnent les variations de puissance.",
+      },
+      vizCombined: {
+        title: "Vue : le combiné",
+        text: "La partition au-dessus des lignes des bobines, pour relier chaque note à la bobine qu'elle fait jouer.",
+      },
+      vizParam: {
+        title: "Ontime ou duty",
+        text: "Les onglets **Ontime** et **Duty** choisissent le réglage affiché dans les lignes des bobines.",
+        note: "Chaque niveau est un pourcentage de la valeur de la fiche de la bobine : 100 % la laisse telle quelle.",
+      },
+      power: {
+        title: "La puissance",
+        text: "Règle l'intensité de toutes les bobines pendant la lecture. À **100 %**, les réglages du morceau s'appliquent tels quels.",
+        note: "Au-delà de 100 %, c'est de la surpuissance : à manier avec prudence.",
+      },
+      playDone: {
+        title: "À toi de jouer",
+        text: "Choisis une sortie dans la barre latérale, lance un morceau et garde la main sur la puissance.",
+        note: "Le **?** à côté du titre relance cette visite.",
+      },
+      editor: {
+        title: "Préparer un morceau",
+        text: "Un morceau associe un fichier MIDI à des réglages de bobines.",
+        points: [
+          "Ouvre un morceau existant ou crées-en un.",
+          "Donne-lui un nom et des **étiquettes** pour le retrouver dans Lecture.",
+        ],
+      },
+      editFile: {
+        title: "Le fichier MIDI",
+        text: "Le fichier que joue le morceau.",
+        points: [
+          "Le **crayon** ouvre l'éditeur MIDI.",
+          "Le **dossier** ouvre la bibliothèque des fichiers.",
+        ],
+        note: "L'éditeur MIDI quitte cette page : enregistre le morceau avant.",
+      },
+      coilCards: {
+        title: "Canaux et réglages",
+        text: "Une fiche par bobine :",
+        points: [
+          "les **canaux MIDI** qu'elle joue ;",
+          "son **ontime** et son **duty** : plus ils sont hauts, plus l'arc est puissant.",
+        ],
+      },
+      stereo: {
+        title: "La spatialisation",
+        text: "Place les bobines de gauche à droite : une note ne joue que sur celles proches de sa position.",
+        points: [
+          "La position vient du **pan** du fichier, ou de la **hauteur** de la note.",
+          "De quoi faire voyager une mélodie d'une bobine à l'autre.",
+        ],
+      },
+      dynamics: {
+        title: "Variations de puissance",
+        text: "La courbe **Morceau** règle la puissance de toutes les bobines au fil du morceau.",
+        points: [
+          "Un point la change à un moment, d'un coup ou progressivement.",
+          "**Par bobine** ajoute une courbe par bobine par-dessus.",
+        ],
+        note: "Le curseur **Puissance** du lecteur s'applique toujours en plus.",
+      },
+      editPlayer: {
+        title: "Le lecteur intégré",
+        text: "Il joue le morceau tel qu'il est réglé ici, même avant d'enregistrer : les mêmes vues et la même puissance que dans Lecture.",
+      },
+      editDone: {
+        title: "Enregistrer",
+        text: "**Enregistrer** garde le morceau : il rejoint la liste de Lecture et peut entrer dans une playlist.",
+        note: "Le **?** à côté du titre relance cette visite.",
+      },
+      plMeta: {
+        title: "Une playlist",
+        text: "Son nom et son nombre de bobines.",
+        note: "Une playlist ne réunit que des morceaux écrits pour ce nombre de bobines.",
+      },
+      plLibrary: {
+        title: "La bibliothèque",
+        text: "Tes morceaux :",
+        points: [
+          "**+** en ajoute un à la playlist, ou glisse-le dans la liste de droite ;",
+          "ceux écrits pour un autre nombre de bobines sont signalés.",
+        ],
+      },
+      plOrder: {
+        title: "L'ordre",
+        text: "L'ordre de passage :",
+        points: [
+          "glisse les morceaux pour les réordonner ;",
+          "retire ceux qui n'ont plus leur place ;",
+          "la durée totale s'affiche en haut.",
+        ],
+      },
+      plDone: {
+        title: "La jouer",
+        text: "Enregistre la playlist, puis lance-la depuis Lecture, onglet **Playlists** : ses morceaux s'enchaînent dans la file.",
+        note: "Le **?** à côté du titre relance cette visite.",
+      },
+      midi: {
+        title: "Tes fichiers MIDI",
+        text: "Pour chaque fichier : sa durée, ses canaux, ses instruments et les morceaux qui l'utilisent.",
+        note: "Survole « Utilisé par » pour ouvrir l'un d'eux.",
+      },
+      midiImport: {
+        title: "Importer",
+        text: "Ajoute des fichiers .mid à la bibliothèque :",
+        points: [
+          "avec le bouton **Importer**, ou en les glissant n'importe où sur la page ;",
+          "la recherche filtre la liste par nom.",
+        ],
+      },
+      midiActions: {
+        title: "Éditer un fichier",
+        text: "Sur chaque ligne :",
+        points: [
+          "le **crayon** ouvre l'éditeur MIDI : sélectionner des notes en masse, changer leur canal ou leur instrument, les transposer, en dessiner ;",
+          "**⋮** pour renommer, remplacer, télécharger ou supprimer le fichier.",
+        ],
+      },
+      midiDone: {
+        title: "Un fichier, plusieurs morceaux",
+        text: "Modifier un fichier change tous les morceaux qui l'utilisent.",
+        note: "L'éditeur MIDI a sa propre visite, derrière son **?**.",
+      },
+      meIntro: {
+        title: "L'éditeur MIDI",
+        text: "Pour retravailler un fichier :",
+        points: [
+          "déplacer des notes d'un canal à l'autre et changer d'instrument ;",
+          "transposer, régler la vélocité ;",
+          "dessiner des notes, couper un passage.",
+        ],
+        note: "Ici sur un fichier de démo : rien n'est enregistré.",
+      },
+      meChannels: {
+        title: "Les canaux",
+        text: "L'instrument de chaque canal : son Program Change, l'enveloppe qu'il joue.",
+        points: [
+          "L'**œil** le masque, le **haut-parleur** le coupe à l'écoute, la **corbeille** le supprime avec ses notes.",
+          "Un clic sur son **nom** sélectionne ses notes.",
+        ],
+      },
+      meRoll: {
+        title: "Le piano roll",
+        text: "Les notes, colorées par canal :",
+        points: [
+          "**Clic** ou **rectangle** pour choisir des notes, [Maj] pour en ajouter.",
+          "**Glisser** déplace la sélection sur la grille ([Alt] : librement) ; le bord droit d'une note change sa durée.",
+          "**Double-clic** ajoute une note, **clic droit** la supprime.",
+          "**Glisser sur la règle** choisit un passage : le supprimer, ou ne garder que lui.",
+        ],
+      },
+      meSelect: {
+        title: "Sélectionner par critère",
+        text: "Dans un canal ou tous, et dans le passage s'il y en a un :",
+        points: [
+          "les notes trop courtes ou trop faibles ;",
+          "au-dessus ou sous une hauteur ;",
+          "la plus haute de chaque accord, ou celles au-delà d'un nombre de voix.",
+        ],
+        note: "[Maj]+clic sur **Choisir** ajoute à la sélection.",
+      },
+      meSelBar: {
+        title: "La barre de sélection",
+        text: "Elle apparaît dès que des notes sont choisies (ici, un canal entier) :",
+        points: [
+          "**Canal** : les déplacer, et donc changer leur instrument ;",
+          "**transposer** ([↑] [↓]) et **décaler** ([←] [→]) ;",
+          "**Vélocité**, copier, dupliquer, supprimer.",
+        ],
+      },
+      meVelocity: {
+        title: "La vélocité",
+        text: "Une barre par note : glisse dans la bande pour la peindre.",
+        note: "Sur le Syntherrupter, l'ontime suit la vélocité : c'est la puissance de chaque note.",
+      },
+      meListen: {
+        title: "Écouter",
+        text: "[Espace] joue l'édition sur le synthé émulé, avec les enveloppes, depuis le curseur : tout, ou la sélection seule.",
+        note: "Jamais sur les bobines : c'est pour entendre avant d'enregistrer.",
+      },
+      meDone: {
+        title: "Enregistrer",
+        text: "Annuler et rétablir ([Ctrl]+[Z], [Ctrl]+[Y]) gardent tout l'historique.",
+        points: [
+          "**Enregistrer** liste les changements et, pour chaque morceau qui utilise le fichier, les notes qu'aucune bobine ne jouera.",
+        ],
+        note: "C'est le fichier lui-même qui est réécrit : tous ses morceaux changent.",
+      },
+      envLibrary: {
+        title: "La bibliothèque",
+        text: "Deux familles d'enveloppes :",
+        points: [
+          "**les tiennes** (programmes 20 à 63), modifiables ;",
+          "**celles du firmware** (0 à 19), en lecture seule : **Dupliquer** en fait une copie à modifier.",
+        ],
+      },
+      envIdent: {
+        title: "Nom et programme",
+        text: "Le numéro de programme est ce qu'un canal choisit par son Program Change.",
+        points: [
+          "De **20 à 39**, l'enveloppe peut rester dans l'EEPROM de l'appareil ; de **40 à 63**, elle s'efface à son redémarrage.",
+          "À droite, les fichiers qui la jouent.",
+        ],
+        note: "L'app l'envoie de toute façon avec chaque morceau.",
+      },
+      envGraph: {
+        title: "La courbe",
+        text: "L'ontime d'une note, de l'appui au relâchement.",
+        points: [
+          "**Glisse** les points pour modeler chaque étape.",
+          "**Double-clique** pour ajouter une étape.",
+        ],
+        note: "La ligne du note-off marque la durée de la note de test.",
+      },
+      envSteps: {
+        title: "Les étapes",
+        text: "Les mêmes étapes en chiffres : niveau, durée et courbure.",
+        points: [
+          "Si la note est tenue après la dernière : **tenir** le niveau, **boucler** (pulsation, trémolo) ou **relâcher**.",
+          "Le **relâchement** part au note-off.",
+        ],
+      },
+      envTest: {
+        title: "Tester",
+        text: "Écoute l'enveloppe avant même de l'enregistrer :",
+        points: [
+          "sur le **synthé** émulé ;",
+          "sur **une bobine**, à un ontime choisi.",
+        ],
+      },
+      envDone: {
+        title: "L'utiliser",
+        text: "Enregistre-la, puis choisis-la comme instrument d'un canal, dans l'éditeur MIDI.",
+        note: "Le **?** à côté du titre relance cette visite.",
       },
       tuneIntro: {
         title: "L'accord du primaire",
-        text: "L'accord cherche la position de prise qui donne les arcs les plus longs. Un téléphone filme la bobine, l'app joue quelques notes et mesure les arcs, et tu compares les essais. Pour cette visite, un faux téléphone répond, et rien ne part vers les bobines.",
+        text: "L'accord cherche la position de prise qui donne les arcs les plus longs.",
+        points: [
+          "Un téléphone filme la bobine.",
+          "L'app joue quelques notes et mesure les arcs.",
+          "Tu compares les essais.",
+        ],
+        note: "Pour cette visite, un faux téléphone répond, et rien ne part vers les bobines.",
       },
       tuneCoil: {
         title: "La bobine",
-        text: "La bobine à accorder et la sortie fibre du Syntherrupter qui la commande. Ontime, duty et enveloppe font le son de test : garde les mêmes d'une séance à l'autre pour pouvoir comparer.",
+        text: "La bobine à accorder et la sortie fibre du Syntherrupter qui la commande.",
+        note: "Ontime, duty et enveloppe font le son de test : garde les mêmes d'une séance à l'autre pour pouvoir comparer.",
       },
       tuneTone: {
         title: "Le son de test",
-        text: "Les notes jouées à chaque essai, leur tenue et le silence entre deux. Plusieurs notes donnent une mesure plus fiable. Pour la visite, deux notes de deux secondes ; en vrai, compte une dizaine de secondes par note.",
+        text: "Les notes jouées à chaque essai, leur tenue et le silence entre deux.",
+        note: "Plusieurs notes donnent une mesure plus fiable. Pour la visite, deux notes de deux secondes ; en vrai, compte une dizaine de secondes par note.",
       },
       tunePrimary: {
         title: "Le primaire",
-        text: "Le nombre de tours et la plage où la prise peut aller. Le pas, c'est la précision avec laquelle tu déplaces la prise à la main : 1/8, 1/4 ou 1/2 tour.",
+        text: "Le nombre de tours et la plage où la prise peut aller.",
+        note: "Le pas, c'est la précision avec laquelle tu déplaces la prise à la main : 1/8, 1/4 ou 1/2 tour.",
       },
       tuneCamera: {
         title: "La caméra",
-        text: "Un téléphone suffit, sans rien installer : il filme la bobine, repère les arcs image par image et renvoie leur longueur. Pose-le sur un support, bien immobile, à distance de sécurité. La webcam de l'ordi marche aussi.",
+        text: "Un téléphone suffit, sans rien installer : il filme la bobine, repère les arcs image par image et renvoie leur longueur.",
+        points: [
+          "Pose-le sur un support, bien immobile.",
+          "La webcam de l'ordi marche aussi.",
+        ],
+        note: "Garde le téléphone à distance de sécurité de la bobine.",
       },
       tuneConnect: {
         title: "Relier le téléphone",
-        text: "Connecter une caméra affiche un QR code. Scanne-le avec le téléphone : la page caméra s'ouvre dans son navigateur. Avec l'app de bureau, le téléphone passe par le Wi-Fi, sur le même réseau que l'ordi.",
+        text: "**Connecter une caméra** affiche un QR code : scanne-le avec le téléphone, la page caméra s'ouvre dans son navigateur.",
+        note: "Avec l'app de bureau, le téléphone passe par le Wi-Fi, sur le même réseau que l'ordi.",
       },
       tunePhoneOpen: {
         title: "Sur le téléphone",
-        text: "Le téléphone a scanné le QR code : la page caméra s'ouvre dans son navigateur. Pose-le sur un support, la bobine et l'espace au-dessus du tore dans le cadre, puis démarre la caméra.",
+        text: "Le téléphone a scanné le QR code : la page caméra s'ouvre dans son navigateur.",
+        points: [
+          "Pose-le sur un support, la bobine et l'espace au-dessus du tore dans le cadre.",
+          "Puis démarre la caméra.",
+        ],
       },
       tuneBreakout: {
         title: "Le point de sortie",
-        text: "Touche l'image là où les arcs partent, en haut du tore. La zone de mesure se place autour de ce point.",
+        text: "Touche l'image là où les arcs partent, en haut du tore : la zone de mesure se place autour de ce point.",
       },
       tuneZone: {
         title: "La zone de mesure",
-        text: "Agrandis la zone pour que les arcs les plus longs y tiennent, et tourne-la du côté où ils partent (ici, vers le haut). Remonte la ligne basse au-dessus du pied de la bobine et des LED : rien n'est mesuré en dessous.",
+        text: "Ajuste la zone :",
+        points: [
+          "agrandis-la pour que les arcs les plus longs y tiennent, et tourne-la du côté où ils partent (ici, vers le haut) ;",
+          "remonte la ligne basse au-dessus du pied de la bobine et des LED : rien n'est mesuré en dessous.",
+        ],
       },
       tuneZoneOk: {
         title: "Zone OK",
-        text: "Le téléphone est prêt : l'ordinateur le voit et passe tout seul aux essais. À partir de là, on ne touche plus au téléphone, sinon la mesure dérive.",
+        text: "Le téléphone est prêt : l'ordinateur le voit et passe tout seul aux essais.",
+        note: "À partir de là, on ne touche plus au téléphone, sinon la mesure dérive.",
       },
       tuneTap: {
         title: "La position de la prise",
-        text: "Tu déplaces la prise sur la bobine, à la main, puis tu reportes sa position ici avec − et +. « Dernier accord ici » rappelle la prise trouvée la dernière fois au même endroit.",
+        text: "Tu déplaces la prise sur la bobine, à la main, puis tu reportes sa position ici avec **−** et **+**.",
+        note: "« Dernier accord ici » rappelle la prise trouvée la dernière fois au même endroit.",
       },
       tuneRun: {
         title: "Lancer un essai",
-        text: "Après confirmation, le téléphone capture le décor bobine éteinte, puis l'app joue les notes pendant qu'il mesure les arcs. Pendant l'essai, cette colonne montre ce que voit la caméra. Ici, tout est simulé.",
+        text: "Après confirmation :",
+        points: [
+          "le téléphone capture le décor, bobine éteinte ;",
+          "l'app joue les notes pendant qu'il mesure les arcs ;",
+          "cette colonne montre ce que voit la caméra.",
+        ],
+        note: "Ici, tout est simulé.",
       },
       tuneResult: {
         title: "Le résultat",
-        text: "Le score d'un essai, c'est la longueur d'arc (P90, en pixels) moyennée sur les notes. Le graphe place chaque essai sur la plage du primaire ; le tableau garde le détail par note et la silhouette des arcs.",
+        text: "Le score d'un essai, c'est la longueur d'arc (P90, en pixels) moyennée sur les notes.",
+        points: [
+          "Le graphe place chaque essai sur la plage du primaire.",
+          "Le tableau garde le détail par note et la silhouette des arcs.",
+        ],
       },
       tuneSuggest: {
         title: "L'essai suivant",
-        text: "La suggestion essaie d'abord les deux bouts et le milieu de la plage, puis se resserre autour du meilleur point. Utiliser y place le compteur ; en vrai, tu déplaces aussi la prise sur la bobine avant de lancer.",
+        text: "La suggestion essaie d'abord les deux bouts et le milieu de la plage, puis se resserre autour du meilleur point.",
+        note: "**Utiliser** y place le compteur ; en vrai, tu déplaces aussi la prise sur la bobine avant de lancer.",
       },
       tunePhoneTrial: {
         title: "L'essai, côté téléphone",
-        text: "Le téléphone suit chaque essai : la note mesurée, la longueur des arcs en direct, puis le score comparé au meilleur. Son bouton STOP arrête tout depuis la bobine.",
+        text: "Le téléphone suit chaque essai : la note mesurée, la longueur des arcs en direct, puis le score comparé au meilleur.",
+        note: "Son bouton **STOP** arrête tout depuis la bobine.",
       },
       tuneCompare: {
         title: "Meilleur et dernier",
@@ -550,23 +890,61 @@ export default {
       },
       tuneSave: {
         title: "Le récap",
-        text: "Une dizaine d'essais suffisent en général pour que la suggestion annonce l'optimum. Terminer et enregistrer ouvre le récap : la meilleure prise, la silhouette de ses arcs, le son et le primaire utilisés.",
+        text: "Une dizaine d'essais suffisent en général pour que la suggestion annonce l'optimum.",
+        points: [
+          "**Terminer et enregistrer** ouvre le récap : la meilleure prise, la silhouette de ses arcs, le son et le primaire utilisés.",
+        ],
       },
       tuneForm: {
         title: "La fiche",
-        text: "Le lieu reprend celui du dernier accord ici, la position vient du téléphone et la météo se remplit toute seule. Indique intérieur ou extérieur, sol sec ou mouillé, et note ce qui a changé : c'est ce qui expliquera un écart la prochaine fois.",
+        text: "Le lieu reprend celui du dernier accord ici, la position vient du téléphone et la météo se remplit toute seule.",
+        points: [
+          "Indique intérieur ou extérieur, sol sec ou mouillé.",
+          "Note ce qui a changé : c'est ce qui expliquera un écart la prochaine fois.",
+        ],
       },
       tuneSaved: {
         title: "Enregistré",
-        text: "L'accord rejoint l'historique. La prochaine fois près d'ici, sa prise apparaîtra sur le schéma du primaire comme dernier accord. Pendant la visite, rien n'est envoyé au serveur.",
+        text: "L'accord rejoint l'historique. La prochaine fois près d'ici, sa prise apparaîtra sur le schéma du primaire comme dernier accord.",
+        note: "Pendant la visite, rien n'est envoyé au serveur.",
       },
       tuneHistory: {
         title: "L'historique",
-        text: "Le nouvel accord en tête, avec les précédents, par bobine : la prise, la longueur d'arc, le lieu et les conditions. « Reprendre cette position » recharge une prise pour repartir de là.",
+        text: "Le nouvel accord en tête, avec les précédents, par bobine : la prise, la longueur d'arc, le lieu et les conditions.",
+        note: "« Reprendre cette position » recharge une prise pour repartir de là.",
       },
       tuneDone: {
         title: "À toi",
-        text: "Pour un vrai accord : une sortie MIDI choisie, un téléphone sur un support, la bobine à distance de sécurité. Le bouton ? de la page Accord relance cette visite.",
+        text: "Pour un vrai accord :",
+        points: [
+          "une sortie MIDI choisie ;",
+          "un téléphone sur un support ;",
+          "la bobine à distance de sécurité.",
+        ],
+        note: "Le **?** de la page Accord relance cette visite.",
+      },
+      syntherrupter: {
+        title: "Le Syntherrupter",
+        text: "Les réglages enregistrés dans le Syntherrupter lui-même, lus sur l'appareil.",
+        points: [
+          "Pour chaque bobine, les **limites de sécurité** du firmware : ontime et duty max, ontime et offtime min, nombre de voix.",
+          "Changer une limite de sécurité demande une confirmation.",
+        ],
+        note: "La page ne s'ouvre que si l'app peut lire l'appareil : liaison série, ou son port USB-MIDI natif.",
+      },
+      syntherrupterBar: {
+        title: "Appliquer, sauver",
+        text: "Plus bas : le système, l'écran tactile et les limites de chaque compte utilisateur.",
+        points: [
+          "**Appliquer** envoie un bloc à l'appareil ;",
+          "seul **Sauver en EEPROM** le garde après extinction ;",
+          "**Recharger** relit l'appareil.",
+        ],
+      },
+      syDone: {
+        title: "Prudence",
+        text: "Ces réglages vivent dans l'appareil : ils valent pour tout ce qu'il joue, même sans l'app.",
+        note: "Le **?** à côté du titre relance cette visite.",
       },
     },
   },

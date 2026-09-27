@@ -5,6 +5,7 @@ import PlaybackMode from '@/components/player/PlaybackMode.vue';
 import LiveMode from '@/components/player/LiveMode.vue';
 import FixedMode from '@/components/player/FixedMode.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 
 type PlayMode = 'playback' | 'live' | 'fixed';
 
@@ -60,7 +61,7 @@ const activeComponent = computed(
 <template>
   <div class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
-      <h1 class="view-head__title">{{ $t('nav.play') }}</h1>
+      <h1 class="view-head__title">{{ $t('nav.play') }}<page-tour-button id="play" /></h1>
       <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="MODES.map((m) => ({
         value: m.id, label: $t(m.key), icon: m.icon,
         disabled: modeDisabled(m.id),

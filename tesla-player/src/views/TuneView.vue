@@ -22,7 +22,7 @@ import { isEvent, type CameraGeometry, type CameraPosition, type CameraStatus, t
 import { ToneRunner, toneDurationMs } from '@/tuning/tone-runner';
 import { createTuning, deleteTuning, formatTurns, listTunings, type Trial, type TrialNote, type TuningDraft, type TuningRecord } from '@/tuning/api';
 import { bestTrial, snap, suggestNextTap } from '@/tuning/suggest';
-import { startTour } from '@/tour/tour';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 
 /**
  * Camera-assisted primary tuning ("accord"), as a guided session:
@@ -425,7 +425,7 @@ onBeforeUnmount(() => { void endSession(); });
 <template>
   <div class="screen tune">
     <header class="screen-head">
-      <h1 class="view-head__title">{{ t('tune.title') }}<button v-if="!session && !trials.length" class="icon-btn tune-help" type="button" :title="t('tour.tuneStart')" :aria-label="t('tour.tuneStart')" @click="startTour('tune')"><i class="fas fa-circle-question"></i></button><span v-if="running" class="tune-running"><span class="live-dot"></span>{{ phaseLabel }}</span></h1>
+      <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="live-dot"></span>{{ phaseLabel }}</span></h1>
       <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="modeOptions" />
     </header>
 
@@ -831,7 +831,6 @@ label.tune-field, label.tune-field:hover { padding: 0; margin: 0; }
 .tune-run__go { font-size: 1rem; padding-inline: 1.3rem; flex: 1 1 auto; justify-content: center; }
 .tune-phase, .tune-running { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display);font-size: var(--fs-sm); color: var(--volt); margin: 0; }
 .view-head__title .tune-running { margin-left: 1rem; font-weight: 500; }
-.tune-help { font-size: var(--fs-md); }
 .live-dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--volt); animation: pulse 1.2s ease-in-out infinite alternate; }
 @keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }

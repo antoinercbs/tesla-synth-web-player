@@ -2,7 +2,7 @@
   <!-- No song selected: a sober, centred chooser (pick existing OR create new) -->
   <div v-if="isChooser" class="edit-chooser">
     <div class="edit-chooser__card">
-      <h1 class="view-head__title">{{ $t('nav.edit') }}</h1>
+      <h1 class="view-head__title">{{ $t('nav.edit') }}<page-tour-button id="edit" /></h1>
       <p class="edit-chooser__hint">{{ $t('label.chooseOrCreate') }}</p>
       <div class="edit-chooser__actions">
         <searchable-select class="edit-chooser__pick" v-model="chooserPick" :items="songItems"
@@ -19,7 +19,7 @@
   <!-- A song (or "new") is selected: the editor + embedded debug player -->
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
-      <h1 class="view-head__title">{{ headTitle }}</h1>
+      <h1 class="view-head__title">{{ headTitle }}<page-tour-button id="edit" /></h1>
       <RouterLink class="icon-btn" :to="{ name: 'edit', params: {} }" :title="$t('label.closeEditor')"
         :aria-label="$t('label.closeEditor')">
         <i class="fas fa-xmark"></i>
@@ -47,13 +47,14 @@ import SongEditor from '@/components/editor/SongEditor.vue'
 import MidiPlayer from '@/components/player/MidiPlayer.vue'
 import SearchableSelect from '@/components/ui/SearchableSelect.vue'
 import ResizeHandle from '@/components/ui/ResizeHandle.vue'
+import PageTourButton from '@/components/tour/PageTourButton.vue'
 
 const DOCK_MIN = 300
 const DOCK_MAX = 760
 
 export default {
   name: 'EditView',
-  components: { SongEditor, MidiPlayer, SearchableSelect, ResizeHandle },
+  components: { SongEditor, MidiPlayer, SearchableSelect, ResizeHandle, PageTourButton },
   data() {
     return {
       playing: false,

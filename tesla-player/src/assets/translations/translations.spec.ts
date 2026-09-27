@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { messages } from './index';
 
-type Tree = { [key: string]: string | Tree };
+// lists (the tour cards' points) are walked by index: both languages need as many items
+type Tree = { [key: string]: string | string[] | Tree };
 
-function keys(tree: Tree, prefix = ''): string[] {
+function keys(tree: Tree | string[], prefix = ''): string[] {
   return Object.entries(tree).flatMap(([k, v]) =>
     typeof v === 'string' ? [prefix + k] : keys(v, `${prefix}${k}.`));
 }

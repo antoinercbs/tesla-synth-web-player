@@ -4,7 +4,8 @@
          yet signed in); the centered login card takes the whole main area. -->
     <app-sidebar v-if="showChrome" />
     <main class="app-main">
-      <router-view />
+      <!-- off for a moment while a guided tour swaps the real data for the demo's, and back -->
+      <router-view v-if="!tour.swapping" />
     </main>
     <app-toaster />
     <tour-overlay v-if="showChrome" />
@@ -18,10 +19,14 @@ import { useAuthStore } from '@/stores/auth'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppToaster from '@/components/ui/AppToaster.vue'
 import TourOverlay from '@/components/tour/TourOverlay.vue'
+import { tour } from '@/tour/tour'
 
 export default {
   name: 'App',
   components: { AppSidebar, AppToaster, TourOverlay },
+  data() {
+    return { tour }
+  },
   computed: {
     ...mapStores(useMidiStore, useAuthStore),
     // Full app chrome (sidebar) is shown unless we're gated at the login /

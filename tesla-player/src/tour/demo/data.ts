@@ -1,5 +1,7 @@
 import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Playlist, Song } from '@/types/domain';
 import type { TuningRecord } from '@/tuning/api';
+import { normalizeSteps } from '@/envelopes/chain';
+import { programSteps } from '@/sysex/envelopes';
 import { drums, smf, voice, type Smf } from './smf';
 
 /**
@@ -9,6 +11,10 @@ import { drums, smf, voice, type Smf } from './smf';
  */
 export const DEMO_SONG_ID = 9001;
 export const DEMO_PLAYLIST_ID = 9101;
+// the first tune's file: the MIDI editor's tour opens it
+export const DEMO_FILE_ID = 9201;
+// the demo's one envelope of its own, for the envelopes tour
+export const DEMO_ENVELOPE_PROGRAM = 20;
 export const DEMO_PATH_PREFIX = '/uploads/tour-demo-';
 // where the tuning tour's phone says it is: the garden of Zeus's last tuning
 export const DEMO_PLACE = { lat: 45.7578, lon: 4.832 };
@@ -16,11 +22,11 @@ export const DEMO_PLACE = { lat: 45.7578, lon: 4.832 };
 type Lang = 'en' | 'fr';
 const WORDS: Record<Lang, Record<string, string>> = {
   en: {
-    game: 'Video game', classical: 'Classical', folk: 'Folk', demo: 'Demo', playlist: 'Demo night', ode: 'Ode to Joy', hall: 'In the Hall of the Mountain King',
+    game: 'Video game', classical: 'Classical', folk: 'Folk', demo: 'Demo', playlist: 'Demo night', ode: 'Ode to Joy', hall: 'In the Hall of the Mountain King', pad: 'Soft pad',
     garden: 'Garden', workshop: 'Workshop', fair: 'Village fair', raised: 'Toroid raised by 2 cm', wet: 'Wet grass: tap lower than in the garden',
   },
   fr: {
-    game: 'Jeu vidéo', classical: 'Classique', folk: 'Folklore', demo: 'Démo', playlist: 'Soirée démo', ode: 'Ode à la joie', hall: 'Dans l’antre du roi de la montagne',
+    game: 'Jeu vidéo', classical: 'Classique', folk: 'Folklore', demo: 'Démo', playlist: 'Soirée démo', ode: 'Ode à la joie', hall: 'Dans l’antre du roi de la montagne', pad: 'Nappe douce',
     garden: 'Jardin', workshop: 'Atelier', fair: 'Fête du village', raised: 'Toroïde remonté de 2 cm', wet: 'Herbe mouillée : prise plus basse qu’au jardin',
   },
 };
@@ -65,7 +71,7 @@ export interface DemoLibrary {
   config: AppConfig;
   /** The tuning history, newest first (as the API sends it). */
   tunings: TuningRecord[];
-  /** None: the demo keeps the user's own library envelopes out of sight. */
+  /** One of its own: the user's library envelopes stay out of sight. */
   envelopes: CustomEnvelope[];
   /** MIDI bytes by request path (/uploads/tour-demo-<key>.mid) */
   bytes: Map<string, Uint8Array>;
@@ -79,7 +85,7 @@ export function buildDemoLibrary(lang: string): DemoLibrary {
     const path = `${DEMO_PATH_PREFIX}${tune.key}.mid`;
     bytes.set(path, m.bytes);
     return {
-      id: 9201 + i,
+      id: DEMO_FILE_ID + i,
       name: { korobeiniki: 'Korobeiniki', ode: w.ode, elise: 'Für Elise', hall: w.hall }[tune.key] ?? tune.key,
       path: `.${path}`,
       durationMs: m.durationMs,
@@ -143,7 +149,10 @@ export function buildDemoLibrary(lang: string): DemoLibrary {
     tuning(9303, 0, 75, w.fair, { lat: 45.8127, lon: 4.9385 }, 5.75, 176, { indoor: false, tempC: 12, humidityPct: 88, weatherCode: 61, ground: 'wet', comment: w.wet }),
     tuning(9304, 2, 110, w.workshop, { lat: 45.7702, lon: 4.8561 }, 7, 191, { indoor: true, tempC: 19, humidityPct: 50, primaryTurns: 10, tapMin: 5, tapMax: 9, tapStep: 0.5 }),
   ];
-  return { files, songs, tags, playlists, config, tunings, envelopes: [], bytes };
+  const envelopes: CustomEnvelope[] = [
+    { id: 9501, program: DEMO_ENVELOPE_PROGRAM, name: w.pad, steps: normalizeSteps(programSteps(2)), editorName: null },
+  ];
+  return { files, songs, tags, playlists, config, tunings, envelopes, bytes };
 }
 
 function tuning(

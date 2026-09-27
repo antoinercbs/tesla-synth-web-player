@@ -24,6 +24,7 @@ import EnvelopeStepsTable from '@/envelopes/EnvelopeStepsTable.vue';
 import EnvelopeThumb from '@/envelopes/EnvelopeThumb.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 
 /**
  * The envelope library: the user's envelopes (programs 20-63), editable, and
@@ -302,7 +303,7 @@ onBeforeUnmount(() => {
   <div class="screen env-screen">
     <header class="screen-head env-head">
       <div class="env-head__title">
-        <h1 class="view-head__title">{{ $t('envelopes.title') }}</h1>
+        <h1 class="view-head__title">{{ $t('envelopes.title') }}<page-tour-button v-if="!dirty" id="envelopes" /></h1>
         <span class="env-head__sub">{{ $t('envelopes.subtitle') }}</span>
       </div>
       <div class="env-head__actions">

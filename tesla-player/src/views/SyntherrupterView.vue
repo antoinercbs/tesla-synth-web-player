@@ -15,6 +15,7 @@ import ParamRow from '@/components/settings/ParamRow.vue';
 import ParamCell from '@/components/settings/ParamCell.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 
 /**
  * Syntherrupter hardware config page (needs a link with read-back: Web Serial, or
@@ -273,7 +274,7 @@ onMounted(() => {
 <template>
   <div class="screen">
     <header class="screen-head">
-      <h1 class="view-head__title">{{ $t('nav.syntherrupter') }}</h1>
+      <h1 class="view-head__title">{{ $t('nav.syntherrupter') }}<page-tour-button id="syntherrupter" /></h1>
       <span class="sy-port"><span class="conn__dot"></span>{{ midiStore.serialPortLabel }}</span>
     </header>
 

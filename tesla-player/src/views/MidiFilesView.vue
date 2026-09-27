@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import MidiLibraryPanel from '@/components/editor/MidiLibraryPanel.vue';
+import PageTourButton from '@/components/tour/PageTourButton.vue';
 
 /**
  * Standalone MIDI file management page (sidebar). Shows the same interface as the
@@ -12,7 +13,7 @@ import MidiLibraryPanel from '@/components/editor/MidiLibraryPanel.vue';
 <template>
   <div class="screen">
     <header class="screen-head">
-      <h1 class="view-head__title">{{ $t('title.midiFileManager') }}</h1>
+      <h1 class="view-head__title">{{ $t('title.midiFileManager') }}<page-tour-button id="midi" /></h1>
     </header>
 
     <div class="screen-body midi-files">

@@ -385,185 +385,563 @@ export default {
     prev: "Back",
     finish: "Finish",
     skip: "Skip the tour",
-    tuneStart: "Tuning tour",
+    pageStart: "Tour of this page",
     phoneCaption: "The phone's screen (simulated)",
     phoneMove: "Move the phone",
+    names: {
+      main: "App tour",
+      play: "Tour · Play",
+      edit: "Tour · Edit",
+      playlists: "Tour · Playlists",
+      midi: "Tour · MIDI files",
+      midiEdit: "Tour · MIDI editor",
+      envelopes: "Tour · Envelopes",
+      tune: "Tour · Tuning",
+      syntherrupter: "Tour · Syntherrupter",
+    },
     steps: {
       welcome: {
-        title: "The tour",
-        text: "A quick round of the app, on demo data: nothing you see during the tour is saved. Esc leaves it, the arrow keys move through it.",
+        title: "Welcome",
+        text: "A song's path, from the settings to the stage, in a few steps. Each page then has its own detailed tour.",
+        points: [
+          "Settings",
+          "Play",
+          "MIDI file",
+          "Song",
+          "Playlist",
+          "Hardware",
+        ],
+        note: "On demo data: nothing is saved, nothing reaches the coils. [Esc] to leave, [←] [→] to move on.",
       },
       nav: {
         title: "The pages",
-        text: "Play to perform, Edit to prepare a song, Playlists to chain them, MIDI files for your library. Tuning helps you adjust a coil, Syntherrupter configures the device itself.",
+        text: "Two groups of pages.",
+        points: [
+          "**At the top**, what you prepare and play: Play, Edit, Playlists, MIDI files, Envelopes.",
+          "**At the bottom**, the hardware: Tuning to set up a coil, Syntherrupter for the device itself, when the app can read it.",
+        ],
+      },
+      settings: {
+        title: "General settings",
+        text: "The **⋯** menu opens the instance's settings, done once:",
+        points: [
+          "**General configuration**: the installation's coils, how many and their names;",
+          "the **tags** that sort the songs;",
+          "the interface's **language** and **colours**.",
+        ],
       },
       output: {
         title: "The output",
-        text: "Where the notes go. Synth: an emulation in the browser, no hardware needed. MIDI: a MIDI interface or a Syntherrupter. Serial: a Syntherrupter plugged in over USB.",
+        text: "Where the notes go:",
+        points: [
+          "**Synth**: an emulation in the browser, no hardware;",
+          "**MIDI**: a MIDI interface or a Syntherrupter;",
+          "**Serial**: a Syntherrupter plugged in over USB.",
+        ],
       },
       coils: {
         title: "The coils",
-        text: "Each coil has its own color, the same everywhere in the app. Their names are set in the general configuration, from the ⋯ menu.",
+        text: "Each coil has its colour, the same everywhere in the app.",
+        note: "Their number and their names come from the general configuration.",
       },
-      modes: {
-        title: "Three ways to play",
-        text: "Playback plays prepared songs. Live MIDI relays a MIDI keyboard or the computer keyboard. Fixed sends a steady note to each coil.",
+      pathPlay: {
+        title: "1. On stage",
+        text: "It all starts here: **Play** plays a song or a playlist.",
+        points: [
+          "The **power** and the **Panic** button stay at hand.",
+          "**Live** mode plays on the spot, from a MIDI keyboard or the computer's.",
+        ],
       },
-      songs: {
-        title: "The songs",
-        text: "▶ plays a song, + adds it to the queue, the pencil opens it in the editor. The Playlists tab plays a whole playlist.",
+      pathMidi: {
+        title: "2. A MIDI file",
+        text: "A song starts from a MIDI file: import it here.",
+        points: [
+          "Each **channel** of the file is a voice you will hand to the coils.",
+          "The **MIDI editor** moves notes from one channel to another, changes their instrument or removes some.",
+        ],
       },
-      dynamics: {
-        title: "Power over time",
-        text: "The Song curve sets every coil's power along the song: a point changes it at a moment, at once or gradually from the previous point. Per coil adds a curve per coil on top. The player's Power fader always applies over it.",
+      pathSong: {
+        title: "3. A song",
+        text: "A song ties a file to the coils:",
+        points: [
+          "the **channels** each coil plays, and its power;",
+          "their **place on stage**: the spatialisation;",
+          "the **power** along the song.",
+        ],
       },
-      vizVu: {
-        title: "Views: the VU",
-        text: "One column per MIDI channel. During playback it lights up in the color of the coil that channel drives, or of several at once.",
+      pathPlaylist: {
+        title: "4. A playlist",
+        text: "A playlist chains songs written for the same number of coils, for a show in one go.",
       },
-      vizScore: {
-        title: "Views: the score",
-        text: "Every note of the MIDI file, colored by the coil that plays it. Hatching marks a note played by several coils.",
+      pathTune: {
+        title: "The hardware: tuning",
+        text: "A wizard to tune a coil's primary: a phone films the arcs and measures their length at each trial.",
       },
-      vizLanes: {
-        title: "Views: the coils",
-        text: "One lane per coil, plus one for the speakers: you see at a glance what each one plays, and the height of the blocks follows the level the power changes give it.",
+      pathSyntherrupter: {
+        title: "The hardware: the Syntherrupter",
+        text: "The settings and safety limits stored in the device itself.",
+        note: "The page only shows in the menu when the app can read the Syntherrupter.",
       },
-      vizParam: {
-        title: "Ontime or duty",
-        text: "The Ontime and Duty tabs choose which setting the coil lanes show. Each level is a percentage of the value on the coil's card: 100% leaves it as it is.",
+      pathEnvelopes: {
+        title: "Going further: envelopes",
+        text: "On the Syntherrupter, a channel's instrument is an envelope: the attack, the hold and the fade of each note. The firmware's are enough to start with.",
+        note: "An advanced setting: here you design your own, when you want a sound of yours.",
       },
-      vizCombined: {
-        title: "Views: combined",
-        text: "The score above the coil lanes, to link each note to the coil it makes play.",
-      },
-      power: {
-        title: "Power",
-        text: "Sets the drive of every coil during playback. At 100%, the song's settings apply as they are. Above that is overdrive.",
-      },
-      transport: {
-        title: "Playback and safety",
-        text: "The demo song is playing, silently: during the tour nothing is sent to the coils. Play and Stop control playback, Panic cuts every note at once: when in doubt, it is the right button.",
-      },
-      editor: {
-        title: "Preparing a song",
-        text: "A song pairs a MIDI file with coil settings. Open an existing song or create one, then pick its MIDI file.",
-      },
-      coilCards: {
-        title: "Channels and settings",
-        text: "For each coil, pick the MIDI channels it plays, then its ontime and duty. The higher they are, the stronger the arc.",
-      },
-      midi: {
-        title: "Your MIDI files",
-        text: "Import .mid files here, or drop them anywhere on the page. The table shows their length, channels, instruments and the songs that use them.",
-      },
-      playlists: {
-        title: "Playlists",
-        text: "Build a playlist from your library, then reorder it. It then plays from the Play page.",
-      },
-      tune: {
-        title: "Tuning",
-        text: "An assistant to find the right tap on the primary, with a phone camera measuring the length of the arcs. The ? button next to the title starts a detailed tour, with a simulated phone.",
-      },
-      syntherrupter: {
-        title: "The Syntherrupter",
-        text: "The settings stored in the Syntherrupter itself, read from the device. For each coil, the safety limits the firmware enforces: max ontime and duty, min ontime and offtime, number of voices. Changing a safety limit asks for confirmation. The page only opens when the app can read the device: a serial link, or its native USB-MIDI port.",
-      },
-      syntherrupterBar: {
-        title: "Apply, save",
-        text: "Further down: the system, the touchscreen and each user account's limits. Apply sends a block to the device, but only Save to EEPROM keeps it after power-off. Reload reads the device again.",
-      },
-      menu: {
-        title: "Settings",
-        text: "The language, the interface colors, the general configuration, and this tour, to replay whenever you like.",
+      pageTours: {
+        title: "A tour per page",
+        text: "Each page has its own detailed tour: the **?** beside its title.",
+        points: [
+          "It pulses until you have opened it.",
+          "Start with the **Play** page's.",
+        ],
       },
       done: {
         title: "Off you go",
-        text: "Pick an output, play a song and watch the coils sing.",
+        text: "Pick an output, start a song and watch the coils play.",
+        note: "When a page puzzles you, its **?** is there.",
+      },
+      modes: {
+        title: "Three ways to play",
+        text: "The switch picks how you play:",
+        points: [
+          "**Playback** plays prepared songs;",
+          "**Live MIDI** relays a MIDI keyboard or the computer's keyboard;",
+          "**Fixed** sends a continuous note to each coil.",
+        ],
+      },
+      live: {
+        title: "Live mode",
+        text: "Play on the spot, no song prepared.",
+        points: [
+          "A **MIDI keyboard** plugged in, the **computer's keyboard** or the on-screen **piano**.",
+          "Pick the **channel** you play: the coils listening to it follow your notes.",
+        ],
+      },
+      songs: {
+        title: "The songs",
+        text: "Your song library.",
+        points: [
+          "**▶** starts a song, **+** adds it to the queue;",
+          "the **pencil** opens it in the editor;",
+          "the **Playlists** tab plays a whole playlist.",
+        ],
+      },
+      transport: {
+        title: "Playback and safety",
+        text: "The demo song is playing, silently: during the tour, nothing reaches the coils.",
+        points: [
+          "**Play** and **Stop** drive the playback.",
+          "**Execute config.** sends the song's settings to the coils again.",
+        ],
+        note: "**Panic** cuts every note at once: when in doubt, it is the right button.",
+      },
+      vizVu: {
+        title: "View: the VU",
+        text: "One column per MIDI channel: while playing, it lights up in the colour of the coil that channel plays, or of several at once.",
+      },
+      vizScore: {
+        title: "View: the score",
+        text: "Every note of the file, coloured by the coil that plays it.",
+        note: "Hatching marks a note played by several coils.",
+      },
+      vizLanes: {
+        title: "View: the coil lanes",
+        text: "One lane per coil, and one for the speakers: what each one plays, at a glance.",
+        note: "The blocks' height follows the level the power changes give.",
+      },
+      vizCombined: {
+        title: "View: combined",
+        text: "The score above the coil lanes, to tie each note to the coil it plays on.",
+      },
+      vizParam: {
+        title: "Ontime or duty",
+        text: "The **Ontime** and **Duty** tabs pick the setting the coil lanes show.",
+        note: "Each level is a percentage of the value on the coil's card: 100% leaves it as it is.",
+      },
+      power: {
+        title: "Power",
+        text: "Sets the strength of every coil during playback. At **100%**, the song's settings apply as they are.",
+        note: "Above 100% it is overpower: handle with care.",
+      },
+      playDone: {
+        title: "Your turn",
+        text: "Pick an output in the sidebar, start a song and keep a hand on the power.",
+        note: "The **?** beside the title runs this tour again.",
+      },
+      editor: {
+        title: "Preparing a song",
+        text: "A song pairs a MIDI file with coil settings.",
+        points: [
+          "Open an existing song or create one.",
+          "Give it a name and **tags** to find it on the Play page.",
+        ],
+      },
+      editFile: {
+        title: "The MIDI file",
+        text: "The file the song plays.",
+        points: [
+          "The **pen** opens the MIDI editor.",
+          "The **folder** opens the file library.",
+        ],
+        note: "The MIDI editor leaves this page: save the song first.",
+      },
+      coilCards: {
+        title: "Channels and settings",
+        text: "One card per coil:",
+        points: [
+          "the **MIDI channels** it plays;",
+          "its **ontime** and **duty**: the higher, the stronger the arc.",
+        ],
+      },
+      stereo: {
+        title: "Spatialisation",
+        text: "Place the coils from left to right: a note only plays on the ones near its position.",
+        points: [
+          "The position comes from the file's **pan**, or from the note's **pitch**.",
+          "A melody can travel from one coil to the next.",
+        ],
+      },
+      dynamics: {
+        title: "Power over time",
+        text: "The **Song** curve sets every coil's power along the song.",
+        points: [
+          "A point changes it at a moment, at once or gradually.",
+          "**Per coil** adds one curve per coil on top.",
+        ],
+        note: "The player's **Power** fader always applies on top.",
+      },
+      editPlayer: {
+        title: "The built-in player",
+        text: "It plays the song as it is set here, even before saving: the same views and the same power as on the Play page.",
+      },
+      editDone: {
+        title: "Save",
+        text: "**Save** keeps the song: it joins the Play page's list and can go into a playlist.",
+        note: "The **?** beside the title runs this tour again.",
+      },
+      plMeta: {
+        title: "A playlist",
+        text: "Its name and its number of coils.",
+        note: "A playlist only gathers songs written for that number of coils.",
+      },
+      plLibrary: {
+        title: "The library",
+        text: "Your songs:",
+        points: [
+          "**+** adds one to the playlist, or drag it into the list on the right;",
+          "the ones written for another number of coils are flagged.",
+        ],
+      },
+      plOrder: {
+        title: "The order",
+        text: "The running order:",
+        points: [
+          "drag the songs to reorder them;",
+          "remove the ones that no longer fit;",
+          "the total length shows at the top.",
+        ],
+      },
+      plDone: {
+        title: "Play it",
+        text: "Save the playlist, then start it from the Play page, **Playlists** tab: its songs follow one another in the queue.",
+        note: "The **?** beside the title runs this tour again.",
+      },
+      midi: {
+        title: "Your MIDI files",
+        text: "For each file: its length, its channels, its instruments and the songs using it.",
+        note: "Hover “Used by” to open one of them.",
+      },
+      midiImport: {
+        title: "Import",
+        text: "Add .mid files to the library:",
+        points: [
+          "with the **Import** button, or by dropping them anywhere on the page;",
+          "the search filters the list by name.",
+        ],
+      },
+      midiActions: {
+        title: "Edit a file",
+        text: "On each row:",
+        points: [
+          "the **pen** opens the MIDI editor: select notes in bulk, change their channel or instrument, transpose them, draw some;",
+          "**⋮** to rename, replace, download or delete the file.",
+        ],
+      },
+      midiDone: {
+        title: "One file, several songs",
+        text: "Editing a file changes every song using it.",
+        note: "The MIDI editor has its own tour, behind its **?**.",
+      },
+      meIntro: {
+        title: "The MIDI editor",
+        text: "To rework a file:",
+        points: [
+          "move notes from one channel to another and change instruments;",
+          "transpose, set velocities;",
+          "draw notes, cut a passage.",
+        ],
+        note: "Here on a demo file: nothing is saved.",
+      },
+      meChannels: {
+        title: "The channels",
+        text: "Each channel's instrument: its program change, the envelope it plays.",
+        points: [
+          "The **eye** hides it, the **speaker** mutes it while listening, the **bin** deletes it with its notes.",
+          "A click on its **name** selects its notes.",
+        ],
+      },
+      meRoll: {
+        title: "The piano roll",
+        text: "The notes, coloured by channel:",
+        points: [
+          "**Click** or drag a **box** to pick notes, [Shift] to add some.",
+          "**Drag** moves the selection on the grid ([Alt]: freely); a note's right edge sets its length.",
+          "**Double-click** adds a note, **right-click** deletes one.",
+          "**Drag on the ruler** to pick a passage: delete it, or keep only it.",
+        ],
+      },
+      meSelect: {
+        title: "Select by criterion",
+        text: "In one channel or all, and in the passage when there is one:",
+        points: [
+          "the notes too short or too soft;",
+          "above or below a pitch;",
+          "the top of each chord, or the ones beyond a number of voices.",
+        ],
+        note: "[Shift]+click on **Pick** adds to the selection.",
+      },
+      meSelBar: {
+        title: "The selection bar",
+        text: "It shows as soon as notes are picked (here, a whole channel):",
+        points: [
+          "**Channel**: move them, and so change their instrument;",
+          "**transpose** ([↑] [↓]) and **shift** ([←] [→]);",
+          "**Velocity**, copy, duplicate, delete.",
+        ],
+      },
+      meVelocity: {
+        title: "Velocity",
+        text: "One bar per note: drag in the lane to paint it.",
+        note: "On the Syntherrupter the ontime follows the velocity: it is each note's power.",
+      },
+      meListen: {
+        title: "Listen",
+        text: "[Space] plays the edit on the emulated synth, with the envelopes, from the cursor: everything, or the selection alone.",
+        note: "Never on the coils: it is for hearing before saving.",
+      },
+      meDone: {
+        title: "Save",
+        text: "Undo and redo ([Ctrl]+[Z], [Ctrl]+[Y]) keep the whole history.",
+        points: [
+          "**Save** lists the changes and, for each song using the file, the notes no coil will play.",
+        ],
+        note: "The file itself is rewritten: every song using it changes.",
+      },
+      envLibrary: {
+        title: "The library",
+        text: "Two families of envelopes:",
+        points: [
+          "**yours** (programs 20 to 63), editable;",
+          "**the firmware's** (0 to 19), read-only: **Duplicate** makes a copy to edit.",
+        ],
+      },
+      envIdent: {
+        title: "Name and program",
+        text: "The program number is what a channel picks with its program change.",
+        points: [
+          "From **20 to 39** the envelope can stay in the device's EEPROM; from **40 to 63** it is wiped when it restarts.",
+          "On the right, the files that play it.",
+        ],
+        note: "The app sends it with every song anyway.",
+      },
+      envGraph: {
+        title: "The curve",
+        text: "A note's ontime, from key press to release.",
+        points: [
+          "**Drag** the points to shape each step.",
+          "**Double-click** to add a step.",
+        ],
+        note: "The note-off line marks the test note's length.",
+      },
+      envSteps: {
+        title: "The steps",
+        text: "The same steps in numbers: level, length and curve.",
+        points: [
+          "When the note is held past the last one: **hold** the level, **loop** (pulse, tremolo) or **release**.",
+          "The **release** starts at note-off.",
+        ],
+      },
+      envTest: {
+        title: "Test",
+        text: "Listen to the envelope even before saving it:",
+        points: [
+          "on the emulated **synth**;",
+          "on **a coil**, at a chosen ontime.",
+        ],
+      },
+      envDone: {
+        title: "Use it",
+        text: "Save it, then pick it as a channel's instrument, in the MIDI editor.",
+        note: "The **?** beside the title runs this tour again.",
       },
       tuneIntro: {
         title: "Tuning the primary",
-        text: "Tuning looks for the tap position that gives the longest arcs. A phone films the coil, the app plays a few notes and measures the arcs, and you compare the trials. For this tour a simulated phone answers, and nothing is sent to the coils.",
+        text: "Tuning looks for the tap position that gives the longest arcs.",
+        points: [
+          "A phone films the coil.",
+          "The app plays a few notes and measures the arcs.",
+          "You compare the trials.",
+        ],
+        note: "For this tour a fake phone answers, and nothing reaches the coils.",
       },
       tuneCoil: {
         title: "The coil",
-        text: "The coil to tune and the Syntherrupter fiber output that drives it. Ontime, duty and envelope make the test sound: keep them the same from one session to the next so the results compare.",
+        text: "The coil to tune and the Syntherrupter fibre output that drives it.",
+        note: "Ontime, duty and envelope make the test tone: keep the same from one session to the next, to compare.",
       },
       tuneTone: {
-        title: "The test sound",
-        text: "The notes played at each trial, how long each is held and the gap between them. Several notes give a steadier measurement. For the tour, two notes of two seconds; for real, count about ten seconds per note.",
+        title: "The test tone",
+        text: "The notes played at each trial, how long they hold and the silence between them.",
+        note: "Several notes give a steadier measurement. For the tour, two notes of two seconds; for real, count about ten seconds per note.",
       },
       tunePrimary: {
         title: "The primary",
-        text: "The number of turns and the range the tap can move over. The step is how finely you move the tap by hand: 1/8, 1/4 or 1/2 turn.",
+        text: "Its number of turns and the range the tap can go over.",
+        note: "The step is how precisely you move the tap by hand: 1/8, 1/4 or 1/2 turn.",
       },
       tuneCamera: {
         title: "The camera",
-        text: "A phone is enough, with nothing to install: it films the coil, finds the arcs frame by frame and sends back their length. Put it on a stand, perfectly still, at a safe distance. The computer's webcam works too.",
+        text: "A phone is enough, nothing to install: it films the coil, finds the arcs frame by frame and sends their length back.",
+        points: [
+          "Put it on a stand, perfectly still.",
+          "The computer's webcam works too.",
+        ],
+        note: "Keep the phone at a safe distance from the coil.",
       },
       tuneConnect: {
         title: "Linking the phone",
-        text: "Connect a camera shows a QR code. Scan it with the phone: the camera page opens in its browser. With the desktop app, the phone goes through Wi-Fi, on the same network as the computer.",
+        text: "**Connect a camera** shows a QR code: scan it with the phone, the camera page opens in its browser.",
+        note: "With the desktop app, the phone goes through Wi-Fi, on the same network as the computer.",
       },
       tunePhoneOpen: {
         title: "On the phone",
-        text: "The phone has scanned the QR code: the camera page opens in its browser. Put it on a stand with the coil and the space above the toroid in frame, then start the camera.",
+        text: "The phone has scanned the QR code: the camera page opens in its browser.",
+        points: [
+          "Put it on a stand, the coil and the space above the toroid in the frame.",
+          "Then start the camera.",
+        ],
       },
       tuneBreakout: {
-        title: "The breakout",
-        text: "Tap the picture where the arcs start, at the top of the toroid. The measurement zone sets itself around that point.",
+        title: "The breakout point",
+        text: "Tap the picture where the arcs start, at the top of the toroid: the measuring zone centres on that point.",
       },
       tuneZone: {
-        title: "The measurement zone",
-        text: "Enlarge the zone so the longest arcs fit, and turn it towards the side they go (up, here). Raise the floor line above the coil base and any LEDs: nothing below it is measured.",
+        title: "The measuring zone",
+        text: "Adjust the zone:",
+        points: [
+          "enlarge it so the longest arcs fit, and turn it towards where they go (here, upwards);",
+          "raise the bottom line above the coil's base and its LEDs: nothing is measured below it.",
+        ],
       },
       tuneZoneOk: {
         title: "Zone OK",
-        text: "The phone is ready: the computer sees it and moves on to the trials by itself. From now on, leave the phone alone, or the measurement drifts.",
+        text: "The phone is ready: the computer sees it and moves on to the trials by itself.",
+        note: "From here on, leave the phone alone, or the measurement drifts.",
       },
       tuneTap: {
         title: "The tap position",
-        text: "You move the tap on the coil by hand, then report its position here with − and +. “Last tuning here” recalls the tap found last time at the same place.",
+        text: "You move the tap on the coil by hand, then report its position here with **−** and **+**.",
+        note: "“Last tuning here” recalls the tap found last time at the same place.",
       },
       tuneRun: {
         title: "Running a trial",
-        text: "Once you confirm, the phone captures the background with the coil off, then the app plays the notes while the phone measures the arcs. During the trial, this column shows what the camera sees. Here, all of it is simulated.",
+        text: "Once confirmed:",
+        points: [
+          "the phone captures the scene with the coil off;",
+          "the app plays the notes while it measures the arcs;",
+          "this column shows what the camera sees.",
+        ],
+        note: "Here, everything is simulated.",
       },
       tuneResult: {
         title: "The result",
-        text: "A trial's score is the arc length (P90, in pixels) averaged over the notes. The chart places each trial along the primary's range; the table keeps the per-note detail and the silhouette of the arcs.",
+        text: "A trial's score is the arc length (P90, in pixels) averaged over the notes.",
+        points: [
+          "The graph places each trial on the primary's range.",
+          "The table keeps the detail per note and the arcs' silhouette.",
+        ],
       },
       tuneSuggest: {
         title: "The next trial",
-        text: "The suggestion first tries both ends and the middle of the range, then closes in on the best point. Use sets the counter on it; for real, you also move the tap on the coil before running.",
+        text: "The suggestion first tries both ends and the middle of the range, then closes in on the best point.",
+        note: "**Use** sets the counter there; for real, you also move the tap on the coil before running.",
       },
       tunePhoneTrial: {
         title: "The trial, on the phone",
-        text: "The phone follows each trial: the note being measured, the arc length live, then the score against the best. Its STOP button stops everything from the coil's side.",
+        text: "The phone follows each trial: the note being measured, the arcs' length live, then the score against the best.",
+        note: "Its **STOP** button stops everything from the coil.",
       },
       tuneCompare: {
         title: "Best and last",
-        text: "On the camera side, the silhouette of the best trial's arcs next to the last one's: the difference shows at a glance.",
+        text: "On the camera side, the best trial's arc silhouette beside the last one's: the difference shows at a glance.",
       },
       tuneSave: {
         title: "The summary",
-        text: "About ten trials are usually enough for the suggestion to name the optimum. Finish and save opens the summary: the best tap, the silhouette of its arcs, the sound and the primary used.",
+        text: "About ten trials are usually enough for the suggestion to name the optimum.",
+        points: [
+          "**Finish and save** opens the summary: the best tap, its arcs' silhouette, the tone and the primary used.",
+        ],
       },
       tuneForm: {
         title: "The record",
-        text: "The place comes from the last tuning here, the position from the phone, and the weather fills itself in. Say indoors or outdoors, dry or wet ground, and note what changed: it will explain a difference next time.",
+        text: "The place is the last tuning's here, the position comes from the phone and the weather fills itself in.",
+        points: [
+          "Say indoors or outdoors, dry or wet ground.",
+          "Note what changed: that is what will explain a difference next time.",
+        ],
       },
       tuneSaved: {
         title: "Saved",
-        text: "The tuning joins the history. Next time near here, its tap will show on the primary's diagram as the last tuning. During the tour, nothing is sent to the server.",
+        text: "The tuning joins the history. Next time near here, its tap will show on the primary's drawing as the last tuning.",
+        note: "During the tour, nothing is sent to the server.",
       },
       tuneHistory: {
-        title: "History",
-        text: "The new tuning on top, with the earlier ones, by coil: the tap, the arc length, the place and the conditions. “Use this position” loads a tap to start from there.",
+        title: "The history",
+        text: "The new tuning first, with the earlier ones, per coil: the tap, the arc length, the place and the conditions.",
+        note: "“Use this position” loads a tap to start again from there.",
       },
       tuneDone: {
         title: "Your turn",
-        text: "For a real tuning: a MIDI output selected, a phone on a stand, the coil at a safe distance. The ? button on the Tuning page replays this tour.",
+        text: "For a real tuning:",
+        points: [
+          "a MIDI output picked;",
+          "a phone on a stand;",
+          "the coil at a safe distance.",
+        ],
+        note: "The Tuning page's **?** runs this tour again.",
+      },
+      syntherrupter: {
+        title: "The Syntherrupter",
+        text: "The settings stored in the Syntherrupter itself, read from the device.",
+        points: [
+          "For each coil, the firmware's **safety limits**: max ontime and duty, min ontime and offtime, number of voices.",
+          "Changing a safety limit asks for a confirmation.",
+        ],
+        note: "The page only opens when the app can read the device: a serial link, or its native USB-MIDI port.",
+      },
+      syntherrupterBar: {
+        title: "Apply, save",
+        text: "Further down: the system, the touch screen and each user account's limits.",
+        points: [
+          "**Apply** sends a block to the device;",
+          "only **Save to EEPROM** keeps it after power-off;",
+          "**Reload** reads the device again.",
+        ],
+      },
+      syDone: {
+        title: "Careful",
+        text: "These settings live in the device: they apply to everything it plays, even without the app.",
+        note: "The **?** beside the title runs this tour again.",
       },
     },
   },

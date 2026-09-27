@@ -1,13 +1,14 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRoute, useRouter } from 'vue-router';
-import { TOURS, VIZ_ORDER, vizTab, type TourPlacement, type TourStep } from '@/tour/steps';
+import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
+import { TOUR_ICONS, TOURS, type TourNote, type TourPlacement, type TourStep } from '@/tour/steps';
 import { stopTour, tour } from '@/tour/tour';
 import { enterDemo, exitDemo, isDemoOutputActive, reassertDemo } from '@/tour/demo/demo-mode';
-import { DEMO_PLAYLIST_ID, DEMO_SONG_ID } from '@/tour/demo/data';
+import { DEMO_ENVELOPE_PROGRAM, DEMO_FILE_ID, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from '@/tour/demo/data';
 import { phoneView } from '@/tour/demo/fake-camera';
 import FakePhone from './FakePhone.vue';
+import TourRich from './TourRich.vue';
 import WelcomeDialog from './WelcomeDialog.vue';
 
 /**
@@ -24,10 +25,8 @@ const PAD = 8; // hole margin round the target
 const GAP = 14; // hole to card
 const EDGE = 12; // card to viewport edge
 const WIDE = 640; // narrower: the card docks to the bottom
-// pages that read their data as they mount (the tuning setup, the device's settings):
-// left before the demo starts and after it ends, so they read the right one
-const READS_ON_MOUNT = ['tune', 'syntherrupter'];
 const UNTIL_MAX = 20_000; // a step waiting for the page never locks the tour: Next comes back after this
+const NOTE_ICONS: Record<TourNote, string> = { warn: 'fa-triangle-exclamation', tip: 'fa-lightbulb' };
 
 const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
 const wait = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
@@ -49,7 +48,8 @@ let showSeq = 0; // a newer step wins over a slower, earlier one still resolving
 let ro: ResizeObserver | null = null;
 
 const steps = computed(() => TOURS[tour.id]);
-const step = computed(() => steps.value[index.value]);
+// another tour may have left its index past this one's end, for the render before show(0)
+const step = computed(() => steps.value[index.value] ?? steps.value[0]);
 const isLast = computed(() => index.value === steps.value.length - 1);
 const progress = computed(() => ((index.value + 1) / steps.value.length) * 100);
 
@@ -259,15 +259,32 @@ function onKey(e: KeyboardEvent): void {
   e.stopPropagation();
 }
 
+/** Where the app's tour leaves the user: off a demo item's page (its library instead), else where it is. */
+function afterDemo(): RouteLocationRaw | null {
+  const id = String(route.params.id ?? '');
+  if (route.name === 'midi-edit' && id === String(DEMO_FILE_ID)) return { name: 'midi' };
+  if (route.name === 'envelopes' && String(route.params.program ?? '') === String(DEMO_ENVELOPE_PROGRAM)) return { name: 'envelopes' };
+  if ([String(DEMO_SONG_ID), String(DEMO_PLAYLIST_ID)].includes(id)) return { name: route.name ?? 'play' };
+  return null;
+}
+
+// The page on screen is taken down while the data changes under it, and put back
+// on the new data: pages read theirs as they mount (the tuning setup, the device,
+// a MIDI file). On the way out it matters more: a player on it stops (a player
+// stops as it unmounts) and a trial ends before the real outputs come back.
 watch(() => tour.active, async (on) => {
   if (on) {
-    // (the tuning page's help button only shows with no session running)
-    if (READS_ON_MOUNT.includes(String(route.name))) {
-      await router.replace({ name: 'play' }).catch(() => {});
+    index.value = 0;
+    pending.value = true;
+    tour.swapping = true;
+    try {
       await nextTick();
-      if (!tour.active) return;
+      enterDemo(locale.value);
+    } finally {
+      tour.swapping = false;
     }
-    enterDemo(locale.value);
+    await nextTick();
+    if (!tour.active) return;
     acted.clear();
     ro = 'ResizeObserver' in window ? new ResizeObserver(remeasure) : null;
     window.addEventListener('keydown', onKey, true);
@@ -287,20 +304,17 @@ watch(() => tour.active, async (on) => {
     window.removeEventListener('keydown', onKey, true);
     window.removeEventListener('resize', remeasure);
     document.removeEventListener('scroll', remeasure, true);
-    // left mid-tour on the demo song or playlist: back to that page's chooser first,
-    // so the demo song's player (maybe playing, silently) unmounts and stops before
-    // the real outputs come back. A page reading on mount is left too (a trial
-    // stops, the fake session ends), then opened again on the real data
-    const onDemoPage = [String(DEMO_SONG_ID), String(DEMO_PLAYLIST_ID)].includes(String(route.params.id));
-    const reopen = READS_ON_MOUNT.includes(String(route.name)) ? String(route.name) : null;
-    const leave = onDemoPage || reopen ? router.replace({ name: reopen ? 'play' : route.name ?? 'play' }) : Promise.resolve();
-    void leave.catch(() => {}).then(async () => {
+    // a page's tour brings the user back where it started
+    const dest = tour.origin ?? afterDemo();
+    tour.origin = null;
+    tour.swapping = true;
+    try {
       await nextTick();
-      const viz = exitDemo() ?? 'vu';
-      if (reopen) await router.replace({ name: reopen }).catch(() => {});
-      // the view steps switched the player's tab; a player still on screen gets the user's back
-      findTarget(vizTab(VIZ_ORDER.indexOf(viz) + 1))?.click();
-    });
+      exitDemo();
+      if (dest) await router.replace(dest).catch(() => {});
+    } finally {
+      tour.swapping = false;
+    }
   }
 });
 onBeforeUnmount(() => stopTour());
@@ -321,13 +335,34 @@ onBeforeUnmount(() => stopTour());
       </div>
       <section ref="cardEl" class="tour__card" :class="{ 'is-free': !cardPos, 'is-pending': pending }" :style="cardStyle"
         role="dialog"
-        aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
-        <div class="tour__progress"><span :style="{ width: `${progress}%` }"></span></div>
-        <span class="tour__count">{{ $t('tour.stepOf', { n: index + 1, total: steps.length }) }}</span>
-        <h2 id="tour-title" class="tour__title">{{ $t(`tour.steps.${step.id}.title`) }}</h2>
-        <p id="tour-text" class="tour__text">{{ $t(`tour.steps.${step.id}.text`) }}</p>
+        aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-body">
+        <header class="tour__band">
+          <div class="tour__band-top">
+            <span class="tour__eyebrow"><i class="fas" :class="TOUR_ICONS[tour.id]"></i>{{ $t(`tour.names.${tour.id}`) }}</span>
+            <span class="tour__count">{{ $t('tour.stepOf', { n: index + 1, total: steps.length }) }}</span>
+            <button class="tour__x" type="button" :title="$t('tour.skip')" :aria-label="$t('tour.skip')" @click="finish">
+              <i class="fas fa-xmark"></i>
+            </button>
+          </div>
+          <h2 id="tour-title" class="tour__title"><i class="fas" :class="step.icon"></i><span>{{
+            $t(`tour.steps.${step.id}.title`) }}</span></h2>
+          <div class="tour__progress"><span :style="{ width: `${progress}%` }"></span></div>
+        </header>
+        <div id="tour-body" class="tour__body">
+          <p class="tour__lead"><tour-rich :text="$t(`tour.steps.${step.id}.text`)" /></p>
+          <ul v-if="step.points?.length" class="tour__points" :class="{ 'is-tiles': step.tiles }">
+            <li v-for="(icon, i) in step.points" :key="i">
+              <i class="fas" :class="icon"></i><span><tour-rich :text="$t(`tour.steps.${step.id}.points.${i}`)" /></span>
+            </li>
+          </ul>
+          <p v-if="step.note" class="tour__note" :class="`is-${step.note}`">
+            <i class="fas" :class="step.noteIcon ?? NOTE_ICONS[step.note]"></i><span><tour-rich
+                :text="$t(`tour.steps.${step.id}.note`)" /></span>
+          </p>
+        </div>
         <footer class="tour__foot">
           <button v-if="!isLast" class="tour__skip" type="button" @click="finish">{{ $t('tour.skip') }}</button>
+          <span class="tour__keys" aria-hidden="true"><kbd>←</kbd><kbd>→</kbd></span>
           <span class="tour__nav">
             <button v-if="index > 0" class="btn" type="button" @click="prev">{{ $t('tour.prev') }}</button>
             <button class="btn btn--volt" type="button" data-primary :disabled="!ready" @click="next">
@@ -442,11 +477,11 @@ onBeforeUnmount(() => stopTour());
 .tour__card {
   position: fixed;
   z-index: 1;
-  width: min(340px, calc(100vw - 24px));
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100vh - 24px);
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
-  padding: 1rem 1.1rem 0.9rem;
+  overflow: hidden;
   background: var(--panel-2);
   border: 1px solid var(--line-strong);
   border-radius: var(--radius-lg);
@@ -471,14 +506,94 @@ onBeforeUnmount(() => stopTour());
     bottom: 5.4rem;
     transform: translateX(-50%);
   }
+
+  .tour__card {
+    max-height: 60vh;
+  }
+}
+
+/* the band: which tour, how far, the step's title */
+.tour__band {
+  position: relative;
+  flex: none;
+  padding: 0.75rem 0.9rem 0.85rem 1rem;
+  background: linear-gradient(135deg, rgb(var(--volt-rgb) / 0.3), rgb(var(--volt-rgb) / 0.1)), var(--panel-2);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.tour__band-top {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tour__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tour__count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text);
+  opacity: 0.75;
+  white-space: nowrap;
+}
+
+.tour__x {
+  width: 24px;
+  height: 24px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.tour__x:hover {
+  opacity: 1;
+  background: rgb(255 255 255 / 0.08);
+}
+
+.tour__title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.45rem 0 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  line-height: 1.2;
+  color: #fff;
+}
+
+.tour__title i {
+  font-size: 1rem;
+  flex: none;
 }
 
 .tour__progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
   height: 3px;
-  border-radius: var(--radius-pill);
-  background: var(--bg-2);
-  overflow: hidden;
-  margin-bottom: 0.3rem;
+  background: rgb(255 255 255 / 0.06);
 }
 
 .tour__progress span {
@@ -488,30 +603,143 @@ onBeforeUnmount(() => stopTour());
   transition: width 0.25s ease;
 }
 
-.tour__count {
-  font-size: var(--fs-xs);
-  color: var(--text-mute);
+/* the body: a lead, the points, a boxed line */
+.tour__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem 0.2rem;
 }
 
-.tour__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--fs-xl);
-  color: #eef3ff;
-}
-
-.tour__text {
+.tour__lead {
   margin: 0;
   font-size: var(--fs-md);
   line-height: 1.5;
+  color: var(--text);
+}
+
+.tour__points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tour__points li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+  font-size: var(--fs-md);
+  line-height: 1.45;
   color: var(--text-dim);
 }
 
+.tour__points li > i {
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg-2);
+  color: var(--volt);
+  font-size: 0.66rem;
+}
+
+/* short labels (the welcome's path): a grid of tiles */
+.tour__points.is-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+
+.tour__points.is-tiles li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.45rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg-2);
+  font-size: var(--fs-xs);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.tour__points.is-tiles li > i {
+  border: 0;
+  background: none;
+  font-size: 0.85rem;
+}
+
+.tour__body :deep(b) {
+  color: #eef3ff;
+  font-weight: 600;
+}
+
+.tour__card :deep(kbd) {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 0 5px;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--bg-2);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.tour__note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.tour__note > i {
+  margin-top: 2px;
+  flex: none;
+}
+
+.tour__note.is-warn {
+  background: rgb(224 169 59 / 0.09);
+  border: 1px solid rgb(224 169 59 / 0.3);
+}
+
+.tour__note.is-warn > i {
+  color: var(--amber);
+}
+
+.tour__note.is-tip {
+  background: var(--volt-08);
+  border: 1px solid var(--volt-30);
+}
+
+.tour__note.is-tip > i {
+  color: var(--volt);
+}
+
 .tour__foot {
+  flex: none;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.5rem;
+  margin-top: 0.6rem;
+  padding: 0.6rem 1rem 0.8rem;
+  border-top: 1px solid var(--line);
 }
 
 .tour__skip {
@@ -528,14 +756,29 @@ onBeforeUnmount(() => stopTour());
   color: var(--text);
 }
 
+.tour__keys {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: auto;
+}
+
 .tour__nav {
   display: flex;
   gap: 0.5rem;
-  margin-left: auto;
 }
 
 .tour__nav .btn {
   padding: 0.5rem 0.9rem;
+}
+
+@media (max-width: 639px) {
+  .tour__keys {
+    display: none;
+  }
+
+  .tour__nav {
+    margin-left: auto;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
