@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { Envelope } from '../envelopes/entities/envelope.entity';
 import { MidiFile } from '../midi/entities/midi-file.entity';
 import { PlaylistSong } from '../playlists/entities/playlist-song.entity';
 import { Playlist } from '../playlists/entities/playlist.entity';
@@ -18,6 +19,7 @@ import { SyncService } from './sync.service';
       MidiFile,
       Playlist,
       PlaylistSong,
+      Envelope,
     ]),
   ],
   controllers: [SyncController],

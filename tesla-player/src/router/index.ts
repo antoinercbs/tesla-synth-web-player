@@ -28,6 +28,11 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/MidiFilesView.vue"),
   },
   {
+    path: "/envelopes/:program?",
+    name: "envelopes",
+    component: () => import("@/views/EnvelopesView.vue"),
+  },
+  {
     path: "/syntherrupter",
     name: "syntherrupter",
     component: () => import("@/views/SyntherrupterView.vue"),

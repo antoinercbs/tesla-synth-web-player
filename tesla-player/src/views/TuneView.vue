@@ -5,10 +5,10 @@ import { useMidiStore } from '@/stores/midi';
 import { notify } from '@/utils/toast';
 import { coilColor } from '@/ui/coil-colors';
 import { noteHzLabel, noteName } from '@/ui/piano-layout';
-import { ENVELOPES } from '@/sysex/envelopes';
 import { MAX_COILS } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import EnvelopeSelect from '@/envelopes/EnvelopeSelect.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import TapRulerChart from '@/tuning/TapRulerChart.vue';
 import PrimarySchematic from '@/tuning/PrimarySchematic.vue';
@@ -122,8 +122,6 @@ const noteCount = computed({
   get: () => setup.notes.length,
   set: (n: number) => { while (setup.notes.length < n) setup.notes.push(Math.min(127, (setup.notes[setup.notes.length - 1] ?? 48) + 7)); setup.notes.splice(n); },
 });
-const programOptions = computed(() => [{ value: -1, label: t('tune.envelopeNone') }, ...ENVELOPES.map((e) => ({ value: e.program, label: e.name }))]);
-const programModel = computed({ get: () => setup.program ?? -1, set: (v: number) => { setup.program = v < 0 ? null : v; } });
 const tapMinOk = computed(() => setup.tapMin >= 0 && setup.tapMin < setup.tapMax && setup.tapMax <= setup.primaryTurns);
 const settingsOk = computed(() => tapMinOk.value && setup.notes.length > 0 && setup.holdMs >= 1000);
 /** Once trials exist, the settings that define the measurement are frozen for the session. */
@@ -471,7 +469,7 @@ onBeforeUnmount(() => { void endSession(); });
               <label class="tune-field"><span class="tf-label">{{ t('label.duty') }} (%)</span><input class="text-field" type="number" min="0" max="100" step="0.1" v-model.number="dutyPct" :disabled="running || settingsLocked" /></label>
             </div>
             <label class="tune-field"><span class="tf-label">{{ t('tune.envelope') }}</span>
-              <div class="select-field"><select v-model.number="programModel" :disabled="running || settingsLocked"><option v-for="o in programOptions" :key="o.value" :value="o.value">{{ o.label }}</option></select></div>
+              <envelope-select v-model="setup.program" :none-label="t('tune.envelopeNone')" :disabled="running || settingsLocked" />
             </label>
           </article>
 

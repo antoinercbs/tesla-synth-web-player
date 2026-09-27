@@ -120,4 +120,17 @@ describe("analyzeMidi", () => {
     expect(a.notes.length).toBe(1);
     expect(a.notes[0].endMs).toBeCloseTo(500, 3);
   });
+
+  it("lists every program the file selects, mid-song changes included", () => {
+    const pc = (deltaTime: number, channel: number, programNumber: number) => ({
+      deltaTime, type: "channel", subtype: "programChange", channel, programNumber,
+    });
+    const parsed = {
+      header: { ticksPerBeat: 480 },
+      tracks: [[pc(0, 0, 21), pc(0, 1, 1), pc(960, 0, 40), pc(0, 1, 21)]],
+    };
+    const a = analyzeMidi(parsed);
+    expect(a.programs).toEqual([1, 21, 40]);
+    expect(a.programByChannel).toEqual({ 0: 21, 1: 1 });
+  });
 });

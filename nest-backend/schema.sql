@@ -138,3 +138,17 @@ CREATE TABLE IF NOT EXISTS CoilTuning (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS UQ_coiltuning_uuid ON CoilTuning(uuid) WHERE uuid IS NOT NULL;
 CREATE INDEX IF NOT EXISTS IDX_coiltuning_coil ON CoilTuning(coilIndex, createdAt);
+
+-- User-defined Syntherrupter envelopes (programs 20-63), pushed to the device at
+-- play time. Named identically to the Envelopes migration so fresh and migrated
+-- DBs match. The program number is also the sync identity (no uuid).
+CREATE TABLE IF NOT EXISTS Envelope (
+	id           INTEGER PRIMARY KEY AUTOINCREMENT,
+	program      INTEGER NOT NULL,
+	name         TEXT,
+	steps        TEXT NOT NULL,
+	updatedAt    INTEGER,
+	contentHash  TEXT,
+	editorName   TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS UQ_envelope_program ON Envelope(program);

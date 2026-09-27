@@ -11,6 +11,8 @@
  * components build against.
  */
 
+import type { EnvStep } from '@/sysex/envelopes';
+
 /**
  * Firmware playback mode stored per song.
  *  - 'midi'   = the Syntherrupter's single MIDI mode (byte 0x02). It backs BOTH
@@ -119,6 +121,20 @@ export interface Playlist {
   coilCount: number;
   songIds: number[];
   /** Who last edited this (server-stamped from the OIDC token), or null. */
+  editorName?: string | null;
+}
+
+/**
+ * A user-defined Syntherrupter envelope (programs 20-63). Channels pick it by
+ * program number, like the built-in ones; the player pushes it to the device
+ * before a song that plays it.
+ */
+export interface CustomEnvelope {
+  id: number;
+  program: number;
+  name: string;
+  /** Exactly 8 steps: 0 = attack, 7 = release. */
+  steps: EnvStep[];
   editorName?: string | null;
 }
 

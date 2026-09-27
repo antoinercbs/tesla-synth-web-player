@@ -2,12 +2,13 @@
 import { computed, ref, watch } from 'vue';
 import axios from 'axios';
 import { analyzeMidi } from '@/midi/analyze';
-import { ENVELOPES, envelope, envelopeIcon } from '@/sysex/envelopes';
+import { envelopeIcon } from '@/sysex/envelopes';
 import { notify } from '@/utils/toast';
 import { useMidiStore } from '@/stores/midi';
 import type { MidiFile } from '@/types/domain';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import BaseModal from '@/components/ui/BaseModal.vue';
+import EnvelopeSelect from '@/envelopes/EnvelopeSelect.vue';
 
 const props = defineProps<{ open: boolean; file: MidiFile | null }>();
 const emit = defineEmits<{ (e: 'close'): void; (e: 'saved', file: MidiFile): void }>();
@@ -20,18 +21,6 @@ const error = ref(false);
 const saving = ref(false);
 
 const dirty = computed(() => rows.value.some((r) => r.current !== r.original));
-
-/** Instrument options for a row: the named envelopes (0-19), plus the channel's
- *  original/current program if either falls outside that set (so any value the
- *  channel holds stays selectable and revertable). */
-function optionsFor(row: Row): { value: number; label: string }[] {
-  const opts = ENVELOPES.map((e) => ({ value: e.program, label: `P${e.program} · ${e.name}` }));
-  const seen = new Set(ENVELOPES.map((e) => e.program));
-  for (const p of [row.original, row.current]) {
-    if (!seen.has(p)) { opts.unshift({ value: p, label: `P${p} · ${envelope(p).name}` }); seen.add(p); }
-  }
-  return opts;
-}
 
 function bufferToString(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
@@ -106,11 +95,9 @@ async function save(): Promise<void> {
           :class="{ 'is-changed': row.current !== row.original }">
           <span class="instr-row__ch">{{ $t('label.channel') }} {{ row.channel }}</span>
           <span class="instr-row__icon"><i class="fas" :class="envelopeIcon(row.current)"></i></span>
-          <div class="select-field instr-row__select">
-            <select v-model.number="row.current" :aria-label="`${$t('label.channel')} ${row.channel}`">
-              <option v-for="o in optionsFor(row)" :key="o.value" :value="o.value">{{ o.label }}</option>
-            </select>
-          </div>
+          <envelope-select class="instr-row__select" :model-value="row.current" :keep="[row.original]"
+            :aria-label="`${$t('label.channel')} ${row.channel}`"
+            @update:model-value="row.current = $event ?? row.current" />
         </div>
       </div>
     </div>

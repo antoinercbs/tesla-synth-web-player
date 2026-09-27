@@ -22,6 +22,7 @@
  * existing songs exactly.
  */
 
+import { customEnvelope, type EnvStep } from '@/sysex/envelopes';
 import type { CoilConfig, PlaybackMode, SimpleCoil } from '@/types/domain';
 
 /** Fixed SysEx header: start, manufacturer id, protocol version, broadcast id. */
@@ -294,6 +295,51 @@ export function encodeBps(
   mode: number = MODE_BYTE.simple,
 ): number[] {
   return buildFrame({ pn: PN.BPS, coil, mode, value: Math.round(frequencyHz) });
+}
+
+/** Envelope step fields: TG_MSB = program (0..63), TG_LSB = step (0..7). */
+export const ENVELOPE_PN = {
+  NEXT: 0x300,
+  AMPLITUDE: 0x301,
+  DURATION: 0x302,
+  NTAU: 0x303,
+} as const;
+
+/**
+ * The 32 frames that write one envelope, in the firmware's integer units
+ * (amplitude and n-tau in 1/1000, duration in µs). Each frame rewrites one field
+ * and keeps the step's others (MIDIProgram::setDataPoint), so order is free. The
+ * firmware ignores a negative amplitude/duration, hence the clamps; it also
+ * forces the release amplitude to 0 and |n-tau| < 0.1 up to 0.1 by itself.
+ */
+export function compileEnvelope(
+  program: number,
+  steps: readonly EnvStep[],
+  deviceId: number = DEVICE_BROADCAST,
+): number[][] {
+  const frames: number[][] = [];
+  steps.forEach((s, step) => {
+    const target = (step & 0x7f) | ((program & 0x7f) << 8);
+    const cmd = (pn: number, value: number): number[] =>
+      buildCommand({ pn, target, value, deviceId });
+    frames.push(cmd(ENVELOPE_PN.AMPLITUDE, Math.round(Math.max(0, s.amp) * 1000)));
+    frames.push(cmd(ENVELOPE_PN.DURATION, Math.round(Math.max(0, s.durMs) * 1000)));
+    frames.push(cmd(ENVELOPE_PN.NTAU, Math.round(s.ntau * 1000)));
+    frames.push(cmd(ENVELOPE_PN.NEXT, s.next));
+  });
+  return frames;
+}
+
+/** Frames for the library envelopes among `programs` (built-in ones are skipped:
+ *  the firmware owns them). Programs 40-63 are wiped at every device boot, so
+ *  these must be sent before each song rather than once. */
+export function compileCustomEnvelopes(programs: Iterable<number>): number[][] {
+  const frames: number[][] = [];
+  for (const program of new Set(programs)) {
+    const custom = customEnvelope(program);
+    if (custom) frames.push(...compileEnvelope(program, custom.steps));
+  }
+  return frames;
 }
 
 // ---------------------------------------------------------------------------

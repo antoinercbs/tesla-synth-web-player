@@ -1,6 +1,6 @@
 import type { MidiSink } from '@/audio/tesla-synth';
-import { programChange } from '@/sysex/envelopes';
-import { compileCoilConfig } from '@/sysex/syntherrupter';
+import { programChange, type EnvStep } from '@/sysex/envelopes';
+import { compileCoilConfig, compileCustomEnvelopes, compileEnvelope } from '@/sysex/syntherrupter';
 import type { CoilConfig } from '@/types/domain';
 import { MAX_COILS } from '@/types/domain';
 
@@ -26,6 +26,9 @@ export interface ToneConfig {
   duty: number;
   /** Envelope program to force on the channel, or null. */
   program: number | null;
+  /** Steps to write into `program` first (an unsaved draft). Omitted: the
+   *  library's own, when `program` is a library envelope. */
+  envelope?: readonly EnvStep[] | null;
   /** How many coil slots to configure (the others are muted). */
   coilCount: number;
 }
@@ -74,12 +77,18 @@ export class ToneRunner {
     return compileCoilConfig(coils, 'midi');
   }
 
+  static envelopeFrames(cfg: ToneConfig): number[][] {
+    if (cfg.program == null) return [];
+    return cfg.envelope ? compileEnvelope(cfg.program, cfg.envelope) : compileCustomEnvelopes([cfg.program]);
+  }
+
   start(): void {
     if (this._state === 'running') return;
     if (!this.out.primary) throw new Error('No MIDI output');
     this._state = 'running';
     this.out.primary.resume?.(); // built-in synth: unlock audio from the click
     for (const f of ToneRunner.coilFrames(this.cfg)) this.out.sendSysex(f);
+    for (const f of ToneRunner.envelopeFrames(this.cfg)) this.out.sendSysex(f);
     if (this.cfg.program != null) this.send(programChange(this.cfg.channel, this.cfg.program));
     // let the SysEx settle before the first note
     this.timer = setTimeout(() => this.playNote(0), 150);

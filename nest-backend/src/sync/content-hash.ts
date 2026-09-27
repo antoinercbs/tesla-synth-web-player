@@ -47,6 +47,14 @@ export interface SongHashInput {
   editorName?: string | null;
 }
 
+export interface EnvelopeHashInput {
+  program: number;
+  name: string | null;
+  /** In step order: the index IS the step number, so no sorting here. */
+  steps: { next: number; amp: number; durMs: number; ntau: number }[];
+  editorName?: string | null;
+}
+
 export interface PlaylistHashInput {
   name: string | null;
   coilCount: number;
@@ -119,6 +127,20 @@ export function hashPlaylist(input: PlaylistHashInput): string {
     name: input.name ?? '',
     coilCount: input.coilCount,
     songUuids: input.songUuids,
+  };
+  return sha256(JSON.stringify(withEditor(canonical, input.editorName)));
+}
+
+export function hashEnvelope(input: EnvelopeHashInput): string {
+  const canonical: Record<string, unknown> = {
+    program: input.program,
+    name: input.name ?? '',
+    steps: input.steps.map((s) => ({
+      next: s.next,
+      amp: num(s.amp),
+      durMs: num(s.durMs),
+      ntau: num(s.ntau),
+    })),
   };
   return sha256(JSON.stringify(withEditor(canonical, input.editorName)));
 }

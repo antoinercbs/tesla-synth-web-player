@@ -2,9 +2,9 @@
 import { computed } from 'vue';
 import type { CoilConfig } from '@/types/domain';
 import { coilColor } from '@/ui/coil-colors';
-import { ENVELOPES } from '@/sysex/envelopes';
 import { useMidiStore } from '@/stores/midi';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
+import EnvelopeSelect from '@/envelopes/EnvelopeSelect.vue';
 
 const props = defineProps<{ index: number; showEnvelope?: boolean; availableChannels?: number[] | null }>();
 const coil = defineModel<CoilConfig>({ required: true });
@@ -74,12 +74,7 @@ const program = computed<number | null>({
       <span class="readout-label coil-env__label">
         <span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('label.instrument') }}
       </span>
-      <div class="select-field coil-env">
-        <select v-model="program">
-          <option :value="null">{{ $t('label.noOverride') }}</option>
-          <option v-for="e in ENVELOPES" :key="e.program" :value="e.program">{{ e.program }} · {{ e.name }}</option>
-        </select>
-      </div>
+      <envelope-select v-model="program" class="coil-env" :none-label="$t('label.noOverride')" />
     </template>
   </article>
 </template>

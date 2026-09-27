@@ -1,8 +1,10 @@
-import { decodeFrame, PN } from "@/sysex/syntherrupter";
+import { decodeFrame, ENVELOPE_PN, PN } from "@/sysex/syntherrupter";
 import {
-  envelopeAmplitude,
-  envelopeReleaseMs,
+  ENVELOPE_STEP_COUNT,
+  RELEASE_STEP,
   programSteps,
+  stepsAmplitude,
+  type EnvStep,
 } from "@/sysex/envelopes";
 import { pitchGain, pulseCoefficients } from "@/audio/tesla-impulse";
 
@@ -108,6 +110,9 @@ export class TeslaSynthOutput implements MidiSink {
   private live: Voice[] = [];
   private channelProgram: number[] = new Array(16).fill(0);
   private coils: CoilState[] = [];
+  // Envelopes written over SysEx, like the device's RAM: kept across clear()
+  // (a device forgets them only on reboot). Unwritten programs use the shared table.
+  private writtenPrograms = new Map<number, EnvStep[]>();
 
   constructor() {
     const Ctx =
@@ -274,6 +279,10 @@ export class TeslaSynthOutput implements MidiSink {
     } catch {
       return;
     }
+    if (dec.pnFull >= ENVELOPE_PN.NEXT && dec.pnFull <= ENVELOPE_PN.NTAU) {
+      this.writeEnvelopeStep(dec.pnFull, dec.target, dec.isFloat ? dec.valueFloat : dec.valueInt, dec.isFloat);
+      return;
+    }
     const c = dec.coil;
     if (c < 0 || c > 5) return;
     const cs = (this.coils[c] ??= { mask: 0, ontime: [], duty: [] });
@@ -281,6 +290,35 @@ export class TeslaSynthOutput implements MidiSink {
     else if (dec.pn === PN.DUTY) cs.duty.push({ when, v: dec.valueFloat });
     else if (dec.pn === PN.CHANNEL_MAP) cs.mask = dec.valueInt;
     if (dec.pn === PN.ONTIME || dec.pn === PN.DUTY) this.remodulate(c, when);
+  }
+
+  /** Mirrors MIDIProgram::setDataPoint: the release amplitude stays 0, n-tau is
+   *  kept off zero, and out-of-range values are ignored. */
+  private writeEnvelopeStep(pn: number, target: number, value: number, isFloat: boolean): void {
+    const step = target & 0x7f;
+    const program = (target >> 8) & 0x7f;
+    if (step >= ENVELOPE_STEP_COUNT || program > 63) return;
+    const steps = (this.writtenPrograms.get(program) ?? programSteps(program)).map((s) => ({ ...s }));
+    const s = steps[step];
+    const milli = isFloat ? value : value / 1000;
+    if (pn === ENVELOPE_PN.NEXT) {
+      if (value >= ENVELOPE_STEP_COUNT) return;
+      s.next = value;
+    } else if (pn === ENVELOPE_PN.AMPLITUDE) {
+      if (milli < 0) return;
+      s.amp = step === RELEASE_STEP ? 0 : milli;
+    } else if (pn === ENVELOPE_PN.DURATION) {
+      // µs in both the int and the float variant
+      if (value < 0) return;
+      s.durMs = value / 1000;
+    } else {
+      s.ntau = Math.abs(milli) < 0.1 ? 0.1 : milli;
+    }
+    this.writtenPrograms.set(program, steps);
+  }
+
+  private stepsFor(program: number): EnvStep[] {
+    return this.writtenPrograms.get(program) ?? programSteps(program);
   }
 
   private stampAt(list: Stamped[], when: number, fallback: number): number {
@@ -323,7 +361,8 @@ export class TeslaSynthOutput implements MidiSink {
     velScale: number,
     when: number,
   ): void {
-    const a0 = envelopeAmplitude(program, 0, null) * velScale;
+    const steps = this.stepsFor(program);
+    const a0 = stepsAmplitude(steps, 0, null) * velScale;
     g.setValueAtTime(0.0001, when);
     let startMs = 0;
     if (a0 > 0.001) {
@@ -331,10 +370,10 @@ export class TeslaSynthOutput implements MidiSink {
       startMs = ATTACK_MIN_S * 1000;
     }
 
-    const steps = programSteps(program);
     let acc = 0;
     let cur = 0;
-    for (let guard = 0; guard < 16; guard++) {
+    // a looping envelope keeps cycling until the 8 s horizon, like on the device
+    for (let guard = 0; guard < 512; guard++) {
       const s = steps[cur];
       const dur = Math.max(0, s.durMs);
       if (dur > 0) {
@@ -345,7 +384,7 @@ export class TeslaSynthOutput implements MidiSink {
             g.linearRampToValueAtTime(
               Math.max(
                 0.0001,
-                envelopeAmplitude(program, tMs, null) * velScale,
+                stepsAmplitude(steps, tMs, null) * velScale,
               ),
               when + tMs / 1000,
             );
@@ -430,7 +469,8 @@ export class TeslaSynthOutput implements MidiSink {
     const v = this.voices.get(key);
     if (!v) return;
     this.voices.delete(key);
-    const relMs = envelopeReleaseMs(v.program);
+    const steps = this.stepsFor(v.program);
+    const relMs = steps[RELEASE_STEP].durMs;
     const heldElapsed = Math.max(0, (when - v.startWhen) * 1000);
     try {
       this.holdAt(v.env.gain, when);
@@ -438,7 +478,7 @@ export class TeslaSynthOutput implements MidiSink {
       for (let i = 1; i <= n; i++) {
         const rt = (i / n) * relMs;
         const amp =
-          envelopeAmplitude(v.program, heldElapsed + rt, heldElapsed) *
+          stepsAmplitude(steps, heldElapsed + rt, heldElapsed) *
           v.velScale;
         v.env.gain.linearRampToValueAtTime(
           Math.max(0.0001, amp),

@@ -3,8 +3,8 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { useI18n } from 'vue-i18n';
 import { WebMidi, type Input } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
-import { compileCoilConfig } from '@/sysex/syntherrupter';
-import { programChange } from '@/sysex/envelopes';
+import { compileCoilConfig, compileCustomEnvelopes } from '@/sysex/syntherrupter';
+import { customEnvelope, programChange } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_NOTE_COUNT } from '@/ui/piano-layout';
 import { MAX_COILS, MIN_COILS, MIDI_CHANNEL_COUNT } from '@/types/domain';
@@ -127,8 +127,18 @@ const channelOverride = computed(() => {
   return map;
 });
 
+// library envelopes written to the device this session: the controller may pick
+// one at any time, and each is only worth sending once
+const writtenEnvelopes = new Set<number>();
+function writeEnvelopes(programs: Iterable<number>): void {
+  const fresh = [...programs].filter((p) => !writtenEnvelopes.has(p) && customEnvelope(p));
+  for (const frame of compileCustomEnvelopes(fresh)) midiStore.sendSysex(frame);
+  for (const p of fresh) writtenEnvelopes.add(p);
+}
+
 function sendConfig(): void {
   for (const frame of compileCoilConfig(cfg.coils, 'midi')) midiStore.sendSysex(frame);
+  writeEnvelopes(channelOverride.value.values());
   // force the chosen envelope on each overridden channel (Program Change)
   for (const [ch, program] of channelOverride.value) midiStore.midiOutput?.send(programChange(ch, program));
 }
@@ -153,6 +163,7 @@ function onMidiMessage(e: MidiMessageEvent): void {
   const ch = status & 0x0f;
   // keep our envelope override: swallow incoming Program Change on overridden channels
   if (kind === 0xc0 && channelOverride.value.has(ch)) return;
+  if (kind === 0xc0 && running.value) writeEnvelopes([data[1]]);
   if (running.value) sendToOutputs(data);
   // monitor — mirrors the note state on the keyboard and the channel LEDs
   if (kind === 0x90 && data[2] > 0) { setNote(data[1], ch, true); flashChannel(ch); }
@@ -163,6 +174,7 @@ function onMidiMessage(e: MidiMessageEvent): void {
 function start(): void {
   if (!canRun.value || running.value) return;
   midiStore.midiOutput?.resume?.(); // built-in synth: the click is the user gesture that unlocks audio
+  writtenEnvelopes.clear(); // the device may have rebooted since the last session
   sendConfig();
   running.value = true;
 }

@@ -14,7 +14,7 @@ const ICON: Record<string, string> = {
       <transition-group name="toast">
         <div v-for="t in toasts" :key="t.id" class="toast" :class="`toast--${t.type}`">
           <span class="icon"><i class="fas" :class="ICON[t.type]"></i></span>
-          {{ $t(t.key) }}
+          {{ $te(t.key) ? $t(t.key) : t.key }}
         </div>
       </transition-group>
     </div>

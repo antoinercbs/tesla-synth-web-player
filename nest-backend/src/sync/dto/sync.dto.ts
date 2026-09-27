@@ -1,13 +1,23 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayMinSize,
   IsArray,
   IsIn,
   IsInt,
   IsNumber,
   IsOptional,
   IsString,
+  Max,
+  Min,
   ValidateNested,
 } from 'class-validator';
+import { EnvelopeStepDto } from '../../envelopes/dto/envelope.dto';
+import {
+  ENVELOPE_PROGRAM_MAX,
+  ENVELOPE_PROGRAM_MIN,
+  ENVELOPE_STEP_COUNT,
+} from '../../envelopes/entities/envelope.entity';
 import { PlaybackMode } from '../../songs/entities/song.entity';
 
 /**
@@ -67,11 +77,29 @@ export class PlaylistPayloadDto {
   songUuids!: string[];
 }
 
+/** `uuid` is the program's sync key ("P20"), not a minted uuid (see Envelope). */
+export class EnvelopePayloadDto {
+  @IsString() uuid!: string;
+  @IsInt() updatedAt!: number;
+  @IsString() contentHash!: string;
+  @IsInt() @Min(ENVELOPE_PROGRAM_MIN) @Max(ENVELOPE_PROGRAM_MAX) program!: number;
+  @IsOptional() @IsString() name!: string;
+  @IsOptional() @IsString() editorName?: string | null;
+
+  @IsArray()
+  @ArrayMinSize(ENVELOPE_STEP_COUNT)
+  @ArrayMaxSize(ENVELOPE_STEP_COUNT)
+  @ValidateNested({ each: true })
+  @Type(() => EnvelopeStepDto)
+  steps!: EnvelopeStepDto[];
+}
+
 /** A list of uuids per type to fetch full payloads for. */
 export class PullRequestDto {
   @IsOptional() @IsArray() @IsString({ each: true }) songs?: string[];
   @IsOptional() @IsArray() @IsString({ each: true }) playlists?: string[];
   @IsOptional() @IsArray() @IsString({ each: true }) midiFiles?: string[];
+  @IsOptional() @IsArray() @IsString({ each: true }) envelopes?: string[];
 }
 
 /**
@@ -103,4 +131,10 @@ export class ApplyRequestDto {
   @ValidateNested({ each: true })
   @Type(() => PlaylistPayloadDto)
   playlists?: PlaylistPayloadDto[];
+
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => EnvelopePayloadDto)
+  envelopes?: EnvelopePayloadDto[];
 }

@@ -42,14 +42,14 @@ The desktop app keeps its SQLite database and uploaded MIDI files under your **u
 
 ## Synchronizing with a server
 
-Sync lets this computer and a remote Tesla Player server exchange songs, playlists and MIDI files.
+Sync lets this computer and a remote Tesla Player server exchange songs, playlists, MIDI files and envelopes.
 
 1. Open **Server configuration** and set the **server URL**. Save.
 2. Click **Sync**. The app compares both sides and shows a **diff**, one row per item:
    - **Only here** / **Only on server** / **Conflict** (changed on both — the newer one is preselected).
    - Items that look like the **same content under a different identity** are flagged as a likely **duplicate** and default to *Skip*, so you don't create copies.
 3. For each row, choose **Keep this computer's**, **Keep the server's**, or **Skip**.
-4. Apply. Dependencies (the MIDI file a song needs, the songs a playlist references) are transferred automatically.
+4. Apply. Dependencies (the MIDI file a song needs, the songs a playlist references, the envelopes a MIDI file plays) are transferred automatically. An envelope is identified by its program number (P20–P63), since that is how MIDI files refer to it: a dependency only fills a slot that is empty on the other side, and a slot holding a different envelope on each side shows up as a conflict for you to decide.
 
 > Sync is **add/update only: it never deletes** anything on either side. Items are matched by a stable identity, so re-syncing is safe and idempotent.
 

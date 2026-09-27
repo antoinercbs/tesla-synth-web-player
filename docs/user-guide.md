@@ -13,13 +13,14 @@ How to play music on your Tesla coils and configure each song. This covers the w
 - [Editing a song](#editing-a-song)
 - [Playlists](#playlists)
 - [MIDI files & instruments](#midi-files--instruments)
+- [Envelopes](#envelopes)
 - [Language](#language)
 
 ---
 
 ## The interface at a glance
 
-- **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, language, desktop download / sync).
+- **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, language, desktop download / sync).
 - **Main area**: the current screen (Play, Edit, ...)
 
 ## Choosing your outputs
@@ -88,6 +89,20 @@ Go to **Playlists** to group songs into an ordered set for a show. A playlist ta
 The **MIDI files** manager lets you **upload**, **download** and **delete** the `.mid` files your songs use. Each file also has a **per-channel instrument editor**: it rewrites the file's Program Changes so a given channel plays a chosen instrument from the start.
 
 > ⚠️ Editing a file's instruments changes the **file itself**, so it affects **every song** that uses that file.
+
+## Envelopes
+
+An envelope shapes a note's ontime from note-on to note-off: a sharp piano-like attack, a slow pad, a pulsation… On the Syntherrupter a channel picks one by its **program number** (a MIDI Program Change), so the per-channel instrument editor above is where a file chooses its envelopes.
+
+The **Envelopes** screen lists the firmware's built-in envelopes (**P0–P19**, read-only) and your own (**P20–P63**):
+
+- **Create** one from scratch, or **duplicate** any envelope (built-in or yours) to start from its shape.
+- **Edit** it on the graph: drag each step's point (its duration and amplitude), the release point, or the note-off line to see how a shorter or longer note plays; double-click the curve to add a step there. The table below holds the exact values of each step, in playing order: amplitude (a multiplier of the note ontime, 1 = nominal), duration and curve (n-tau: 0 = linear). Add a step with **+**, remove one with its **×** (up to 7 steps, plus the release).
+- **Choose what a held note does after the last step**: *Hold the level* (sustain until note-off), *Loop* from a given step (pulsation, tremolo), or *Release* straight away, even while the note is held (a one-shot). The release, played at note-off, has its own column.
+- **Listen** with **Synth** (the emulation, even before saving), or **Coil**: it sends the envelope to the device and plays the note on the coil you pick, at the ontime you set, with every other coil muted.
+- The screen shows which MIDI files use the envelope, and warns before deleting or moving one they play.
+
+Your envelopes live in the app's library (and are [synced](./desktop-app.md#synchronizing-with-a-server) like songs). The player sends the ones a song uses to the device **before each song**, so there is nothing to save on the Syntherrupter itself. The amplitude may exceed 1 for a punchier attack; the device still caps the result at the coil's [safety limits](./syntherrupter.md).
 
 ## Tuning the primary with a camera
 

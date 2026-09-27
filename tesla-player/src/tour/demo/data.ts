@@ -1,4 +1,4 @@
-import type { AppConfig, AppTag, MidiFile, Playlist, Song } from '@/types/domain';
+import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Playlist, Song } from '@/types/domain';
 import type { TuningRecord } from '@/tuning/api';
 import { drums, smf, voice, type Smf } from './smf';
 
@@ -65,6 +65,8 @@ export interface DemoLibrary {
   config: AppConfig;
   /** The tuning history, newest first (as the API sends it). */
   tunings: TuningRecord[];
+  /** None: the demo keeps the user's own library envelopes out of sight. */
+  envelopes: CustomEnvelope[];
   /** MIDI bytes by request path (/uploads/tour-demo-<key>.mid) */
   bytes: Map<string, Uint8Array>;
 }
@@ -137,7 +139,7 @@ export function buildDemoLibrary(lang: string): DemoLibrary {
     tuning(9303, 0, 75, w.fair, { lat: 45.8127, lon: 4.9385 }, 5.75, 176, { indoor: false, tempC: 12, humidityPct: 88, weatherCode: 61, ground: 'wet', comment: w.wet }),
     tuning(9304, 2, 110, w.workshop, { lat: 45.7702, lon: 4.8561 }, 7, 191, { indoor: true, tempC: 19, humidityPct: 50, primaryTurns: 10, tapMin: 5, tapMax: 9, tapStep: 0.5 }),
   ];
-  return { files, songs, tags, playlists, config, tunings, bytes };
+  return { files, songs, tags, playlists, config, tunings, envelopes: [], bytes };
 }
 
 function tuning(

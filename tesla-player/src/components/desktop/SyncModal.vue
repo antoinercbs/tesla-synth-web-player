@@ -30,6 +30,7 @@ const GROUPS: { type: TeslaEntityType; key: string }[] = [
   { type: 'midiFile', key: 'midiFiles' },
   { type: 'song', key: 'songs' },
   { type: 'playlist', key: 'playlists' },
+  { type: 'envelope', key: 'envelopes' },
 ];
 
 const groups = computed(() =>

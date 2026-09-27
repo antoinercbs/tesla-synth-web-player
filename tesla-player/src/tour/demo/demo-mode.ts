@@ -4,7 +4,7 @@ import type { Output } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
 import type { MidiSink } from '@/audio/tesla-synth';
 import type { DeviceLink } from '@/serial/device-link';
-import type { AppConfig, AppTag, MidiFile, Song } from '@/types/domain';
+import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
 import type { TuningDraft, TuningRecord } from '@/tuning/api';
 import { SessionLink } from '@/tuning/session-link';
 import { buildDemoLibrary, DEMO_PATH_PREFIX, type DemoLibrary } from './data';
@@ -31,7 +31,7 @@ type Outputs = { output: MidiSink | null; output2: Output | null; deviceLink: De
 let lib: DemoLibrary | null = null;
 let interceptor: number | null = null;
 let guard: WatchStopHandle | null = null;
-let saved: ({ files: MidiFile[]; songs: Song[]; tags: AppTag[]; config: AppConfig; storage: Record<string, string | null> } & Outputs) | null = null;
+let saved: ({ files: MidiFile[]; songs: Song[]; tags: AppTag[]; envelopes: CustomEnvelope[]; config: AppConfig; storage: Record<string, string | null> } & Outputs) | null = null;
 const realTransport = SessionLink.defaultTransport;
 const realFetch = window.fetch;
 
@@ -103,6 +103,7 @@ function adapterFor(config: InternalAxiosRequestConfig, l: DemoLibrary): ((c: In
     '/api/settings': l.config,
     '/api/playlists': l.playlists,
     '/api/tunings': l.tunings,
+    '/api/envelopes': l.envelopes,
   };
   if (path in json) return (c) => reply(c, structuredClone(json[path]));
   const bytes = path.startsWith(DEMO_PATH_PREFIX) ? l.bytes.get(path) : undefined;
@@ -119,6 +120,7 @@ function applyLibrary(l: DemoLibrary): void {
   store.setMidiFileList(structuredClone(l.files));
   store.setMidiSongList(structuredClone(l.songs));
   store.setTagList(structuredClone(l.tags));
+  store.setEnvelopeList(structuredClone(l.envelopes));
   store.setAppConfig(structuredClone(l.config));
 }
 
@@ -136,6 +138,7 @@ export function enterDemo(lang: string): void {
     files: store.midiFileList,
     songs: store.midiSongList,
     tags: store.tagList,
+    envelopes: store.envelopeList,
     config: store.appConfig,
     storage: Object.fromEntries(Object.keys(DEMO_STORAGE).map((k) => [k, localStorage.getItem(k)])),
     output: store.midiOutput,
@@ -196,6 +199,7 @@ export function exitDemo(): string | null {
     store.setMidiFileList(saved.files);
     store.setMidiSongList(saved.songs);
     store.setTagList(saved.tags);
+    store.setEnvelopeList(saved.envelopes);
     store.setAppConfig(saved.config);
     for (const [k, v] of Object.entries(saved.storage)) {
       if (v === null) localStorage.removeItem(k);
@@ -210,6 +214,7 @@ export function exitDemo(): string | null {
   axios.get('/api/songs').then((r) => store.setMidiSongList(r.data)).catch(() => {});
   axios.get('/api/settings').then((r) => store.setAppConfig(r.data)).catch(() => {});
   axios.get('/api/tags').then((r) => store.setTagList(r.data)).catch(() => {});
+  axios.get('/api/envelopes').then((r) => store.setEnvelopeList(r.data)).catch(() => {});
   store.bumpDataRevision();
   return viz;
 }

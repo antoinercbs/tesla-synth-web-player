@@ -5,10 +5,14 @@
  *
  * MIDI files needed by a synced song (and member songs of a synced playlist)
  * are auto-resolved as dependencies regardless of the user's per-row choice, so
- * a propagated song never lands without its file.
+ * a propagated song never lands without its file. Likewise the custom envelopes
+ * a propagated file plays come along, but only where the target has none in
+ * that slot: a slot that differs on both sides is a conflict the user decides.
+ *
+ * Envelopes are keyed by program slot ("P20"), carried in the `uuid` fields.
  */
 
-export type EntityType = 'song' | 'playlist' | 'midiFile';
+export type EntityType = 'song' | 'playlist' | 'midiFile' | 'envelope';
 export type Choice = 'local' | 'remote' | 'skip';
 export type DiffStatus = 'only-local' | 'only-remote' | 'conflict';
 
@@ -22,6 +26,8 @@ interface Manifest {
   songs: ManifestEntry[];
   playlists: ManifestEntry[];
   midiFiles: ManifestEntry[];
+  /** Absent from servers that predate envelopes. */
+  envelopes?: ManifestEntry[];
 }
 
 export interface DiffItem {
@@ -117,11 +123,23 @@ interface PlaylistPayload {
   editorName?: string | null;
   songUuids: string[];
 }
+interface MidiFilePayload extends ManifestEntry {
+  programs?: Record<number, number> | null;
+}
+interface EnvelopePayload {
+  uuid: string;
+  program: number;
+  [field: string]: unknown;
+}
 interface PullResponse {
   songs: SongPayload[];
   playlists: PlaylistPayload[];
-  midiFiles: ManifestEntry[];
+  midiFiles: MidiFilePayload[];
+  envelopes?: EnvelopePayload[];
 }
+
+const ENVELOPE_PROGRAMS = { min: 20, max: 63 };
+const envelopeKey = (program: number): string => `P${program}`;
 
 const trimSlash = (s: string): string => s.replace(/\/+$/, '');
 
@@ -249,6 +267,7 @@ export async function previewSync(
     ...diffType('midiFile', localM.midiFiles, remoteM.midiFiles),
     ...diffType('song', localM.songs, remoteM.songs),
     ...diffType('playlist', localM.playlists, remoteM.playlists),
+    ...diffType('envelope', localM.envelopes ?? [], remoteM.envelopes ?? []),
   ];
   return { serverUrl: trimSlash(ctx.remote.url), items };
 }
@@ -257,6 +276,7 @@ interface Selected {
   songs: Set<string>;
   playlists: Set<string>;
   midiFiles: Set<string>;
+  envelopes: Set<string>;
 }
 
 function collect(selections: SyncSelection[], choice: Choice): Selected {
@@ -264,15 +284,20 @@ function collect(selections: SyncSelection[], choice: Choice): Selected {
     songs: new Set(),
     playlists: new Set(),
     midiFiles: new Set(),
+    envelopes: new Set(),
   };
   for (const s of selections) {
     if (s.choice !== choice) continue;
     if (s.type === 'song') out.songs.add(s.uuid);
     else if (s.type === 'playlist') out.playlists.add(s.uuid);
+    else if (s.type === 'envelope') out.envelopes.add(s.uuid);
     else out.midiFiles.add(s.uuid);
   }
   return out;
 }
+
+const isEmpty = (sel: Selected): boolean =>
+  !sel.songs.size && !sel.playlists.size && !sel.midiFiles.size && !sel.envelopes.size;
 
 const pull = (peer: Peer, body: Record<string, string[]>): Promise<PullResponse> =>
   fetchJson<PullResponse>(peer.fetch, `${peer.base}/api/sync/pull`, {
@@ -361,11 +386,34 @@ async function transfer(
     fileCount += 1;
   }
 
-  // 5) Upsert songs then playlists on the target (apply orders them internally).
-  if (songPayloads.length || playlistPayloads.length) {
+  // 5) Envelope closure = explicitly-selected slots + slots the synced files
+  //    play that the target lacks entirely.
+  const envelopeKeys = new Set(sel.envelopes);
+  if (midiUuids.size) {
+    const sourceEnv = new Set((sourceM.envelopes ?? []).map((e) => e.uuid));
+    const targetEnv = new Set((targetM.envelopes ?? []).map((e) => e.uuid));
+    const files = (await pull(source, { midiFiles: [...midiUuids] })).midiFiles;
+    for (const f of files) {
+      for (const program of Object.values(f.programs ?? {})) {
+        if (program < ENVELOPE_PROGRAMS.min || program > ENVELOPE_PROGRAMS.max) continue;
+        const key = envelopeKey(program);
+        if (sourceEnv.has(key) && !targetEnv.has(key)) envelopeKeys.add(key);
+      }
+    }
+  }
+  const envelopePayloads = envelopeKeys.size
+    ? ((await pull(source, { envelopes: [...envelopeKeys] })).envelopes ?? [])
+    : [];
+
+  // 6) Upsert envelopes, songs then playlists on the target (apply orders them).
+  if (songPayloads.length || playlistPayloads.length || envelopePayloads.length) {
     onProgress?.({
       key: direction === 'push' ? 'sendItems' : 'recvItems',
-      params: { songs: songPayloads.length, playlists: playlistPayloads.length },
+      params: {
+        songs: songPayloads.length,
+        playlists: playlistPayloads.length,
+        envelopes: envelopePayloads.length,
+      },
     });
     const res = await fetchJson<{ warnings?: string[] }>(
       target.fetch,
@@ -373,13 +421,17 @@ async function transfer(
       {
         method: 'POST',
         headers: { ...target.headers, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ songs: songPayloads, playlists: playlistPayloads }),
+        body: JSON.stringify({
+          songs: songPayloads,
+          playlists: playlistPayloads,
+          envelopes: envelopePayloads,
+        }),
       },
     );
     if (res.warnings?.length) warnings.push(...res.warnings);
   }
 
-  return songPayloads.length + playlistPayloads.length + fileCount;
+  return songPayloads.length + playlistPayloads.length + envelopePayloads.length + fileCount;
 }
 
 export async function applySync(
@@ -397,8 +449,7 @@ export async function applySync(
   let pushed = 0;
 
   const toPull = collect(selections, 'remote');
-  const didPull =
-    toPull.songs.size || toPull.playlists.size || toPull.midiFiles.size;
+  const didPull = !isEmpty(toPull);
   if (didPull) {
     pulled = await transfer(
       remote,
@@ -413,7 +464,7 @@ export async function applySync(
   }
 
   const toPush = collect(selections, 'local');
-  if (toPush.songs.size || toPush.playlists.size || toPush.midiFiles.size) {
+  if (!isEmpty(toPush)) {
     if (didPull) {
       // The pull just mutated the local DB; refresh both manifests so the push
       // reasons about current state (skip-by-hash + "missing on source").

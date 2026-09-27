@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import { compileCoilConfig, coilEventFrame, maskToChannels } from '@/sysex/syntherrupter';
+import { compileCoilConfig, compileCustomEnvelopes, coilEventFrame, maskToChannels } from '@/sysex/syntherrupter';
 import { envelope, envelopeAmplitude } from '@/sysex/envelopes';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { effectiveRatio } from '@/midi/automation';
@@ -307,6 +307,8 @@ function playSong(s: Song): void {
 
 function executeConfig(): void {
   if (!song.value) return;
+  // the device may lack the file's library envelopes, or hold another version
+  for (const frame of compileCustomEnvelopes(analysis.value?.programs ?? [])) midiStore.sendSysex(frame);
   for (const frame of compileCoilConfig(song.value.coils ?? [], song.value.mode ?? 'midi')) {
     midiStore.sendSysex(frame);
   }

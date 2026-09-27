@@ -5,9 +5,13 @@
  *
  * Names are condensed from the Syntherrupter wiki (Documentation/Wiki/Envelopes.md):
  * programs 1-9 are linear shapes, 11-19 are the same shapes with exponential
- * curves. 0 means "no envelope" (constant ontime).
+ * curves. 0 means "no envelope" (constant ontime). Programs 20-63 are the user's
+ * library envelopes (see the custom registry below).
  */
-export type EnvelopeKind = 'constant' | 'piano' | 'pad' | 'staccato' | 'legato';
+import { shallowRef } from 'vue';
+import type { CustomEnvelope } from '@/types/domain';
+
+export type EnvelopeKind = 'constant' | 'piano' | 'pad' | 'staccato' | 'legato' | 'custom';
 
 export interface Envelope {
   program: number;
@@ -41,6 +45,8 @@ export const ENVELOPES: Envelope[] = [
 const BY_PROGRAM = new Map(ENVELOPES.map((e) => [e.program, e]));
 
 export function envelope(program: number): Envelope {
+  const custom = customEnvelope(program);
+  if (custom) return { program, name: custom.name, kind: 'custom' };
   return BY_PROGRAM.get(program) ?? { program, name: `Program ${program}`, kind: 'piano' };
 }
 
@@ -50,9 +56,49 @@ const KIND_ICON: Record<EnvelopeKind, string> = {
   pad: 'fa-wind',
   staccato: 'fa-bolt',
   legato: 'fa-grip-lines',
+  custom: 'fa-chart-line',
 };
 export function envelopeIcon(program: number): string {
   return KIND_ICON[envelope(program).kind];
+}
+
+// ---------------------------------------------------------------------------
+// Library envelopes (programs 20-63). The store registers the list here so the
+// synth, the VU and every picker read the very shape the device is sent; the
+// ref lets the pickers' computeds follow edits.
+// ---------------------------------------------------------------------------
+export const CUSTOM_PROGRAM_MIN = 20;
+export const CUSTOM_PROGRAM_MAX = 63;
+/** Firmware envelopes always have 8 steps: 0 = attack (note-on), 7 = release (note-off). */
+export const ENVELOPE_STEP_COUNT = 8;
+export const RELEASE_STEP = ENVELOPE_STEP_COUNT - 1;
+
+const customByProgram = shallowRef(new Map<number, CustomEnvelope>());
+
+export function setCustomEnvelopes(list: readonly CustomEnvelope[]): void {
+  customByProgram.value = new Map(
+    list
+      .filter((e) => e.program >= CUSTOM_PROGRAM_MIN && e.program <= CUSTOM_PROGRAM_MAX)
+      .filter((e) => e.steps?.length === ENVELOPE_STEP_COUNT)
+      .map((e) => [e.program, e]),
+  );
+}
+
+export function customEnvelope(program: number): CustomEnvelope | undefined {
+  return customByProgram.value.get(program);
+}
+
+/** Library envelopes, by program number. */
+export function customEnvelopes(): CustomEnvelope[] {
+  return [...customByProgram.value.values()].sort((a, b) => a.program - b.program);
+}
+
+/** Every envelope a channel can pick, as the pickers group them. */
+export function envelopeChoices(): { custom: Envelope[]; builtin: Envelope[] } {
+  return {
+    custom: customEnvelopes().map((e) => ({ program: e.program, name: e.name, kind: 'custom' })),
+    builtin: ENVELOPES,
+  };
 }
 
 /** MIDI Program Change message bytes for a channel (0..15) and program. */
@@ -126,9 +172,10 @@ PROGRAMS[0] = [
   { amp: 0, durMs: 6, ntau: 0.1, next: 7 },
 ];
 
-/** The 8-step envelope table for a program (unknown programs fall back to constant). */
+/** The 8-step envelope table for a program. Unset slots behave like P0 on the
+ *  device (constant), and so do they here. */
 export function programSteps(program: number): EnvStep[] {
-  return PROGRAMS[program] ?? PROGRAMS[0];
+  return customEnvelope(program)?.steps ?? PROGRAMS[program] ?? PROGRAMS[0];
 }
 
 /**
@@ -136,13 +183,19 @@ export function programSteps(program: number): EnvStep[] {
  * If `releaseMs` is set (elapsed time of the note-off), the release runs from then.
  */
 export function envelopeAmplitude(program: number, elapsedMs: number, releaseMs: number | null): number {
-  const steps = programSteps(program);
+  return stepsAmplitude(programSteps(program), elapsedMs, releaseMs);
+}
+
+/** {@link envelopeAmplitude} for an explicit step table (an unsaved draft, or
+ *  what the emulated synth was sent). */
+export function stepsAmplitude(steps: readonly EnvStep[], elapsedMs: number, releaseMs: number | null): number {
   const tHeld = releaseMs == null ? elapsedMs : Math.min(elapsedMs, releaseMs);
   let prevAmp = 0;
   let cur = 0;
   let acc = 0;
   let heldAmp = 0;
-  for (let guard = 0; guard < 64; guard++) {
+  // generous: a looping envelope walks one step per iteration for as long as the note is held
+  for (let guard = 0; guard < 2048; guard++) {
     const s = steps[cur];
     if (s.durMs > 0 && tHeld < acc + s.durMs) {
       heldAmp = stepAmp(prevAmp, s.amp, s.ntau, (tHeld - acc) / s.durMs);

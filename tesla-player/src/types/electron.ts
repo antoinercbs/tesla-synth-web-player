@@ -1,7 +1,7 @@
 // Shared types for the Electron desktop bridge injected by the preload.
 // The bridge is ABSENT in the web build — always guard with `window.teslaElectron`.
 
-export type TeslaEntityType = 'song' | 'playlist' | 'midiFile';
+export type TeslaEntityType = 'song' | 'playlist' | 'midiFile' | 'envelope';
 export type TeslaSyncChoice = 'local' | 'remote' | 'skip';
 
 export interface TeslaServerConfigPublic {

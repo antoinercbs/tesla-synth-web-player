@@ -12,8 +12,9 @@
  *
  * NOT here on purpose — these are *dynamic/performance* settings, not static
  * device config, and are handled per song by the player/editor (compileCoilConfig):
- *   channel→coil mapping (0x60), pan (0x62–0x64), LFO (0x67–0x69).
- * Also deferred: envelopes (0x300–0x303), simple-mode filters, lightsabers,
+ *   channel→coil mapping (0x60), pan (0x62–0x64), LFO (0x67–0x69), and the
+ *   library envelopes (0x300–0x303, sent before each song: compileEnvelope).
+ * Also deferred: simple-mode filters, lightsabers,
  * NRPN, and live telemetry (0x267/0x268).
  */
 

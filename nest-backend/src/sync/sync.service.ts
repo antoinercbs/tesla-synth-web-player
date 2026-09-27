@@ -9,6 +9,12 @@ import { createReadStream, existsSync, promises as fs } from 'fs';
 import { basename, join } from 'path';
 import { DataSource, EntityManager, In, Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
+import {
+  Envelope,
+  envelopeSyncKey,
+  programOfSyncKey,
+} from '../envelopes/entities/envelope.entity';
+import { normalizeSteps } from '../envelopes/envelopes.service';
 import { computeChannels, computePrograms } from '../midi/midi-channels';
 import { computeDurationMs } from '../midi/midi-duration';
 import { MidiFile } from '../midi/entities/midi-file.entity';
@@ -17,9 +23,10 @@ import { Playlist } from '../playlists/entities/playlist.entity';
 import { Coil } from '../songs/entities/coil.entity';
 import { CoilEvent } from '../songs/entities/coil-event.entity';
 import { Song } from '../songs/entities/song.entity';
-import { hashBytes, hashPlaylist, hashSong } from './content-hash';
+import { hashBytes, hashEnvelope, hashPlaylist, hashSong } from './content-hash';
 import {
   ApplyRequestDto,
+  EnvelopePayloadDto,
   PlaylistPayloadDto,
   PullRequestDto,
   SongPayloadDto,
@@ -37,6 +44,7 @@ export interface SyncManifest {
   songs: ManifestEntry[];
   playlists: ManifestEntry[];
   midiFiles: ManifestEntry[];
+  envelopes: ManifestEntry[];
 }
 
 export interface MidiFilePayload {
@@ -46,17 +54,20 @@ export interface MidiFilePayload {
   name: string;
   durationMs: number | null;
   editorName: string | null;
+  /** Lets the orchestrator bring along the envelopes a synced file plays. */
+  programs: Record<number, number> | null;
 }
 
 export interface PullResponse {
   songs: SongPayloadDto[];
   playlists: PlaylistPayloadDto[];
   midiFiles: MidiFilePayload[];
+  envelopes: EnvelopePayloadDto[];
 }
 
 export interface ApplyResult {
   applied: {
-    type: 'song' | 'playlist';
+    type: 'song' | 'playlist' | 'envelope';
     uuid: string;
     action: 'created' | 'updated';
   }[];
@@ -72,6 +83,8 @@ export class SyncService {
     private readonly playlistRepository: Repository<Playlist>,
     @InjectRepository(MidiFile)
     private readonly midiFileRepository: Repository<MidiFile>,
+    @InjectRepository(Envelope)
+    private readonly envelopeRepository: Repository<Envelope>,
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {}
@@ -79,15 +92,24 @@ export class SyncService {
   // ---------------------------------------------------------------- manifest
 
   async manifest(): Promise<SyncManifest> {
-    const [songs, playlists, midiFiles] = await Promise.all([
+    const [songs, playlists, midiFiles, envelopes] = await Promise.all([
       this.songRepository.find(),
       this.playlistRepository.find(),
       this.midiFileRepository.find(),
+      this.envelopeRepository.find(),
     ]);
     return {
       songs: songs.map((s) => this.entryOf(s)),
       playlists: playlists.map((p) => this.entryOf(p)),
       midiFiles: await Promise.all(midiFiles.map((m) => this.midiEntryOf(m))),
+      envelopes: envelopes.map((e) =>
+        this.entryOf({
+          uuid: envelopeSyncKey(e.program),
+          updatedAt: e.updatedAt,
+          contentHash: e.contentHash,
+          name: `P${e.program} · ${e.name ?? ''}`,
+        }),
+      ),
     };
   }
 
@@ -127,6 +149,9 @@ export class SyncService {
     const songUuids = dto.songs ?? [];
     const playlistUuids = dto.playlists ?? [];
     const midiUuids = dto.midiFiles ?? [];
+    const envelopePrograms = (dto.envelopes ?? [])
+      .map(programOfSyncKey)
+      .filter((p): p is number => p != null);
 
     const songs = songUuids.length
       ? await this.songRepository.find({ where: { uuid: In(songUuids) } })
@@ -137,6 +162,9 @@ export class SyncService {
     const midiFiles = midiUuids.length
       ? await this.midiFileRepository.find({ where: { uuid: In(midiUuids) } })
       : [];
+    const envelopes = envelopePrograms.length
+      ? await this.envelopeRepository.find({ where: { program: In(envelopePrograms) } })
+      : [];
 
     return {
       songs: songs.map((s) => this.songPayloadOf(s)),
@@ -144,6 +172,19 @@ export class SyncService {
         playlists.map((p) => this.playlistPayloadOf(p)),
       ),
       midiFiles: midiFiles.map((m) => this.midiPayloadOf(m)),
+      envelopes: envelopes.map((e) => this.envelopePayloadOf(e)),
+    };
+  }
+
+  private envelopePayloadOf(e: Envelope): EnvelopePayloadDto {
+    return {
+      uuid: envelopeSyncKey(e.program),
+      updatedAt: e.updatedAt ?? 0,
+      contentHash: e.contentHash ?? '',
+      program: e.program,
+      name: e.name ?? '',
+      editorName: e.editorName ?? null,
+      steps: e.steps,
     };
   }
 
@@ -212,6 +253,7 @@ export class SyncService {
       name: file.name ?? '',
       durationMs: file.durationMs,
       editorName: file.editorName ?? null,
+      programs: file.programs ?? null,
     };
   }
 
@@ -330,13 +372,21 @@ export class SyncService {
   // ------------------------------------------------------------------- apply
 
   /**
-   * Idempotent upsert-by-uuid of songs then playlists (FK order). MIDI bytes
+   * Idempotent upsert-by-uuid of envelopes, songs then playlists (FK order;
+   * envelopes have no FK, songs only reach them through their file). MIDI bytes
    * must already be present (transferred via /sync/file first). Each item runs
    * in its own transaction; the stored contentHash is RECOMPUTED from what is
    * actually written, so the manifest never lies about local state.
    */
   async apply(dto: ApplyRequestDto): Promise<ApplyResult> {
     const result: ApplyResult = { applied: [], warnings: [] };
+
+    for (const payload of dto.envelopes ?? []) {
+      await this.dataSource.transaction(async (manager) => {
+        const action = await this.applyEnvelope(manager, payload);
+        result.applied.push({ type: 'envelope', uuid: payload.uuid, action });
+      });
+    }
 
     for (const payload of dto.songs ?? []) {
       await this.dataSource.transaction(async (manager) => {
@@ -435,6 +485,27 @@ export class SyncService {
     });
 
     await manager.save(song);
+    return action;
+  }
+
+  /** Upserts by program slot: the slot is the identity (see Envelope). */
+  private async applyEnvelope(
+    manager: EntityManager,
+    payload: EnvelopePayloadDto,
+  ): Promise<'created' | 'updated'> {
+    let envelope = await manager.findOne(Envelope, {
+      where: { program: payload.program },
+    });
+    const action: 'created' | 'updated' = envelope ? 'updated' : 'created';
+    envelope ??= new Envelope();
+    envelope.program = payload.program;
+    envelope.name = payload.name ?? '';
+    envelope.steps = normalizeSteps(payload.steps);
+    envelope.updatedAt = payload.updatedAt;
+    // Preserve authorship from the payload, as for songs.
+    envelope.editorName = payload.editorName ?? null;
+    envelope.contentHash = hashEnvelope(envelope);
+    await manager.save(envelope);
     return action;
   }
 

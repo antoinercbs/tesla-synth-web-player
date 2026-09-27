@@ -9,7 +9,8 @@ import {
 import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
 import { SERIAL_OUTPUT_ID } from '@/serial/serial-midi';
 import type { DeviceLink } from '@/serial/device-link';
-import type { AppConfig, AppTag, CoilConfig, MidiFile, Song } from '@/types/domain';
+import { setCustomEnvelopes } from '@/sysex/envelopes';
+import type { AppConfig, AppTag, CoilConfig, CustomEnvelope, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
   /** Output 1 (coils): a real WebMidi output or the built-in Tesla synth. */
@@ -19,6 +20,9 @@ interface MidiState {
   midiFileList: MidiFile[];
   midiSongList: Song[];
   tagList: AppTag[];
+  /** Library envelopes (programs 20-63). Mutate through the actions only: they
+   *  keep the envelope registry (synth, VU, pickers) in step. */
+  envelopeList: CustomEnvelope[];
   /** Auto-start a track on select / when the previous one ends (persisted). */
   autoplay: boolean;
   /** Manual timing offset (ms) applied to the 2nd output to compensate a hardware
@@ -52,6 +56,7 @@ export const useMidiStore = defineStore('midi', {
     midiFileList: [],
     midiSongList: [],
     tagList: [],
+    envelopeList: [],
     autoplay: localStorage.getItem('autoplay') === '1', // default OFF
     output2OffsetMs: clampOffset(Number(localStorage.getItem('midiOutput2Offset'))),
     appConfig: { coilNames: [], defaultCoilCount: 3 },
@@ -127,6 +132,16 @@ export const useMidiStore = defineStore('midi', {
     },
     setTagList(list: AppTag[]) {
       this.tagList = list;
+    },
+    setEnvelopeList(list: CustomEnvelope[]) {
+      this.envelopeList = [...list].sort((a, b) => a.program - b.program);
+      setCustomEnvelopes(this.envelopeList);
+    },
+    upsertEnvelope(envelope: CustomEnvelope) {
+      this.setEnvelopeList([...this.envelopeList.filter((e) => e.id !== envelope.id), envelope]);
+    },
+    deleteEnvelope(id: number) {
+      this.setEnvelopeList(this.envelopeList.filter((e) => e.id !== id));
     },
     updateMidiSong(song: Song) {
       const index = this.midiSongList.findIndex((s) => s.id === song.id);

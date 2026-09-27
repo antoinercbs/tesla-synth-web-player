@@ -39,6 +39,8 @@ export interface MidiAnalysis {
   channels: number[];
   /** first program (envelope/instrument) seen per channel */
   programByChannel: Record<number, number>;
+  /** every program the file selects, mid-song changes included, ascending */
+  programs: number[];
   /** lowest / highest note number across all notes (0..127) */
   pitchRange: { min: number; max: number };
 }
@@ -102,6 +104,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
   const notes: MidiNote[] = [];
   const active = new Map<string, { tick: number; velocity: number }>(); // "ch:note" -> start
   const programByChannel: Record<number, number> = {};
+  const programs = new Set<number>();
   let maxTick = 0;
 
   for (const e of all) {
@@ -126,6 +129,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
         active.delete(key);
       }
     } else if (e.subtype === "programChange" && e.programNumber != null) {
+      programs.add(e.programNumber);
       if (!(e.channel in programByChannel))
         programByChannel[e.channel] = e.programNumber;
     }
@@ -157,6 +161,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
     notes,
     channels,
     programByChannel,
+    programs: [...programs].sort((a, b) => a - b),
     pitchRange: {
       min: pitches.length ? Math.min(...pitches) : 0,
       max: pitches.length ? Math.max(...pitches) : 127,
