@@ -12,6 +12,7 @@ import { MidiFile } from '../../midi/entities/midi-file.entity';
 import { Coil } from './coil.entity';
 import { CoilEvent } from './coil-event.entity';
 import { Tag } from "../../tags/entities/tag.entity"
+import type { SongStereo } from '../stereo';
 
 /** 'midi' = firmware MIDI mode (normal playback + live); 'simple' = fixed mode. */
 export type PlaybackMode = 'midi' | 'simple';
@@ -49,6 +50,10 @@ export class Song {
 
   @OneToMany(() => CoilEvent, (event) => event.song, { cascade: true, eager: true })
   events!: CoilEvent[];
+
+  /** Spatialisation (see ../stereo.ts); null = off. */
+  @Column({ name: 'stereo', type: 'simple-json', nullable: true })
+  stereo!: SongStereo | null;
 
   @ManyToMany(() => Tag, (tag) => tag.songs, { cascade: true })
   @JoinTable({ name: 'song_tags' })

@@ -111,6 +111,7 @@ interface SongPayload {
   midiFileUuid: string | null;
   // Authorship travels with the entity; passed straight through to apply.
   editorName?: string | null;
+  stereo?: unknown;
   coils: unknown[];
   events: unknown[];
 }

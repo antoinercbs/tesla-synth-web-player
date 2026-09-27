@@ -1,4 +1,5 @@
-import { decodeFrame, ENVELOPE_PN, PN } from "@/sysex/syntherrupter";
+import { decodeFrame, ENVELOPE_PN, PAN_PN, PN } from "@/sysex/syntherrupter";
+import { CENTER, panVolume } from "@/midi/stereo";
 import {
   ENVELOPE_STEP_COUNT,
   RELEASE_STEP,
@@ -68,6 +69,26 @@ interface CoilState {
   ontime: Stamped[];
   duty: Stamped[];
 }
+/** A channel's note pan mapping (NRP 42) and its NRPN selection, as Channel.h holds them. */
+interface ChannelNrp {
+  selMsb: number;
+  selLsb: number;
+  mode: number;
+  srcLow: number;
+  srcHigh: number;
+  tgtLow: number;
+  tgtHigh: number;
+}
+interface CoilPlace {
+  /** 0..1, or -1: not placed (the coil plays every note it is assigned). */
+  position: number;
+  reach: number;
+  single: boolean;
+}
+const COIL_SLOTS = 6;
+const freshNrp = (): ChannelNrp => ({ selMsb: 127, selLsb: 127, mode: 0, srcLow: 0, srcHigh: 127, tgtLow: 0, tgtHigh: 1 });
+const freshPlace = (): CoilPlace => ({ position: -1, reach: 1, single: false });
+
 interface Voice {
   source: OscillatorNode;
   env: GainNode; // envelope shape × velocity (can exceed 1 on attack)
@@ -76,6 +97,11 @@ interface Voice {
   jitterLp: BiquadFilterNode;
   jitterAmt: GainNode;
   loud: GainNode; // coil energy × pitch gain (re-modulated live by ontime/duty automation)
+  panner: StereoPannerNode; // where the coils playing it stand
+  /** How loud each coil plays this note (the spatialisation); 0 = not at all. */
+  coilVol: number[];
+  note: number;
+  vel: number;
   ch: number;
   program: number;
   velScale: number;
@@ -113,6 +139,10 @@ export class TeslaSynthOutput implements MidiSink {
   // Envelopes written over SysEx, like the device's RAM: kept across clear()
   // (a device forgets them only on reboot). Unwritten programs use the shared table.
   private writtenPrograms = new Map<number, EnvStep[]>();
+  // Spatialisation as the device holds it (MIDI.h, Channel.h); cleared with the coils' state.
+  private coilPlace: CoilPlace[] = Array.from({ length: COIL_SLOTS }, freshPlace);
+  private channelPan: number[] = new Array(16).fill(CENTER);
+  private nrp: ChannelNrp[] = Array.from({ length: 16 }, freshNrp);
 
   constructor() {
     const Ctx =
@@ -216,6 +246,7 @@ export class TeslaSynthOutput implements MidiSink {
     else if (kind === 0x80 || (kind === 0x90 && data[2] === 0))
       this.noteOff(ch, data[1], when);
     else if (kind === 0xc0) this.channelProgram[ch] = data[1];
+    else if (kind === 0xb0) this.control(ch, data[1], data[2]);
     else if (status === 0xf0) this.applyFrame(data, when);
   }
 
@@ -237,6 +268,9 @@ export class TeslaSynthOutput implements MidiSink {
     this.voices.clear();
     this.coils = [];
     this.channelProgram = new Array(16).fill(0);
+    this.coilPlace = Array.from({ length: COIL_SLOTS }, freshPlace);
+    this.channelPan = new Array(16).fill(CENTER);
+    this.nrp = Array.from({ length: 16 }, freshNrp);
   }
 
   // --- internals -----------------------------------------------------------
@@ -283,6 +317,16 @@ export class TeslaSynthOutput implements MidiSink {
       this.writeEnvelopeStep(dec.pnFull, dec.target, dec.isFloat ? dec.valueFloat : dec.valueInt, dec.isFloat);
       return;
     }
+    if (dec.pnFull === PAN_PN.RESET_NRPS) {
+      for (let ch = 0; ch < 16; ch++) {
+        if (dec.valueInt & (1 << ch)) this.nrp[ch] = { ...freshNrp(), selMsb: this.nrp[ch].selMsb, selLsb: this.nrp[ch].selLsb };
+      }
+      return;
+    }
+    if (dec.pnFull === PAN_PN.CONFIG || dec.pnFull === PAN_PN.POSITION || dec.pnFull === PAN_PN.REACH) {
+      this.writePlace(dec.pnFull, dec.coil, dec.isFloat ? dec.valueFloat : dec.valueInt, dec.isFloat);
+      return;
+    }
     const c = dec.coil;
     if (c < 0 || c > 5) return;
     const cs = (this.coils[c] ??= { mask: 0, ontime: [], duty: [] });
@@ -317,6 +361,99 @@ export class TeslaSynthOutput implements MidiSink {
     this.writtenPrograms.set(program, steps);
   }
 
+  /** Mirrors Sysex.cpp 0x62-0x64, quirks included: the integer reach is not divided by 127. */
+  private writePlace(pn: number, coil: number, value: number, isFloat: boolean): void {
+    const k = this.coilPlace[coil];
+    if (!k) return;
+    if (pn === PAN_PN.CONFIG) {
+      if ((value & 0b111) === 0) k.single = true;
+      else if ((value & 0b111) === 1) k.single = false;
+    } else if (pn === PAN_PN.POSITION) {
+      const f = isFloat ? value : value / 127;
+      k.position = f >= 0 && f <= 1 ? f : -1;
+    } else if (value >= 0 && value <= 1) {
+      k.reach = value;
+    }
+  }
+
+  /** Pan (CC10), reset all controllers, and NRP 42 as MIDI.cpp reads them. */
+  private control(ch: number, num: number, v: number): void {
+    const n = this.nrp[ch];
+    if (num === 10) this.channelPan[ch] = v / 127;
+    else if (num === 121) {
+      // resetControllers: the pan and the NRPN selection, not the NRPs themselves
+      this.channelPan[ch] = CENTER;
+      n.selMsb = 127;
+      n.selLsb = 127;
+    } else if (num === 99) n.selMsb = v;
+    else if (num === 98) n.selLsb = v;
+    else if (n.selMsb === 42 && num === 6) {
+      if (n.selLsb === 1) n.srcHigh = v;
+      else if (n.selLsb === 2) n.tgtHigh = v / 127;
+    } else if (n.selMsb === 42 && num === 38) {
+      if (n.selLsb === 0) n.mode = v;
+      else if (n.selLsb === 1) n.srcLow = v;
+      else if (n.selLsb === 2) n.tgtLow = v / 127;
+    }
+  }
+
+  /** Where the device puts a note (0..1), or null when it plays everywhere (omni). */
+  private notePan(ch: number, note: number, vel: number): number | null {
+    const n = this.nrp[ch];
+    if (n.mode === 0) return this.channelPan[ch];
+    if (n.mode === 2) return null;
+    let input = note;
+    if (n.mode !== 1) {
+      const held = [...this.voices.values()].filter((v) => v.ch === ch).map((v) => ({ note: v.note, vel: v.vel }));
+      held.push({ note, vel });
+      if (n.mode === 3) input = Math.min(...held.map((h) => h.note));
+      else if (n.mode === 4) input = Math.max(...held.map((h) => h.note));
+      else input = held.reduce((a, h) => (h.vel > a.vel ? h : a)).note;
+    }
+    if (input <= n.srcLow) return n.tgtLow;
+    if (input >= n.srcHigh) return n.tgtHigh;
+    return ((input - n.srcLow) * (n.tgtHigh - n.tgtLow)) / (n.srcHigh - n.srcLow) + n.tgtLow;
+  }
+
+  /** How loud each coil plays a note: 0 when not assigned the channel or out of reach. */
+  private coilVolumes(ch: number, note: number, vel: number): number[] {
+    const pan = this.notePan(ch, note, vel);
+    return Array.from({ length: COIL_SLOTS }, (_, c) => {
+      const cs = this.coils[c];
+      if (!cs || (cs.mask & (1 << ch)) === 0) return 0;
+      const k = this.coilPlace[c];
+      if (pan == null || k.position < 0) return 1;
+      return panVolume(pan, k, k.single ? 'single' : 'fade');
+    });
+  }
+
+  /** The loudest of the coils playing the note (not their sum: one note stays one voice). */
+  private voiceEnergy(ch: number, coilVol: number[], when: number): number {
+    let best = 0;
+    let assigned = false;
+    for (let c = 0; c < this.coils.length; c++) {
+      const cs = this.coils[c];
+      if (!cs || (cs.mask & (1 << ch)) === 0) continue;
+      assigned = true;
+      const e = TeslaSynthOutput.energy(this.stampAt(cs.ontime, when, 0), this.stampAt(cs.duty, when, 0));
+      best = Math.max(best, e * (coilVol[c] ?? 0));
+    }
+    // no coil configured for the channel yet: play it plainly rather than not at all
+    return assigned ? best : TeslaSynthOutput.energy(40, 0.05);
+  }
+
+  /** Stereo position (-1..1) of a note: the placed coils playing it, weighted by volume. */
+  private audioPan(coilVol: number[]): number {
+    let sum = 0;
+    let weight = 0;
+    this.coilPlace.forEach((k, c) => {
+      if (k.position < 0 || !coilVol[c]) return;
+      sum += coilVol[c] * (2 * k.position - 1);
+      weight += coilVol[c];
+    });
+    return weight > 0 ? sum / weight : 0;
+  }
+
   private stepsFor(program: number): EnvStep[] {
     return this.writtenPrograms.get(program) ?? programSteps(program);
   }
@@ -330,21 +467,6 @@ export class TeslaSynthOutput implements MidiSink {
         v = s.v;
       }
     return v;
-  }
-  private channelParams(
-    ch: number,
-    when: number,
-  ): { ontime: number; duty: number } {
-    for (let c = 0; c < this.coils.length; c++) {
-      const cs = this.coils[c];
-      if (cs && (cs.mask & (1 << ch)) !== 0) {
-        return {
-          ontime: this.stampAt(cs.ontime, when, 0),
-          duty: this.stampAt(cs.duty, when, 0),
-        };
-      }
-    }
-    return { ontime: 40, duty: 0.05 };
   }
   private static energy(ontime: number, duty: number): number {
     return Math.max(0.04, Math.min(1, (ontime * duty) / 4));
@@ -405,9 +527,10 @@ export class TeslaSynthOutput implements MidiSink {
         this.disposeVoice(st, when, 0.01);
       }
     }
-    const { ontime, duty } = this.channelParams(ch, when);
+    const coilVol = this.coilVolumes(ch, note, vel);
     const hz = noteHz(note);
-    const energy = TeslaSynthOutput.energy(ontime, duty) * pitchGain(hz);
+    const energy = this.voiceEnergy(ch, coilVol, when) * pitchGain(hz);
+    if (energy <= 0) return; // out of every coil's reach: the device stays silent too
     // Linear in velocity, matching the Syntherrupter firmware (ontime ∝ velocity/127).
     const velScale = vel / 127;
     const program = this.channelProgram[ch] ?? 0;
@@ -418,6 +541,8 @@ export class TeslaSynthOutput implements MidiSink {
     const flick = ctx.createGain();
     const loud = ctx.createGain();
     loud.gain.setValueAtTime(energy, ctx.currentTime);
+    const panner = ctx.createStereoPanner();
+    panner.pan.value = this.audioPan(coilVol);
 
     // bang-to-bang jitter: gain 1 + noise low-passed at ~f0/2 (≈ one random value per bang).
     const jitter = ctx.createGain();
@@ -438,7 +563,7 @@ export class TeslaSynthOutput implements MidiSink {
     // notes aren't digitally identical.
     source.frequency.value = hz * (1 + (Math.random() * 2 - 1) * PITCH_JITTER);
     source.connect(env);
-    env.connect(flick).connect(jitter).connect(loud).connect(this.bus);
+    env.connect(flick).connect(jitter).connect(loud).connect(panner).connect(this.bus);
     this.scheduleAttack(env.gain, program, velScale, when);
     this.scheduleFlicker(flick.gain, when);
     source.start(when);
@@ -454,6 +579,10 @@ export class TeslaSynthOutput implements MidiSink {
       jitterLp,
       jitterAmt,
       loud,
+      panner,
+      coilVol,
+      note,
+      vel,
       ch,
       program,
       velScale,
@@ -526,6 +655,7 @@ export class TeslaSynthOutput implements MidiSink {
         v.jitterLp,
         v.jitterAmt,
         v.loud,
+        v.panner,
       ]) {
         try {
           node.disconnect();
@@ -549,16 +679,12 @@ export class TeslaSynthOutput implements MidiSink {
   private remodulate(coil: number, when: number): void {
     const cs = this.coils[coil];
     if (!cs) return;
-    const base = TeslaSynthOutput.energy(
-      this.stampAt(cs.ontime, when, 40),
-      this.stampAt(cs.duty, when, 0.05),
-    );
     for (const v of this.live) {
       if ((cs.mask & (1 << v.ch)) === 0) continue;
       try {
         this.holdAt(v.loud.gain, when);
         v.loud.gain.linearRampToValueAtTime(
-          Math.max(0.0001, base * pitchGain(v.source.frequency.value)),
+          Math.max(0.0001, this.voiceEnergy(v.ch, v.coilVol, when) * pitchGain(v.source.frequency.value)),
           when + 0.03,
         );
       } catch {

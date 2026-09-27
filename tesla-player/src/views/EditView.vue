@@ -27,13 +27,14 @@
     </header>
     <div class="edit-body">
       <div class="edit-body__editor" :style="editorStyle">
-        <song-editor :song="currentSong" :locked="playing" @saved="onSaved" @change="onChange" @deleted="onDeleted"
-          @instruments-saved="onInstrumentsSaved" />
+        <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" @saved="onSaved"
+          @change="onChange" @deleted="onDeleted" @instruments-saved="onInstrumentsSaved" />
       </div>
       <resize-handle class="edit-body__split" @resize-start="onDockResizeStart" @resize="onDockResize"
         @resize-end="saveDockWidth" />
       <aside class="edit-body__dock" ref="dockEl" :style="dockStyle">
-        <midi-player ref="player" :show-autoplay="false" :compact-graph="true" @playing-change="playing = $event" />
+        <midi-player ref="player" :show-autoplay="false" :compact-graph="true" @playing-change="playing = $event"
+          @position="playerPosition = $event" />
       </aside>
     </div>
   </div>
@@ -56,6 +57,8 @@ export default {
   data() {
     return {
       playing: false,
+      // where the embedded player is: the editor adds automation points there
+      playerPosition: 0,
       headerScrolled: false,
       scrollEl: null,
       // Player dock width (px), drag-resizable + persisted. null = use the

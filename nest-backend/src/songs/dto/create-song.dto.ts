@@ -3,6 +3,7 @@ import {
   IsArray,
   IsIn,
   IsInt,
+  IsObject,
   IsOptional,
   IsString,
   Max,
@@ -60,6 +61,11 @@ export class CreateSongDto {
   @ValidateNested({ each: true })
   @Type(() => CoilEventDto)
   events?: CoilEventDto[];
+
+  /** Shape checked by sanitizeStereo; omitted leaves it as it is, null turns it off. */
+  @IsOptional()
+  @IsObject()
+  stereo?: Record<string, unknown> | null;
 
   /** Omitted (not empty) leaves the song's tags as they are. */
   @IsOptional()

@@ -3,9 +3,11 @@ import {
   ArrayMaxSize,
   ArrayMinSize,
   IsArray,
+  IsBoolean,
   IsIn,
   IsInt,
   IsNumber,
+  IsObject,
   IsOptional,
   IsString,
   Max,
@@ -34,10 +36,12 @@ export class CoilPayloadDto {
 }
 
 export class CoilEventPayloadDto {
+  /** -1 for the song-wide power points. */
   @IsInt() coilIndex!: number;
   @IsInt() atMs!: number;
-  @IsIn(['ontime', 'duty']) param!: 'ontime' | 'duty';
+  @IsIn(['ontime', 'duty', 'power']) param!: 'ontime' | 'duty' | 'power';
   @IsNumber() value!: number;
+  @IsOptional() @IsBoolean() ramp?: boolean;
 }
 
 export class SongPayloadDto {
@@ -51,6 +55,8 @@ export class SongPayloadDto {
   @IsOptional() @IsString() midiFileUuid!: string | null;
   /** Authorship travels with the entity; apply preserves it (not re-stamped). */
   @IsOptional() @IsString() editorName?: string | null;
+  /** Checked by sanitizeStereo on apply; absent (older peer) = off. */
+  @IsOptional() @IsObject() stereo?: Record<string, unknown> | null;
 
   @IsArray()
   @ValidateNested({ each: true })

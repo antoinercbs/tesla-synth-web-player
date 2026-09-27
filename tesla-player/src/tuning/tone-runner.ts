@@ -1,6 +1,6 @@
 import type { MidiSink } from '@/audio/tesla-synth';
 import { programChange, type EnvStep } from '@/sysex/envelopes';
-import { compileCoilConfig, compileCustomEnvelopes, compileEnvelope } from '@/sysex/syntherrupter';
+import { compileCoilConfig, compileCustomEnvelopes, compileEnvelope, compileStereo } from '@/sysex/syntherrupter';
 import type { CoilConfig } from '@/types/domain';
 import { MAX_COILS } from '@/types/domain';
 
@@ -88,6 +88,8 @@ export class ToneRunner {
     this._state = 'running';
     this.out.primary.resume?.(); // built-in synth: unlock audio from the click
     for (const f of ToneRunner.coilFrames(this.cfg)) this.out.sendSysex(f);
+    // a pan left by the last song could turn the coil under test down, or off
+    for (const f of compileStereo(null, 0)) this.out.sendSysex(f);
     for (const f of ToneRunner.envelopeFrames(this.cfg)) this.out.sendSysex(f);
     if (this.cfg.program != null) this.send(programChange(this.cfg.channel, this.cfg.program));
     // let the SysEx settle before the first note

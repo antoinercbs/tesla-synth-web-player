@@ -3,7 +3,7 @@ import { computed, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
-import type { AppTag, CoilConfig, CoilEvent, CoilParam, MidiFile, Song } from '@/types/domain';
+import type { AppTag, CoilConfig, CoilEvent, MidiFile, Song, SongStereo } from '@/types/domain';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { notify } from '@/utils/toast';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
@@ -11,12 +11,18 @@ import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import MidiInstrumentsModal from '@/components/settings/MidiInstrumentsModal.vue';
-import MidiPreview from '@/components/player/MidiPreview.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import MidiLibraryModal from '@/components/editor/MidiLibraryModal.vue';
+import StereoSection from '@/components/editor/StereoSection.vue';
+import DynamicsSection from '@/components/editor/DynamicsSection.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 
-const props = defineProps<{ song?: Song | null; locked?: boolean }>();
+const props = defineProps<{
+  song?: Song | null;
+  locked?: boolean;
+  /** Where the embedded player is (ms): the automation adds points there. */
+  playerPosition?: number;
+}>();
 const emit = defineEmits<{
   (e: 'saved', song: Song): void;
   (e: 'change', song: Song): void;
@@ -44,9 +50,8 @@ const draft = reactive({
   coils: [defaultCoil(0), defaultCoil(1), defaultCoil(2)] as CoilConfig[],
   events: [] as CoilEvent[],
   tags: [] as AppTag[],
+  stereo: null as SongStereo | null,
 });
-// which automation parameter the timeline edits (coils view)
-const editParam = ref<CoilParam>('ontime');
 
 const midiFileItems = computed(() =>
   midiStore.midiFileList.map((f) => ({ id: f.id, label: f.name })),
@@ -84,6 +89,7 @@ function load(song: Song | null | undefined): void {
   draft.coils = (song.coils ?? []).map((c) => ({ ...c }));
   draft.coilCount = song.coilCount ?? (draft.coils.length || 1);
   draft.tags = (song.tags ?? []).map(t => ({ ...t }));
+  draft.stereo = song.stereo ? JSON.parse(JSON.stringify(song.stereo)) : null;
   while (draft.coils.length < draft.coilCount) draft.coils.push(defaultCoil(draft.coils.length));
   if (draft.coils.length > draft.coilCount) draft.coils.length = draft.coilCount;
 }
@@ -98,6 +104,7 @@ function resetNew(): void {
   draft.coils = Array.from({ length: count }, (_, i) => defaultCoil(i));
   draft.events = [];
   draft.tags = [];
+  draft.stereo = null;
 }
 
 // Reload only when actually switching to a different song. This avoids the
@@ -127,8 +134,9 @@ function buildPayload() {
     coils: coilsPayload(),
     events: draft.events
       .filter((e) => e.coilIndex < draft.coilCount)
-      .map((e) => ({ coilIndex: e.coilIndex, atMs: Math.round(e.atMs), param: e.param, value: e.value })),
+      .map((e) => ({ coilIndex: e.coilIndex, atMs: Math.round(e.atMs), param: e.param, value: e.value, ...(e.ramp ? { ramp: true } : {}) })),
     tagIds: draft.tags.filter((t) => t.id != null).map((t) => t.id),
+    stereo: draft.stereo,
   };
 }
 
@@ -233,6 +241,7 @@ function emitChange(): void {
     coils: coilsPayload(),
     events: draft.events.filter((e) => e.coilIndex < draft.coilCount),
     tags: draft.tags.map(t => ({ ...t })),
+    stereo: draft.stereo,
   };
   emit('change', song);
 }
@@ -329,17 +338,10 @@ const showLibrary = ref(false);
         :label="$t('label.secondOutputChannels')" />
     </article>
 
-    <!-- Timeline: notes coloured live by the channel→coil mapping + editable coil automation -->
-    <section class="editor-section">
-      <h2 class="editor-section__title">
-        <span class="icon"><i class="fas fa-chart-simple"></i></span>{{ $t('label.timeline') }}
-      </h2>
-      <div class="editor-preview">
-        <MidiPreview :analysis="analysis" :coils="draft.coils" :coil-count="draft.coilCount"
-          :output2-mask="draft.output2Mask" view="combined" :events="draft.events" editable
-          v-model:edit-param="editParam" @update:events="draft.events = $event" />
-      </div>
-    </section>
+    <StereoSection v-model="draft.stereo" :coil-count="draft.coilCount" :coils="draft.coils" :analysis="analysis" />
+
+    <DynamicsSection v-model="draft.events" :coil-count="draft.coilCount" :analysis="analysis"
+      :player-position="playerPosition ?? 0" :song-key="song?.id ?? null" />
 
     <div class="editor-footer">
       <button v-if="draft.id" class="btn btn--danger-ghost editor-footer__delete" type="button"

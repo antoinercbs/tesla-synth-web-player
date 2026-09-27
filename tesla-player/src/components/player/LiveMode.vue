@@ -3,7 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { useI18n } from 'vue-i18n';
 import { WebMidi, type Input } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
-import { compileCoilConfig, compileCustomEnvelopes } from '@/sysex/syntherrupter';
+import { compileCoilConfig, compileCustomEnvelopes, compileStereo } from '@/sysex/syntherrupter';
 import { customEnvelope, programChange } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_NOTE_COUNT } from '@/ui/piano-layout';
@@ -138,6 +138,8 @@ function writeEnvelopes(programs: Iterable<number>): void {
 
 function sendConfig(): void {
   for (const frame of compileCoilConfig(cfg.coils, 'midi')) midiStore.sendSysex(frame);
+  // live mode has no spatialisation: undo the last song's, or it would move the notes played here
+  for (const frame of compileStereo(null, 0)) midiStore.sendSysex(frame);
   writeEnvelopes(channelOverride.value.values());
   // force the chosen envelope on each overridden channel (Program Change)
   for (const [ch, program] of channelOverride.value) midiStore.midiOutput?.send(programChange(ch, program));

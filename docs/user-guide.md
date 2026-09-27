@@ -67,12 +67,34 @@ Go to **Edit** and create or open a song. A song is a MIDI file plus a **per-coi
 - **Name** and **MIDI file**: choose the file this song plays (upload new ones from the MIDI file manager, reachable from the picker).
 - **Coil count**: how many physical coils this song targets (1–6).
 - **Per-coil cards** :for each coil:
-  - **MIDI channels**: which channels of the file feed this coil (a multi-select grid). The timeline below colors notes by their channel→coil mapping so you can see who plays what.
+  - **MIDI channels**: which channels of the file feed this coil (a multi-select grid). The player on the right colors notes by their channel→coil mapping so you can see who plays what.
   - **On-time (µs)** and **Duty (%)**: the coil's power for this song (bounded by the device's safety envelope).
 - **Second-output channels**: which channels mirror to the second output for this song.
-- **Timeline**: **mid-song automation**: on-time / duty changes over time, per coil.
 
 Press **Save** (or **Update**). When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown as a small "edited by ..." line.
+
+### Power over time
+
+The **Power over time** section varies the coils' power along the song. Switch it on, then:
+
+- **Shape the Song curve**: it sets every coil's power (100 % = the settings on the coil cards, up to 200 %). Double-click the track to add a point, drag a point to move it (it snaps to the beats of the file, hold Alt to place it freely), Delete removes the selected one. **Add at …** puts a point where the player is: pause at the chorus, one click.
+- **Choose each point's transition**: *Instant* (the level jumps there) or *Gradual* (a ramp from the previous point), for rises, fades and crescendos. **Intro rise** and **Fade out** build the usual ones.
+- **Per coil** adds a track per coil, for its ontime or duty: it multiplies the Song curve, for a solo or a balance that changes during the song.
+- The list under the tracks holds the exact time, level and transition of every point.
+
+What a coil gets is its setting × the Song curve × its own curve × the player's live **Power** fader: the fader always applies on top, so it stays your safety control during a show. The player's coil lanes show each coil at that level.
+
+### Spatialisation
+
+The **Spatialisation** section spreads the notes across the coils by position, so a melody can travel from one coil to the next. Switch it on, then:
+
+- **Place the coils** on the stage, from left to right: drag a coil's marker (or focus it and use the arrow keys), and its reach with the diamonds on its band. **Space evenly** spreads them the way the Syntherrupter suggests.
+- **Choose how a note passes from one coil to the next**: *Fade* (the volume drops with the distance, the note glides) or *One at a time* (full volume inside the reach, nothing past it).
+- **Choose, per channel, where its notes sit**: the **file's pan** (CC10, the default), their **pitch** (each note, or the lowest, highest or loudest one sounding, over a note range, low notes on the left or on the right), or **everywhere** (every coil assigned the channel plays all of it).
+
+A coil only plays the channels it is assigned: the section warns when a channel sits out of reach of all its coils (it would not play), or when it is assigned to a single coil (it cannot move). The player's coil lanes show what each coil actually plays, fainter when quieter, and the built-in synth pans the sound left and right the same way.
+
+The player sends the spatialisation before each song, and switches it off for songs without it (and for Live mode and tuning), so a song never inherits the previous one's.
 
 ### Worked example
 

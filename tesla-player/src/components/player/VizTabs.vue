@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
-import type { CoilConfig, CoilEvent, CoilParam } from '@/types/domain';
+import type { CoilConfig, CoilEvent, CoilParam, SongStereo } from '@/types/domain';
 import type { MidiAnalysis } from '@/midi/analyze';
 import MidiPreview from '@/components/player/MidiPreview.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
@@ -32,6 +32,7 @@ const props = defineProps<{
   paused: boolean;
   events: CoilEvent[];
   compact: boolean;
+  stereo?: SongStereo | null;
 }>();
 
 // MidiPreview's view: 'combined' passes through; otherwise score (roll) or coils (lanes).
@@ -65,7 +66,7 @@ const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
       </div>
       <midi-preview v-if="viz !== 'vu'" :analysis="analysis" :coils="coils" :coil-count="coilCount"
         :output2-mask="output2Mask" :view="previewView" :playhead-ms="playheadMs" :playing="playing" :paused="paused"
-        :events="events" v-model:edit-param="editParam" :compact="compact" />
+        :events="events" v-model:edit-param="editParam" :compact="compact" :stereo="stereo" />
     </div>
   </div>
 </template>

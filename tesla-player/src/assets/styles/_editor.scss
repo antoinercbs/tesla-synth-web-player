@@ -299,14 +299,6 @@
     margin-right: auto;
 }
 
-// MIDI preview in the editor
-.editor-preview {
-    display: flex;
-    min-width: 0;
-    height: clamp(280px, 42vh, 560px);
-    margin-top: 0.9rem;
-}
-
 // Below this width the side dock would crush the editor: stack it underneath.
 @media (max-width: 1100px) {
     // Switch to standard block layout to break the flex collapsing chain

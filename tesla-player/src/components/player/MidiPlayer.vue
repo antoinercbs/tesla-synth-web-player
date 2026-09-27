@@ -2,10 +2,17 @@
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import { compileCoilConfig, compileCustomEnvelopes, coilEventFrame, maskToChannels } from '@/sysex/syntherrupter';
+import {
+  compileCoilConfig,
+  compileCustomEnvelopes,
+  compileStereo,
+  coilEventFrame,
+  maskToChannels,
+  stereoChannelMessages,
+} from '@/sysex/syntherrupter';
 import { envelope, envelopeAmplitude } from '@/sysex/envelopes';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
-import { effectiveRatio } from '@/midi/automation';
+import { coilLevelAt, effectiveRatio } from '@/midi/automation';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig, CoilParam, Song } from '@/types/domain';
@@ -18,6 +25,8 @@ import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 const emit = defineEmits<{
   (e: 'songFinished'): void;
   (e: 'playingChange', value: boolean): void;
+  /** The heard position, a few times a second while playing and on every seek. */
+  (e: 'position', ms: number): void;
 }>();
 const props = withDefaults(defineProps<{ showAutoplay?: boolean; compactGraph?: boolean }>(), {
   showAutoplay: true,
@@ -312,42 +321,59 @@ function executeConfig(): void {
   for (const frame of compileCoilConfig(song.value.coils ?? [], song.value.mode ?? 'midi')) {
     midiStore.sendSysex(frame);
   }
+  // sent even when the song has none: the coils would keep the previous song's places
+  for (const frame of compileStereo(song.value.stereo, song.value.coilCount)) midiStore.sendSysex(frame);
+  for (const message of stereoChannelMessages(song.value.stereo)) midiStore.midiOutput?.send(message);
 }
 
-/**
- * Schedule every mid-song coil change (CoilEvent) as a SysEx frame on the same
- * timestamped output queue as the notes, so it lands exactly in sync with the
- * audio. `smfPlayer.startTime` is the wall-clock origin the player schedules
- * against; `+ PLAY_LATENCY_MS` matches the look-ahead applied to the notes.
+/*
+ * Power automation, sent as the song is HEARD rather than queued ahead on the
+ * output with the notes: every send takes the live power as it is at that
+ * moment, so the fader always applies on top of the automation. A frame queued
+ * ahead could not be recalled when the fader moves (clearing the output would
+ * drop the notes too). A timer tick of jitter is harmless for power changes.
  */
-function scheduleCoilEvents(fromMs = 0): void {
+// the editor offers to add an automation point where the song is: a few updates a
+// second are plenty for that (and every seek or pause, when the value settles)
+let lastPositionEmit = 0;
+watch(playheadMs, (ms) => {
+  const now = performance.now();
+  if (isPlaying.value && now - lastPositionEmit < 200) return;
+  lastPositionEmit = now;
+  emit('position', ms);
+});
+
+const AUTOMATION_TICK_MS = 50;
+let automationTimer: ReturnType<typeof setInterval> | null = null;
+// last level sent per coil: a ramp only sends when the rounded value changes,
+// which keeps a serial link from saturating
+const sentLevels = new Map<number, { ontimeUs: number; dutyKey: number }>();
+const DUTY_STEPS = 2000; // 0.05 % of duty
+
+/** Send each coil its configured values × the automation at `ms` × the live power. */
+function sendCoilLevels(ms: number, force = false): void {
   const out = midiStore.midiOutput;
-  const events = song.value?.events ?? [];
-  const coils = song.value?.coils ?? [];
-  if (!out || !smfPlayer || events.length === 0) return;
-  for (const ev of events) {
-    if (ev.atMs < fromMs) continue; // past events: applied immediately via applyCoilStateAt
-    const coil = coils.find((c) => c.coilIndex === ev.coilIndex);
-    if (!coil) continue;
-    // ev.value is a RATIO of the coil's configured value (1.0 = 100%)
-    const base = ev.param === 'duty' ? coil.duty : coil.ontimeUs;
-    out.send(coilEventFrame(ev.coilIndex, ev.param, base * ev.value), {
-      time: smfPlayer.startTime + ev.atMs + PLAY_LATENCY_MS,
-    });
+  if (!out || !song.value) return;
+  for (const coil of song.value.coils ?? []) {
+    const lvl = coilLevelAt(song.value.events ?? [], coil, ms, effRatioOntime(coil.coilIndex), effRatioDuty(coil.coilIndex));
+    const dutyKey = Math.round(lvl.duty * DUTY_STEPS);
+    const last = sentLevels.get(coil.coilIndex);
+    if (force || last?.ontimeUs !== lvl.ontimeUs) out.send(coilEventFrame(coil.coilIndex, 'ontime', lvl.ontimeUs));
+    if (force || last?.dutyKey !== dutyKey) out.send(coilEventFrame(coil.coilIndex, 'duty', lvl.duty));
+    sentLevels.set(coil.coilIndex, { ontimeUs: lvl.ontimeUs, dutyKey });
   }
 }
-
-/** Apply each coil's automation level at song-position `ms` immediately, so a jump
- *  leaves the coils where the events would have without replaying them. */
-function applyCoilStateAt(ms: number): void {
-  const out = midiStore.midiOutput;
-  if (!out) return;
-  for (const coil of song.value?.coils ?? []) {
-    const ro = effectiveRatio(song.value?.events ?? [], coil.coilIndex, 'ontime', ms);
-    const rd = effectiveRatio(song.value?.events ?? [], coil.coilIndex, 'duty', ms);
-    out.send(coilEventFrame(coil.coilIndex, 'ontime', coil.ontimeUs * ro));
-    out.send(coilEventFrame(coil.coilIndex, 'duty', coil.duty * rd));
-  }
+/** The song position being heard now (the output runs PLAY_LATENCY_MS ahead). */
+function heardMs(): number {
+  return Math.max(0, performance.now() - playStart - PLAY_LATENCY_MS);
+}
+function startAutomation(): void {
+  stopAutomation();
+  if (!song.value?.events?.length) return; // no curve: the fader alone, sent by applyLive
+  automationTimer = setInterval(() => { if (isPlaying.value) sendCoilLevels(heardMs()); }, AUTOMATION_TICK_MS);
+}
+function stopAutomation(): void {
+  if (automationTimer) { clearInterval(automationTimer); automationTimer = null; }
 }
 
 /** Build a fresh SmfPlayer for the current song/outputs (cursor at the start). */
@@ -389,6 +415,7 @@ function teardownPlayback(): void {
   midiStore.midiOutput?.sendAllSoundOff();
   midiStore.midiOutput2?.sendAllSoundOff();
   if (rafId != null) { cancelAnimationFrame(rafId); rafId = null; } // freeze the playhead in place
+  stopAutomation();
   resetNotes();
 }
 
@@ -403,11 +430,11 @@ function playFrom(fromMs: number): void {
   smfPlayer = buildPlayer();
   if (fromMs > 0) smfPlayer.seek(fromMs); // position the cursor (eventTime ≈ fromMs)
   else smfPlayer.setGM();
-  applyCoilStateAt(smfPlayer.eventTime); // coils → their automation level at this position
-  // map wall-now to this song position, then schedule notes (player) + future coil events
+  sendCoilLevels(smfPlayer.eventTime, true); // coils → their level at this position
+  // map wall-now to this song position, then schedule the notes; the automation follows the playhead
   smfPlayer.startTime = performance.now() - smfPlayer.eventTime;
   startPlayhead();
-  scheduleCoilEvents(smfPlayer.eventTime);
+  startAutomation();
   smfPlayer.startPlay();
   isPlaying.value = true;
   paused.value = false;
@@ -507,14 +534,10 @@ function panic(): void {
   midiStore.midiOutput2?.sendAllSoundOff();
 }
 
-// One live update: re-send each coil's ontime AND duty at its own effective ratio
-// (master × bias × that coil's trim). Per-coil so individual trims take effect; only
-// fires on @change (drag end), so ≤2·coils SysEx frames — no per-frame flooding.
+// One live update: re-send each coil at the automation's level where the song is
+// heard × the new live power. Only fires on @change (drag end), so ≤2·coils frames.
 function applyLive(): void {
-  for (const c of song.value?.coils ?? []) {
-    midiStore.sendLiveOntimeAdjust({ coils: [c], ratio: effRatioOntime(c.coilIndex) });
-    midiStore.sendLiveDutyAdjust({ coils: [c], ratio: effRatioDuty(c.coilIndex) });
-  }
+  sendCoilLevels(isPlaying.value ? heardMs() : playheadMs.value, true);
 }
 function onPowerChange(): void {
   if (Math.abs(masterPower.value - 100) <= 3) masterPower.value = 100; // snap to unity ("home")
@@ -652,7 +675,7 @@ defineExpose({ loadSong, playSong, stop, reloadMidi });
     <viz-tabs v-model:viz="viz" v-model:edit-param="playerParam" :level="level" :backgrounds="vuBackgrounds"
       :mapped="vuMapped" :analysis="analysis" :coils="song?.coils ?? []" :coil-count="song?.coilCount ?? 0"
       :output2-mask="song?.output2Mask ?? 0" :playhead-ms="playheadMs" :playing="isPlaying" :paused="paused"
-      :events="song?.events ?? []" :compact="compactGraph" />
+      :events="song?.events ?? []" :compact="compactGraph" :stereo="song?.stereo" />
 
     <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
     <div v-if="song && envelopesInUse.length" class="vu-legend">

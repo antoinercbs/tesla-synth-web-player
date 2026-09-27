@@ -1,16 +1,11 @@
 import { defineStore } from 'pinia';
 import type { Output } from 'webmidi';
-import {
-  sendSysex as helperSendSysex,
-  sendLiveOntimeAdjust as helperSendLiveOntimeAdjust,
-  sendLiveDutyAdjust as helperSendLiveDutyAdjust,
-  type SysexOutput,
-} from '@/utils/live-sysex-helper';
+import { sendSysex as helperSendSysex, type SysexOutput } from '@/utils/live-sysex-helper';
 import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
 import { SERIAL_OUTPUT_ID } from '@/serial/serial-midi';
 import type { DeviceLink } from '@/serial/device-link';
 import { setCustomEnvelopes } from '@/sysex/envelopes';
-import type { AppConfig, AppTag, CoilConfig, CustomEnvelope, MidiFile, Song } from '@/types/domain';
+import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
   /** Output 1 (coils): a real WebMidi output or the built-in Tesla synth. */
@@ -153,12 +148,6 @@ export const useMidiStore = defineStore('midi', {
     },
     sendSysex(payload: string | number[]) {
       if (this.midiOutput) helperSendSysex(this.midiOutput as SysexOutput, payload);
-    },
-    sendLiveOntimeAdjust({ coils, ratio }: { coils: CoilConfig[]; ratio: number }) {
-      if (this.midiOutput) helperSendLiveOntimeAdjust(coils, ratio, this.midiOutput as SysexOutput);
-    },
-    sendLiveDutyAdjust({ coils, ratio }: { coils: CoilConfig[]; ratio: number }) {
-      if (this.midiOutput) helperSendLiveDutyAdjust(coils, ratio, this.midiOutput as SysexOutput);
     },
   },
 });

@@ -85,14 +85,22 @@ export interface SimpleCoil {
   frequencyHz: number;
 }
 
-/** A mid-song parameter change scheduled at a point in time (future feature). */
+/** What an automation point drives: one coil's ontime or duty, or the whole song's power. */
+export type AutomationParam = CoilParam | 'power';
+/** coilIndex of the song-wide power points: they multiply every coil's own curve. */
+export const SONG_WIDE = -1;
+
+/** A point of a song's power automation (see midi/automation.ts). */
 export interface CoilEvent {
+  /** 0..5, or SONG_WIDE for param 'power'. */
   coilIndex: number;
   /** Offset from song start, in milliseconds. */
   atMs: number;
-  param: CoilParam;
-  /** Ontime in µs when param==='ontime', duty fraction when param==='duty'. */
+  param: AutomationParam;
+  /** A ratio of the coil's configured value (1 = 100%). */
   value: number;
+  /** Reached by a linear ramp from the previous point of its curve; else a step. */
+  ramp?: boolean;
 }
 
 export interface Song {
@@ -106,12 +114,32 @@ export interface Song {
   output2Mask: number;
   /** Exactly `coilCount` entries, indexed 0..coilCount-1. */
   coils: CoilConfig[];
-  /** Mid-song parameter-change events (optional; future). */
+  /** Power automation points; empty/absent = the configured values throughout. */
   events?: CoilEvent[];
   /** Absent when talking to a server that predates tags. */
   tags?: AppTag[];
+  /** Spatialisation across the coils; null/absent = off. */
+  stereo?: SongStereo | null;
   /** Who last edited this (server-stamped from the OIDC token), or null. */
   editorName?: string | null;
+}
+
+/**
+ * Spatialisation ("stereo" on the Syntherrupter): each coil has a place from
+ * left (0) to right (1) and a reach; a note plays on the coils it is close to.
+ * Channels absent from `channels` are placed by the file's own pan (CC10).
+ */
+export type StereoBlend = 'fade' | 'single';
+export type PanFollow = 'each' | 'lowest' | 'highest' | 'loudest';
+export type ChannelPlacement =
+  | { source: 'omni' }
+  | { source: 'pitch'; follow: PanFollow; noteLow: number; noteHigh: number; lowOn: 'left' | 'right' };
+export interface SongStereo {
+  /** fade: volume falls with the distance; single: full inside the reach, nothing past it. */
+  blend: StereoBlend;
+  /** Index = coil index; position and reach in 0..1. */
+  coils: { position: number; reach: number }[];
+  channels: Record<string, ChannelPlacement>;
 }
 
 export interface Playlist {

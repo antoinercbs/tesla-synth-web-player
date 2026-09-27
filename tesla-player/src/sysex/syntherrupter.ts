@@ -23,7 +23,9 @@
  */
 
 import { customEnvelope, type EnvStep } from '@/sysex/envelopes';
-import type { CoilConfig, PlaybackMode, SimpleCoil } from '@/types/domain';
+import { FOLLOW_MODE, MIN_REACH, OMNI_MODE } from '@/midi/stereo';
+import { MAX_COILS } from '@/types/domain';
+import type { CoilConfig, PlaybackMode, SimpleCoil, SongStereo } from '@/types/domain';
 
 /** Fixed SysEx header: start, manufacturer id, protocol version, broadcast id. */
 export const SYSEX_HEADER = [0xf0, 0x00, 0x26, 0x05, 0x01, 0x7f] as const;
@@ -340,6 +342,65 @@ export function compileCustomEnvelopes(programs: Iterable<number>): number[][] {
     if (custom) frames.push(...compileEnvelope(program, custom.steps));
   }
   return frames;
+}
+
+/** Spatialisation, per coil (TG_LSB); RESET_NRPS takes a channel bitfield. */
+export const PAN_PN = {
+  CONFIG: 0x62,
+  POSITION: 0x63,
+  REACH: 0x64,
+  RESET_NRPS: 0x66,
+} as const;
+
+/**
+ * The coils' places for a song, and "no place" for every other coil (all of
+ * them when `stereo` is null): the device keeps the previous song's otherwise.
+ * Then the channels' note pan mappings (NRPs) are reset, for the same reason;
+ * {@link stereoChannelMessages} sets this song's afterwards. Position and reach
+ * go as floats: the firmware never divides the integer reach (0x64) by 127, so
+ * any value but 0 or 1 would be dropped.
+ */
+export function compileStereo(stereo: SongStereo | null | undefined, coilCount: number): number[][] {
+  const frames: number[][] = [];
+  for (let coil = 0; coil < MAX_COILS; coil++) {
+    const placed = stereo && coil < coilCount ? stereo.coils[coil] : undefined;
+    frames.push(buildCommand({ pn: PAN_PN.CONFIG, target: coil, value: stereo?.blend === 'single' ? 0 : 1 }));
+    frames.push(buildCommand({ pn: PAN_PN.POSITION, target: coil, value: placed ? placed.position : -1, isFloat: true }));
+    if (placed) {
+      frames.push(buildCommand({ pn: PAN_PN.REACH, target: coil, value: Math.max(MIN_REACH, placed.reach), isFloat: true }));
+    }
+  }
+  frames.push(buildCommand({ pn: PAN_PN.RESET_NRPS, value: 0xffff }));
+  return frames;
+}
+
+/**
+ * Controller messages setting NRP 42 (note pan mapping) on the channels not
+ * placed by the file's pan: CC 99/98 select the parameter, then on 42/1 and 42/2
+ * CC 6 sets the upper end and CC 38 the lower one (MIDI.cpp); 42/0 takes the
+ * mode on CC 38. The selection is parked on 127/127 afterwards, as the NRP
+ * convention asks.
+ */
+export function stereoChannelMessages(stereo: SongStereo | null | undefined): number[][] {
+  const out: number[][] = [];
+  if (!stereo) return out;
+  for (const [key, p] of Object.entries(stereo.channels)) {
+    const ch = Number(key) & 0x0f;
+    const cc = (n: number, v: number): number[] => [0xb0 | ch, n, v & 0x7f];
+    const select = (lsb: number): number[][] => [cc(99, 42), cc(98, lsb)];
+    if (p.source === 'omni') {
+      out.push(...select(0), cc(38, OMNI_MODE));
+    } else {
+      const lowLeft = p.lowOn === 'left';
+      out.push(
+        ...select(0), cc(38, FOLLOW_MODE[p.follow]),
+        ...select(1), cc(6, p.noteHigh), cc(38, p.noteLow),
+        ...select(2), cc(6, lowLeft ? 127 : 0), cc(38, lowLeft ? 0 : 127),
+      );
+    }
+    out.push(cc(99, 127), cc(98, 127));
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------

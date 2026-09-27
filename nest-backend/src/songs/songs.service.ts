@@ -6,9 +6,10 @@ import { MidiFile } from '../midi/entities/midi-file.entity';
 import { hashSong } from '../sync/content-hash';
 import { CreateSongDto } from './dto/create-song.dto';
 import { Coil } from './entities/coil.entity';
-import { CoilEvent } from './entities/coil-event.entity';
+import { CoilEvent, SONG_WIDE } from './entities/coil-event.entity';
 import { PlaybackMode, Song } from './entities/song.entity';
 import { Tag } from '../tags/entities/tag.entity';
+import { sanitizeStereo, type SongStereo } from './stereo';
 
 /** JSON shape returned to the front (the structured per-coil model). */
 export interface SongResponse {
@@ -31,8 +32,10 @@ export interface SongResponse {
     atMs: number;
     param: string;
     value: number;
+    ramp?: boolean;
   }[];
   tags: { id: number; name: string; color: string }[];
+  stereo: SongStereo | null;
 }
 
 @Injectable()
@@ -128,14 +131,20 @@ export class SongsService {
       return coil;
     });
 
-    song.events = (dto.events ?? []).map((e) => {
-      const event = new CoilEvent();
-      event.coilIndex = e.coilIndex;
-      event.atMs = e.atMs;
-      event.param = e.param;
-      event.value = e.value;
-      return event;
-    });
+    song.events = (dto.events ?? [])
+      // a coil point needs a coil, and a song-wide one none
+      .filter((e) => (e.param === 'power') === (e.coilIndex === SONG_WIDE))
+      .map((e) => {
+        const event = new CoilEvent();
+        event.coilIndex = e.coilIndex;
+        event.atMs = e.atMs;
+        event.param = e.param;
+        event.value = e.value;
+        event.ramp = e.ramp ? true : null;
+        return event;
+      });
+
+    if (dto.stereo !== undefined) song.stereo = sanitizeStereo(dto.stereo);
 
     // Left untouched when the payload omits tagIds, so a client that predates
     // tags cannot silently clear them. Unknown ids are dropped rather than
@@ -163,6 +172,7 @@ export class SongsService {
       midiFileUuid: song.midiFile?.uuid ?? null,
       coils: song.coils ?? [],
       events: song.events ?? [],
+      stereo: song.stereo ?? null,
       editorName: song.editorName,
     });
   }
@@ -175,6 +185,7 @@ export class SongsService {
       mode: song.mode,
       output2Mask: song.output2Mask,
       editorName: song.editorName ?? null,
+      stereo: song.stereo ?? null,
       midiFile: song.midiFile
         ? {
             id: song.midiFile.id,
@@ -196,6 +207,7 @@ export class SongsService {
         atMs: e.atMs,
         param: e.param,
         value: e.value,
+        ...(e.ramp ? { ramp: true } : {}),
       })),
       tags: (song.tags ?? []).map((t) => ({
         id: t.id,

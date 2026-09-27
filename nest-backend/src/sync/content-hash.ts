@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import type { SongStereo } from '../songs/stereo';
 
 /**
  * Canonical content hashing for sync. A SINGLE source of truth used by both the
@@ -32,6 +33,8 @@ export interface CoilEventHashInput {
   atMs: number;
   param: string;
   value: number;
+  /** Folded in only when true: step events keep their pre-ramp hash. */
+  ramp?: boolean | null;
 }
 
 export interface SongHashInput {
@@ -43,6 +46,8 @@ export interface SongHashInput {
   midiFileUuid: string | null;
   coils: CoilHashInput[];
   events: CoilEventHashInput[];
+  /** Folded in only when set, like editorName: songs without it keep their hash. */
+  stereo?: SongStereo | null;
   /** Server-stamped "edited by" name. Folded into the hash only when non-empty. */
   editorName?: string | null;
 }
@@ -117,9 +122,22 @@ export function hashSong(input: SongHashInput): string {
         atMs: e.atMs,
         param: e.param,
         value: num(e.value),
+        ...(e.ramp ? { ramp: true } : {}),
       })),
   };
+  if (input.stereo) canonical.stereo = canonicalStereo(input.stereo);
   return sha256(JSON.stringify(withEditor(canonical, input.editorName)));
+}
+
+function canonicalStereo(s: SongStereo): Record<string, unknown> {
+  return {
+    blend: s.blend,
+    coils: s.coils.map((c) => ({ position: num(c.position), reach: num(c.reach) })),
+    channels: Object.keys(s.channels)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .map((ch) => ({ ch, ...s.channels[ch] })),
+  };
 }
 
 export function hashPlaylist(input: PlaylistHashInput): string {

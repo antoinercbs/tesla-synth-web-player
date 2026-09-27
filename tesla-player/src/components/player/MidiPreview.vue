@@ -2,9 +2,10 @@
 import { computed, onBeforeUnmount, onMounted, ref, useId, watch } from 'vue';
 import { coilColor } from '@/ui/coil-colors';
 import { useMidiStore } from '@/stores/midi';
-import { effectiveRatio } from '@/midi/automation';
-import type { CoilConfig, CoilEvent, CoilParam } from '@/types/domain';
+import { MAX_RATIO, effectiveRatio, levelSamples } from '@/midi/automation';
+import type { CoilConfig, CoilEvent, CoilParam, SongStereo } from '@/types/domain';
 import type { MidiAnalysis } from '@/midi/analyze';
+import { noteCoilVolumes } from '@/midi/stereo';
 
 const props = withDefaults(defineProps<{
   analysis: MidiAnalysis | null;
@@ -17,19 +18,20 @@ const props = withDefaults(defineProps<{
   playing?: boolean;
   /** Paused = keep the playhead cursor visible (frozen) but don't auto-scroll. */
   paused?: boolean;
-  /** Mid-song coil automation points. value = RATIO of the coil's configured value (1 = 100%). */
+  /** Power automation points (edited in the song editor's section; drawn here). */
   events?: CoilEvent[];
-  editable?: boolean;
+  /** Which coil parameter the lanes show the level of. */
   editParam?: CoilParam;
   /** Compact rail: number + ontime/duty only, no coil name. */
   compact?: boolean;
+  /** Spatialisation: the coil lanes then show what each coil actually plays, and how loud. */
+  stereo?: SongStereo | null;
 }>(), {
   output2Mask: 0, playheadMs: 0, playing: false, paused: false,
-  events: () => [], editable: false, editParam: 'ontime', compact: false,
+  events: () => [], editParam: 'ontime', compact: false,
 });
 
 const emit = defineEmits<{
-  (e: 'update:events', events: CoilEvent[]): void;
   (e: 'update:editParam', param: CoilParam): void;
 }>();
 const midiStore = useMidiStore();
@@ -42,9 +44,7 @@ const PX_PER_SEC = 60;
 const RULER_H = 16;
 const MIN_WIDTH = 600;
 const AUTO_PAD = 7;
-const SNAP_MS = 90;
 const RAIL_W = 104;
-const DRAG_SLOP = 4;
 const ROLL_MAX_ROW = 13;
 
 const showRoll = computed(() => props.view !== 'lanes');
@@ -68,7 +68,7 @@ const pitch = computed(() => {
 });
 const pitchSpan = computed(() => Math.max(1, pitch.value.max - pitch.value.min + 1));
 const laneCount = computed(() => Math.max(1, props.coilCount + (hasSpeaker.value ? 1 : 0)));
-const minLaneH = computed(() => (props.editable ? 56 : 30));
+const MIN_LANE_H = 30;
 
 const avail = computed(() => Math.max(120, containerH.value) - RULER_H);
 const rollRow = computed(() => {
@@ -80,7 +80,7 @@ const rollRow = computed(() => {
     // (cropped, and only reachable by scrolling the score out of view). Reserving the
     // lanes' minimum keeps the whole view fitting the container; the score rows just go
     // thinner (it's an overview — the dedicated Score tab is there for detail).
-    const rollBudget = Math.min(avail.value * 0.42, Math.max(0, avail.value - minLaneH.value * laneCount.value));
+    const rollBudget = Math.min(avail.value * 0.42, Math.max(0, avail.value - MIN_LANE_H * laneCount.value));
     return Math.min(ROLL_MAX_ROW, rollBudget / pitchSpan.value);
   }
   return Math.max(3, avail.value / pitchSpan.value);
@@ -88,7 +88,7 @@ const rollRow = computed(() => {
 const rollH = computed(() => rollRow.value * pitchSpan.value);
 const laneH = computed(() => {
   if (!showLanes.value) return 0;
-  return Math.max(minLaneH.value, (avail.value - rollH.value) / laneCount.value);
+  return Math.max(MIN_LANE_H, (avail.value - rollH.value) / laneCount.value);
 });
 const lanesH = computed(() => laneH.value * laneCount.value);
 const rollTopY = RULER_H;
@@ -144,27 +144,40 @@ const patterns = computed(() => {
   return [...seen.values()];
 });
 
-/** lane = coil index (or the speaker lane's index); -1 for score notes. */
-interface Rect { x: number; y: number; w: number; h: number; fill: string; roll: boolean; lane: number }
+/** lane = coil index (or the speaker lane's index); -1 for score notes. `alpha` = a coil
+ *  playing the note below full volume (spatialisation). */
+interface Rect { x: number; y: number; w: number; h: number; fill: string; roll: boolean; lane: number; alpha?: number }
+const laneVolumes = computed(() =>
+  props.stereo && props.analysis && showLanes.value ? noteCoilVolumes(props.analysis, props.coils, props.stereo) : null);
 const rects = computed<Rect[]>(() => {
   const notes = props.analysis?.notes ?? [];
   const h = laneH.value; const rr = rollRow.value; const lt = lanesTopY.value;
+  const vols = laneVolumes.value;
   const out: Rect[] = [];
-  for (const n of notes) {
+  notes.forEach((n, idx) => {
     const x = (n.startMs / 1000) * PX_PER_SEC;
     const w = Math.max(1.5, ((n.endMs - n.startMs) / 1000) * PX_PER_SEC);
     if (showRoll.value) {
       out.push({ x, w, y: rollTopY + (pitch.value.max - n.note) * rr, h: Math.max(2, rr - 1), fill: rollFill(n.channel), roll: true, lane: -1 });
     }
     if (showLanes.value) {
-      for (const c of coilsForChannel(n.channel)) {
-        out.push({ x, w, y: lt + c * h + 3, h: h - 6, fill: coilColor(c), roll: false, lane: c });
+      if (vols) {
+        props.coils.forEach((c, k) => {
+          const v = vols[idx][k];
+          if (v <= 0.01) return; // out of reach: the coil does not play it
+          const lane = c.coilIndex;
+          out.push({ x, w, y: lt + lane * h + 3, h: h - 6, fill: coilColor(lane), roll: false, lane, alpha: v < 1 ? 0.25 + 0.75 * v : undefined });
+        });
+      } else {
+        for (const c of coilsForChannel(n.channel)) {
+          out.push({ x, w, y: lt + c * h + 3, h: h - 6, fill: coilColor(c), roll: false, lane: c });
+        }
       }
       if (inSpeaker(n.channel)) {
         out.push({ x, w, y: lt + speakerLaneIndex.value * h + 3, h: h - 6, fill: SPEAKER, roll: false, lane: speakerLaneIndex.value });
       }
     }
-  }
+  });
   return out;
 });
 const rollRects = computed(() => rects.value.filter((r) => r.roll));
@@ -196,12 +209,13 @@ const railLanes = computed(() => {
   return out;
 });
 
-// ---- automation: step curve of editParam as a RATIO of the coil base ----
+// ---- automation: each coil's effective level (the song's power × its own curve) ----
 function timeX(ms: number): number { return (ms / 1000) * PX_PER_SEC; }
-function xToTime(x: number): number { return Math.max(0, (x / PX_PER_SEC) * 1000); }
+const levelCurves = computed(() =>
+  Array.from({ length: props.coilCount }, (_, c) => levelSamples(props.events, c, props.editParam, durationMs.value)));
 const valueMax = computed(() => {
-  let max = 2;
-  for (const e of props.events) if (e.param === props.editParam) max = Math.max(max, e.value);
+  let max = MAX_RATIO;
+  for (const samples of levelCurves.value) for (const [, v] of samples) max = Math.max(max, v);
   return max * 1.08;
 });
 function valueY(coilIdx: number, ratio: number): number {
@@ -210,30 +224,13 @@ function valueY(coilIdx: number, ratio: number): number {
   const frac = Math.max(0, Math.min(1, ratio / valueMax.value));
   return top + AUTO_PAD + (1 - frac) * usable;
 }
-function yToValue(coilIdx: number, y: number): number {
-  const top = lanesTopY.value + coilIdx * laneH.value;
-  const usable = laneH.value - 2 * AUTO_PAD;
-  const frac = Math.max(0, Math.min(1, 1 - (y - top - AUTO_PAD) / usable));
-  return Math.round(frac * valueMax.value * 100) / 100;
-}
-function laneOfY(y: number): number {
-  if (y < lanesTopY.value) return -1;
-  return Math.floor((y - lanesTopY.value) / laneH.value);
-}
-function eventsFor(coilIdx: number): CoilEvent[] {
-  return props.events.filter((e) => e.coilIndex === coilIdx && e.param === props.editParam).sort((a, b) => a.atMs - b.atMs);
+function levelAtX(c: number, x: number): number {
+  return effectiveRatio(props.events, c, props.editParam, (x / PX_PER_SEC) * 1000);
 }
 function staircase(coilIdx: number): string {
-  const pts: string[] = [];
-  let v = 1;
-  pts.push(`0,${valueY(coilIdx, v).toFixed(1)}`);
-  for (const e of eventsFor(coilIdx)) {
-    const x = timeX(e.atMs).toFixed(1);
-    pts.push(`${x},${valueY(coilIdx, v).toFixed(1)}`);
-    pts.push(`${x},${valueY(coilIdx, e.value).toFixed(1)}`);
-    v = e.value;
-  }
-  pts.push(`${widthPx.value.toFixed(1)},${valueY(coilIdx, v).toFixed(1)}`);
+  const samples = levelCurves.value[coilIdx] ?? [];
+  const pts = samples.map(([t, v]) => `${timeX(t).toFixed(1)},${valueY(coilIdx, v).toFixed(1)}`);
+  pts.push(`${widthPx.value.toFixed(1)},${valueY(coilIdx, levelAtX(coilIdx, widthPx.value)).toFixed(1)}`);
   return pts.join(' ');
 }
 const autoCurves = computed(() =>
@@ -254,19 +251,17 @@ function spansOf(rs: Rect[]): [number, number][] {
   }
   return out;
 }
-/** The staircase, drawn only over the given spans. */
+/** The level curve, drawn only over the given spans. */
 function rimPath(c: number, spans: [number, number][]): string {
-  const evs = eventsFor(c);
+  const samples = levelCurves.value[c] ?? [];
   let d = '';
   for (const [x0, x1] of spans) {
-    let v = 1;
-    let k = 0;
-    while (k < evs.length && timeX(evs[k].atMs) <= x0) v = evs[k++].value;
-    d += `M${x0.toFixed(1)},${valueY(c, v).toFixed(1)}`;
-    for (; k < evs.length && timeX(evs[k].atMs) < x1; k++) {
-      d += `H${timeX(evs[k].atMs).toFixed(1)}V${valueY(c, evs[k].value).toFixed(1)}`;
+    d += `M${x0.toFixed(1)},${valueY(c, levelAtX(c, x0)).toFixed(1)}`;
+    for (const [t, v] of samples) {
+      const x = timeX(t);
+      if (x > x0 && x < x1) d += `L${x.toFixed(1)},${valueY(c, v).toFixed(1)}`;
     }
-    d += `H${x1.toFixed(1)}`;
+    d += `L${x1.toFixed(1)},${valueY(c, levelAtX(c, x1)).toFixed(1)}`;
   }
   return d;
 }
@@ -290,86 +285,11 @@ const laneGroups = computed(() => {
   });
 });
 
-const handles = computed(() => {
-  if (!showLanes.value) return [];
-  const out: { i: number; cx: number; cy: number; color: string; pct: number }[] = [];
-  props.events.forEach((e, i) => {
-    if (e.param !== props.editParam || e.coilIndex < 0 || e.coilIndex >= props.coilCount) return;
-    out.push({ i, cx: timeX(e.atMs), cy: valueY(e.coilIndex, e.value), color: coilColor(e.coilIndex), pct: Math.round(e.value * 100) });
-  });
-  return out;
-});
-
-const noteOnsets = computed(() => {
-  const set = new Set<number>();
-  for (const n of props.analysis?.notes ?? []) set.add(Math.round(n.startMs));
-  return [...set].sort((a, b) => a - b);
-});
-function snapTime(ms: number): number {
-  let best = ms; let bestD = SNAP_MS;
-  for (const o of noteOnsets.value) { const d = Math.abs(o - ms); if (d < bestD) { bestD = d; best = o; } }
-  return best;
-}
-
-const svgEl = ref<SVGSVGElement | null>(null);
-const drag = ref<{ mode: 'pending' | 'handle'; index: number; x: number; y: number; moved: boolean } | null>(null);
-function svgPoint(e: PointerEvent): { x: number; y: number } {
-  const r = svgEl.value!.getBoundingClientRect();
-  return { x: e.clientX - r.left, y: e.clientY - r.top };
-}
-function addWin(): void {
-  window.addEventListener('pointermove', onPointerMove);
-  window.addEventListener('pointerup', onPointerUp);
-}
-function onSvgPointerDown(e: PointerEvent): void {
-  if (!props.editable || !showLanes.value || e.button !== 0) return;
-  const { x, y } = svgPoint(e);
-  const lane = laneOfY(y);
-  if (lane < 0 || lane >= props.coilCount) return;
-  drag.value = { mode: 'pending', index: lane, x, y, moved: false };
-  addWin();
-}
-function onHandlePointerDown(i: number, e: PointerEvent): void {
-  if (!props.editable || e.button !== 0) return;
-  const { x, y } = svgPoint(e);
-  drag.value = { mode: 'handle', index: i, x, y, moved: false };
-  addWin();
-}
-function onPointerMove(e: PointerEvent): void {
-  const d = drag.value;
-  if (!d) return;
-  const { x, y } = svgPoint(e);
-  if (Math.abs(x - d.x) > DRAG_SLOP || Math.abs(y - d.y) > DRAG_SLOP) d.moved = true;
-  if (d.mode === 'handle') {
-    const ev = props.events[d.index];
-    if (!ev) return;
-    const next = props.events.slice();
-    next[d.index] = { ...ev, atMs: snapTime(xToTime(x)), value: yToValue(ev.coilIndex, y) };
-    emit('update:events', next);
-  }
-}
-function onPointerUp(): void {
-  const d = drag.value;
-  drag.value = null;
-  window.removeEventListener('pointermove', onPointerMove);
-  window.removeEventListener('pointerup', onPointerUp);
-  if (d && d.mode === 'pending' && !d.moved) {
-    emit('update:events', [...props.events, {
-      coilIndex: d.index, param: props.editParam, atMs: snapTime(xToTime(d.x)), value: yToValue(d.index, d.y),
-    }]);
-  }
-}
-function removeEvent(i: number, e: Event): void {
-  e.preventDefault();
-  if (props.editable) emit('update:events', props.events.filter((_, k) => k !== i));
-}
-
 const playheadX = computed(() => (props.playheadMs / 1000) * PX_PER_SEC);
 const hasData = computed(() => (props.analysis?.notes.length ?? 0) > 0);
 const hasEvents = computed(() => props.events.length > 0);
-// In read-only playback the param tabs + automation curves are only meaningful
-// once events exist; without any, they're flat-line clutter, so hide them.
-const showAutomation = computed(() => props.editable || hasEvents.value);
+// without any automation the curves are flat-line clutter
+const showAutomation = computed(() => hasEvents.value);
 const showParam = computed(() => showLanes.value && props.coilCount > 0 && showAutomation.value);
 
 const scrollEl = ref<HTMLElement | null>(null);
@@ -415,8 +335,7 @@ watch(() => props.playheadMs, () => {
           </div>
 
           <div ref="scrollEl" class="preview__scroll">
-            <svg v-if="hasData" ref="svgEl" :width="widthPx" :height="heightPx" class="preview__svg"
-              :class="{ 'is-editable': editable && showLanes }" @pointerdown="onSvgPointerDown">
+            <svg v-if="hasData" :width="widthPx" :height="heightPx" class="preview__svg">
               <defs>
                 <pattern v-for="p in patterns" :id="p.id" :key="p.id" patternUnits="userSpaceOnUse"
                   :width="p.colors.length * 4" :height="p.colors.length * 4" patternTransform="rotate(45)">
@@ -445,7 +364,7 @@ watch(() => props.playheadMs, () => {
               <g opacity="0.32">
                 <g v-for="g in laneGroups" :key="`g${g.lane}`" :clip-path="g.clipId ? `url(#${g.clipId})` : undefined">
                   <rect v-for="(r, i) in g.rects" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" :fill="r.fill"
-                    rx="1.5" />
+                    :fill-opacity="r.alpha" rx="1.5" />
                 </g>
               </g>
               <template v-for="g in laneGroups" :key="`m${g.lane}`">
@@ -460,16 +379,6 @@ watch(() => props.playheadMs, () => {
                 <line :x1="0" :x2="widthPx" :y1="a.baseY" :y2="a.baseY" class="auto-base" :stroke="a.color" />
                 <polyline :points="a.points" class="auto-line" :stroke="a.color" />
               </g>
-              <g v-for="h in handles" :key="`h${h.i}`">
-                <text v-if="editable" :x="h.cx + 7" :y="h.cy - 5" class="auto-pct" :fill="h.color">{{ h.pct }}%</text>
-                <circle :cx="h.cx" :cy="h.cy" :r="editable ? 5 : 3" class="auto-handle"
-                  :class="{ 'is-editable': editable }" :fill="h.color"
-                  @pointerdown.stop="onHandlePointerDown(h.i, $event)" @contextmenu="removeEvent(h.i, $event)" />
-              </g>
-
-              <!-- combined editor: only the coil lanes are editable, so the score area keeps the default cursor -->
-              <rect v-if="editable && view === 'combined'" :x="0" :y="0" :width="widthPx" :height="lanesTopY"
-                class="preview__noedit" />
 
               <line v-if="playing || paused" class="preview__playhead" :x1="playheadX" :x2="playheadX" :y1="0"
                 :y2="heightPx" />
@@ -479,7 +388,6 @@ watch(() => props.playheadMs, () => {
         </div>
       </div>
     </div>
-    <p v-if="editable && hasData && showLanes" class="preview__hint">{{ $t('label.addEvent') }}</p>
   </div>
 </template>
 
@@ -539,16 +447,6 @@ watch(() => props.playheadMs, () => {
 
 .preview__svg {
   display: block;
-}
-
-.preview__svg.is-editable {
-  cursor: crosshair;
-}
-
-.preview__noedit {
-  fill: transparent;
-  pointer-events: all;
-  cursor: default;
 }
 
 .preview__inner {
@@ -686,13 +584,6 @@ watch(() => props.playheadMs, () => {
   font-size: var(--fs-md);
 }
 
-.preview__hint {
-  margin: 0;
-  font-family: var(--font-body);
-  font-size: 0.68rem;
-  color: var(--text-mute);
-}
-
 .auto-base {
   stroke-width: 1;
   stroke-dasharray: 3 4;
@@ -711,22 +602,4 @@ watch(() => props.playheadMs, () => {
   stroke-width: 2;
 }
 
-.auto-pct {
-  font-family: var(--font-mono);
-  font-size: 9px;
-  opacity: 0.9;
-}
-
-.auto-handle {
-  stroke: #06090f;
-  stroke-width: 1.5;
-}
-
-.auto-handle.is-editable {
-  cursor: grab;
-}
-
-.auto-handle.is-editable:hover {
-  stroke: #fff;
-}
 </style>

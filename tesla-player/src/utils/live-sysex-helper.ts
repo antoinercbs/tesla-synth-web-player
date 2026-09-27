@@ -1,15 +1,10 @@
 /**
- * Live SysEx helpers used by the player while a song is playing.
- *
- * Everything is expressed against the structured per-coil model (CoilConfig[]):
- * compilation happens in the browser via src/sysex/syntherrupter.ts. There is
- * deliberately NO code that reads the legacy pre-compiled `song.sysex` array —
- * the database is migrated to the per-coil model (jalon 2) rather than kept
- * backward-compatible.
+ * Sending a compiled SysEx frame to a Web MIDI output. Frames are compiled in the
+ * browser from the per-coil model (src/sysex/syntherrupter.ts); there is
+ * deliberately NO code reading the legacy pre-compiled `song.sysex` array.
  */
 
-import { encodeOntime, encodeDuty, hexToBytes } from '@/sysex/syntherrupter';
-import type { CoilConfig } from '@/types/domain';
+import { hexToBytes } from '@/sysex/syntherrupter';
 
 /** Minimal contract we need from a Web MIDI output (webmidi.js `Output`). */
 export interface SysexOutput {
@@ -26,24 +21,3 @@ export function sendSysex(midiOutput: SysexOutput, payload: string | number[]): 
   midiOutput.sendSysex(bytes.slice(1, 4), bytes.slice(4, 15));
 }
 
-/** Re-send each coil's ontime scaled by `ratioPercent` (0..200), live. */
-export function sendLiveOntimeAdjust(
-  coils: CoilConfig[],
-  ratioPercent: number,
-  midiOutput: SysexOutput,
-): void {
-  for (const coil of coils) {
-    sendSysex(midiOutput, encodeOntime(coil.coilIndex, Math.round((coil.ontimeUs * ratioPercent) / 100)));
-  }
-}
-
-/** Re-send each coil's duty scaled by `ratioPercent` (0..200), live. */
-export function sendLiveDutyAdjust(
-  coils: CoilConfig[],
-  ratioPercent: number,
-  midiOutput: SysexOutput,
-): void {
-  for (const coil of coils) {
-    sendSysex(midiOutput, encodeDuty(coil.coilIndex, (coil.duty * ratioPercent) / 100));
-  }
-}

@@ -16,7 +16,10 @@ interface ParsedEvent {
   noteNumber?: number;
   velocity?: number;
   programNumber?: number;
+  controllerType?: number;
+  value?: number;
   microsecondsPerBeat?: number;
+  numerator?: number;
 }
 interface ParsedMidi {
   header?: { ticksPerBeat?: number };
@@ -41,6 +44,12 @@ export interface MidiAnalysis {
   programByChannel: Record<number, number>;
   /** every program the file selects, mid-song changes included, ascending */
   programs: number[];
+  /** the file's pan changes (CC10, 0..127), in time order */
+  panEvents: { channel: number; atMs: number; value: number }[];
+  /** time of every beat up to the end, following the tempo changes */
+  beats: number[];
+  /** beats in a bar (the first time signature; 4 without one) */
+  beatsPerBar: number;
   /** lowest / highest note number across all notes (0..127) */
   pitchRange: { min: number; max: number };
 }
@@ -105,6 +114,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
   const active = new Map<string, { tick: number; velocity: number }>(); // "ch:note" -> start
   const programByChannel: Record<number, number> = {};
   const programs = new Set<number>();
+  const panEvents: MidiAnalysis["panEvents"] = [];
   let maxTick = 0;
 
   for (const e of all) {
@@ -132,6 +142,8 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
       programs.add(e.programNumber);
       if (!(e.channel in programByChannel))
         programByChannel[e.channel] = e.programNumber;
+    } else if (e.subtype === "controller" && e.controllerType === 10 && e.value != null) {
+      panEvents.push({ channel: e.channel, atMs: t2ms(e.tick), value: e.value });
     }
   }
   // close any notes left hanging at the end of the file
@@ -156,12 +168,23 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
     ? notes.reduce((m, n) => Math.max(m, n.endMs), 0)
     : t2ms(maxTick);
 
+  const beats: number[] = [];
+  for (let tick = 0; beats.length < 20000; tick += ticksPerBeat) {
+    const ms = t2ms(tick);
+    if (ms > durationMs) break;
+    beats.push(ms);
+  }
+  const signature = all.find((e) => e.subtype === "timeSignature" && (e.numerator ?? 0) > 0);
+
   return {
     durationMs,
     notes,
     channels,
     programByChannel,
     programs: [...programs].sort((a, b) => a - b),
+    panEvents,
+    beats,
+    beatsPerBar: signature?.numerator ?? 4,
     pitchRange: {
       min: pitches.length ? Math.min(...pitches) : 0,
       max: pitches.length ? Math.max(...pitches) : 127,

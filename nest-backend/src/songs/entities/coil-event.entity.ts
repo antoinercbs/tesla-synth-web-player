@@ -7,11 +7,14 @@ import {
 } from 'typeorm';
 import { Song } from './song.entity';
 
-export type CoilEventParam = 'ontime' | 'duty';
+export type CoilEventParam = 'ontime' | 'duty' | 'power';
+
+/** coilIndex of the song-wide power points (param 'power'): they scale every coil. */
+export const SONG_WIDE = -1;
 
 /**
- * A mid-song parameter change scheduled at a point in time. The authoring UI
- * lands in a later milestone; the table ships now so the model is stable.
+ * A point of a song's power automation: a coil's ontime or duty, or (coilIndex
+ * -1, param 'power') the whole song's power, which multiplies them.
  */
 @Entity({ name: 'CoilEvent' })
 export class CoilEvent {
@@ -28,9 +31,13 @@ export class CoilEvent {
   @Column({ name: 'param', type: 'text' })
   param!: CoilEventParam;
 
-  /** Ontime µs when param='ontime', duty fraction when param='duty'. */
+  /** A ratio of the coil's configured value (1 = 100%). */
   @Column({ name: 'value', type: 'real' })
   value!: number;
+
+  /** Reached by a linear ramp from the previous point of its curve; else a step. */
+  @Column({ name: 'ramp', type: 'boolean', nullable: true })
+  ramp!: boolean | null;
 
   @ManyToOne(() => Song, (song) => song.events, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'song_id' })

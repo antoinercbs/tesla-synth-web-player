@@ -100,9 +100,13 @@ export function buildDemoLibrary(lang: string): DemoLibrary {
     {
       id: DEMO_SONG_ID, name: 'Korobeiniki (Tetris)', midiFile: file('korobeiniki'), coilCount: 3, mode: 'midi',
       output2Mask: 1 << 9, coils: [coil(0, 0b001, 45, 0.05), coil(1, 0b010, 35, 0.05), coil(2, 0b100, 60, 0.06)],
-      // a few settings changes for the timeline steps, early enough to be on screen
-      // (value = ratio of the coil's own setting, held until the next point)
+      // power changes for the automation and timeline steps, early enough to be on screen:
+      // the song's curve (a rise, then a step) and a few per-coil ones on top of it
+      // (value = ratio of the setting, held until the next point unless reached by a ramp)
       events: [
+        { coilIndex: -1, param: 'power', atMs: 0, value: 0.6 },
+        { coilIndex: -1, param: 'power', atMs: 4000, value: 1, ramp: true },
+        { coilIndex: -1, param: 'power', atMs: 9000, value: 1.25 },
         { coilIndex: 0, param: 'ontime', atMs: 3000, value: 1.6 },
         { coilIndex: 0, param: 'ontime', atMs: 7000, value: 1 },
         { coilIndex: 1, param: 'ontime', atMs: 5000, value: 0.7 },

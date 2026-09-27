@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS Song (
 	updatedAt		INTEGER,
 	contentHash		TEXT,
 	editorName		TEXT,
+	stereo			TEXT,
 	FOREIGN KEY (midiFile_id) REFERENCES MidiFile(id) ON DELETE SET NULL
 );
 
@@ -76,6 +77,7 @@ CREATE TABLE IF NOT EXISTS CoilEvent (
 	atMs			INTEGER NOT NULL,
 	param			TEXT NOT NULL,
 	value			REAL NOT NULL,
+	ramp			INTEGER,
 	FOREIGN KEY (song_id) REFERENCES Song(id) ON DELETE CASCADE
 );
 

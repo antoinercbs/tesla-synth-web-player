@@ -23,6 +23,7 @@ import { Playlist } from '../playlists/entities/playlist.entity';
 import { Coil } from '../songs/entities/coil.entity';
 import { CoilEvent } from '../songs/entities/coil-event.entity';
 import { Song } from '../songs/entities/song.entity';
+import { sanitizeStereo } from '../songs/stereo';
 import { hashBytes, hashEnvelope, hashPlaylist, hashSong } from './content-hash';
 import {
   ApplyRequestDto,
@@ -199,6 +200,7 @@ export class SyncService {
       output2Mask: song.output2Mask,
       midiFileUuid: song.midiFile?.uuid ?? null,
       editorName: song.editorName ?? null,
+      stereo: song.stereo ? { ...song.stereo } : null,
       coils: [...(song.coils ?? [])]
         .sort((a, b) => a.coilIndex - b.coilIndex)
         .map((c) => ({
@@ -212,6 +214,7 @@ export class SyncService {
         atMs: e.atMs,
         param: e.param,
         value: e.value,
+        ...(e.ramp ? { ramp: true } : {}),
       })),
     };
   }
@@ -449,6 +452,7 @@ export class SyncService {
     // Preserve authorship from the payload (historical metadata) — NOT the
     // syncing user's token.
     song.editorName = payload.editorName ?? null;
+    song.stereo = sanitizeStereo(payload.stereo);
 
     // De-dupe coils by index (keep last) to honor UNIQUE(song_id, coilIndex).
     const coilByIndex = new Map<number, Coil>();
@@ -468,6 +472,7 @@ export class SyncService {
       event.atMs = e.atMs;
       event.param = e.param;
       event.value = e.value;
+      event.ramp = e.ramp ? true : null;
       return event;
     });
 
@@ -481,6 +486,7 @@ export class SyncService {
       midiFileUuid: effectiveMidiUuid,
       coils: song.coils,
       events: song.events,
+      stereo: song.stereo,
       editorName: song.editorName,
     });
 
