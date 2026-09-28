@@ -32,6 +32,12 @@ import '@fontsource/fredoka/600.css'
 import '@fontsource/mountains-of-christmas/700.css'
 import '@fontsource/permanent-marker/400.css'
 import '@fontsource/patrick-hand/400.css'
+import '@fontsource/fira-sans-condensed/300.css'
+import '@fontsource/fira-sans-condensed/300-italic.css'
+import '@fontsource/fira-sans-condensed/400.css'
+import '@fontsource/fira-sans-condensed/500.css'
+import '@fontsource/fira-sans-condensed/700.css'
+import '@fontsource/fira-sans-condensed/800.css'
 import '@/assets/main.scss'
 // CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
 // of <i> elements fights Vue's reactive re-renders and makes icons disappear.

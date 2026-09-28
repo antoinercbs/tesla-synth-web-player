@@ -187,12 +187,14 @@ $cork-circled: 255px 15px 225px 15px / 15px 225px 15px 255px;
     }
 
     // --- sticky-note buttons, lifting under the pointer ------------------------------------------------
-    .btn:hover:not(:disabled),
-    .icon-btn:hover:not(:disabled),
-    #{$push-buttons}:hover:not(:disabled) {
-        filter: none;
-        transform: translateY(-1px) rotate(-1.5deg);
-        box-shadow: 2px 4px 6px rgb(0 0 0 / 0.3);
+    .btn,
+    .icon-btn,
+    #{$push-buttons} {
+        &:hover:not(:disabled) {
+            filter: none;
+            transform: translateY(-1px) rotate(-1.5deg);
+            box-shadow: 2px 4px 6px rgb(0 0 0 / 0.3);
+        }
     }
 
     .btn--ghost:not(:hover),

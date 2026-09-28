@@ -420,6 +420,9 @@ export default {
     natural: "Natural cork",
     darkcork: "Dark cork",
     felt: "Blue felt",
+    bluepaper: "Admin blue",
+    salmon: "Salmon",
+    carbon: "Carbon copy",
   },
   skin: {
     title: "Look",
@@ -437,6 +440,7 @@ export default {
     noel: "Christmas",
     pcb: "Circuit board",
     cork: "Cork board",
+    taxform: "Tax return",
   },
   welcome: {
     title: "Welcome to Tesla Player",

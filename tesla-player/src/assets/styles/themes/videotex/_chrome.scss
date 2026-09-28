@@ -259,10 +259,12 @@
         border-color: var(--danger);
     }
 
-    .icon-btn:hover:not(:disabled),
-    .field-btn:hover:not(:disabled),
-    #{$flat-buttons}:hover:not(:disabled) {
-        @include inverse;
+    .icon-btn,
+    .field-btn,
+    #{$flat-buttons} {
+        &:hover:not(:disabled) {
+            @include inverse;
+        }
     }
 
     #{$push-buttons} {

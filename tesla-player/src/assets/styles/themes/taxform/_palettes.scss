@@ -1,0 +1,168 @@
+@use "sass:map";
+
+// ===========================================================================
+//  TAX FORM LOOK: its papers
+// ===========================================================================
+// A parody of an administrative form, no real one: the tinted sheet and the one ink
+// it is printed in, the darker tint of its question blocks, the white of its boxes,
+// the pale ink of its big number, the pen it is filled in with, the red of the stamp.
+// Each palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// taxform/_chrome.scss and the $taxform map read (--tax-ink, --tax-block…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec
+// checks both).
+
+// a box to tick, the same box ticked by hand, in a sheet's ink and its pen
+@function -tax-box($ink, $pen: null) {
+    $cross: "";
+    @if $pen {
+        $cross: '<path d="M2.6 3.2C6 6.4 9.4 9.8 12.6 13.1M12.2 2.4C9 6.2 6.1 9.6 2.3 12.9" fill="none" stroke="#{$pen}" stroke-width="1.7" stroke-linecap="round"/>';
+    }
+    @return svg-url('<rect x="0.5" y="0.5" width="14" height="14" fill="#fff" stroke="#{$ink}"/>#{$cross}', 15, 15);
+}
+
+// the machine-read code in the page's corner: a made-up pattern, its two solid
+// edges and its two dotted ones where a real one has them
+@function -tax-matrix($ink) {
+    $body: '<path fill="#{$ink}" d="M0 0h1v1h-1zM2 0h1v1h-1zM4 0h1v1h-1zM6 0h1v1h-1zM8 0h1v1h-1zM10 0h1v1h-1zM12 0h1v1h-1zM14 0h1v1h-1zM0 1h2v1h-2zM6 1h4v1h-4zM11 1h2v1h-2zM15 1h1v1h-1zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h2v1h-2zM8 2h1v1h-1zM11 2h4v1h-4zM0 3h2v1h-2zM5 3h1v1h-1zM7 3h1v1h-1zM10 3h2v1h-2zM15 3h1v1h-1zM0 4h3v1h-3zM4 4h1v1h-1zM11 4h2v1h-2zM14 4h1v1h-1zM0 5h2v1h-2zM3 5h1v1h-1zM8 5h1v1h-1zM12 5h2v1h-2zM15 5h1v1h-1zM0 6h1v1h-1zM2 6h2v1h-2zM8 6h2v1h-2zM11 6h1v1h-1zM14 6h1v1h-1zM0 7h3v1h-3zM5 7h2v1h-2zM13 7h1v1h-1zM15 7h1v1h-1zM0 8h1v1h-1zM3 8h1v1h-1zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h6v1h-6zM0 9h2v1h-2zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h3v1h-3zM11 9h1v1h-1zM13 9h1v1h-1zM15 9h1v1h-1zM0 10h1v1h-1zM7 10h4v1h-4zM12 10h2v1h-2zM0 11h2v1h-2zM3 11h2v1h-2zM10 11h6v1h-6zM0 12h2v1h-2zM3 12h3v1h-3zM7 12h4v1h-4zM13 12h1v1h-1zM0 13h1v1h-1zM2 13h2v1h-2zM6 13h1v1h-1zM9 13h1v1h-1zM12 13h2v1h-2zM15 13h1v1h-1zM0 14h1v1h-1zM2 14h5v1h-5zM8 14h1v1h-1zM11 14h2v1h-2zM0 15h16v1h-16z"/>';
+    @return svg-url('<g shape-rendering="crispEdges">#{$body}</g>', 16, 16);
+}
+
+@function -tax-sheet($ink, $pen) {
+    @return (
+        tax-ink: $ink,
+        tax-pen: $pen,
+        tax-box: -tax-box($ink),
+        tax-ticked: -tax-box($ink, $pen),
+        tax-matrix: -tax-matrix($ink),
+    );
+}
+
+$tax-shared: (
+    hi-rgb: "0 0 0",
+    ink: #ffffff,
+    on-grad: #ffffff,
+    bg-2: #ffffff,
+    text-bright: #000000,
+    danger: #c1121f,
+    danger-rgb: "193 18 31",
+    danger-text: #a4161a,
+    danger-text-hover: #6a040f,
+    ok: #2d6a4f,
+    ok-rgb: "45 106 79",
+    amber: #b7791f,
+    amber-rgb: "183 121 31",
+    caution: #b7791f,
+    caution-rgb: "183 121 31",
+    caution-text: #6b4a00,
+    warn: #a85a00,
+    conflict: #a85a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #c1121f,
+    coil-1: #b98a00,
+    coil-2: #2d6a4f,
+    coil-3: #1d4ed8,
+    coil-4: #7d3cc9,
+    coil-5: #d9661a,
+    plasma: #7d3cc9,
+    knob: #ffffff,
+    tax-stamp: #c1121f,
+    tax-smudge: none,
+);
+
+// the order is the picker's, the first the look's default
+$taxform-palettes: (
+    // the lavender sheet, printed in a mid blue, filled in with a black pen
+    bluepaper: map.merge(
+        -tax-sheet(#1f5fb5, #23232f),
+        (
+            bg: #e3e8f6,
+            panel: #e3e8f6,
+            panel-2: #d6def3,
+            bg-rgb: "227 232 246",
+            line-rgb: "31 95 181",
+            text: #1f5fb5,
+            text-rgb: "31 95 181",
+            text-dim: #3f74c2,
+            text-mute: #7f9bd3,
+            text-strong: #154a95,
+            volt: #1f5fb5,
+            volt-rgb: "31 95 181",
+            grad: linear-gradient(#1f5fb5, #1f5fb5),
+            arc-core: #1f5fb5,
+            arc-mid: #1f5fb5,
+            arc-deep: #1f5fb5,
+            arc-glow-rgb: "31 95 181",
+            tax-block: #bdcaeb,
+            tax-numeral: #6f8fd4,
+            tax-hatch: "repeating-linear-gradient(-45deg, rgb(31 95 181 / 0.2) 0 1px, transparent 1px 6px)",
+            swatch: "linear-gradient(#e3e8f6 0 50%, #1f5fb5 50%)",
+        )
+    ),
+    // the rose sheet of the supplementary forms, printed in a crimson
+    "salmon": map.merge(
+        -tax-sheet(#b3263a, #23232f),
+        (
+            bg: #f7e3e1,
+            panel: #f7e3e1,
+            panel-2: #f1d4d1,
+            bg-rgb: "247 227 225",
+            line-rgb: "179 38 58",
+            text: #b3263a,
+            text-rgb: "179 38 58",
+            text-dim: #c24a5a,
+            text-mute: #d68590,
+            text-strong: #8e1b2c,
+            volt: #b3263a,
+            volt-rgb: "179 38 58",
+            grad: linear-gradient(#b3263a, #b3263a),
+            arc-core: #b3263a,
+            arc-mid: #b3263a,
+            arc-deep: #b3263a,
+            arc-glow-rgb: "179 38 58",
+            tax-block: #ecbfbb,
+            tax-numeral: #e0848f,
+            tax-hatch: "repeating-linear-gradient(-45deg, rgb(179 38 58 / 0.2) 0 1px, transparent 1px 6px)",
+            swatch: "linear-gradient(#f7e3e1 0 50%, #b3263a 50%)",
+        )
+    ),
+    // the copy under the carbon paper: a thin yellowish sheet, everything in the
+    // violet the carbon leaves, which bleeds
+    carbon: map.merge(
+        -tax-sheet(#3b3ba8, #3b3ba8),
+        (
+            bg: #f3edd3,
+            panel: #f3edd3,
+            panel-2: #ebe3c2,
+            bg-rgb: "243 237 211",
+            line-rgb: "59 59 168",
+            text: #3b3ba8,
+            text-rgb: "59 59 168",
+            text-dim: #5656b8,
+            text-mute: #8a8ac8,
+            text-strong: #25257a,
+            volt: #3b3ba8,
+            volt-rgb: "59 59 168",
+            grad: linear-gradient(#3b3ba8, #3b3ba8),
+            arc-core: #3b3ba8,
+            arc-mid: #3b3ba8,
+            arc-deep: #3b3ba8,
+            arc-glow-rgb: "59 59 168",
+            tax-block: #e2d8ae,
+            tax-numeral: #8a8ad0,
+            tax-smudge: "0 0 1px rgb(59 59 168 / 0.7)",
+            tax-hatch: "repeating-linear-gradient(-45deg, rgb(59 59 168 / 0.2) 0 1px, transparent 1px 6px)",
+            swatch: "linear-gradient(#f3edd3 0 50%, #3b3ba8 50%)",
+        )
+    ),
+);
+
+@each $id, $p in $taxform-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($tax-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

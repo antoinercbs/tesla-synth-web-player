@@ -26,6 +26,7 @@ export const THEMES = {
   noel: ['fir', 'snow', 'gingerbread'],
   pcb: ['greenmask', 'purplemask', 'blackmask'],
   cork: ['natural', 'darkcork', 'felt'],
+  taxform: ['bluepaper', 'salmon', 'carbon'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

@@ -26,6 +26,7 @@
 @import "noel/palettes";
 @import "pcb/palettes";
 @import "cork/palettes";
+@import "taxform/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -40,6 +41,7 @@
 @import "noel/skin";
 @import "pcb/skin";
 @import "cork/skin";
+@import "taxform/skin";
 
 $default-skin: lab;
 
@@ -58,6 +60,7 @@ $skins: (
     noel: $noel,
     pcb: $pcb,
     cork: $cork,
+    taxform: $taxform,
 );
 
 @mixin -skin($s) {

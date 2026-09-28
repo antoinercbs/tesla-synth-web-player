@@ -236,11 +236,13 @@
     }
 
     // --- buttons: tickets that wobble under the pointer ---------------------------------------------
-    .btn:hover:not(:disabled),
-    .icon-btn:hover:not(:disabled),
-    #{$push-buttons}:hover:not(:disabled) {
-        filter: none;
-        animation: circus-wobble 0.5s ease-in-out;
+    .btn,
+    .icon-btn,
+    #{$push-buttons} {
+        &:hover:not(:disabled) {
+            filter: none;
+            animation: circus-wobble 0.5s ease-in-out;
+        }
     }
 
     .btn:active:not(:disabled),
@@ -487,11 +489,19 @@
 
 // the show holds still for who asks
 @media (prefers-reduced-motion: reduce) {
-    [data-skin="circus"] #{$panels},
-    [data-skin="circus"] .brand::after,
-    [data-skin="circus"] .player-progress__fill,
-    [data-skin="circus"] .btn:hover,
-    [data-skin="circus"] .icon-btn:hover {
-        animation: none;
+    [data-skin="circus"] {
+        #{$panels},
+        .brand::after,
+        .player-progress__fill {
+            animation: none;
+        }
+
+        .btn,
+        .icon-btn,
+        #{$push-buttons} {
+            &:hover {
+                animation: none;
+            }
+        }
     }
 }

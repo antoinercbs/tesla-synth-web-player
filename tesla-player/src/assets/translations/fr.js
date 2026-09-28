@@ -423,6 +423,9 @@ export default {
     natural: "Liège naturel",
     darkcork: "Liège foncé",
     felt: "Feutrine bleue",
+    bluepaper: "Bleu administratif",
+    salmon: "Rose saumon",
+    carbon: "Papier carbone",
   },
   skin: {
     title: "Apparence",
@@ -440,6 +443,7 @@ export default {
     noel: "Noël",
     pcb: "Circuit imprimé",
     cork: "Tableau de liège",
+    taxform: "Déclaration d'impôts",
   },
   welcome: {
     title: "Bienvenue sur Tesla Player",

@@ -1,0 +1,675 @@
+// ===========================================================================
+//  TAX FORM LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $taxform map (taxform/_skin.scss), its colours the
+// sheet picked among taxform/_palettes.scss. Here, the form: a big pale number and a
+// light title in capitals, the (made-up) directorate beside it; each panel a
+// numbered section under a ruled head, the cards its darker question blocks; a
+// dotted leader and a box code after each field's label, white boxes open at the
+// top, combs for the figures; boxes ticked by hand (the menu's rows, a value's
+// choices, a switch, each with its code or COCHEZ); the sidebar's frame reserved
+// for the administration and the machine-read code; NÉANT for an empty panel, a
+// signature line in a dialog, a toast as a stamp. The words it adds are the
+// form's, in French in every language. Every rule sits under [data-skin="taxform"];
+// the pages' controls are named by family (../_families.scss).
+
+// the cards: the form's darker blocks, white boxes inside
+$tax-blocks: ".coil-card, .me-card, .env-card, .env-lib__group, .sy-card, .cam-card, .sg-block";
+
+// the words of the form: heavy small capitals
+@mixin caps($size: var(--fs-xs)) {
+    font-family: var(--font-display);
+    font-size: $size;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+@mixin ruled {
+    border-bottom: 1.5px solid var(--tax-ink);
+}
+
+@mixin stamp {
+    color: var(--tax-stamp);
+    border: 2px solid var(--tax-stamp);
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+// a box to tick, drawn after what it answers
+@mixin box($size: 0.95em) {
+    content: "";
+    display: inline-block;
+    flex: 0 0 auto;
+    width: $size;
+    height: $size;
+    background: var(--tax-box) center / contain no-repeat;
+}
+
+[data-skin="taxform"] {
+    body {
+        text-shadow: var(--tax-smudge);
+    }
+
+    ::selection {
+        background: var(--tax-block);
+        color: var(--tax-pen);
+    }
+
+    // each page restarts its sections and its boxes, as does each sheet outside one
+    .screen,
+    .sidebar,
+    .modal-card {
+        counter-reset: tax-section tax-box;
+    }
+
+    // --- the page's head: the big number, the light title, the directorate ---------------------------------------
+    .view-head__title {
+        color: var(--tax-ink);
+        font-weight: 300;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
+
+    .view-head__title::before {
+        content: "42";
+        margin-right: 0.08em;
+        color: var(--tax-numeral);
+        font-size: 1.9em;
+        font-weight: 800;
+        letter-spacing: -0.06em;
+        line-height: 0.72;
+    }
+
+    .view-head__title::after {
+        @include caps(0.34em);
+
+        content: "Direction g\E9 n\E9 rale\A des hautes tensions";
+        margin-left: 0.4em;
+        line-height: 1.45;
+        white-space: pre;
+    }
+
+    .edit-chooser .view-head__title::before,
+    .edit-chooser .view-head__title::after {
+        display: none;
+    }
+
+    .brand__app {
+        @include caps(var(--fs-md));
+
+        color: var(--tax-ink);
+    }
+
+    // the club's wordmark is drawn black: on the sheet it stays so
+    .brand__label {
+        filter: none;
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        box-shadow: 0 1.5px 0 var(--tax-ink);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 1.5px solid var(--tax-ink);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- sections: printed on the sheet itself, numbered under a ruled head --------------------------------------
+    #{$panels} {
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    #{$tax-blocks} {
+        border: 0;
+        background: var(--tax-block);
+    }
+
+    #{$panel-heads},
+    .editor-section__title {
+        @include caps(var(--fs-md));
+        @include ruled;
+
+        background: none;
+        color: var(--tax-ink);
+
+        &::before {
+            counter-increment: tax-section;
+            content: counter(tax-section) "\A0 I";
+            margin-right: 0.45em;
+            font-weight: 800;
+        }
+    }
+
+    .player-panel__title {
+        font-weight: 800;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .coil-card__title,
+    .sidebar-section__title {
+        @include caps;
+
+        color: var(--tax-ink);
+    }
+
+    .sidebar-section__title {
+        @include ruled;
+
+        padding-bottom: 0.15rem;
+    }
+
+    .player-hint {
+        background: var(--tax-block);
+        color: var(--tax-ink);
+        font-weight: 500;
+    }
+
+    .player-hint::after {
+        content: "\A0\25B8";
+    }
+
+    .editor-tags__empty,
+    .sidebar-hint {
+        font-style: italic;
+        font-weight: 300;
+    }
+
+    // --- a field: a dotted leader and its box code after its label, a white box open at the top --------------------
+    .field-label {
+        display: flex;
+        align-items: baseline;
+        color: var(--tax-ink);
+        font-weight: 400;
+
+        &::before {
+            content: "";
+            order: 1;
+            flex: 1 1 auto;
+            min-width: 1.5em;
+            margin: 0 0.35em;
+            border-bottom: 1.5px dotted var(--text-mute);
+        }
+
+        &::after {
+            counter-increment: tax-box;
+            content: counter(tax-section) "A" counter(tax-box, upper-alpha);
+            order: 2;
+            font-weight: 800;
+        }
+    }
+
+    .text-field,
+    .select-field select,
+    .combo,
+    #{$number-boxes} {
+        border-top-color: transparent;
+        border-radius: 0;
+    }
+
+    .text-field::placeholder,
+    .combo__input::placeholder {
+        color: var(--text-mute);
+        font-family: var(--font-body);
+        font-size: var(--fs-sm);
+        font-style: italic;
+        font-weight: 300;
+    }
+
+    .combo__input,
+    .readout__field input {
+        font-family: var(--field-font);
+        color: var(--tax-pen);
+    }
+
+    // figures go one per cell of a comb, its teeth rising from the box's bottom: a
+    // cell is a figure's width (1ch) and the spacing after it, half of which leads it
+    .readout__field input {
+        --tax-cell: calc(1ch + 0.6em);
+
+        padding-left: 0.3em;
+        background: repeating-linear-gradient(90deg, transparent 0 calc(var(--tax-cell) - 1px), var(--tax-ink) calc(var(--tax-cell) - 1px) var(--tax-cell)) left bottom / 100% 35% no-repeat;
+        font-size: 1.05rem;
+        letter-spacing: 0.6em;
+    }
+
+    .empty-stub::after {
+        @include stamp;
+
+        content: "N\C9 ANT";
+        padding: 0.2rem 0.8rem;
+        transform: rotate(-6deg);
+    }
+
+    // --- boxes to tick: a value's choices, a switch --------------------------------------------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        gap: 0.2rem 1rem;
+
+        button {
+            border: 0;
+            background: none;
+            box-shadow: none;
+            color: var(--tax-ink);
+
+            &::after {
+                @include box;
+
+                margin-left: 0.4em;
+            }
+        }
+
+        button.is-active,
+        button.is-on {
+            background: none;
+            color: var(--text-strong);
+            font-weight: 700;
+
+            &::after {
+                background-image: var(--tax-ticked);
+            }
+        }
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // tabs: the columns' small capitals, the one open underlined
+    .segmented--tabs button {
+        @include caps;
+
+        color: var(--text-dim);
+    }
+
+    .segmented--tabs button.is-active {
+        color: var(--text-strong);
+        font-weight: 800;
+        box-shadow: inset 0 -2px 0 var(--tax-ink);
+    }
+
+    .switch__track,
+    .switch input:checked + .switch__track {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35em;
+        width: auto;
+        height: auto;
+        border: 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .switch__track::before {
+        @include caps(0.6rem);
+
+        content: "cochez";
+        color: var(--tax-ink);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        @include box(1rem);
+
+        position: static;
+        border-radius: 0;
+        transform: none;
+    }
+
+    .switch input:checked + .switch__track::after {
+        background-image: var(--tax-ticked);
+    }
+
+    // --- the menu: the form's rows, each its dotted leader, its code, its box -------------------------------------------
+    .nav {
+        counter-reset: tax-nav;
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+        color: var(--tax-ink);
+        font-family: var(--font-body);
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        background: var(--tax-block);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active {
+        background: none;
+        color: var(--text-strong);
+        font-weight: 700;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    @media (min-width: 1001px) {
+        .sidebar:not(.sidebar--compact) {
+            .nav-item {
+                gap: 0;
+            }
+
+            .nav-item .icon {
+                display: none;
+            }
+
+            .nav-item__lock {
+                margin: 0 0 0 0.4em;
+            }
+
+            .nav-item::before,
+            .nav-item.router-link-active::before {
+                content: "";
+                position: static;
+                display: block;
+                order: 1;
+                flex: 1 1 auto;
+                width: auto;
+                height: 0.7em;
+                margin: 0 0.35em;
+                border-bottom: 1.5px dotted var(--text-mute);
+                background: none;
+                -webkit-mask: none;
+                mask: none;
+            }
+
+            .nav-item::after {
+                counter-increment: tax-nav;
+                content: "0N" counter(tax-nav, upper-alpha);
+                order: 2;
+                padding-right: 1.45em;
+                background: var(--tax-box) right center / 1em 1em no-repeat;
+                font-size: var(--fs-sm);
+                font-weight: 800;
+            }
+
+            .nav-item.router-link-active::after {
+                background-image: var(--tax-ticked);
+            }
+        }
+    }
+
+    // --- the sidebar: its label → control rows led by dots, the administration's frame, the code ------------------------
+    .sidebar {
+        border-right: 1.5px solid var(--tax-ink);
+    }
+
+    .sidebar-row__label {
+        display: flex;
+        flex: 1 1 auto;
+        align-items: baseline;
+
+        &::after {
+            content: "";
+            flex: 1 1 auto;
+            min-width: 1em;
+            margin: 0 0.1em 0 0.35em;
+            border-bottom: 1.5px dotted var(--text-mute);
+        }
+    }
+
+    .sidebar__spacer {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 0.45rem;
+        min-height: 0;
+        overflow: hidden;
+        padding: 0 0.75rem 0.8rem;
+    }
+
+    .sidebar__spacer::before {
+        @include caps(0.62rem);
+
+        content: "Cadre r\E9 serv\E9  \E0  l'administration";
+        padding: 1.3rem 0.4rem;
+        border: 1px solid var(--tax-ink);
+        background: var(--tax-hatch), #fff;
+        color: var(--tax-ink);
+        text-align: center;
+    }
+
+    .sidebar__spacer::after {
+        content: "N\B0  3615*42";
+        min-height: 42px;
+        padding-right: 50px;
+        background: var(--tax-matrix) right bottom / 42px 42px no-repeat;
+        color: var(--text-mute);
+        font-size: 0.6rem;
+        line-height: 1.35;
+        white-space: pre;
+        display: flex;
+        align-items: flex-end;
+    }
+
+    .sidebar--compact .sidebar__spacer::before,
+    .sidebar--compact .sidebar__spacer::after {
+        display: none;
+    }
+
+    // --- buttons: printed boxes in the form's capitals; the main one in its ink ----------------------------------------
+    .btn {
+        @include caps(var(--fs-sm));
+    }
+
+    .btn:hover:not(:disabled) {
+        filter: none;
+        background: var(--tax-block);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        background: var(--text-strong);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+    }
+
+    .icon-btn:hover:not(:disabled) {
+        background: var(--tax-block);
+    }
+
+    #{$push-buttons} {
+        background: #fff;
+        border: 1px solid var(--tax-ink);
+        border-radius: 0;
+        color: var(--tax-ink);
+
+        &:hover:not(:disabled) {
+            background: var(--tax-block);
+        }
+    }
+
+    #{$pushed-on} {
+        background: var(--tax-ink);
+        color: #fff;
+    }
+
+    .chan-cell {
+        background: #fff;
+        border: 1px solid var(--tax-ink);
+        border-top-color: transparent;
+        border-radius: 0;
+        color: var(--tax-ink);
+        font-family: var(--font-body);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: #fff;
+        font-weight: 700;
+    }
+
+    // --- menus: a slip of the same sheet ----------------------------------------------------------------------------
+    #{$menus} {
+        border: 1px solid var(--tax-ink);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: var(--tax-block);
+            color: var(--text-strong);
+        }
+    }
+
+    .combo__option.is-active {
+        background: var(--tax-block);
+        color: var(--text-strong);
+    }
+
+    // --- a dialog: another sheet, its light title ruled, a signature line before its buttons ---------------------------
+    .modal-overlay {
+        background: rgb(var(--line-rgb) / 0.25);
+    }
+
+    .modal-card {
+        border-width: 1.5px;
+    }
+
+    .modal-card__head {
+        @include ruled;
+    }
+
+    .modal-card__title {
+        font-weight: 300;
+        text-transform: uppercase;
+        letter-spacing: 0.01em;
+    }
+
+    // on a line of its own: beside the buttons it would squeeze them into wrapping
+    .modal-card__actions {
+        flex-wrap: wrap;
+    }
+
+    .modal-card__actions::before {
+        content: "Fait \E0  ………………, le ……/……/……   Signature :";
+        flex: 1 0 100%;
+        padding-bottom: 0.2rem;
+        color: var(--text-dim);
+        font-size: var(--fs-xs);
+        font-style: italic;
+        font-weight: 300;
+        white-space: pre;
+    }
+
+    // --- a toast: the administration's stamp -----------------------------------------------------------------------
+    .toast {
+        flex-wrap: wrap;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        @include stamp;
+
+        order: -1;
+        padding: 0 0.4rem;
+        font-size: var(--fs-xs);
+        transform: rotate(-3deg);
+    }
+
+    .toast--success::after {
+        content: "ACCUS\C9  DE R\C9 CEPTION";
+        color: var(--ok);
+        border-color: var(--ok);
+    }
+
+    .toast--error::after {
+        content: "MAJORATION DE 10 %";
+    }
+
+    // --- the song's progress, scroll bars, sliders: printed lines ----------------------------------------------------
+    .player-progress__bar {
+        height: 8px;
+        border: 1px solid var(--tax-ink);
+        border-radius: 0;
+        background: #fff;
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: var(--tax-ink);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid var(--bg);
+        border-radius: 0;
+        background: var(--tax-numeral);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: var(--tax-ink);
+        --range-track-h: 1.5px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: #fff;
+        --range-thumb-hover: var(--tax-block);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 16px;
+        --range-thumb-border: 1px solid var(--tax-ink);
+        --range-thumb-radius: 0;
+        --range-thumb-shadow: none;
+        --range-focus: 2px solid var(--text-strong);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+}
