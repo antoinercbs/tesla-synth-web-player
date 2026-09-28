@@ -1,0 +1,110 @@
+@use "sass:map";
+
+// ===========================================================================
+//  ROLE-PLAYING GAME LOOK: its windows
+// ===========================================================================
+// The menus of an old console role-playing game, of no one title: the colour of its
+// windows (the player's to pick, as such games let them), their light frame, the
+// white of the words, the yellow of what is ready, the dark of the screen behind;
+// the gloved hand that points. Each palette is written out whole, as the custom
+// properties it sets on [data-theme="<id>"]: the shared ones, then its own,
+// including the chrome rpg/_chrome.scss and the $rpg map read (--rpg-win…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec
+// checks both).
+
+// the gloved hand, pointing right: its cuff, its fist, its finger
+$-rpg-hand: '<rect x=".8" y="5" width="2.8" height="9" rx=".6" fill="#d8d8e8" stroke="#000" stroke-width="1.1"/><path d="M3.6 5.2h6.9V4.1c0-.7.6-1.1 1.2-1.1h9.8a1.5 1.5 0 0 1 0 3H14v1.2h1.6a1.2 1.2 0 0 1 0 2.4H14v1h1.3a1.2 1.2 0 0 1 0 2.4H14v.5c0 .8-.6 1.3-1.3 1.3H5a1.4 1.4 0 0 1-1.4-1.4z" fill="#fff" stroke="#000" stroke-width="1.1" stroke-linejoin="round"/><path d="M10.5 6v2.4M14 7.2H11M14 9.6h-2.6" fill="none" stroke="#000" stroke-width=".8" stroke-opacity=".5"/>';
+
+$rpg-shared: (
+    ink: #000000,
+    on-grad: #000000,
+    hi-rgb: "255 255 255",
+    text: #ffffff,
+    text-rgb: "255 255 255",
+    text-dim: #dfe3f6,
+    text-mute: #a8afd6,
+    text-strong: #ffffff,
+    text-bright: #ffffff,
+    danger: #ff5a5a,
+    danger-rgb: "255 90 90",
+    danger-text: #ff8a8a,
+    danger-text-hover: #ffc0c0,
+    ok: #7dff9a,
+    ok-rgb: "125 255 154",
+    amber: #ffe45c,
+    amber-rgb: "255 228 92",
+    caution: #ffe45c,
+    caution-rgb: "255 228 92",
+    caution-text: #ffe45c,
+    warn: #ffb04a,
+    conflict: #ffb04a,
+    duplicate: #ff9ad8,
+    duplicate-rgb: "255 154 216",
+    worse: #ff5a5a,
+    volt: #ffe45c,
+    volt-rgb: "255 228 92",
+    grad: "linear-gradient(#fffbd0, #ffe45c 50%, #d9a800)",
+    arc-core: #ffffff,
+    arc-mid: #ffe45c,
+    arc-deep: #d9a800,
+    arc-glow-rgb: "255 228 92",
+    // the crystals a coil shines as
+    coil-0: #ff5a5a,
+    coil-1: #ffe45c,
+    coil-2: #7dff9a,
+    coil-3: #6ac8ff,
+    coil-4: #c89aff,
+    coil-5: #ffae5a,
+    plasma: #c89aff,
+    knob: #ffffff,
+    line-rgb: "255 255 255",
+    rpg-frame: "linear-gradient(#ffffff, #c8c8d8 50%, #9a9aae)",
+    rpg-hand: svg-url($-rpg-hand, 24, 16),
+    cursor-pointer: cursor-url('<g transform="translate(3 8)">#{$-rpg-hand}</g>', 26, 12, pointer),
+    rpg-sky: "radial-gradient(circle, rgb(255 255 255 / 0.5) 0 1px, transparent 1.5px) 0 0 / 97px 83px, radial-gradient(circle, rgb(255 255 255 / 0.3) 0 1px, transparent 1.5px) 40px 30px / 131px 107px, #05051a",
+);
+
+// the order is the picker's, the first the look's default
+$rpg-palettes: (
+    // the blue windows everyone remembers
+    azure: (
+        bg: #05051a,
+        bg-2: #000a38,
+        panel: #1c3aa8,
+        panel-2: #203fb4,
+        bg-rgb: "5 5 26",
+        rpg-win: "linear-gradient(#3d63e0, #1a36a6 45%, #0a1a6a)",
+        rpg-well: #000a38,
+        swatch: "linear-gradient(#3d63e0, #0a1a6a)",
+    ),
+    // the dark windows of the ones who changed them
+    shadow: (
+        bg: #050508,
+        bg-2: #0a0a10,
+        panel: #26262f,
+        panel-2: #2d2d38,
+        bg-rgb: "5 5 8",
+        rpg-win: "linear-gradient(#4a4a58, #262630 45%, #0e0e14)",
+        rpg-well: #0a0a10,
+        swatch: "linear-gradient(#4a4a58, #0e0e14)",
+    ),
+    // crimson windows
+    crimson: (
+        bg: #120408,
+        bg-2: #240610,
+        panel: #7a1a26,
+        panel-2: #8a1f2c,
+        bg-rgb: "18 4 8",
+        rpg-win: "linear-gradient(#c2404c, #7a1a26 45%, #3a0a14)",
+        rpg-well: #240610,
+        swatch: "linear-gradient(#c2404c, #3a0a14)",
+    ),
+);
+
+@each $id, $p in $rpg-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($rpg-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

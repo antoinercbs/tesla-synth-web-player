@@ -1,0 +1,449 @@
+// ===========================================================================
+//  ROLE-PLAYING GAME LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $rpg map (rpg/_skin.scss), its colours the windows
+// picked among rpg/_palettes.scss. Here, the game: every panel, the sidebar, menus
+// and dialogs as windows (their colour, their light frame, the black outline in and
+// out), the page's name in the location window, words shadowed; the gloved hand
+// beside the open page, the open tab, the chosen value; the song's progress as an
+// ATB gauge; a switch reading ON or OFF; the coils' marks crystals; toasts as the
+// dialogue box, its arrow blinking. The words it adds are in English, as the games'
+// were. Every rule sits under [data-skin="rpg"]; the pages' controls are named by
+// family (../_families.scss).
+
+// a window: its colour, its light frame, the black outline in and out
+@mixin window($radius: 7px) {
+    border: 3px solid transparent;
+    border-radius: $radius;
+    background: var(--rpg-win) padding-box, var(--rpg-frame) border-box;
+    box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000, 4px 4px 0 rgb(0 0 0 / 0.45);
+}
+
+// the hand, pointing at what follows it
+@mixin hand {
+    content: "";
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 21px;
+    height: 14px;
+    background: var(--rpg-hand) center / contain no-repeat;
+}
+
+[data-skin="rpg"] {
+    body {
+        text-shadow: 1px 1px 0 #000;
+    }
+
+    ::selection {
+        background: rgb(var(--volt-rgb) / 0.4);
+        color: #ffffff;
+    }
+
+    .app-main {
+        background: none;
+    }
+
+    // --- the location window: the page's name ----------------------------------------------------------------------
+    .view-head__title {
+        @include window(6px);
+
+        padding: 0.5rem 1rem;
+        font-family: "Press Start 2P", var(--font-display);
+        font-size: 0.95rem;
+        font-weight: 400;
+        letter-spacing: 0;
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    .edit-chooser .view-head__title {
+        border: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    .brand__app {
+        font-size: 0.88rem;
+        letter-spacing: 0.04em;
+        text-shadow: 2px 2px 0 #000;
+    }
+
+    .brand__label {
+        filter: invert(1);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: rgb(var(--bg-rgb) / 0.92);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- windows: the panels, the sidebar -----------------------------------------------------------------------------
+    #{$panels} {
+        @include window;
+    }
+
+    .env-lib__group {
+        border: 0;
+        background: none;
+        box-shadow: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid rgb(255 255 255 / 0.6);
+        background: none;
+        box-shadow: 0 1px 0 #000;
+    }
+
+    // the sidebar a window of its own, standing off the screen's edge (a desktop's: on a
+    // phone it is the menu bar)
+    @media (min-width: 1001px) {
+        .sidebar {
+            @include window(8px);
+
+            margin: 6px;
+            height: calc(100dvh - 12px);
+        }
+
+        .nav-item,
+        .nav-item.router-link-active {
+            padding-left: 1.9rem;
+        }
+    }
+
+    .sidebar-section__title,
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title {
+        color: var(--text-dim);
+        letter-spacing: 0.04em;
+    }
+
+    .empty-stub::after {
+        content: "Nothing here...";
+        color: var(--text-mute);
+    }
+
+    // --- the command list: the hand beside the open page -----------------------------------------------------------------
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+        background: none;
+        font-family: var(--font-body);
+        font-weight: 400;
+        letter-spacing: 0.02em;
+    }
+
+    .nav-item:hover {
+        background: none;
+        color: var(--volt);
+    }
+
+    .nav-item.router-link-active {
+        color: #ffffff;
+    }
+
+    .nav-item.router-link-active::before {
+        @include hand;
+
+        top: 50%;
+        left: 4px;
+        bottom: auto;
+        margin-top: -7px;
+        -webkit-mask: none;
+        mask: none;
+        animation: rpg-point 0.9s steps(2, jump-none) infinite;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--volt);
+    }
+
+    // a coil's mark: a crystal
+    .sidebar-coil__dot {
+        transform: rotate(45deg);
+        background: linear-gradient(135deg, #fff 0 22%, var(--c) 45%, color-mix(in srgb, var(--c) 55%, #000));
+        box-shadow: 0 0 0 1px #000, 0 0 6px var(--c);
+    }
+
+    // --- small windows for buttons; the pointer is the hand already ------------------------------------------------------
+    .btn,
+    .icon-btn {
+        border-width: 2px;
+        box-shadow: 0 0 0 1px #000, inset 0 0 0 1px #000;
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: none;
+        color: var(--volt);
+    }
+
+    // the main command written in the ready yellow; one out of reach greyed, as a game's
+    .btn--volt,
+    .btn--volt:hover {
+        color: var(--volt);
+    }
+
+    .btn:disabled {
+        opacity: 1;
+        color: #7c82a8;
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 2px solid #ffffff;
+        border-radius: 5px;
+        background: var(--rpg-win);
+        box-shadow: 0 0 0 1px #000;
+        color: #ffffff;
+
+        &:hover:not(:disabled) {
+            color: var(--volt);
+        }
+    }
+
+    #{$pushed-on} {
+        color: var(--volt);
+        box-shadow: 0 0 0 1px #000, inset 0 0 0 2px rgb(var(--volt-rgb) / 0.6);
+    }
+
+    .chan-cell {
+        border: 1px solid #fff;
+        background: var(--rpg-well);
+        color: #fff;
+    }
+
+    // --- choices and tabs: the hand beside the one picked ---------------------------------------------------------------
+    #{$value-choices},
+    #{$tool-choices},
+    .segmented--tabs {
+        button {
+            gap: 0.3rem;
+            border: 0;
+            background: none;
+            box-shadow: none;
+        }
+
+        button.is-active,
+        button.is-on {
+            background: none;
+            color: var(--volt);
+
+            &::before {
+                @include hand;
+            }
+        }
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // a switch: its word, ON or OFF
+    .switch__track,
+    .switch input:checked + .switch__track {
+        display: inline-grid;
+        place-items: center;
+        width: 3.4em;
+        height: 1.6em;
+        border: 2px solid #fff;
+        border-radius: 4px;
+        background: var(--rpg-well);
+        box-shadow: 0 0 0 1px #000;
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        content: "OFF";
+        position: static;
+        width: auto;
+        height: auto;
+        border-radius: 0;
+        background: none;
+        transform: none;
+        color: var(--text-mute);
+        font-size: var(--fs-xs);
+    }
+
+    .switch input:checked + .switch__track::after {
+        content: "ON";
+        color: var(--volt);
+    }
+
+    // --- figures, gauges -------------------------------------------------------------------------------------------------
+    #{$number-boxes} {
+        border: 2px solid #fff;
+        background: var(--rpg-well);
+        box-shadow: 0 0 0 1px #000;
+    }
+
+    .vu-track {
+        border: 1px solid #fff;
+        background: var(--rpg-well);
+        box-shadow: 0 0 0 1px #000;
+    }
+
+    // the song's progress: the ATB gauge filling toward its turn
+    .player-progress__bar {
+        height: 9px;
+        border: 2px solid #fff;
+        border-radius: 3px;
+        background: #000010;
+        box-shadow: 0 0 0 1px #000;
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: var(--grad);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: #000010;
+        --range-track-h: 6px;
+        --range-track-radius: 2px;
+        --range-track-shadow: 0 0 0 1px #fff, 0 0 0 2px #000;
+        --range-thumb: #ffffff;
+        --range-thumb-hover: var(--volt);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid #000;
+        --range-thumb-radius: 2px;
+        --range-thumb-shadow: 2px 2px 0 rgb(0 0 0 / 0.5);
+        --range-focus: 2px solid var(--volt);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, the dialogue box ---------------------------------------------------------------------------------
+    #{$menus} {
+        @include window;
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: none;
+            color: var(--volt);
+        }
+    }
+
+    .combo__option.is-active {
+        background: none;
+        color: var(--volt);
+    }
+
+    .modal-overlay {
+        background: rgb(0 0 0 / 0.55);
+    }
+
+    .modal-card {
+        @include window(8px);
+    }
+
+    .modal-card__head {
+        border-bottom: 1px solid rgb(255 255 255 / 0.6);
+    }
+
+    .toast {
+        @include window;
+
+        flex-wrap: wrap;
+        padding-right: 2rem;
+    }
+
+    .toast::before {
+        content: "\25BC";
+        position: absolute;
+        top: auto;
+        left: auto;
+        right: 0.7rem;
+        bottom: 0.35rem;
+        width: auto;
+        height: auto;
+        background: none;
+        color: #ffffff;
+        font-size: 0.6rem;
+        animation: rpg-blink 0.8s steps(2, jump-none) infinite;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-size: var(--fs-sm);
+    }
+
+    .toast--success::after {
+        content: "LEVEL UP!";
+        color: var(--volt);
+    }
+
+    .toast--error::after {
+        content: "MISS!";
+        color: var(--danger-text);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #000010;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid #000010;
+        border-radius: 3px;
+        background: #ffffff;
+    }
+}
+
+@keyframes rpg-point {
+    50% {
+        transform: translateX(-3px);
+    }
+}
+
+@keyframes rpg-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+// the hand and the arrow hold still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="rpg"] {
+        .nav-item.router-link-active::before,
+        .toast::before {
+            animation: none;
+        }
+    }
+}

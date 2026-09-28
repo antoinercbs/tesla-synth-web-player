@@ -1,0 +1,433 @@
+// ===========================================================================
+//  HALLOWEEN LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $halloween map (halloween/_skin.scss), its colours the
+// night picked among halloween/_palettes.scss. Here, the night: the moon in the sky
+// (the backdrop), bats about it, one flying across now and then, fog drifting on the
+// ground; a web in the corner of each panel, a spider hanging from the page's title
+// on its thread; the open page's candle flickering; the coils' marks pumpkins; toasts
+// in the words of a mad laboratory. The words it adds are in English, as the films'
+// were. Every rule sits under [data-skin="halloween"]; the pages' controls are named
+// by family (../_families.scss).
+
+@mixin glow($rgb: var(--volt-rgb)) {
+    text-shadow: 0 0 8px rgb(#{$rgb} / 0.7), 0 0 18px rgb(#{$rgb} / 0.35);
+}
+
+[data-skin="halloween"] {
+    ::selection {
+        background: rgb(var(--volt-rgb) / 0.4);
+        color: #ffffff;
+    }
+
+    // --- the night: bats about the moon, one flying across, fog on the ground ---------------------------------------
+    .app-main {
+        background:
+            var(--hw-bat) 72% 6% / 34px 19px no-repeat,
+            var(--hw-bat) 88% 21% / 22px 12px no-repeat,
+            var(--hw-bat) 61% 16% / 18px 10px no-repeat;
+    }
+
+    body::before,
+    body::after {
+        content: "";
+        position: fixed;
+        pointer-events: none;
+    }
+
+    body::before {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 44;
+        height: 26vh;
+        background:
+            radial-gradient(40% 60% at 20% 100%, var(--hw-fog), transparent 70%) 0 0 / 60vw 100% repeat-x,
+            radial-gradient(35% 55% at 70% 100%, var(--hw-fog), transparent 70%) 0 0 / 45vw 100% repeat-x;
+        animation: hw-fog 38s linear infinite;
+    }
+
+    body::after {
+        top: 9vh;
+        left: -60px;
+        z-index: 45;
+        width: 40px;
+        height: 22px;
+        background: var(--hw-bat) center / contain no-repeat;
+        filter: drop-shadow(0 0 3px rgb(0 0 0 / 0.6));
+        animation: hw-flight 26s linear infinite;
+    }
+
+    // --- the head: the title dripping, a spider hanging from it -------------------------------------------------------
+    .view-head__title {
+        @include glow;
+
+        position: relative;
+        color: var(--volt);
+        font-weight: 400;
+        letter-spacing: 0.04em;
+    }
+
+    .view-head__title::after {
+        content: "";
+        position: absolute;
+        top: 70%;
+        left: 1.4em;
+        width: 24px;
+        height: 40px;
+        background: var(--hw-spider) center top / 24px 40px no-repeat;
+        transform-origin: 50% 0;
+        animation: hw-dangle 5s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    .edit-chooser .view-head__title::after {
+        display: none;
+    }
+
+    .brand__app {
+        @include glow;
+
+        color: var(--volt);
+        font-family: var(--font-display);
+        font-size: 1.05rem;
+        letter-spacing: 0.06em;
+    }
+
+    .brand__label {
+        filter: invert(1);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: rgb(var(--bg-rgb) / 0.88);
+    }
+
+    // --- panels: a web in the corner, their names dripping --------------------------------------------------------------
+    #{$panels} {
+        border: 1px solid rgb(var(--volt-rgb) / 0.22);
+        background: var(--hw-web) right top / 48px 48px no-repeat, var(--panel);
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .env-lib__group {
+        background: var(--panel);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid rgb(var(--volt-rgb) / 0.25);
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title {
+        @include glow;
+
+        color: var(--volt);
+        font-family: var(--font-display);
+        font-weight: 400;
+        letter-spacing: 0.06em;
+    }
+
+    .empty-stub::after {
+        @include glow;
+
+        content: "R.I.P.";
+        color: var(--text-mute);
+        font-family: var(--font-display);
+        font-size: var(--fs-xl);
+    }
+
+    // --- the menu: the open page's candle, flickering -------------------------------------------------------------------
+    .sidebar {
+        border-right: 1px solid rgb(var(--volt-rgb) / 0.2);
+    }
+
+    // the menu in the round face: the dripping one is for titles, not for small words
+    .nav-item {
+        font-family: var(--font-body);
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        background: rgb(var(--volt-rgb) / 0.08);
+    }
+
+    .nav-item.router-link-active {
+        background: radial-gradient(120% 140% at 0% 50%, rgb(var(--volt-rgb) / 0.28), transparent 70%);
+        color: #ffffff;
+    }
+
+    .nav-item.router-link-active::before {
+        background: var(--volt);
+        box-shadow: 0 0 10px var(--volt);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--volt);
+        filter: drop-shadow(0 0 5px var(--volt));
+        animation: hw-flicker 3.2s steps(1, end) infinite;
+    }
+
+    // a coil's mark: a pumpkin, its ribs and its stem
+    .sidebar-coil__dot {
+        position: relative;
+        box-shadow: inset 3px 0 0 rgb(0 0 0 / 0.22), inset -3px 0 0 rgb(0 0 0 / 0.22), 0 0 6px var(--c);
+    }
+
+    .sidebar-coil__dot::after {
+        content: "";
+        position: absolute;
+        top: -3px;
+        left: 50%;
+        width: 2px;
+        height: 4px;
+        margin-left: -1px;
+        border-radius: 1px;
+        background: #3cc21a;
+    }
+
+    // --- buttons, choices, tabs: glowing under the pointer ----------------------------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: none;
+        box-shadow: 0 0 14px rgb(var(--volt-rgb) / 0.55);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        filter: brightness(1.1);
+        box-shadow: 0 0 22px rgb(var(--volt-rgb) / 0.75);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 1px solid rgb(var(--volt-rgb) / 0.45);
+        border-radius: 999px;
+        background: var(--panel-2);
+        color: var(--text-strong);
+
+        &:hover:not(:disabled) {
+            box-shadow: 0 0 10px rgb(var(--volt-rgb) / 0.5);
+        }
+    }
+
+    #{$pushed-on} {
+        background: var(--grad);
+        color: var(--ink);
+    }
+
+    .chan-cell.is-on {
+        box-shadow: 0 0 10px var(--cell, var(--volt));
+    }
+
+    .segmented--tabs button.is-active {
+        @include glow;
+    }
+
+    .segmented__arc {
+        box-shadow: 0 0 8px var(--volt);
+    }
+
+    // --- figures, bars -----------------------------------------------------------------------------------------------------
+    .readout__field input,
+    .power-head__val {
+        @include glow(var(--hw-glow-rgb));
+
+        color: var(--hw-glow);
+    }
+
+    .vu-fill {
+        filter: drop-shadow(0 0 4px rgb(var(--volt-rgb) / 0.5));
+    }
+
+    .player-progress__fill {
+        background: var(--grad);
+        box-shadow: 0 0 10px rgb(var(--volt-rgb) / 0.6);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: rgb(0 0 0 / 0.45);
+        --range-track-h: 5px;
+        --range-track-radius: 999px;
+        --range-track-shadow: inset 0 1px 2px rgb(0 0 0 / 0.6);
+        --range-thumb: radial-gradient(circle at 40% 35%, #ffd08a, var(--volt) 60%);
+        --range-thumb-hover: radial-gradient(circle at 40% 35%, #ffe0b0, var(--volt) 60%);
+        --range-thumb-w: 18px;
+        --range-thumb-h: 16px;
+        --range-thumb-border: 1px solid rgb(0 0 0 / 0.5);
+        --range-thumb-radius: 50% / 55%;
+        --range-thumb-shadow: inset 3px 0 0 rgb(0 0 0 / 0.18), inset -3px 0 0 rgb(0 0 0 / 0.18), 0 0 10px rgb(var(--volt-rgb) / 0.6);
+        --range-focus: 2px solid var(--hw-glow);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 7px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, toasts ---------------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 1px solid rgb(var(--volt-rgb) / 0.5);
+        background: var(--hw-web) right top / 50px 50px no-repeat, var(--panel);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: rgb(var(--volt-rgb) / 0.16);
+            color: #ffffff;
+        }
+    }
+
+    .modal-overlay {
+        background: rgb(var(--bg-rgb) / 0.7);
+    }
+
+    .modal-card {
+        background: var(--hw-web) right top / 80px 80px no-repeat, var(--panel);
+    }
+
+    .modal-card__title {
+        @include glow;
+
+        color: var(--volt);
+        font-family: var(--font-display);
+        font-weight: 400;
+        letter-spacing: 0.05em;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-family: var(--font-display);
+        font-size: var(--fs-lg);
+        letter-spacing: 0.06em;
+    }
+
+    .toast--success::after {
+        @include glow(var(--ok-rgb));
+
+        content: "IT'S ALIVE!";
+        color: var(--ok);
+    }
+
+    .toast--error::after {
+        @include glow(var(--danger-rgb));
+
+        content: "BOO!";
+        color: var(--danger-text);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgb(0 0 0 / 0.35);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: 5px;
+        background: rgb(var(--volt-rgb) / 0.55);
+    }
+}
+
+@keyframes hw-fog {
+    to {
+        background-position: 60vw 0, -45vw 0;
+    }
+}
+
+@keyframes hw-flight {
+    0% {
+        transform: translate(0, 0);
+    }
+
+    8% {
+        transform: translate(12vw, -3vh) scale(0.9);
+    }
+
+    16% {
+        transform: translate(24vw, 2vh);
+    }
+
+    24% {
+        transform: translate(36vw, -2vh) scale(1.1);
+    }
+
+    32%,
+    100% {
+        transform: translate(calc(100vw + 120px), 1vh);
+    }
+}
+
+@keyframes hw-dangle {
+    50% {
+        transform: translateY(6px) rotate(4deg);
+    }
+}
+
+@keyframes hw-flicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    47% {
+        opacity: 0.55;
+    }
+
+    49% {
+        opacity: 1;
+    }
+
+    73% {
+        opacity: 0.7;
+    }
+
+    75% {
+        opacity: 1;
+    }
+}
+
+// the night holds still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="halloween"] {
+        body::before,
+        .view-head__title::after,
+        .nav-item.router-link-active .icon {
+            animation: none;
+        }
+
+        body::after {
+            display: none;
+        }
+    }
+}
