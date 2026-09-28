@@ -1,0 +1,118 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+
+// ===========================================================================
+//  STEAMPUNK LOOK: its cabinets
+// ===========================================================================
+// Nikola Tesla's workshop, 1891: a wooden cabinet, leather panels, brass and
+// bronze fittings, parchment to write on. Each palette is its wood and its metal;
+// -steam() below writes from them every property the look needs, on
+// [data-theme="<id>"], including the chrome steam/_chrome.scss and the $steam map
+// read (--steam-brass, --steam-rivet…). ui/themes.ts lists the ids for the look,
+// the first is its default (its spec checks both).
+
+@function -steam-rgb($c) {
+    $r: math.round(color.channel($c, "red", $space: rgb));
+    $g: math.round(color.channel($c, "green", $space: rgb));
+    $b: math.round(color.channel($c, "blue", $space: rgb));
+    @return "#{$r} #{$g} #{$b}";
+}
+
+// what every cabinet keeps: enamel colours for the signals and the coils, ivory
+// and ebony keys, the parchment and its sepia ink
+$steam-shared: (
+    danger: #e2574c,
+    danger-rgb: "226 87 76",
+    danger-text: #f08a7e,
+    danger-text-hover: #ffc0b6,
+    ok: #8bbf6a,
+    ok-rgb: "139 191 106",
+    amber: #e3b04b,
+    amber-rgb: "227 176 75",
+    caution: #e3b04b,
+    caution-rgb: "227 176 75",
+    caution-text: #f0c96e,
+    warn: #e39a3b,
+    conflict: #e39a3b,
+    duplicate: #e08a3c,
+    duplicate-rgb: "224 138 60",
+    worse: #e08a3c,
+    coil-0: #e0735a,
+    coil-1: #e3b04b,
+    coil-2: #8bbf6a,
+    coil-3: #5fb3a8,
+    coil-4: #b58ac2,
+    coil-5: #e08a3c,
+    plasma: #b58ac2,
+    text-bright: #fff6e0,
+    ink: #1e1208,
+    on-grad: #1e1208,
+    key-white: linear-gradient(180deg, #f4ead2 0%, #dccba5 100%),
+    key-white-hover: linear-gradient(180deg, #fff6df 0%, #e8d8b4 100%),
+    key-black: linear-gradient(180deg, #33241a 0%, #140c07 100%),
+    key-black-hover: linear-gradient(180deg, #46321f 0%, #21150c 100%),
+    key-glow-rgb: "255 214 140",
+    key-ink-rgb: "30 18 8",
+    steam-parchment: #efe0bb,
+    steam-ink: #3b2412,
+    steam-engraved: #1e1208,
+);
+
+// $wood, $grain: the cabinet's planks; $leather: its panels; $hi, $metal, $lo: the
+// fittings' metal, lit to shaded; $text: the lettering; $accent: what is chosen
+@function -steam($wood, $grain, $leather, $hi, $metal, $lo, $text, $accent) {
+    $metal-rgb: -steam-rgb($metal);
+    @return map.merge(
+        $steam-shared,
+        (
+            bg: $wood,
+            bg-2: color.mix(#000, $wood, 25%),
+            panel: $leather,
+            panel-2: color.mix(#fff, $leather, 6%),
+            bg-rgb: -steam-rgb($wood),
+            line-rgb: $metal-rgb,
+            text: $text,
+            text-rgb: -steam-rgb($text),
+            text-dim: color.mix($text, $leather, 74%),
+            text-mute: color.mix($text, $leather, 58%),
+            text-strong: color.mix(#fff, $text, 30%),
+            volt: $accent,
+            volt-rgb: -steam-rgb($accent),
+            grad: linear-gradient(180deg, $hi 0%, $metal 45%, $lo 100%),
+            arc-core: $hi,
+            arc-mid: $metal,
+            arc-deep: $lo,
+            arc-glow-rgb: $metal-rgb,
+            knob: $hi,
+            // brass for what matters, bronze for the rest, both lit from above
+            steam-brass: "linear-gradient(180deg, #{$hi} 0%, #{$metal} 48%, #{$lo} 100%)",
+            steam-bronze: "linear-gradient(180deg, #{color.mix($metal, $leather, 55%)} 0%, #{color.mix($lo, $leather, 60%)} 100%)",
+            steam-edge: $lo,
+            steam-metal: $metal,
+            steam-rivet: "radial-gradient(circle at 35% 35%, #{$hi} 0, #{$metal} 38%, #{$lo} 62%, transparent 66%)",
+            // the planks: their seams, their grain, the lamp's pool of light
+            steam-backdrop: "radial-gradient(ellipse at 50% 35%, transparent 40%, rgb(0 0 0 / 0.55) 100%), repeating-linear-gradient(90deg, rgb(0 0 0 / 0.35) 0 2px, transparent 2px 120px), repeating-linear-gradient(90deg, rgb(255 255 255 / 0.025) 0 1px, transparent 1px 7px, rgb(0 0 0 / 0.05) 7px 9px, transparent 9px 17px), linear-gradient(90deg, #{$wood}, #{$grain} 20%, #{$wood} 38%, #{$grain} 61%, #{$wood} 80%, #{$grain})",
+            steam-leather: "radial-gradient(rgb(0 0 0 / 0.14) 1px, transparent 1px) 0 0 / 3px 3px, #{$leather}",
+            swatch: "radial-gradient(circle at 50% 50%, #{$hi} 0, #{$metal} 30%, #{$lo} 46%, transparent 50%), linear-gradient(90deg, #{$wood}, #{$grain}, #{$wood})",
+        )
+    );
+}
+
+// the order is the picker's, the first the look's default
+$steam-palettes: (
+    // walnut and brass, the parchment's gold lettering
+    copper: -steam(#2b1a10, #3a2416, #33201a, #ffe39a, #cf9a3c, #6e4a14, #efdfb8, #e2b04e),
+    // red mahogany and gold
+    mahogany: -steam(#3a130d, #4d1d14, #3b1612, #fff0b0, #d8aa45, #7a5412, #f3e2c0, #ebc05a),
+    // oxidised copper: a verdigris cabinet with copper fittings
+    verdigris: -steam(#10302b, #1a403a, #173a34, #ffc59e, #c07048, #6a3418, #d8efe6, #5fc7a8),
+);
+
+@each $id, $p in $steam-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in $p {
+            --#{$key}: #{$value};
+        }
+    }
+}

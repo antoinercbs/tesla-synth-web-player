@@ -7,7 +7,7 @@ import { applyTheme, storedTheme } from './themes';
  * (listed in its _index.scss): this module lists the ids and applies the
  * chosen one, a `data-skin` attribute on <html>. The choice is per device.
  */
-export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1'] as const;
+export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'craft'] as const;
 export type SkinId = (typeof SKINS)[number];
 export const DEFAULT_SKIN: SkinId = 'lab';
 

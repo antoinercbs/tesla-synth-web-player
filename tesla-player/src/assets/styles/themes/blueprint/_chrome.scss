@@ -1,0 +1,301 @@
+// ===========================================================================
+//  BLUEPRINT LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $blueprint map (blueprint/_skin.scss), its colours
+// the sheet picked among blueprint/_palettes.scss. Here: the lettering in
+// capitals, the panels' double border line, the dimension line under the open
+// tab, the title block at the foot of the sidebar, hatching on what is chosen.
+// Every rule sits under [data-skin="blueprint"]; the pages' controls are named by
+// family (../_families.scss). The title block's words are a drawing's, in English
+// in every language.
+
+// a dimension line's two arrowheads and its extension ticks, as a mask (black: the
+// colour comes from the element's background)
+$bp-arrow-left: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7'%3E%3Cpath d='M0 3.5L6 .5v6z'/%3E%3C/svg%3E");
+$bp-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 7'%3E%3Cpath d='M6 3.5L0 .5v6z'/%3E%3C/svg%3E");
+
+@mixin lettering {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+[data-skin="blueprint"] {
+    ::selection {
+        background: var(--volt);
+        color: var(--ink);
+    }
+
+    // --- technical lettering ------------------------------------------------------------
+    .view-head__title,
+    .modal-card__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title,
+    .nav-item,
+    .btn,
+    .segmented--tabs button,
+    #{$panel-heads} {
+        @include lettering;
+    }
+
+    .view-head__title {
+        font-weight: 700;
+    }
+
+    .brand__label {
+        filter: var(--bp-logo);
+    }
+
+    // a drawing is not frosted: what the lab blurs is the sheet itself
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        box-shadow: 0 1px 0 var(--bp-line);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 1px solid var(--bp-line);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- panels: the sheet's border, a heavy line and a fine one inside it ----------------
+    #{$panels} {
+        border: 1.5px solid var(--bp-line);
+        border-radius: 0;
+        background: var(--bg);
+        box-shadow:
+            inset 0 0 0 4px var(--bg),
+            inset 0 0 0 5px var(--bp-faint);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid var(--bp-line);
+        color: var(--text-strong);
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        background: var(--bp-line);
+    }
+
+    .empty-stub {
+        margin: 1rem;
+        border: 1px dashed var(--bp-faint);
+    }
+
+    // --- the sidebar, and its title block at the foot of the sheet -------------------------
+    .sidebar {
+        border-right: 1.5px solid var(--bp-line);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+    }
+
+    .nav-item:hover {
+        background: none;
+        box-shadow: inset 0 0 0 1px var(--bp-faint);
+    }
+
+    .nav-item.router-link-active {
+        background: var(--bp-hatch);
+        box-shadow: inset 0 0 0 1px var(--bp-line);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .sidebar__spacer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 0.6rem;
+    }
+
+    .sidebar__spacer::after {
+        content: "DRAWN   CLUBELEK\A SCALE   1:1\A SHEET   1 / 1\A REV.    A";
+        white-space: pre;
+        padding: 0.35rem 0.6rem;
+        border: 1px solid var(--bp-line);
+        box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 4px var(--bp-faint);
+        color: var(--text-dim);
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        line-height: 1.6;
+    }
+
+    .sidebar--compact .sidebar__spacer::after {
+        display: none;
+    }
+
+    // --- buttons: outlines, hatched under the pointer, cross-hatched pressed -----------------
+    .btn:hover:not(:disabled) {
+        background: var(--bp-hatch);
+        filter: none;
+    }
+
+    .btn:active:not(:disabled),
+    .btn--volt:hover:not(:disabled) {
+        background: var(--bp-cross);
+    }
+
+    .btn--danger,
+    .btn--danger:hover {
+        border-color: var(--danger-text);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        border-color: transparent;
+    }
+
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled) {
+        background: var(--bp-hatch);
+        border-color: var(--bp-line);
+        color: var(--text-strong);
+    }
+
+    #{$push-buttons} {
+        border: 1px solid var(--bp-faint);
+        border-radius: 0;
+        background: transparent;
+        color: var(--text);
+
+        &:hover:not(:disabled) {
+            border-color: var(--bp-line);
+            background: var(--bp-hatch);
+        }
+    }
+
+    #{$pushed-on} {
+        border-color: var(--bp-line);
+        background: var(--bp-cross);
+        color: var(--text-strong);
+    }
+
+    #{$flat-buttons} {
+        border-radius: 0;
+
+        &:hover:not(:disabled) {
+            background: var(--bp-hatch);
+        }
+    }
+
+    // a MIDI channel: outlined, hatched in its coil's pencil when on
+    .chan-cell {
+        border: 1px solid var(--bp-faint);
+        border-radius: 0;
+        background: transparent;
+        color: var(--text-dim);
+    }
+
+    .chan-cell.is-on {
+        border-color: var(--cell, var(--volt));
+        background: repeating-linear-gradient(45deg, var(--cell, var(--volt)) 0 1px, transparent 1px 5px);
+        color: var(--text-strong);
+        font-weight: 700;
+    }
+
+    // --- choices ------------------------------------------------------------------------
+    #{$tool-choices} {
+        button.is-active,
+        button.is-on {
+            background: var(--bp-hatch);
+            color: var(--text-strong);
+        }
+    }
+
+    // under the open tab, a dimension line: arrowheads at its ends, a tick past each
+    .segmented__arc {
+        bottom: -4px;
+        height: 7px;
+        margin-left: 0;
+        padding: 0;
+        background: var(--bp-line);
+        -webkit-mask:
+            #{$bp-arrow-left} left center / 6px 7px no-repeat,
+            #{$bp-arrow-right} right center / 6px 7px no-repeat,
+            linear-gradient(#000, #000) center / 100% 1px no-repeat;
+        mask:
+            #{$bp-arrow-left} left center / 6px 7px no-repeat,
+            #{$bp-arrow-right} right center / 6px 7px no-repeat,
+            linear-gradient(#000, #000) center / 100% 1px no-repeat;
+    }
+
+    .segmented--tabs button.is-active {
+        font-weight: 700;
+    }
+
+    // --- menus, dialogs ---------------------------------------------------------------------
+    #{$menus} {
+        border: 1.5px solid var(--bp-line);
+        border-radius: 0;
+        background: var(--bg);
+        box-shadow: inset 0 0 0 3px var(--bg), inset 0 0 0 4px var(--bp-faint);
+    }
+
+    #{$menu-items} {
+        border-radius: 0;
+
+        &:hover,
+        &:focus-visible {
+            background: var(--bp-hatch);
+            color: var(--text-strong);
+        }
+    }
+
+    .combo__option.is-active {
+        background: var(--bp-hatch);
+        color: var(--text-strong);
+    }
+
+    .modal-card {
+        border-width: 1.5px;
+        box-shadow: inset 0 0 0 5px var(--bg), inset 0 0 0 6px var(--bp-faint);
+    }
+
+    .modal-card__head {
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid var(--bp-line);
+    }
+
+    // --- scroll bars: a fine line --------------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 0;
+        border-radius: 0;
+        background: var(--bp-faint);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--bp-line);
+    }
+}

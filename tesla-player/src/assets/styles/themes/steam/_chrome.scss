@@ -1,0 +1,298 @@
+// ===========================================================================
+//  STEAMPUNK LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $steam map (steam/_skin.scss), its colours the
+// cabinet picked among steam/_palettes.scss. Here: the rivets at a panel's
+// corners, titles engraved in brass behind a gear, brass nameplates for what is
+// chosen, the maker's plate at the foot of the sidebar. Every rule sits under
+// [data-skin="steam"]; the pages' controls are named by family (../_families.scss).
+
+// a rivet in each corner, over the leather
+@mixin riveted($inset: 7px, $size: 8px) {
+    background:
+        var(--steam-rivet) #{$inset} #{$inset} / #{$size} #{$size} no-repeat,
+        var(--steam-rivet) calc(100% - #{$inset}) #{$inset} / #{$size} #{$size} no-repeat,
+        var(--steam-rivet) #{$inset} calc(100% - #{$inset}) / #{$size} #{$size} no-repeat,
+        var(--steam-rivet) calc(100% - #{$inset}) calc(100% - #{$inset}) / #{$size} #{$size} no-repeat,
+        var(--steam-leather);
+}
+
+// a brass nameplate, its letters cut in
+@mixin plate {
+    background: var(--steam-brass);
+    border-color: var(--steam-edge);
+    color: var(--steam-engraved);
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
+// a text cut in brass
+@mixin engraved {
+    background: var(--steam-brass);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.7));
+}
+
+[data-skin="steam"] {
+    ::selection {
+        background: var(--volt);
+        color: var(--ink);
+    }
+
+    // --- titles: engraved capitals, a gear before the page's ----------------------------
+    .view-head__title {
+        @include engraved;
+
+        font-family: var(--font-display);
+        letter-spacing: 0.06em;
+    }
+
+    .view-head__title::before {
+        content: "\2699\FE0E";
+        margin-right: 0.35em;
+    }
+
+    .brand__app {
+        @include engraved;
+
+        font-family: var(--font-display);
+        letter-spacing: 0.03em;
+    }
+
+    .modal-card__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title,
+    #{$panel-heads} {
+        font-family: var(--font-display);
+        letter-spacing: 0.05em;
+        color: var(--text-strong);
+    }
+
+    // the lamp's light, no frosted glass: a bar is the cabinet's own wood
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg-2);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        box-shadow: 0 2px 0 var(--steam-edge), 0 6px 12px rgb(0 0 0 / 0.5);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 2px solid var(--steam-edge);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- panels: leather in a metal frame, riveted ----------------------------------------
+    #{$panels} {
+        @include riveted;
+
+        border: 2px solid var(--steam-edge);
+        box-shadow:
+            inset 0 0 0 1px rgb(255 255 255 / 0.06),
+            var(--shadow-panel);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 3px double var(--steam-edge);
+    }
+
+    // a box too small for rivets: they would sit on its title
+    .env-lib__group {
+        background: var(--steam-leather);
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        height: 2px;
+        background: var(--steam-brass);
+    }
+
+    .empty-stub {
+        margin: 1rem;
+        border: 1px dashed var(--steam-edge);
+    }
+
+    // --- the sidebar: the cabinet's side, the maker's plate at its foot --------------------
+    .sidebar {
+        border-right: 3px solid var(--steam-edge);
+        box-shadow: inset -1px 0 0 rgb(255 255 255 / 0.08);
+    }
+
+    .nav-item:hover {
+        background: rgb(var(--line-rgb) / 0.12);
+    }
+
+    .nav-item.router-link-active {
+        @include plate;
+
+        border-radius: var(--radius-sm);
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .sidebar__spacer {
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 0.7rem;
+    }
+
+    .sidebar__spacer::after {
+        @include plate;
+
+        content: "CLUBELEK\A EST. MCMXCII";
+        white-space: pre;
+        text-align: center;
+        padding: 0.4rem 1.4rem;
+        border: 1px solid var(--steam-edge);
+        border-radius: var(--radius-sm);
+        font-family: var(--font-display);
+        font-size: var(--fs-xs);
+        letter-spacing: 0.12em;
+        line-height: 1.5;
+        background:
+            var(--steam-rivet) 6px 50% / 6px 6px no-repeat,
+            var(--steam-rivet) calc(100% - 6px) 50% / 6px 6px no-repeat,
+            var(--steam-brass);
+        box-shadow: var(--shadow-knob);
+    }
+
+    .sidebar--compact .sidebar__spacer::after {
+        display: none;
+    }
+
+    // --- buttons: bronze fittings, brass for the main one -----------------------------------
+    .btn:hover:not(:disabled) {
+        filter: brightness(1.1);
+    }
+
+    .btn:active:not(:disabled) {
+        box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.55);
+    }
+
+    .btn--volt {
+        text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+    }
+
+    .btn--danger {
+        border-color: var(--steam-edge);
+    }
+
+    .btn:disabled {
+        opacity: 0.5;
+    }
+
+    #{$push-buttons} {
+        background: var(--steam-bronze);
+        border: 1px solid var(--steam-edge);
+        color: var(--text);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.15), 0 1px 2px rgb(0 0 0 / 0.5);
+
+        &:hover:not(:disabled) {
+            filter: brightness(1.12);
+            color: var(--text-strong);
+        }
+    }
+
+    #{$pushed-on} {
+        @include plate;
+    }
+
+    // a MIDI channel: a bronze key, its coil's enamel when on
+    .chan-cell {
+        background: var(--steam-bronze);
+        border: 1px solid var(--steam-edge);
+        color: var(--text-dim);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        border-color: var(--steam-edge);
+        color: var(--ink);
+        font-weight: 700;
+    }
+
+    // --- choices: brass for the chosen one ---------------------------------------------------
+    .segmented button.is-active {
+        text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+    }
+
+    #{$tool-choices} {
+        button.is-active,
+        button.is-on {
+            @include plate;
+        }
+    }
+
+    .theme-swatch {
+        box-shadow: 0 0 0 1px var(--steam-edge);
+    }
+
+    // --- menus, dialogs: leather, a metal frame, rivets ----------------------------------------
+    #{$menus} {
+        border: 2px solid var(--steam-edge);
+        background: var(--steam-leather);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include plate;
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        @include plate;
+    }
+
+    .modal-card {
+        @include riveted(9px, 10px);
+
+        border-width: 3px;
+    }
+
+    .modal-card__head {
+        padding: 0 0.6rem 0.6rem;
+        border-bottom: 3px double var(--steam-edge);
+    }
+
+    // --- scroll bars: a brass rod in a wooden slot -------------------------------------------
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgb(0 0 0 / 0.35);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 6px;
+        background: var(--steam-brass) padding-box;
+    }
+}

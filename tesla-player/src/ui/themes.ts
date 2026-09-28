@@ -17,6 +17,9 @@ export const THEMES = {
   scope: ['p1', 'p3', 'p4'],
   term: ['norton', 'turbo', 'mono'],
   web1: ['stars', 'flames', 'neon'],
+  steam: ['copper', 'mahogany', 'verdigris'],
+  blueprint: ['prussian', 'whiteprint', 'tracing'],
+  craft: ['overworld', 'nether', 'end'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

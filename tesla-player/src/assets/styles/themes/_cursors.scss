@@ -1,34 +1,13 @@
-@use "sass:map";
-@use "sass:string";
-
 // ===========================================================================
 //  MOUSE CURSORS A LOOK DRAWS
 // ===========================================================================
 // A look's arrow, hand and text beam: the --cursor-default, --cursor-pointer and
 // --cursor-text a palette sets, read with the system's as fallback (the lab sets
 // none, and keeps it). The resize, grab, not-allowed and help cursors stay the
-// system's in every look. A cursor is an SVG in a data URI: its drawing written
-// here plainly, with the palette's colours, then the characters a URI cannot hold
-// escaped.
-
-$cursor-escapes: (
-    "<": "%3C",
-    ">": "%3E",
-    "#": "%23",
-    '"': "'",
-);
+// system's in every look. A cursor is an SVG drawing (./_svg.scss) with the point
+// that clicks.
 
 // $body: the SVG's shapes on a 32px square; $x $y: the point that clicks
 @function cursor-url($body, $x, $y, $fallback) {
-    $svg: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">#{$body}</svg>';
-    $uri: "";
-    @for $i from 1 through string.length($svg) {
-        $c: string.slice($svg, $i, $i);
-        @if map.has-key($cursor-escapes, $c) {
-            $uri: $uri + map.get($cursor-escapes, $c);
-        } @else {
-            $uri: $uri + $c;
-        }
-    }
-    @return 'url("data:image/svg+xml,#{$uri}") #{$x} #{$y}, #{$fallback}';
+    @return '#{svg-url($body, 32, 32)} #{$x} #{$y}, #{$fallback}';
 }

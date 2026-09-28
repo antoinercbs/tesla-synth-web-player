@@ -1,0 +1,447 @@
+// ===========================================================================
+//  MINECRAFT LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $craft map (craft/_skin.scss), its colours the
+// dimension picked among craft/_palettes.scss. Here, the game's menus: the hard
+// shadow under every letter, the logo in stone with its yellow splash, the hotbar's
+// frame round the open page, inventory slots, the inventory window for a dialog,
+// the experience bar for the song's progress, a toast as an advancement. Every
+// rule sits under [data-skin="craft"]; the pages' controls are named by family
+// (../_families.scss). The words it adds are the game's, in English in every
+// language.
+
+// a stone button, and the blue-lit one under the pointer
+@mixin stone {
+    background: var(--craft-stone);
+    border: 2px solid #000;
+    border-radius: 0;
+    color: var(--craft-button-text);
+    box-shadow:
+        inset 2px 2px 0 rgb(255 255 255 / 0.3),
+        inset -2px -2px 0 rgb(0 0 0 / 0.4);
+}
+
+@mixin stone-hot {
+    background: var(--craft-stone-hover);
+    border-color: #fff;
+    color: var(--craft-button-hot);
+}
+
+@mixin stone-off {
+    opacity: 1;
+    background: var(--craft-stone-off);
+    border-color: #000;
+    color: #a0a0a0;
+    box-shadow: none;
+    cursor: var(--cursor-default, default);
+}
+
+// an inventory slot: grey, sunk in
+@mixin slot {
+    background: var(--craft-slot);
+    border: 0;
+    border-radius: 0;
+    color: var(--craft-gui-text);
+    text-shadow: none;
+    box-shadow:
+        inset 2px 2px 0 #373737,
+        inset -2px -2px 0 #fff;
+}
+
+@keyframes craft-splash {
+    to {
+        transform: rotate(-10deg) scale(1.08);
+    }
+}
+
+[data-skin="craft"] {
+    // every letter with its shadow, as the game draws them
+    body {
+        text-shadow: var(--craft-shadow);
+    }
+
+    ::selection {
+        background: #0000ff;
+        color: #fff;
+    }
+
+    // --- the logo in stone, its splash beside it -------------------------------------------
+    .brand {
+        position: relative;
+    }
+
+    .brand__app {
+        background: var(--craft-stone);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: none;
+        filter: drop-shadow(2px 2px 0 #000);
+        font-size: var(--fs-lg);
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    // in the brand's own margin, under the name
+    .brand::after {
+        content: "Now with lightning!";
+        position: absolute;
+        right: 0.8rem;
+        bottom: 0.25rem;
+        color: #ffff00;
+        text-shadow: 2px 2px 0 #3f3f00;
+        font-size: var(--fs-xs);
+        white-space: nowrap;
+        pointer-events: none;
+        transform: rotate(-10deg);
+        animation: craft-splash 0.45s ease-in-out infinite alternate;
+    }
+
+    .sidebar--compact .brand::after {
+        display: none;
+    }
+
+    .view-head__title {
+        font-weight: 700;
+    }
+
+    // a bar over the page covers it: no frosted glass
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg-2);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 2px solid #000;
+    }
+
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- panels: the game's dark boxes ---------------------------------------------------------
+    #{$panels} {
+        background: rgb(0 0 0 / 0.5);
+        border: 2px solid #000;
+        border-radius: 0;
+        box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.1);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 2px solid rgb(255 255 255 / 0.12);
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        height: 2px;
+        background: rgb(255 255 255 / 0.2);
+    }
+
+    // --- the sidebar: the hotbar's frame round the open page -------------------------------------
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+    }
+
+    .nav-item:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: var(--craft-button-hot);
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(0 0 0 / 0.35);
+        box-shadow:
+            inset 0 0 0 2px #000,
+            inset 0 0 0 4px #fff,
+            inset 0 0 0 6px #000;
+        color: var(--text-bright);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    // --- buttons: stone -------------------------------------------------------------------------
+    .btn,
+    .icon-btn,
+    .field-btn,
+    #{$push-buttons} {
+        @include stone;
+
+        &:hover:not(:disabled) {
+            @include stone-hot;
+
+            filter: none;
+        }
+
+        &:disabled {
+            @include stone-off;
+        }
+    }
+
+    .btn--volt {
+        color: var(--text-bright);
+    }
+
+    .btn--danger,
+    .btn--danger-ghost {
+        color: var(--danger-text);
+    }
+
+    #{$pushed-on} {
+        @include stone-hot;
+    }
+
+    #{$flat-buttons} {
+        border-radius: 0;
+
+        &:hover:not(:disabled) {
+            @include stone;
+        }
+    }
+
+    // a MIDI channel: an inventory slot, its coil's colour inside when on
+    .chan-cell {
+        @include slot;
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: #000;
+        font-weight: 700;
+    }
+
+    .chan-cell:disabled,
+    .chan-cell.is-unavail {
+        opacity: 0.5;
+    }
+
+    // --- choices: a row of stone buttons, the chosen one lit -------------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        gap: 4px;
+        padding: 0;
+        border: 0;
+        background: none;
+
+        button {
+            @include stone;
+        }
+
+        button:hover:not(:disabled) {
+            @include stone-hot;
+        }
+
+        button.is-active,
+        button.is-on {
+            @include stone-hot;
+        }
+
+        button:disabled {
+            @include stone-off;
+        }
+    }
+
+    .segmented--tabs button:hover {
+        color: var(--craft-button-hot);
+    }
+
+    // the switch is the game's check box
+    .switch__track,
+    .switch input:checked + .switch__track {
+        display: inline-grid;
+        place-items: center;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #a0a0a0;
+        border-radius: 0;
+        background: #000;
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        content: "";
+        position: static;
+        width: auto;
+        height: auto;
+        background: none;
+        transform: none;
+        color: #fff;
+        font-size: 12px;
+        line-height: 1;
+    }
+
+    .switch input:checked + .switch__track::after {
+        content: "\2714";
+    }
+
+    // --- the song's progress: the experience bar ----------------------------------------------------
+    .player-progress__bar {
+        height: 10px;
+        border: 2px solid #000;
+        border-radius: 0;
+        background: #202020;
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: repeating-linear-gradient(90deg, var(--craft-xp) 0 18px, var(--craft-xp-notch) 18px 20px);
+    }
+
+    .player-progress__knob {
+        width: 6px;
+        height: 14px;
+        border-radius: 0;
+        background: #fff;
+        box-shadow: 0 0 0 2px #000;
+    }
+
+    // --- menus: the tooltip's purple frame --------------------------------------------------------
+    #{$menus} {
+        background: var(--craft-tooltip);
+        border: 2px solid;
+        border-image: var(--craft-tooltip-edge) 1;
+        border-radius: 0;
+        box-shadow: 0 0 0 2px var(--craft-tooltip);
+    }
+
+    #{$menu-items} {
+        border-radius: 0;
+
+        &:hover,
+        &:focus-visible {
+            background: rgb(255 255 255 / 0.12);
+            color: var(--text-bright);
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        background: rgb(255 255 255 / 0.12);
+        color: var(--text-bright);
+    }
+
+    // --- a dialog: the inventory window, grey, its text dark and unshadowed ------------------------
+    .modal-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: rgb(16 16 16 / 0.6);
+    }
+
+    .modal-card {
+        --text: var(--craft-gui-text);
+        --text-dim: #555;
+        --text-mute: #707070;
+        --text-strong: #202020;
+        --line: rgb(0 0 0 / 0.2);
+        --line-strong: rgb(0 0 0 / 0.35);
+
+        border: 2px solid #000;
+        text-shadow: none;
+        box-shadow:
+            inset 2px 2px 0 #fff,
+            inset -2px -2px 0 #555,
+            var(--shadow-modal);
+    }
+
+    .modal-card .btn,
+    .modal-card .icon-btn {
+        text-shadow: var(--craft-shadow);
+    }
+
+    // --- a toast: an advancement ------------------------------------------------------------------
+    .toast {
+        flex-wrap: wrap;
+        border: 2px solid #000;
+        box-shadow:
+            inset 0 0 0 2px #555,
+            var(--shadow-float);
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        flex-basis: 100%;
+        color: #ffff55;
+        font-size: var(--fs-sm);
+    }
+
+    .toast--success::after {
+        content: "Advancement Made!";
+    }
+
+    .toast--error::after {
+        content: "You Died!";
+        color: #ff5555;
+    }
+
+    // --- scroll bars: the game's lists -----------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #000;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 0;
+        border-radius: 0;
+        background: #c0c0c0;
+        box-shadow:
+            inset 2px 2px 0 #fff,
+            inset -2px -2px 0 #808080;
+    }
+
+    // --- sliders: a stone handle on a black groove -----------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: #000;
+        --range-track-h: 8px;
+        --range-track-radius: 0;
+        --range-track-shadow: inset 0 0 0 1px #555;
+        --range-thumb: var(--craft-stone);
+        --range-thumb-hover: var(--craft-stone-hover);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 20px;
+        --range-thumb-border: 2px solid #000;
+        --range-thumb-radius: 0;
+        --range-thumb-shadow: inset 2px 2px 0 rgb(255 255 255 / 0.3), inset -2px -2px 0 rgb(0 0 0 / 0.4);
+        --range-focus: 2px solid #fff;
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+}
+
+// the splash holds still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="craft"] .brand::after {
+        animation: none;
+    }
+}

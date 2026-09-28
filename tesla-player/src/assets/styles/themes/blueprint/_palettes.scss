@@ -1,0 +1,153 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+
+// ===========================================================================
+//  BLUEPRINT LOOK: its drawing sheets
+// ===========================================================================
+// A workshop drawing: the paper, the ink of its lines, the pencil of the checker's
+// marks. Each palette is those three colours; -blueprint() below writes from them
+// every property the look needs, on [data-theme="<id>"], including the chrome
+// blueprint/_chrome.scss and the $blueprint map read (--bp-grid, --bp-hatch…).
+// The coils keep colours of their own: coloured pencils, a meaning the ink alone
+// could not carry. ui/themes.ts lists the ids for the look, the first is its
+// default (its spec checks both).
+
+@function -bp-rgb($c) {
+    $r: math.round(color.channel($c, "red", $space: rgb));
+    $g: math.round(color.channel($c, "green", $space: rgb));
+    $b: math.round(color.channel($c, "blue", $space: rgb));
+    @return "#{$r} #{$g} #{$b}";
+}
+
+// the signals and the coils, in pencils for a dark sheet or a light one
+$bp-dark-marks: (
+    danger: #ff8080,
+    danger-rgb: "255 128 128",
+    danger-text: #ff9a9a,
+    danger-text-hover: #ffc4c4,
+    ok: #8be9a8,
+    ok-rgb: "139 233 168",
+    amber: #ffd166,
+    amber-rgb: "255 209 102",
+    caution: #ffd166,
+    caution-rgb: "255 209 102",
+    caution-text: #ffd98a,
+    warn: #ffc15e,
+    conflict: #ffc15e,
+    duplicate: #ffa07a,
+    duplicate-rgb: "255 160 122",
+    worse: #ffa07a,
+    coil-0: #ff8a8a,
+    coil-1: #ffe08a,
+    coil-2: #8affb0,
+    coil-3: #8ad8ff,
+    coil-4: #d0a8ff,
+    coil-5: #ffb07a,
+    plasma: #d0a8ff,
+);
+
+$bp-light-marks: (
+    danger: #c0392b,
+    danger-rgb: "192 57 43",
+    danger-text: #a93226,
+    danger-text-hover: #7b241c,
+    ok: #2e7d32,
+    ok-rgb: "46 125 50",
+    amber: #b7791f,
+    amber-rgb: "183 121 31",
+    caution: #b7791f,
+    caution-rgb: "183 121 31",
+    caution-text: #7a4f10,
+    warn: #b36b00,
+    conflict: #a85a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #d62839,
+    coil-1: #b98a00,
+    coil-2: #1f9d5c,
+    coil-3: #1689b8,
+    coil-4: #7d3cc9,
+    coil-5: #d9661a,
+    plasma: #7d3cc9,
+);
+
+// $paper: the sheet; $ink: its lines and text; $pencil: the checker's marks (the
+// accent); $dark: a dark sheet (its faint fills lighten)
+@function -blueprint($paper, $ink, $pencil, $dark) {
+    $ink-rgb: -bp-rgb($ink);
+    $marks: $bp-light-marks;
+    // on a light sheet a faint fill darkens
+    $hi-rgb: "0 0 0";
+    // the club's wordmark is drawn black: a dark sheet turns it white
+    $logo: none;
+    @if $dark {
+        $marks: $bp-dark-marks;
+        $hi-rgb: "255 255 255";
+        $logo: invert(1);
+    }
+    @return map.merge(
+        $marks,
+        (
+            bg: $paper,
+            bg-2: color.mix($ink, $paper, 5%),
+            panel: color.mix($ink, $paper, 3%),
+            panel-2: color.mix($ink, $paper, 8%),
+            bg-rgb: -bp-rgb($paper),
+            line-rgb: $ink-rgb,
+            text: $ink,
+            text-rgb: $ink-rgb,
+            text-dim: color.mix($ink, $paper, 76%),
+            text-mute: color.mix($ink, $paper, 60%),
+            text-strong: $ink,
+            text-bright: $ink,
+            ink: $paper,
+            hi-rgb: $hi-rgb,
+            volt: $pencil,
+            volt-rgb: -bp-rgb($pencil),
+            grad: linear-gradient($ink, $ink),
+            on-grad: $paper,
+            // the active mark is an ink line, end to end
+            arc-core: $ink,
+            arc-mid: $ink,
+            arc-deep: $ink,
+            arc-glow-rgb: $ink-rgb,
+            // the piano drawn: its white keys the sheet, its black keys inked in
+            key-white: linear-gradient(color.mix($ink, $paper, 6%), color.mix($ink, $paper, 6%)),
+            key-white-hover: linear-gradient(color.mix($ink, $paper, 16%), color.mix($ink, $paper, 16%)),
+            key-black: linear-gradient(color.mix($ink, $paper, 80%), color.mix($ink, $paper, 80%)),
+            key-black-hover: linear-gradient($ink, $ink),
+            key-glow-rgb: -bp-rgb($pencil),
+            key-ink-rgb: $ink-rgb,
+            knob: $ink,
+            // the sheet's grid: a line every 10px, a heavier one every 50px
+            bp-grid: "linear-gradient(rgb(#{$ink-rgb} / 0.2) 1px, transparent 1px) -1px -1px / 50px 50px, linear-gradient(90deg, rgb(#{$ink-rgb} / 0.2) 1px, transparent 1px) -1px -1px / 50px 50px, linear-gradient(rgb(#{$ink-rgb} / 0.07) 1px, transparent 1px) -1px -1px / 10px 10px, linear-gradient(90deg, rgb(#{$ink-rgb} / 0.07) 1px, transparent 1px) -1px -1px / 10px 10px, #{$paper}",
+            // a section's hatching, and the cross-hatch of what is pressed
+            bp-hatch: "repeating-linear-gradient(45deg, rgb(#{$ink-rgb} / 0.4) 0 1px, transparent 1px 6px)",
+            bp-cross: "repeating-linear-gradient(45deg, rgb(#{$ink-rgb} / 0.4) 0 1px, transparent 1px 6px), repeating-linear-gradient(-45deg, rgb(#{$ink-rgb} / 0.4) 0 1px, transparent 1px 6px)",
+            bp-line: $ink,
+            bp-logo: $logo,
+            bp-faint: "rgb(#{$ink-rgb} / 0.45)",
+            swatch: "linear-gradient(#{$ink} 1px, transparent 1px) 0 0 / 7px 7px, linear-gradient(90deg, #{$ink} 1px, transparent 1px) 0 0 / 7px 7px, #{$paper}",
+        )
+    );
+}
+
+// the order is the picker's, the first the look's default
+$blueprint-palettes: (
+    // the cyanotype: white lines on Prussian blue, the checker's yellow pencil
+    prussian: -blueprint(#1b4a7a, #eaf2fb, #ffd166, true),
+    // the diazo print: blue-violet lines on off-white, red corrections
+    whiteprint: -blueprint(#f3f1e8, #283f8f, #c0392b, false),
+    // graphite on tracing paper, blue pencil
+    tracing: -blueprint(#e6e9e1, #2b2d2f, #1f6fb2, false),
+);
+
+@each $id, $p in $blueprint-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in $p {
+            --#{$key}: #{$value};
+        }
+    }
+}
