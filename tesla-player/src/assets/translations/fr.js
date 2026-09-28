@@ -394,6 +394,9 @@ export default {
     dirt: "Terre",
     redrock: "Roche rouge",
     obsidian: "Obsidienne",
+    grey: "Gris",
+    colour: "Couleur",
+    blue: "Bleu",
   },
   skin: {
     title: "Apparence",
@@ -405,6 +408,7 @@ export default {
     steam: "Steampunk",
     blueprint: "Blueprint",
     blocks: "Blocs",
+    videotex: "Vidéotex",
   },
   welcome: {
     title: "Bienvenue sur Tesla Player",

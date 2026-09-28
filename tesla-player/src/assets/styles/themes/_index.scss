@@ -20,6 +20,7 @@
 @import "steam/palettes";
 @import "blueprint/palettes";
 @import "blocks/palettes";
+@import "videotex/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -28,6 +29,7 @@
 @import "steam/skin";
 @import "blueprint/skin";
 @import "blocks/skin";
+@import "videotex/skin";
 
 $default-skin: lab;
 
@@ -40,6 +42,7 @@ $skins: (
     steam: $steam,
     blueprint: $blueprint,
     blocks: $blocks,
+    videotex: $videotex,
 );
 
 @mixin -skin($s) {

@@ -1,0 +1,475 @@
+// ===========================================================================
+//  VIDEOTEX LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $videotex map (videotex/_skin.scss), its colours the
+// screen picked among videotex/_palettes.scss. Here, a videotex service's page:
+// drawn line by line as at 1200 baud, the colour bars under the head, the panels'
+// heads as inverse bands, the sidebar as the service's numbered menu with its
+// access code, entry zones as rows of dots, numbered choices, OUI / NON, and the
+// terminal's function keys beside what they stand for (ENVOI for the main action,
+// GUIDE for help, SOMMAIRE for the menu, ANNULATION to close). The words it adds
+// are the terminal's, in French in every language. Every rule sits under
+// [data-skin="videotex"]; the pages' controls are named by family (../_families.scss).
+
+// a key of the terminal's keyboard, beside the control it names
+@mixin key($label) {
+    content: $label;
+    display: inline-block;
+    padding: 0 0.35rem;
+    background: var(--vtx-key);
+    color: var(--vtx-key-text);
+    font-family: var(--font-body);
+    font-size: var(--fs-xs);
+    line-height: 1.35;
+    letter-spacing: 0.04em;
+    box-shadow: inset 0 -2px 0 rgb(0 0 0 / 0.35);
+}
+
+// a control that only shows its key: its icon hidden
+@mixin key-only($label) {
+    width: auto;
+    height: auto;
+    padding: 0;
+    background: none;
+    border: 0;
+
+    i {
+        display: none;
+    }
+
+    &::after {
+        @include key($label);
+    }
+}
+
+@mixin inverse {
+    background: var(--vtx-inverse);
+    border-color: var(--vtx-inverse);
+    color: var(--vtx-inverse-text);
+}
+
+// the page arriving at 1200 baud: its rows drawn one after the other
+@keyframes vtx-baud {
+    from {
+        clip-path: inset(0 0 100% 0);
+    }
+
+    to {
+        clip-path: inset(0 0 0 0);
+    }
+}
+
+[data-skin="videotex"] {
+    ::selection {
+        background: var(--vtx-inverse);
+        color: var(--vtx-inverse-text);
+    }
+
+    // backwards: once drawn, the page keeps no clip (a menu may overflow it)
+    .screen {
+        animation: vtx-baud 0.9s steps(25) backwards;
+    }
+
+    // --- the head: double-height title, the colour bars under it ------------------------------
+    .screen-head {
+        border-bottom: 6px solid;
+        border-image: var(--vtx-band) 1;
+    }
+
+    .screen-head.is-scrolled {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .view-head__title {
+        color: var(--vtx-title);
+        font-size: var(--fs-2xl);
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .brand__app {
+        color: var(--vtx-title);
+        font-size: var(--fs-lg);
+        letter-spacing: 0.06em;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        border-top: 1px solid var(--text-dim);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- panels: a thin frame, the head an inverse band -----------------------------------------
+    #{$panels} {
+        border: 1px solid rgb(var(--line-rgb) / 0.35);
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    #{$panel-heads} {
+        --text: var(--vtx-head-text);
+        --text-dim: var(--vtx-head-text);
+        --text-mute: var(--vtx-head-text);
+        --text-strong: var(--vtx-head-text);
+        --text-bright: var(--vtx-head-text);
+
+        background: var(--vtx-head);
+        color: var(--vtx-head-text);
+        border-bottom: 0;
+    }
+
+    .coil-card__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        color: var(--text-strong);
+        text-transform: uppercase;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        background: rgb(var(--line-rgb) / 0.35);
+    }
+
+    // --- the sidebar: the service's numbered menu, its access code at the foot -------------------
+    .sidebar {
+        border-right: 1px solid rgb(var(--line-rgb) / 0.35);
+    }
+
+    .nav {
+        counter-reset: vtx-menu;
+    }
+
+    .nav-item {
+        counter-increment: vtx-menu;
+    }
+
+    .nav-item__label::before {
+        content: counter(vtx-menu) " ";
+        color: var(--text-strong);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+    }
+
+    .nav-item:hover {
+        background: rgb(var(--line-rgb) / 0.15);
+    }
+
+    .nav-item.router-link-active {
+        @include inverse;
+    }
+
+    .nav-item.router-link-active .nav-item__label::before,
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .sidebar__spacer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.2rem;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 0.6rem;
+    }
+
+    .sidebar__spacer::before {
+        content: "3615 TESLA";
+        padding: 0 0.5rem;
+        background: var(--vtx-head);
+        color: var(--vtx-head-text);
+        font-size: var(--fs-xl);
+        letter-spacing: 0.08em;
+    }
+
+    .sidebar__spacer::after {
+        content: "0,34 F/min";
+        color: var(--text-dim);
+        font-size: var(--fs-sm);
+    }
+
+    .sidebar--compact .sidebar__spacer::before,
+    .sidebar--compact .sidebar__spacer::after {
+        display: none;
+    }
+
+    // --- the function keys --------------------------------------------------------------------
+    .btn--volt::after {
+        @include key("ENVOI");
+
+        margin-left: 0.3rem;
+    }
+
+    .page-tour {
+        @include key-only("GUIDE");
+    }
+
+    .sidebar-more {
+        @include key-only("SOMMAIRE");
+    }
+
+    .modal-card__head .icon-btn {
+        @include key-only("ANNULATION");
+    }
+
+    // --- buttons: inverse video, the pointer's one lit ---------------------------------------------
+    .btn:hover:not(:disabled) {
+        background: var(--vtx-hot);
+        border-color: var(--vtx-hot);
+        filter: none;
+    }
+
+    .btn:disabled {
+        opacity: 1;
+        background: rgb(var(--line-rgb) / 0.2);
+        color: var(--text-mute);
+    }
+
+    .btn--ghost,
+    .btn--danger-ghost {
+        @include inverse;
+    }
+
+    .btn--danger-ghost {
+        background: var(--danger);
+        border-color: var(--danger);
+    }
+
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled),
+    #{$flat-buttons}:hover:not(:disabled) {
+        @include inverse;
+    }
+
+    #{$push-buttons} {
+        border: 0;
+        border-radius: 0;
+        background: none;
+        color: var(--text);
+
+        &:hover:not(:disabled) {
+            @include inverse;
+        }
+    }
+
+    #{$pushed-on} {
+        @include inverse;
+    }
+
+    // a MIDI channel: its number, inverse in its coil's colour when on
+    .chan-cell {
+        border: 0;
+        border-radius: 0;
+        background: none;
+        color: var(--text-dim);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: var(--vtx-inverse-text);
+    }
+
+    // --- choices: the chosen one inverse; a screen's modes numbered like the menu --------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        gap: 0.2rem 0.8rem;
+        padding: 0;
+        border: 0;
+        background: none;
+
+        button {
+            border: 0;
+            border-radius: 0;
+            background: none;
+            color: var(--text);
+        }
+
+        button:hover:not(:disabled) {
+            background: rgb(var(--line-rgb) / 0.15);
+        }
+
+        button.is-active,
+        button.is-on {
+            @include inverse;
+        }
+    }
+
+    // only there: a value's own labels are often numbers already (a coil count)
+    .mode-switch {
+        counter-reset: vtx-choice;
+    }
+
+    .mode-switch button {
+        counter-increment: vtx-choice;
+    }
+
+    .mode-switch button::before {
+        content: counter(vtx-choice) " ";
+        color: var(--text-strong);
+    }
+
+    .mode-switch button.is-active::before {
+        color: inherit;
+    }
+
+    .segmented--tabs button.is-active {
+        @include inverse;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // a screen has no circles: a wizard's step numbers are character cells
+    .stepper__num {
+        border-radius: 0;
+    }
+
+    // --- the switch answers OUI or NON ----------------------------------------------------------
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: auto;
+        height: auto;
+        border: 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        content: "NON";
+        position: static;
+        width: auto;
+        height: auto;
+        padding: 0 0.3rem;
+        border-radius: 0;
+        background: rgb(var(--line-rgb) / 0.2);
+        transform: none;
+        color: var(--text);
+    }
+
+    .switch input:checked + .switch__track::after {
+        @include inverse;
+
+        content: "OUI";
+    }
+
+    // --- entry zones: a row of dots to write on ---------------------------------------------------
+    .text-field,
+    .select-field select,
+    .combo,
+    #{$number-boxes} {
+        border: 0;
+        border-radius: 0;
+        background:
+            radial-gradient(circle, var(--vtx-dots) 1px, transparent 1.5px) 0 100% / 8px 6px repeat-x,
+            transparent;
+    }
+
+    .text-field:focus,
+    .select-field select:focus,
+    .combo:focus-within {
+        background:
+            radial-gradient(circle, var(--text-strong) 1px, transparent 1.5px) 0 100% / 8px 6px repeat-x,
+            transparent;
+    }
+
+    input[type="number"] {
+        appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    // --- menus, dialogs, toasts: a framed page --------------------------------------------------------
+    #{$menus} {
+        border: 1px solid var(--text-dim);
+        border-radius: 0;
+        background: var(--bg);
+        box-shadow: none;
+    }
+
+    #{$menu-items} {
+        border-radius: 0;
+
+        &:hover,
+        &:focus-visible {
+            @include inverse;
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        @include inverse;
+    }
+
+    .modal-card__head {
+        --text: var(--vtx-head-text);
+        --text-strong: var(--vtx-head-text);
+
+        margin: -1.4rem -1.5rem 1.1rem;
+        padding: 0.3rem 0.6rem 0.3rem 1rem;
+        background: var(--vtx-head);
+    }
+
+    .modal-card__title .icon {
+        color: var(--vtx-head-text);
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    // --- scroll bars ------------------------------------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 0;
+        border-radius: 0;
+        background: var(--text-dim);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="videotex"] .screen {
+        animation: none;
+    }
+}

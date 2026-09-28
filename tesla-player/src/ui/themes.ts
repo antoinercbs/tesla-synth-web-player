@@ -20,6 +20,7 @@ export const THEMES = {
   steam: ['copper', 'mahogany', 'verdigris'],
   blueprint: ['prussian', 'whiteprint', 'tracing'],
   blocks: ['dirt', 'redrock', 'obsidian'],
+  videotex: ['grey', 'colour', 'blue'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

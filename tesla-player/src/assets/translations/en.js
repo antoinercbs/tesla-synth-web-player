@@ -391,6 +391,9 @@ export default {
     dirt: "Dirt",
     redrock: "Red rock",
     obsidian: "Obsidian",
+    grey: "Grey",
+    colour: "Colour",
+    blue: "Blue",
   },
   skin: {
     title: "Look",
@@ -402,6 +405,7 @@ export default {
     steam: "Steampunk",
     blueprint: "Blueprint",
     blocks: "Blocks",
+    videotex: "Videotex",
   },
   welcome: {
     title: "Welcome to Tesla Player",
