@@ -1,0 +1,495 @@
+// ===========================================================================
+//  TERMINAL LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $term map (term/_skin.scss), its colours the palette
+// picked among term/_palettes.scss. Here: the double frames, the menu bar, the
+// selection bar, the controls a text screen draws with characters ([ OK ], ( ) and
+// (•), [ ] and [X]), the dotted scroll bars. Every rule sits under
+// [data-skin="term"]; the pages' controls are named by family (../_families.scss).
+
+// the highlighted line: the selection bar's colours
+@mixin hot {
+    background: var(--term-hot);
+    border-color: var(--term-hot);
+    color: var(--term-hot-text);
+    box-shadow: none;
+}
+
+// a control that is only its text until it is highlighted
+@mixin bare {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    color: var(--text);
+}
+
+[data-skin="term"] {
+    color-scheme: dark;
+    caret-color: var(--text-strong);
+
+    // a text screen redraws, it does not ease
+    *,
+    *::before,
+    *::after {
+        transition: none;
+    }
+
+    ::selection {
+        background: var(--term-hot);
+        color: var(--term-hot-text);
+    }
+
+    // --- the screen's head: the menu bar ---------------------------------------------
+    .screen-head,
+    .screen-head.is-scrolled {
+        --text: var(--term-bar-text);
+        --text-dim: var(--term-bar-text);
+        --text-mute: var(--term-bar-text);
+        --text-strong: var(--term-bar-text);
+        --text-bright: var(--term-bar-text);
+        --volt: var(--term-bar-text);
+        --term-hot: var(--term-bar-hot);
+        --term-hot-text: var(--term-bar-hot-text);
+        min-height: 2.6rem;
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+        background: var(--term-bar);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .view-head__title {
+        font-weight: 700;
+    }
+
+    // a mono face is wider than the lab's: the name spaced less, to fit
+    .brand__app {
+        letter-spacing: 0.04em;
+    }
+
+    .screen-head .icon-btn {
+        --icon-btn-size: 1.6rem;
+        color: var(--term-bar-text);
+    }
+
+    // --- windows: double frames, the title in the frame's colour -------------------
+    #{$panels} {
+        border: 3px double var(--term-frame);
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    // a coil's colour is its number: the edge bar goes
+    .coil-card::before {
+        display: none;
+    }
+
+    #{$panel-heads} {
+        color: var(--term-title);
+        border-bottom: 1px solid var(--term-frame);
+        font-weight: 700;
+    }
+
+    .coil-card__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        color: var(--term-title);
+        font-weight: 700;
+    }
+
+    // a dialog: its own colours inside its frame (a token that names another is resolved
+    // where it is set, on <html>: the buttons' are set again here)
+    .modal-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: transparent;
+    }
+
+    .modal-card {
+        --text: var(--term-dialog-text);
+        --text-dim: var(--term-dialog-text);
+        --text-mute: var(--term-dialog-text);
+        --text-strong: var(--term-dialog-strong);
+        --text-bright: var(--term-dialog-strong);
+        --btn-color: var(--term-dialog-text);
+        --btn-primary-color: var(--term-dialog-strong);
+        border: 3px double var(--term-dialog-frame);
+    }
+
+    .modal-card__head {
+        justify-content: center;
+        position: relative;
+    }
+
+    .modal-card__head .icon-btn {
+        position: absolute;
+        right: 0;
+        color: var(--term-dialog-text);
+    }
+
+    // the editor's save bar: the screen's last line, ruled off
+    .editor-footer {
+        background: var(--bg);
+        border-top: 3px double var(--term-frame);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- the sidebar: a Norton panel, its entries under the selection bar ---------
+    .sidebar {
+        border-right: 3px double var(--term-frame);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+    }
+
+    .nav-item:hover,
+    .nav-item.router-link-active {
+        @include hot;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    // --- buttons: [ OK ], highlighted under the pointer -----------------------------
+    .btn {
+        gap: 0.4rem;
+        white-space: nowrap;
+    }
+
+    .btn--volt {
+        font-weight: 700;
+    }
+
+    .btn::before {
+        content: var(--term-bracket-open);
+    }
+
+    .btn::after {
+        content: var(--term-bracket-close);
+    }
+
+    .btn .icon {
+        width: auto;
+        height: auto;
+        font-size: 0.9em;
+    }
+
+    .btn:hover:not(:disabled),
+    .btn:focus-visible {
+        background: var(--term-button-hot);
+        color: var(--term-button-hot-text);
+        filter: none;
+    }
+
+    .btn:disabled {
+        opacity: 1;
+        color: var(--text-mute);
+    }
+
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled) {
+        @include hot;
+    }
+
+    #{$push-buttons},
+    #{$flat-buttons} {
+        @include bare;
+
+        &:hover:not(:disabled) {
+            @include hot;
+        }
+    }
+
+    #{$pushed-on} {
+        @include hot;
+    }
+
+    // a MIDI channel: its number, the coil's colour behind it when on
+    .chan-cell {
+        @include bare;
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: var(--ink);
+        font-weight: 700;
+    }
+
+    .chan-cell:disabled,
+    .chan-cell.is-unavail {
+        opacity: 1;
+        color: var(--text-mute);
+    }
+
+    .live-chan {
+        @include bare;
+    }
+
+    .live-chan.is-selected {
+        @include hot;
+    }
+
+    .live-chan.is-lit {
+        background: var(--c, var(--volt));
+        color: var(--ink);
+    }
+
+    // --- choices: ( ) and (•) for a value, the selection bar for a tool or a view --
+    #{$value-choices} {
+        flex-wrap: wrap;
+        gap: 0 1ch;
+        padding: 0;
+        border: 0;
+        background: none;
+
+        // at their own width, a filled row's included: a radio's label does not shrink
+        button,
+        button.is-active {
+            @include bare;
+
+            flex: 0 0 auto;
+            min-width: 0;
+            padding: 0 0.2rem;
+            font-weight: 400;
+        }
+
+        button::before {
+            content: "( ) ";
+            white-space: pre;
+        }
+
+        button.is-active::before {
+            content: "(•) ";
+        }
+
+        button.is-active {
+            color: var(--text-strong);
+        }
+
+        button:hover:not(:disabled) {
+            @include hot;
+        }
+
+        button:disabled {
+            opacity: 1;
+            color: var(--text-mute);
+        }
+    }
+
+    #{$tool-choices} {
+        gap: 1ch;
+        padding: 0;
+        border: 0;
+        background: none;
+
+        button {
+            @include bare;
+
+            padding: 0 0.3rem;
+        }
+
+        button:hover:not(:disabled),
+        button.is-active,
+        button.is-on {
+            @include hot;
+        }
+    }
+
+    // tabs: the chosen one under the bar
+    .segmented--tabs {
+        border-bottom: 1px solid var(--term-frame);
+    }
+
+    .segmented--tabs button.is-active {
+        @include hot;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // --- the switch is [ ] or [X] -------------------------------------------------
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: auto;
+        height: auto;
+        border: 0;
+        border-radius: 0;
+        background: none;
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        content: "[ ]";
+        position: static;
+        width: auto;
+        height: auto;
+        border-radius: 0;
+        background: none;
+        transform: none;
+        color: var(--text);
+        white-space: pre;
+    }
+
+    .switch input:checked + .switch__track::after {
+        content: "[X]";
+        color: var(--text-strong);
+    }
+
+    .switch input:focus-visible + .switch__track {
+        box-shadow: none;
+        outline: 1px solid var(--term-frame);
+    }
+
+    // --- fields: an input line; a number has no up-down, the arrows still count --
+    input[type="number"] {
+        appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    #{$number-boxes} {
+        border-color: var(--term-field);
+        border-radius: 0;
+        background: var(--term-field);
+        color: var(--term-field-text);
+    }
+
+    input::placeholder,
+    textarea::placeholder,
+    .combo__input::placeholder {
+        color: var(--field-color);
+        opacity: 0.55;
+    }
+
+    .readout__field input {
+        color: var(--term-field-text);
+        font-size: var(--fs-md);
+    }
+
+    .readout__field i,
+    .select-field::after,
+    .combo__chevron,
+    .combo__icon,
+    .combo__clear {
+        color: var(--field-color);
+    }
+
+    // --- menus: a drop-down box, framed, its shadow ---------------------------------
+    #{$menus} {
+        --text: var(--term-menu-text);
+        --text-dim: var(--term-menu-text);
+        --text-mute: var(--term-menu-text);
+        --text-strong: var(--term-menu-text);
+        --field-bg: var(--term-menu-field);
+        --field-border: var(--term-menu-field);
+        --field-focus-border: var(--term-menu-field);
+        --field-color: var(--term-menu-field-text);
+        background: var(--term-menu);
+        border: 3px double var(--term-menu-frame);
+        border-radius: 0;
+        box-shadow: var(--shadow-pop);
+        color: var(--term-menu-text);
+    }
+
+    #{$menu-items} {
+        border-radius: 0;
+        color: var(--term-menu-text);
+
+        &:hover,
+        &:focus-visible {
+            background: var(--term-menu-hot);
+            color: var(--term-menu-hot-text);
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    #{$menu-seps} {
+        background: var(--term-menu-frame);
+    }
+
+    .theme-swatch {
+        border-radius: 0;
+    }
+
+    .combo__option.is-active {
+        background: var(--term-menu-hot);
+        color: var(--term-menu-hot-text);
+    }
+
+    // --- sliders: a dotted bar, the cursor a block on it ---------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: repeating-conic-gradient(var(--term-scroll-a) 0 25%, var(--term-scroll-b) 0 50%) 0 0 / 4px 4px;
+        --range-track-h: 12px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: var(--term-scroll-thumb);
+        --range-thumb-hover: var(--text-strong);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 12px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 0;
+        --range-thumb-shadow: none;
+        --range-focus: 1px solid var(--term-frame);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    // a coil's own slider, its block in the coil's colour (on the family's selector, to
+    // outweigh it)
+    #{$sliders}.bias__range {
+        --range-thumb: var(--c);
+    }
+
+    // over the zones, the block in the screen's white: the first zone is the accent
+    .power-range {
+        --range-track-h: 8px;
+        --range-thumb: var(--text-strong);
+        --range-thumb-hover: var(--term-scroll-thumb);
+        --range-thumb-h: 16px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- scroll bars: the dotted track, the solid thumb --------------------------------
+    ::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: repeating-conic-gradient(var(--term-scroll-a) 0 25%, var(--term-scroll-b) 0 50%) 0 0 / 4px 4px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: 0;
+        background: var(--term-scroll-thumb);
+    }
+}
+
+// fields at the screen's size where there is a mouse (a phone zooms on a field under 16px)
+@media (pointer: fine) {
+    [data-skin="term"] {
+        --fs-input: 0.9rem;
+    }
+}

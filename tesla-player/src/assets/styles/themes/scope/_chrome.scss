@@ -1,0 +1,263 @@
+// ===========================================================================
+//  SCOPE LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type, shape and depth are the $scope map (scope/_skin.scss), its colours the
+// phosphor picked among scope/_palettes.scss. Here: the trace's glow on the text,
+// the tube's scan lines over the page, the front panel's upper-case labels, the
+// pages' controls as outlines lit when chosen. Every rule sits under
+// [data-skin="scope"]; the pages' controls are named by family (../_families.scss).
+
+// a control drawn as an outline, lit (the phosphor, the face's ink on it) when on
+@mixin outline {
+    background: transparent;
+    border: 1px solid rgb(var(--line-rgb) / 0.45);
+    border-radius: 2px;
+    color: var(--text-dim);
+}
+
+@mixin lit {
+    background: var(--volt);
+    border-color: var(--volt);
+    color: var(--ink);
+    text-shadow: none;
+    box-shadow: 0 0 10px rgb(var(--glow-rgb) / 0.45);
+}
+
+@mixin hot {
+    border-color: var(--volt);
+    color: var(--text-strong);
+    box-shadow: 0 0 8px rgb(var(--glow-rgb) / 0.35);
+}
+
+[data-skin="scope"] {
+    color-scheme: dark;
+
+    body {
+        text-shadow: var(--trace-glow);
+    }
+
+    ::selection {
+        background: var(--volt);
+        color: var(--ink);
+        text-shadow: none;
+    }
+
+    // the tube's scan lines, over everything and in the way of nothing
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 10000;
+        pointer-events: none;
+        background: repeating-linear-gradient(0deg, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px);
+    }
+
+    // --- the front panel's labels: upper case, spaced -------------------------------
+    .view-head__title,
+    .modal-card__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title,
+    .nav-item,
+    .btn,
+    #{$panel-heads} {
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .view-head__title {
+        color: var(--text-strong);
+    }
+
+    // a screen's head: the scope's top line of readouts, ruled off
+    .screen-head.is-scrolled {
+        background: var(--bg);
+        box-shadow: 0 1px 0 rgb(var(--line-rgb) / 0.3);
+    }
+
+    // a tube has no frosted glass: what the lab blurs behind a bar or a dialog is
+    // covered or dimmed
+    .screen-head.is-scrolled,
+    .modal-overlay,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        box-shadow: 0 -1px 0 rgb(var(--line-rgb) / 0.3);
+    }
+
+    // the panels: the screen's own face, framed by a fine trace
+    #{$panels} {
+        border-color: rgb(var(--line-rgb) / 0.28);
+    }
+
+    #{$panel-heads} {
+        color: var(--text-strong);
+        font-size: var(--fs-sm);
+    }
+
+    .sidebar {
+        border-right-color: rgb(var(--line-rgb) / 0.3);
+    }
+
+    // --- buttons: lit when chosen, the lit ones without the glow on their text -------
+    .btn--volt,
+    .btn--volt:hover {
+        text-shadow: none;
+    }
+
+    .btn--danger {
+        border-color: rgb(var(--danger-rgb) / 0.6);
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        box-shadow: 0 0 8px rgb(var(--glow-rgb) / 0.35);
+    }
+
+    #{$push-buttons} {
+        @include outline;
+
+        &:hover:not(:disabled) {
+            @include hot;
+        }
+    }
+
+    #{$pushed-on} {
+        @include lit;
+    }
+
+    #{$flat-buttons} {
+        color: var(--text-dim);
+
+        &:hover:not(:disabled) {
+            color: var(--text-strong);
+            background: rgb(var(--glow-rgb) / 0.1);
+        }
+    }
+
+    .chan-cell {
+        @include outline;
+    }
+
+    .chan-cell.is-on {
+        background: color-mix(in srgb, var(--cell, var(--volt)) 22%, transparent);
+        border-color: var(--cell, var(--volt));
+        color: var(--cell, var(--volt));
+        box-shadow: 0 0 8px color-mix(in srgb, var(--cell, var(--volt)) 45%, transparent);
+    }
+
+    // --- choices: the chosen one lit ---------------------------------------------
+    .segmented:not(.segmented--tabs) button.is-active {
+        text-shadow: none;
+        box-shadow: 0 0 10px rgb(var(--glow-rgb) / 0.4);
+    }
+
+    #{$tool-choices} {
+        button.is-on,
+        button.is-active {
+            @include lit;
+        }
+    }
+
+    // the lab's round controls square, like the panel's own (its lamps stay round)
+    .switch__track::after,
+    .player-progress__knob {
+        border-radius: 1px;
+    }
+
+    .theme-swatch,
+    .stepper__num {
+        border-radius: 2px;
+    }
+
+    // --- sliders: a fine trace, the cursor a lit bar across it ------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: rgb(var(--line-rgb) / 0.4);
+        --range-track-h: 2px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: var(--bg);
+        --range-thumb-hover: var(--bg-2);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid var(--volt);
+        --range-thumb-radius: 1px;
+        --range-thumb-shadow: 0 0 8px rgb(var(--glow-rgb) / 0.55);
+        --range-focus: 1px solid var(--volt);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    // a coil's own slider, in its colour (on the family's selector, to outweigh it)
+    #{$sliders}.bias__range {
+        --range-thumb-border: 2px solid var(--c);
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+        --range-thumb-w: 12px;
+        --range-thumb-h: 20px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus: the lit bar under the pointer -------------------------------------
+    #{$menus} {
+        background: var(--bg);
+        border: 1px solid var(--volt);
+        border-radius: 2px;
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include lit;
+
+            box-shadow: none;
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        @include lit;
+
+        box-shadow: none;
+    }
+
+    // --- scroll bars: a thin trace ---------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: 0;
+        background: rgb(var(--glow-rgb) / 0.35);
+        box-shadow: 0 0 6px rgb(var(--glow-rgb) / 0.4);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgb(var(--glow-rgb) / 0.6);
+    }
+}

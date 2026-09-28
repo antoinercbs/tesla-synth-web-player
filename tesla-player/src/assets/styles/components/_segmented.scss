@@ -20,7 +20,7 @@
     border: 0;
     background: transparent;
     color: var(--seg-color, var(--text-dim));
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     font-family: var(--font-body);
     font-size: var(--fs-md);
     font-weight: 500;

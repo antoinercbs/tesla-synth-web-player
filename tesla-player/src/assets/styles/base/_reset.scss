@@ -1,0 +1,135 @@
+// ===========================================================================
+//  RESET: what every page assumes of the elements, before any style of its own
+// ===========================================================================
+// No margins nor list bullets to undo, headings that are only their text, boxes
+// sized border to border, media that fit. Controls take the page's font: without
+// this the browser gives them its own.
+
+html,
+body,
+p,
+ol,
+ul,
+li,
+dl,
+dt,
+dd,
+blockquote,
+figure,
+fieldset,
+legend,
+textarea,
+pre,
+iframe,
+hr,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    margin: 0;
+    padding: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-size: 100%;
+    font-weight: normal;
+}
+
+ul {
+    list-style: none;
+}
+
+button,
+input,
+select,
+textarea {
+    margin: 0;
+}
+
+button,
+input,
+optgroup,
+select,
+textarea {
+    font-family: inherit;
+}
+
+// the rem scale's base: the reader's own default size (16px unless they changed it)
+html {
+    box-sizing: border-box;
+    font-size: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-width: 300px;
+    text-rendering: optimizeLegibility;
+    text-size-adjust: 100%;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: inherit;
+}
+
+img,
+video {
+    height: auto;
+    max-width: 100%;
+}
+
+iframe,
+fieldset {
+    border: 0;
+}
+
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+td,
+th {
+    padding: 0;
+    vertical-align: top;
+}
+
+td:not([align]),
+th:not([align]) {
+    text-align: inherit;
+}
+
+body {
+    line-height: 1.5;
+}
+
+a {
+    cursor: var(--cursor-pointer, pointer);
+    text-decoration: none;
+}
+
+small {
+    font-size: 0.875em;
+}
+
+// code keeps the grain of a mono face at small sizes
+code,
+pre {
+    -webkit-font-smoothing: auto;
+    -moz-osx-font-smoothing: auto;
+}
+
+strong {
+    font-weight: 700;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    vertical-align: baseline;
+}

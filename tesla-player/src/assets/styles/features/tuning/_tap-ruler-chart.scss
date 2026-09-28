@@ -19,7 +19,7 @@
     user-select: none;
     outline: none;
     border-radius: var(--radius-sm);
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .tapmark polygon {

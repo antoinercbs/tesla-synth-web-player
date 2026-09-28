@@ -64,7 +64,7 @@
     color: var(--text-dim);
     font: inherit;
     font-size: var(--fs-xs);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     white-space: nowrap;
 }
 
@@ -114,7 +114,7 @@
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-mute);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     display: grid;
     place-items: center;
     padding: 0;

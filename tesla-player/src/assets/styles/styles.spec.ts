@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 /**
  * Where the styles live, and what a themable partial may write. Every style is
  * meant to live in assets/styles (see README.md), so a skin can restyle anything;
- * the partials outside tokens/, themes/ and vendors/ only use tokens, so a palette
+ * the partials outside tokens/ and themes/ only use tokens, so a palette
  * or a skin reaches everything they draw.
  */
 const SRC = new URL('../../', import.meta.url);

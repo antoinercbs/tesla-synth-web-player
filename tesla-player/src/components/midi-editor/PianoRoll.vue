@@ -31,6 +31,12 @@ const MIN_ZOOM = 8;
 const MAX_ZOOM = 220;
 // a note's right edge grabs its length within this, when the note is wide enough to keep a middle
 const EDGE_PX = 7;
+// the look's own arrow, hand and beam where it draws them (assets/styles/themes/_cursors.scss)
+const LOOK_CURSORS: Record<string, string> = {
+  default: 'var(--cursor-default, default)',
+  pointer: 'var(--cursor-pointer, pointer)',
+  text: 'var(--cursor-text, text)',
+};
 
 const area = ref<HTMLElement | null>(null);
 const scroller = ref<HTMLElement | null>(null);
@@ -394,7 +400,7 @@ function onPointerMove(e: PointerEvent): void {
       const h = hitNote(x, y);
       cur = h ? (nearEnd(h, x) ? 'ew-resize' : 'grab') : props.tool === 'pencil' ? 'crosshair' : 'default';
     }
-    sc.style.cursor = cur;
+    sc.style.cursor = LOOK_CURSORS[cur] ?? cur;
     const hp = y >= RULER_H && y < sc.clientHeight ? pitchAt(y) : -1;
     if (hp !== hoverPitch) { hoverPitch = hp; draw(); }
     return;

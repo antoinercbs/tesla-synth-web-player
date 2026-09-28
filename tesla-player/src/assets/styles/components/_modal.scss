@@ -18,7 +18,12 @@
     backdrop-filter: blur(4px);
 }
 
+// a column: its head and actions keep their height, the body between them scrolls
 .modal-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     width: 100%;
     max-width: 560px;
     max-height: 80vh;

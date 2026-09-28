@@ -204,7 +204,7 @@
     background: transparent;
     color: var(--text);
     opacity: 0.8;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0;
 }
 
@@ -391,7 +391,7 @@
     color: var(--text-mute);
     font: inherit;
     font-size: var(--fs-sm);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
 }
 
 .tour__skip:hover {

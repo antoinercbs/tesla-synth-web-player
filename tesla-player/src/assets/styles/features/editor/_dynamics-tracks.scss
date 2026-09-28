@@ -74,7 +74,7 @@
 
 .dyn-tracks__ruler {
     fill: var(--panel);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
 }
 
 .dyn-tracks__ruler-label {

@@ -7,8 +7,9 @@ import { SKINS } from './skins';
 const read = (look: string): string => readFileSync(new URL(`../assets/styles/themes/${look}/_palettes.scss`, import.meta.url), 'utf8');
 const idsOf = (scss: string, map: string): string[] => {
   const block = scss.slice(scss.indexOf(`${map}: (`));
-  // a key may be quoted (a colour name such as olive must be, to stay a string)
-  return [...block.slice(0, block.indexOf('\n);')).matchAll(/^ {4}"?([a-z][\w-]*)"?: \($/gm)].map((m) => m[1]);
+  // a key may be quoted (a colour name such as olive must be, to stay a string), its
+  // palette written out or built by a function (scope's)
+  return [...block.slice(0, block.indexOf('\n);')).matchAll(/^ {4}"?([a-z][\w-]*)"?: /gm)].map((m) => m[1]);
 };
 
 describe('themes', () => {
@@ -22,8 +23,10 @@ describe('themes', () => {
     expect(scss).toMatch(new RegExp(`^\\$default-theme: ${defaultTheme('lab')};$`, 'm'));
   });
 
-  it('lists the XP look the schemes of xp/_palettes.scss', () => {
-    expect([...THEMES.xp]).toEqual(idsOf(read('xp'), '$xp-palettes'));
+  it('lists every other look the palettes of its <look>/_palettes.scss', () => {
+    for (const skin of SKINS.filter((s) => s !== 'lab')) {
+      expect([...THEMES[skin]]).toEqual(idsOf(read(skin), `$${skin}-palettes`));
+    }
   });
 
   it('keeps every palette id to one look (data-theme names it alone)', () => {

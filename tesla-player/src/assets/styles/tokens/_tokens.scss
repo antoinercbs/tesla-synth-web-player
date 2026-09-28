@@ -100,6 +100,9 @@
     --zone-rgb: 255 190 60;
     --mask-rgb: 70 255 120;
 
+    // a link under the pointer: its accent, lightened
+    --link-hover: color-mix(in srgb, var(--volt) 65%, #fff);
+
     // volt tints
     --volt-05: rgb(var(--volt-rgb) / 0.05);
     --volt-06: rgb(var(--volt-rgb) / 0.06);

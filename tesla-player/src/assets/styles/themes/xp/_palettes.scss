@@ -1,4 +1,6 @@
 @use "sass:map";
+@use "sass:meta";
+@use "sass:string";
 
 // ===========================================================================
 //  XP LOOK: its colour schemes, Windows XP's own three
@@ -11,9 +13,20 @@
 // pane, button and field borders). ui/themes.ts lists the ids for the XP look,
 // the first is its default (its spec checks both).
 
+// XP's mouse cursors (../_cursors.scss), black on white with their soft shadow
+$xp-arrow: "M1.5 1.5V17.5L5.5 13.5L8.3 19.6L10.4 18.7L7.6 12.5H12.5Z";
+$xp-hand: "M6 2.2C6 1.4 6.5 1 7.2 1S8.4 1.4 8.4 2.2V9H8.8V7.6C8.8 6.9 9.3 6.6 9.9 6.6S11 6.9 11 7.6V9.4H11.4V8.3C11.4 7.6 11.9 7.3 12.5 7.3S13.6 7.6 13.6 8.3V10H14V9.2C14 8.5 14.5 8.2 15 8.2S16 8.5 16 9.2V14.5C16 17 14.8 19 13.8 20H8C7 19 5.8 17.2 4.8 15.6L2.6 12.2C2.2 11.5 2.4 10.8 3 10.5S4.3 10.3 4.7 10.9L6 12.9Z";
+$xp-beam: "M4.5 2.5h2c.8 0 1.5.4 1.5 1 0-.6.7-1 1.5-1h2M8 3.5v14M4.5 18.5h2c.8 0 1.5-.4 1.5-1 0 .6.7 1 1.5 1h2M6 10.5h4";
+@function -xp-shadowed($d) {
+    @return '<path d="#{$d}" transform="translate(1.5 1.5)" fill="#000" opacity=".28"/><path d="#{$d}" fill="#fff" stroke="#000"/>';
+}
+
 // what the three schemes share: black text on the face, the green Start button,
-// the orange of a selected tab, coil colours deep enough for a light face
+// the orange of a selected tab, coil colours deep enough for a light face, the cursors
 $xp-shared: (
+    cursor-default: cursor-url(-xp-shadowed($xp-arrow), 1, 1, default),
+    cursor-pointer: cursor-url(-xp-shadowed($xp-hand) + '<path d="M8.6 9v4M11.2 9.5v3.5M13.8 10v3" stroke="#000" stroke-width=".8" fill="none"/>', 7, 1, pointer),
+    cursor-text: cursor-url('<path d="#{$xp-beam}" fill="none" stroke="#fff" stroke-width="3"/><path d="#{$xp-beam}" fill="none" stroke="#000"/>', 8, 10, text),
     text: #000,
     text-rgb: "0 0 0",
     text-dim: #3a3a3a,
@@ -161,12 +174,30 @@ $xp-palettes: (
     )
 );
 
+// the trackbar's cap, pointed at its ticks, edged in the scheme's field border; under
+// the pointer, the orange of a hot button along its point. A data URI: its # escaped,
+// so the edge is a hex colour, and the gradient's url() too (Vite rewrites every
+// url( it finds in a partial, and fails on this one).
+@function -xp-thumb($edge, $hot: false) {
+    $e: "%23" + string.slice(meta.inspect($edge), 2);
+    $svg: "%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 21'%3E"
+        + "%3ClinearGradient id='f' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23fff'/%3E"
+        + "%3Cstop offset='1' stop-color='%23e3e2da'/%3E%3C/linearGradient%3E"
+        + "%3Cpath d='M1.5.5h8a1 1 0 0 1 1 1V15l-5 5.5L.5 15V1.5a1 1 0 0 1 1-1z' fill='url%28%23f%29' stroke='#{$e}'/%3E";
+    @if $hot {
+        $svg: $svg + "%3Cpath d='M1.6 14.6 5.5 18.9l3.9-4.3' fill='none' stroke='%23f8b330' stroke-width='1.3'/%3E";
+    }
+    @return 'url("data:image/svg+xml,#{$svg}%3C/svg%3E") center / 100% 100% no-repeat';
+}
+
 @mixin -xp-palette($p) {
     @each $key, $value in map.merge($xp-shared, $p) {
         --#{$key}: #{$value};
     }
     // the picker's swatch shows the scheme's title bar
     --swatch: #{map.get($p, xp-title)};
+    --xp-slider-thumb: #{-xp-thumb(map.get($p, xp-field-border))};
+    --xp-slider-thumb-hot: #{-xp-thumb(map.get($p, xp-field-border), true)};
 }
 
 @each $id, $p in $xp-palettes {

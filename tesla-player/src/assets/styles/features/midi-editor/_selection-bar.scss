@@ -68,7 +68,7 @@
     background: transparent;
     padding: 0.2rem 0.5rem;
     border-radius: var(--radius-xs);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     color: var(--text-dim);
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
@@ -133,7 +133,7 @@
     border: 1px solid var(--line-strong);
     background: var(--panel-2);
     color: var(--text-dim);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     display: inline-grid;
     place-items: center;
 }
@@ -160,7 +160,7 @@
     border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-mute);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     display: grid;
     place-items: center;
     padding: 0;

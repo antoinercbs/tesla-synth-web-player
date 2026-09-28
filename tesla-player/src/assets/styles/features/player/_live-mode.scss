@@ -106,7 +106,7 @@
     gap: 0.5rem;
     padding: 0.55rem 1rem;
     border-radius: var(--radius-pill);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     background: var(--scrim-90);
     border: 1px solid var(--volt);
     color: var(--volt);
@@ -161,7 +161,7 @@
     color: var(--text-dim);
     background: rgb(var(--hi-rgb) / 0.02);
     border: 1px solid var(--line);
-    cursor: default;
+    cursor: var(--cursor-default, default);
     transition:
         background 0.1s,
         color 0.1s,
@@ -171,7 +171,7 @@
 }
 
 .live-chan.is-pick {
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
 }
 
 // keyboard focus (e.g. after picking a chip, then playing on the PC keys): stay on-theme

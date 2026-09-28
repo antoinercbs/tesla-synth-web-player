@@ -44,9 +44,8 @@
     margin-top: 0.25rem;
 }
 
-// under the card: Bulma's `a:hover` colour would win over a class and an element
-.credits-modal .credits__links a,
-.credits-modal .credits__by a {
+.credits__links a,
+.credits__by a {
     color: var(--volt);
     text-decoration: none;
     font-size: var(--fs-md);

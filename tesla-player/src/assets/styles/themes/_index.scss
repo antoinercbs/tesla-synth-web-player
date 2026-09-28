@@ -10,16 +10,23 @@
 // custom properties under [data-skin="<id>"]. ui/skins.ts lists the ids (its spec
 // checks they match $skins) and applies the chosen one, a data-skin attribute on
 // <html>; ui/themes.ts does the same for a look's palettes.
+@import "cursors";
 @import "lab/palettes";
 @import "xp/palettes";
+@import "scope/palettes";
+@import "term/palettes";
 @import "lab/skin";
 @import "xp/skin";
+@import "scope/skin";
+@import "term/skin";
 
 $default-skin: lab;
 
 $skins: (
     lab: $lab,
     xp: $xp,
+    scope: $scope,
+    term: $term,
 );
 
 @mixin -skin($s) {

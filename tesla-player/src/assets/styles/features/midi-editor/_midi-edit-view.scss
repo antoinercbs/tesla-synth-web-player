@@ -126,7 +126,7 @@
     background: transparent;
     padding: 0.25rem 0.65rem;
     border-radius: var(--radius-xs);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     color: var(--text-dim);
     font: inherit;
     font-size: var(--fs-sm);
@@ -174,7 +174,7 @@
     border-radius: var(--radius-sm);
     background: var(--grad);
     color: var(--on-grad);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     display: grid;
     place-items: center;
     padding: 0;

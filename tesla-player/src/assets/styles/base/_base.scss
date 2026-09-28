@@ -1,6 +1,21 @@
 html {
     background: var(--bg);
     overflow: hidden;
+    cursor: var(--cursor-default, auto);
+}
+
+// a look's text beam over what edits text, its arrow where it cannot (a disabled
+// field, a number's up-down); the fallbacks are the browser's own
+input:not([type="range"], [type="checkbox"], [type="radio"], [type="color"], [type="file"], [type="button"], [type="submit"]),
+textarea,
+[contenteditable="true"] {
+    cursor: var(--cursor-text, text);
+}
+
+input:disabled,
+textarea:disabled,
+input::-webkit-inner-spin-button {
+    cursor: var(--cursor-default, default);
 }
 
 body {
@@ -9,6 +24,14 @@ body {
     background: var(--backdrop);
     background-attachment: fixed;
     min-height: 100dvh;
+}
+
+a {
+    color: var(--volt);
+}
+
+a:hover {
+    color: var(--link-hover);
 }
 
 #app {

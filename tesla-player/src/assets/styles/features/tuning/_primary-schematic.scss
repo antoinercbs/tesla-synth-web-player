@@ -29,7 +29,7 @@
 }
 
 .coil.is-static {
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .secondary {

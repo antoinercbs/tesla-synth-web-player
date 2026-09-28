@@ -1,0 +1,124 @@
+@use "sass:color";
+@use "sass:map";
+@use "sass:math";
+
+// ===========================================================================
+//  SCOPE LOOK: its phosphors
+// ===========================================================================
+// An oscilloscope's tube: the trace's phosphor on a black face it tints. Each
+// palette is three colours (the phosphor, its hot core, the face); -scope() below
+// writes from them every property the look needs, on [data-theme="<id>"]. The coil
+// colours and the signals (danger, ok…) stay the lab's hues: they carry meaning a
+// single phosphor could not. ui/themes.ts lists the ids for the look, the first is
+// its default (its spec checks both).
+
+@function -scope-rgb($c) {
+    $r: math.round(color.channel($c, "red", $space: rgb));
+    $g: math.round(color.channel($c, "green", $space: rgb));
+    $b: math.round(color.channel($c, "blue", $space: rgb));
+    @return "#{$r} #{$g} #{$b}";
+}
+
+// what every phosphor keeps: the signals, the coils, the camera page's black
+$scope-shared: (
+    danger: #ff5a5a,
+    danger-rgb: "255 90 90",
+    danger-text: #ff8a8a,
+    danger-text-hover: #ffb3b3,
+    ok: #5dffa0,
+    ok-rgb: "93 255 160",
+    amber: #ffc24a,
+    amber-rgb: "255 194 74",
+    caution: #ffd24d,
+    caution-rgb: "255 210 77",
+    caution-text: #ffe08a,
+    warn: #ffb347,
+    conflict: #ffb454,
+    duplicate: #ff8c69,
+    duplicate-rgb: "255 140 105",
+    worse: #ff8c42,
+    coil-0: #ff5c7a,
+    coil-1: #ffd84a,
+    coil-2: #4dffa0,
+    coil-3: #5ad8ff,
+    coil-4: #c07bff,
+    coil-5: #ff9a4d,
+    plasma: #c07bff,
+);
+
+// the mouse cursors (../_cursors.scss) drawn as the trace: a line of phosphor over its
+// own faint glow; what clicks shows the measuring reticle
+$scope-arrow: "M1.5 1.5V17.5L5.5 13.5L8.3 19.6L10.4 18.7L7.6 12.5H12.5Z";
+$scope-reticle: "M16 4v6M16 22v6M4 16h6M22 16h6M22 16a6 6 0 1 1-12 0a6 6 0 1 1 12 0";
+$scope-beam: "M4.5 2.5h2c.8 0 1.5.4 1.5 1 0-.6.7-1 1.5-1h2M8 3.5v14M4.5 18.5h2c.8 0 1.5-.4 1.5-1 0 .6.7 1 1.5 1h2M6 10.5h4";
+@function -scope-trace($d, $phosphor, $fill: none) {
+    @return '<path d="#{$d}" fill="#{$fill}" stroke="#{$phosphor}" stroke-width="3.5" opacity=".22" stroke-linejoin="round" stroke-linecap="round"/>'
+        + '<path d="#{$d}" fill="#{$fill}" stroke="#{$phosphor}" stroke-width="1.3" stroke-linejoin="round" stroke-linecap="round"/>';
+}
+
+@function -scope($phosphor, $core, $face) {
+    $dim: color.mix($phosphor, $face, 72%);
+    $mute: color.mix($phosphor, $face, 52%);
+    @return map.merge(
+        $scope-shared,
+        (
+            bg: $face,
+            bg-2: color.mix($phosphor, $face, 4%),
+            panel: color.mix($phosphor, $face, 3%),
+            panel-2: color.mix($phosphor, $face, 7%),
+            bg-rgb: -scope-rgb($face),
+            line-rgb: -scope-rgb($phosphor),
+            text: $phosphor,
+            text-rgb: -scope-rgb($phosphor),
+            text-dim: $dim,
+            text-mute: $mute,
+            text-strong: $core,
+            text-bright: $core,
+            // on a lit fill, the face
+            ink: $face,
+            // a faint fill is a faint glow
+            hi-rgb: -scope-rgb($phosphor),
+            volt: $phosphor,
+            volt-rgb: -scope-rgb($phosphor),
+            grad: linear-gradient(180deg, $core, $phosphor),
+            on-grad: $face,
+            // the active marker is a trace, one phosphor end to end (the lab's arc fades)
+            arc-core: $phosphor,
+            arc-mid: $phosphor,
+            arc-deep: $phosphor,
+            arc-glow-rgb: -scope-rgb($phosphor),
+            // the trace's glow, around text and lit pieces
+            glow-rgb: -scope-rgb($phosphor),
+            // the piano's keys, drawn in the phosphor too
+            key-white: linear-gradient(180deg, color.mix($phosphor, $face, 30%) 0%, color.mix($phosphor, $face, 18%) 100%),
+            key-white-hover: linear-gradient(180deg, color.mix($phosphor, $face, 40%) 0%, color.mix($phosphor, $face, 26%) 100%),
+            key-black: linear-gradient(180deg, color.mix($phosphor, $face, 10%) 0%, $face 100%),
+            key-black-hover: linear-gradient(180deg, color.mix($phosphor, $face, 18%) 0%, color.mix($phosphor, $face, 6%) 100%),
+            key-glow-rgb: -scope-rgb($core),
+            key-ink-rgb: -scope-rgb($face),
+            knob: $core,
+            swatch: $phosphor,
+            cursor-default: cursor-url(-scope-trace($scope-arrow, $phosphor, $face), 1, 1, default),
+            cursor-pointer: cursor-url(-scope-trace($scope-reticle, $phosphor) + '<circle cx="16" cy="16" r="1.2" fill="#{$phosphor}"/>', 16, 16, pointer),
+            cursor-text: cursor-url(-scope-trace($scope-beam, $phosphor), 8, 10, text),
+        )
+    );
+}
+
+// the order is the picker's, the first the look's default
+$scope-palettes: (
+    // P1: the green of the first oscilloscopes
+    p1: -scope(#5cff8a, #d4ffe0, #020a05),
+    // P3: amber
+    p3: -scope(#ffb627, #fff0c8, #0a0600),
+    // P4: the white of a television tube
+    p4: -scope(#cfe6ff, #fff, #05080c),
+);
+
+@each $id, $p in $scope-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in $p {
+            --#{$key}: #{$value};
+        }
+    }
+}

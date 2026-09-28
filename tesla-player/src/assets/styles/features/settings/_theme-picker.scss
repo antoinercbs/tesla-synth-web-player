@@ -36,7 +36,7 @@
     border: 0;
     border-radius: 50%;
     background: var(--swatch, var(--grad));
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: transform 0.12s ease;
 }
 

@@ -53,7 +53,7 @@
 .combo__clear {
     background: none;
     border: 0;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     color: var(--text-mute);
     padding: 0.2rem;
     display: grid;
@@ -96,7 +96,7 @@
 .combo__option {
     padding: 0.5rem 0.65rem;
     border-radius: var(--menu-item-radius, var(--radius-sm));
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     color: var(--text);
     font-size: var(--fs-lg);
     white-space: nowrap;

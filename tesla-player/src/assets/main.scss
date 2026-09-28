@@ -2,14 +2,11 @@
 
 // main.scss is a thin manifest — the real styles live in styles/* (see styles/README.md).
 // ORDER IS LOAD-BEARING:
-//  - bulma-config (Sass $var overrides) MUST precede the Bulma import
 //  - tokens and the looks (palettes, structure) MUST precede everything that uses var(--…)
 //  - components come before features: a feature adjusts the shared pieces it uses
-//  - bulma-overrides MUST come after the Bulma import (it relies on source order to beat Bulma)
 //  - a skin's own chrome comes last: it restyles anything above
 
-@import "styles/vendors/bulma-config"; // Bulma $variable overrides (dark theme)
-@import "styles/vendors/bulma-import"; // compile Bulma with those overrides
+@import "styles/base/reset"; // what every page assumes of the elements
 @import "styles/tokens/tokens"; // shared colours and the tints derived from the palette
 @import "styles/themes/index"; // the looks, each in its folder: palettes, structure, and which one is on
 @import "styles/base/base"; // base elements, typography, scrollbar
@@ -17,5 +14,4 @@
 @import "styles/layout/screen"; // the page scaffold
 @import "styles/components/index"; // shared pieces: buttons, fields, modals…
 @import "styles/features/index"; // one partial per feature
-@import "styles/vendors/bulma-overrides"; // Bulma component overrides
 @import "styles/themes/chrome"; // each look's chrome, under its [data-skin]

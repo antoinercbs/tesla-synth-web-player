@@ -3,4 +3,8 @@
 // ===========================================================================
 // Imported last (../../main.scss): each look's rules sit under its
 // [data-skin="<id>"] and restyle anything above.
+@import "families";
+@import "range";
 @import "xp/chrome";
+@import "scope/chrome";
+@import "term/chrome";

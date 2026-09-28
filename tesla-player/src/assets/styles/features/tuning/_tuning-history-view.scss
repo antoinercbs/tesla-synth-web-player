@@ -41,9 +41,8 @@
     font-size: var(--fs-md);
 }
 
-// `table.`: level with Bulma's `table th:not([align])`, which would win over a bare class
-table.hist-table th,
-table.hist-table td {
+.hist-table th,
+.hist-table td {
     padding: 0.6rem 0.9rem;
     border-bottom: 1px solid var(--line);
     text-align: left;
@@ -63,7 +62,7 @@ table.hist-table td {
 }
 
 .hist-row {
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: background 0.12s;
 }
 

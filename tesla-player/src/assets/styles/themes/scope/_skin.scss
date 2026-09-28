@@ -1,0 +1,101 @@
+@use "sass:map";
+
+// ===========================================================================
+//  SCOPE LOOK: its structure
+// ===========================================================================
+// An oscilloscope's screen: everything in the mono face, square corners, depth
+// as a glow rather than a shadow, the graticule behind the page. The lab's map
+// merged with what the scope changes; its colours are its phosphors
+// (scope/_palettes.scss), what tokens cannot say scope/_chrome.scss.
+$scope-mono: '"IBM Plex Mono", ui-monospace, monospace';
+$scope: map.merge(
+    $lab,
+    (
+        font-display: $scope-mono,
+        font-body: $scope-mono,
+        // a mono face reads larger than the lab's sans: the scale a step down
+        fs-xs: 0.68rem,
+        fs-sm: 0.72rem,
+        fs-md: 0.78rem,
+        fs-lg: 0.84rem,
+        fs-xl: 1rem,
+        fs-2xl: 1.3rem,
+        radius-2xs: 0,
+        radius-xs: 1px,
+        radius-sm: 2px,
+        radius-md: 2px,
+        radius: 2px,
+        radius-xl: 3px,
+        radius-lg: 3px,
+        radius-pill: 2px,
+        // depth is a glow
+        shadow-pop: "0 0 0 1px rgb(var(--glow-rgb) / 0.55), 0 0 16px rgb(var(--glow-rgb) / 0.22)",
+        shadow-float: "0 0 0 1px rgb(var(--glow-rgb) / 0.6), 0 0 26px rgb(var(--glow-rgb) / 0.25)",
+        shadow-modal: "0 0 0 1px rgb(var(--glow-rgb) / 0.6), 0 0 40px rgb(var(--glow-rgb) / 0.22)",
+        shadow-panel: "inset 0 0 30px rgb(var(--glow-rgb) / 0.04)",
+        shadow-knob: "0 0 6px rgb(var(--glow-rgb) / 0.7)",
+        shadow-well: "inset 0 0 18px rgb(var(--glow-rgb) / 0.08)",
+        shadow-key: none,
+        shadow-key-black: none,
+        shadow-key-down: "0 0 10px rgb(var(--glow-rgb) / 0.55)",
+        shadow-phone: "0 0 0 1px var(--phone-edge), 0 0 40px rgb(var(--glow-rgb) / 0.2)",
+        focus-ring: "0 0 0 1px var(--volt), 0 0 8px rgb(var(--glow-rgb) / 0.6)",
+        focus-ring-strong: "0 0 0 2px var(--volt), 0 0 10px rgb(var(--glow-rgb) / 0.7)",
+        // the glow of the trace's own text (scope/_chrome.scss puts it on the page)
+        trace-glow: "0 0 5px rgb(var(--glow-rgb) / 0.5)",
+        // the tube behind the page: its darker rim, the centre axes, the divisions
+        backdrop: "radial-gradient(ellipse at center, transparent 55%, rgb(0 0 0 / 0.55) 100%), linear-gradient(90deg, transparent calc(50% - 0.5px), rgb(var(--glow-rgb) / 0.12) 0 calc(50% + 0.5px), transparent 0), linear-gradient(transparent calc(50% - 0.5px), rgb(var(--glow-rgb) / 0.12) 0 calc(50% + 0.5px), transparent 0), linear-gradient(rgb(var(--glow-rgb) / 0.05) 1px, transparent 1px) center / 100% 48px, linear-gradient(90deg, rgb(var(--glow-rgb) / 0.05) 1px, transparent 1px) center / 48px 100%, var(--bg)",
+        // the "active" marker: a straight trace (the lab's is an arc)
+        micro-arc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'%3E%3Cpath d='M0 3.5H100' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E"),
+        micro-arc-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 30' preserveAspectRatio='none'%3E%3Cpath d='M3.5 0V30' stroke='%23000' stroke-width='2'/%3E%3C/svg%3E"),
+        // the shared pieces (their tokens: components/*.scss): outlines, lit when chosen
+        btn-bg: transparent,
+        btn-border: rgb(var(--line-rgb) / 0.45),
+        btn-color: var(--text),
+        btn-weight: 500,
+        btn-hover-border: var(--volt),
+        btn-hover-color: var(--text-strong),
+        btn-primary-bg: var(--volt),
+        btn-primary-color: var(--ink),
+        btn-primary-shadow: "0 0 12px rgb(var(--glow-rgb) / 0.45)",
+        btn-danger-bg: transparent,
+        btn-danger-color: var(--danger-text),
+        icon-btn-radius: 2px,
+        icon-btn-bg: transparent,
+        icon-btn-border: rgb(var(--line-rgb) / 0.4),
+        icon-btn-color: var(--text-dim),
+        field-bg: var(--bg),
+        field-color: var(--text-strong),
+        field-border: rgb(var(--line-rgb) / 0.4),
+        field-radius: 2px,
+        field-focus-border: var(--volt),
+        field-focus-ring: var(--focus-ring),
+        field-btn-bg: transparent,
+        field-btn-border: rgb(var(--line-rgb) / 0.4),
+        field-btn-color: var(--text-dim),
+        seg-bg: transparent,
+        seg-border: rgb(var(--line-rgb) / 0.4),
+        seg-radius: 2px,
+        seg-item-radius: 0,
+        seg-color: var(--text-dim),
+        seg-active-bg: var(--volt),
+        seg-active-color: var(--ink),
+        tab-active-color: var(--text-strong),
+        switch-bg: transparent,
+        switch-border: rgb(var(--line-rgb) / 0.5),
+        switch-knob: var(--text-mute),
+        switch-on-bg: var(--volt),
+        switch-on-knob: var(--ink),
+        modal-bg: var(--bg),
+        modal-border: var(--volt),
+        modal-radius: 3px,
+        menu-bg: var(--bg),
+        menu-border: var(--volt),
+        menu-radius: 2px,
+        menu-item-radius: 0,
+        toast-bg: var(--bg),
+        toast-border: var(--volt),
+        toast-radius: 2px,
+        sidebar-bg: var(--bg),
+    )
+);

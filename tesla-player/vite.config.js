@@ -21,15 +21,8 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
-        // Bulma's sass imports resolve against node_modules' parent (the
-        // project root), so it has to be on the sass load path.
-        loadPaths: [fileURLToPath(new URL('.', import.meta.url))],
-        silenceDeprecations: [
-          'import',
-          'global-builtin',
-          'color-functions',
-          'if-function'
-        ]
+        // the partials are brought in with @import, in an order the cascade depends on
+        silenceDeprecations: ['import']
       }
     }
   },

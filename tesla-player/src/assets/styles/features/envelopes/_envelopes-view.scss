@@ -111,7 +111,7 @@
     background: transparent;
     color: var(--text);
     text-align: left;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     font: inherit;
 }
 

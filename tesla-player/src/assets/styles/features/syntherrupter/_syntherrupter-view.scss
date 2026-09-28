@@ -128,9 +128,8 @@
     border-collapse: collapse;
 }
 
-// `table.`: level with Bulma's `table th:not([align])`, which would win over a bare class
-table.sy-tbl th,
-table.sy-tbl td {
+.sy-tbl th,
+.sy-tbl td {
     padding: 0.5rem 0.7rem;
     text-align: left;
     vertical-align: middle;
@@ -212,7 +211,7 @@ table.sy-tbl td {
 .sy-info {
     border: 0;
     background: transparent;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     color: var(--text-mute);
     padding: 0;
     margin-left: 0.3rem;

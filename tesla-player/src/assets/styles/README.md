@@ -6,10 +6,12 @@ Everything the app looks like lives here: the components carry no `<style>`
 `ui/themes.ts`); both are remembered per device, the palette per look. A look is:
 
 - its palettes, `themes/<look>/_palettes.scss`: the colours, and none elsewhere
-  (the lab's fourteen for dark surfaces, XP's three schemes: blue, olive, silver);
+  (the lab's fourteen for dark surfaces, XP's three schemes, the oscilloscope's
+  three phosphors, the terminal's three text modes: Norton, Turbo, monochrome);
 - its structure, `themes/<look>/_skin.scss`: a map of type, sizes, spacing, radii,
   borders, shadows, motion, the active marker, the shared pieces' tokens;
-- what tokens cannot say, `themes/<look>/_chrome.scss` (XP's title bars, bevels).
+- what tokens cannot say, `themes/<look>/_chrome.scss` (XP's title bars and bevels,
+  the scope's scan lines, the terminal's double frames and `[ OK ]`).
 
 `themes/_index.scss` lists the looks and turns their maps into custom properties;
 `themes/_chrome.scss` imports their chromes, last.
@@ -20,17 +22,16 @@ Everything the app looks like lives here: the components carry no `<style>`
 
 | Folder | What |
 |---|---|
-| `vendors/` | Bulma, its settings and overrides (to be removed) |
 | `tokens/` | the colours every palette shares, and the tints derived from the palette |
 | `themes/` | one folder per look (palettes, structure, chrome), `_index.scss` listing them; the chromes come last (`_chrome.scss`) |
-| `base/` | elements, typography, scrollbars |
+| `base/` | the reset (first: what every page assumes of the elements), then elements, typography, scrollbars |
 | `layout/` | the app shell, the sidebar, the screens |
 | `components/` | shared pieces, one partial each: buttons, fields, cards, modals, menus… (`_index.scss` lists them) |
 | `features/` | one folder per feature: player, song editor, MIDI editor, tour, tuning… (`_index.scss` lists them) |
 
 ## Rules
 
-- Outside `tokens/`, `themes/` and `vendors/`, values come from tokens: no colour,
+- Outside `tokens/` and `themes/`, values come from tokens: no colour,
   radius, shadow, font or font size written out, and no token used that is not
   defined (`styles.spec.ts` checks both). A value a
   look should be able to change becomes a token in `$lab` (`themes/lab/_skin.scss`),
@@ -67,7 +68,17 @@ Everything the app looks like lives here: the components carry no `<style>`
    imported in `themes/_chrome.scss` (last in `../main.scss`). Setting tokens on an
    element restyles all it holds: XP's title bars turn the text tokens the bar's
    (`.screen-head { --text: var(--xp-title-text); … }`), the controls in them keep
-   their own.
+   their own. But a token that names another is resolved where it is set, on
+   `<html>`: `--btn-color: var(--text)` does not follow a `--text` set lower, so a
+   dialog that changes its text colour sets `--btn-color` again. The pages'
+   controls come in families (`themes/_families.scss`: push buttons, menus, panels…),
+   a chrome styles a family at once: `#{$menus} { … }`. The lab keeps the browser's
+   sliders; a look that draws its own includes `drawn-range` (`themes/_range.scss`)
+   on `$sliders` and sets their groove and cap (`--range-track`, `--range-thumb`…).
+   Likewise its mouse cursors: its palettes set `--cursor-default`, `--cursor-pointer`
+   and `--cursor-text`, drawn with `cursor-url()` (`themes/_cursors.scss`); a partial
+   reads them with the system's cursor as fallback (`cursor: var(--cursor-pointer,
+   pointer)`), and the other cursors (resize, grab, not-allowed) stay the system's.
 4. Some tokens mean one thing on a dark face and another on a light one; they are
    split so a light look can tell them apart: `--text-bright` (the most emphasised,
    black on XP) and `--on-fill` (on a coloured fill, white everywhere), `--ink` (on

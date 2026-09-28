@@ -90,7 +90,7 @@
     border: 1px solid var(--line);
     border-radius: var(--radius-sm);
     padding: 0.36rem 0;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: 0.12s;
     text-align: center;
 }

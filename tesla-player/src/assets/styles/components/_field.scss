@@ -19,12 +19,10 @@
     grid-column: 1 / -1;
 }
 
-// Bulma ships its own .field-label (horizontal forms: right-aligned and
-// flex-grown at tablet widths); reset that, ours is always a stacked label.
+// always a stacked label: at its own size in a flex row, left whatever its
+// container's alignment (a dialog centres its text)
 .field-label {
     flex: none;
-    margin: 0;
-    padding: 0;
     text-align: left;
     font-size: var(--fs-sm);
     font-weight: 500;
@@ -65,7 +63,7 @@
     font-size: var(--field-size, var(--fs-lg));
     padding: var(--field-pad-y, 0.55rem) 2rem var(--field-pad-y, 0.55rem) var(--field-pad-x, 0.75rem);
     outline: none;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: var(--dur-fast);
 }
 
@@ -92,7 +90,7 @@ input[type="number"]::-webkit-inner-spin-button {
     flex: 0 0 auto;
     width: 2.7rem;
     border-radius: var(--field-radius, var(--radius-sm));
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     display: grid;
     place-items: center;
     background: var(--field-btn-bg, rgb(var(--hi-rgb) / 0.03));

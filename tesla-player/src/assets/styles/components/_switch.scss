@@ -9,7 +9,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     user-select: none;
 }
 

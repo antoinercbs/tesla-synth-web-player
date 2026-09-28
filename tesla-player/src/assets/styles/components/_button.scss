@@ -16,7 +16,7 @@
     border-radius: var(--icon-btn-radius, 50%);
     display: grid;
     place-items: center;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     background: var(--icon-btn-bg, rgb(var(--hi-rgb) / 0.03));
     border: var(--border-w) solid var(--icon-btn-border, var(--line-strong));
     color: var(--icon-btn-color, var(--text-dim));
@@ -46,7 +46,7 @@
     background: var(--btn-bg, var(--panel-2));
     color: var(--btn-color, var(--text));
     box-shadow: var(--btn-shadow, none);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: var(--dur-fast);
     display: inline-flex;
     align-items: center;

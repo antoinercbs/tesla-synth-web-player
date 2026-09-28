@@ -29,14 +29,14 @@
     border: 1px solid var(--line);
     background: var(--panel);
     color: var(--text-dim);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     text-align: left;
     transition: 0.15s;
     font-family: var(--font-body);
 }
 
 .stepper__btn:disabled {
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .stepper__btn:not(:disabled):hover {
@@ -437,7 +437,7 @@ label.tune-field:hover {
     border-radius: var(--radius-pill);
     padding: 0.3rem 0.5rem 0.3rem 0.8rem;
     font-size: var(--fs-sm);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: 0.15s;
 }
 
@@ -640,9 +640,8 @@ label.tune-field:hover {
     font-size: var(--fs-md);
 }
 
-// `table.`: level with Bulma's `table th:not([align])`, which would win over a bare class
-table.tune-table th,
-table.tune-table td {
+.tune-table th,
+.tune-table td {
     padding: 0.4rem 0.6rem;
     border-bottom: 1px solid var(--line);
     text-align: left;

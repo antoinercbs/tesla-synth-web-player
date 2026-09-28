@@ -27,7 +27,7 @@
     flex: 0 0 auto;
     display: grid;
     place-items: center;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     background: rgb(var(--hi-rgb) / 0.03);
     border: 1px solid var(--line-strong);
     color: var(--text-dim);

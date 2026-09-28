@@ -75,7 +75,7 @@
     width: 2rem;
     height: 2rem;
     border-radius: var(--radius-sm);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     display: grid;
     place-items: center;
     font-family: var(--font-mono);

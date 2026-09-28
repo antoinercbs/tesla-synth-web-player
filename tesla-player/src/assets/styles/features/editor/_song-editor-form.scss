@@ -53,7 +53,7 @@
     border: none;
     color: inherit;
     opacity: 0.6;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0.2rem;
     border-radius: 50%;
     display: grid;
@@ -74,7 +74,7 @@
     height: 1.6rem;
     display: grid;
     place-items: center;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     transition: 0.15s;
     font-size: var(--fs-xs);
     padding: 0.15rem 0.2rem 0.15rem 0.2rem;

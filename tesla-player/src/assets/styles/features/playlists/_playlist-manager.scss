@@ -135,7 +135,7 @@
     align-items: center;
     gap: 0.3rem;
     flex: 0 0 auto;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0 0.7rem;
     border-radius: var(--radius-md);
     background: var(--bg-2);
@@ -317,7 +317,7 @@
     flex: 0 0 auto;
     display: grid;
     place-items: center;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     background: rgb(var(--hi-rgb) / 0.03);
     border: 1px solid var(--line-strong);
     color: var(--text-dim);

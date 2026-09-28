@@ -1,0 +1,36 @@
+// ===========================================================================
+//  FAMILIES: the pages' controls a look's chrome restyles together
+// ===========================================================================
+// Each look's chrome names a family once (#{$push-buttons} { … }), so a control a
+// page adds joins every look by being listed here. Only selectors: no output.
+
+// a page's own bordered button, and those of them that stay pressed while on
+$push-buttons: ".row-btn, .queue-btn, .pl-icon-btn, .me-ibtn, .power-head__reset, .coil-filter-toggle, .coil-toggle, .piano__oct, .stepper__btn, .env-lib__new";
+$pushed-on: ".queue-btn.is-active, .coil-filter-toggle.is-active, .coil-toggle.is-on, .stepper__btn.is-active";
+
+// a page's own bare icon button (a toolbar's)
+$flat-buttons: ".me-ico, .me-x, .dyn-row__remove, .midi-lib__action, .midi-lib__edit-icon, .combo__clear, .roll-range__x, .env-steps__remove, .cfg-tag-del, .tour__x";
+
+// the bars that pad their .btn taller than a look's own size
+$button-bars: ".player-transport, .edit-body__dock .player-transport, .me-toolbar, .me-selbar, .me-pop, .midi-lib__bar, .tour__nav";
+
+// a choice of a tool or a view (their <button>s), and of a value (SegmentedControl)
+$tool-choices: ".mode-switch, .me-seg, .me-stepper";
+$value-choices: ".segmented:not(.segmented--tabs, .mode-switch)";
+
+// the menus and popovers, their items and separators
+$menus: ".sidebar-menu, .me-pop, .me-velpop, .midi-lib__dropdown-menu, .env-coil__menu";
+$menu-items: ".sidebar-menu__item, .midi-lib__dropdown-item";
+$menu-seps: ".sidebar-menu__sep, .midi-lib__dropdown-divider";
+
+// a panel (a card on the page), and its head band
+$panels: ".player-panel, .play-panel, .editor-section, .editor-meta, .coil-card, .pl-pane, .pl-meta, .me-card, .env-card, .env-lib__group, .fixed-bar, .live-console, .sy-card, .sy-panel, .tune-panel, .tune-col, .cam-card, .hist-table-wrap, .midi-lib__table, .sg-block";
+$panel-heads: ".player-panel__head, .play-panel__head, .queue-head, .pl-pane__head";
+
+// a number field keeping the browser's up-down control (the others hide it), and
+// the number fields drawn as a box of their own
+$number-fields: 'input[type="number"]:not(.me-num, .env-steps input)';
+$number-boxes: ".readout__field, .me-num";
+
+// the sliders but the power fader, whose groove is its zones (a look draws its cap alone)
+$sliders: 'input[type="range"]:not(.power-range)';

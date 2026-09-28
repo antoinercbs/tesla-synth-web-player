@@ -2,8 +2,8 @@ import { ref } from 'vue';
 import type { SkinId } from './skins';
 
 /**
- * Colour palettes. Each belongs to a look (a skin): the lab's live in
- * assets/styles/themes/lab/_palettes.scss, XP's schemes in themes/xp/_palettes.scss.
+ * Colour palettes. Each belongs to a look (a skin): each look's live in its
+ * folder, assets/styles/themes/<look>/_palettes.scss.
  * This module lists the ids per look (the first is the look's default) and applies
  * the chosen one, a `data-theme` attribute on <html>. The choice is per device and
  * per look: back on a look, its palette comes back with it.
@@ -14,6 +14,8 @@ export const THEMES = {
     'sakura', 'plasma', 'dusk', 'spectrum', 'candy', 'steel', 'noir',
   ],
   xp: ['luna', 'olive', 'silver'],
+  scope: ['p1', 'p3', 'p4'],
+  term: ['norton', 'turbo', 'mono'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

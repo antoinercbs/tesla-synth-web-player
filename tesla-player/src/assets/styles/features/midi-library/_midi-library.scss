@@ -130,7 +130,7 @@
 .midi-lib__dl {
     background: none;
     border: 0;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0.35rem 0.5rem;
     border-radius: var(--radius-sm);
     color: var(--text-dim);
@@ -225,7 +225,7 @@
 .midi-lib__action {
     background: none;
     border: 0;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0.4rem 0.4rem 0.4rem 0;
     border-radius: var(--radius-sm);
     color: var(--text-dim);
@@ -293,7 +293,7 @@
     color: var(--text-dim);
     padding: 0.5rem 0.6rem;
     border-radius: var(--radius-xs);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     text-align: left;
     font-size: var(--fs-md);
     transition: 0.15s;
@@ -378,7 +378,7 @@
     background: none;
     border: none;
     color: var(--text-dim);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0.3rem;
     display: grid;
     place-items: center;
@@ -421,7 +421,7 @@
     font-size: var(--fs-sm);
     color: var(--text-dim);
     white-space: nowrap;
-    cursor: default;
+    cursor: var(--cursor-default, default);
     transition: color 0.15s;
 }
 

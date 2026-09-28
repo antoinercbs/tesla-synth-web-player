@@ -123,7 +123,7 @@
 }
 
 .env-graph__handle.is-readonly {
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .env-graph__handle.is-attack {

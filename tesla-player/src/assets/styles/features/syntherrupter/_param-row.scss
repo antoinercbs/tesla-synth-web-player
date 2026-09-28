@@ -39,7 +39,7 @@
 .param-row__info {
     border: 0;
     background: transparent;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     color: var(--text-mute);
     padding: 0;
     margin-left: 0.15rem;

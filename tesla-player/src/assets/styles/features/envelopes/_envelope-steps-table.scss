@@ -21,7 +21,7 @@
     color: var(--text-mute);
 }
 
-// a compact switch: Bulma's .icon box (1.5rem) would set the height otherwise
+// a compact switch: the .icon box (1.5rem, components/_icon.scss) would set the height otherwise
 .env-steps__end .segmented {
     padding: 2px;
     gap: 2px;
@@ -76,8 +76,7 @@
     padding: 3px 4px;
 }
 
-// under the table: Bulma's `table th:not([align])` would win over a class and an element
-.env-steps__table .env-steps__head th {
+.env-steps__head th {
     font-weight: 500;
     text-align: left;
     padding-bottom: 6px;
@@ -246,7 +245,7 @@
     border: 0;
     background: transparent;
     color: var(--text-mute);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0;
     border-radius: var(--radius-xs);
     font-size: 0.8rem;
@@ -276,7 +275,7 @@
     color: var(--text-dim);
     font: inherit;
     font-size: var(--fs-sm);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     text-align: center;
     padding: 0.4rem;
 }

@@ -38,7 +38,7 @@
     text-decoration: none;
     font: inherit;
     text-align: left;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     background: rgb(var(--hi-rgb) / 0.04);
     border: 1px solid var(--line);
     color: var(--text);
@@ -51,7 +51,7 @@
 
 .dl-option:disabled {
     opacity: 0.6;
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .dl-option__icon {

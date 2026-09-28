@@ -5,7 +5,8 @@
 // scheme picked among xp/_palettes.scss (every colour here reads one, --xp-…).
 // Here: title bars and caption buttons, the task pane, group boxes, push and
 // toggle buttons with their hover glow, radio buttons and check boxes, menus,
-// scroll bars. Every rule sits under [data-skin="xp"] and this file comes last.
+// scroll bars. Every rule sits under [data-skin="xp"] and this file comes last;
+// the pages' controls are named by family (../_families.scss).
 
 $face: "linear-gradient(180deg, #fff 0%, #ecebe6 86%, #d6d0c5 100%)";
 $pressed: linear-gradient(180deg, #cdcac3 0%, #e3e3db 8%, #e5e5de 94%, #f2f2f1 100%);
@@ -43,7 +44,7 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     border-color: #cac8bb;
     color: #aca899;
     box-shadow: none;
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 // a toolbar button: flat, raised under the pointer
@@ -226,10 +227,7 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     }
 
     // --- panels: the task boxes' heads; the cards: group boxes --------------------
-    .player-panel__head,
-    .play-panel__head,
-    .queue-head,
-    .pl-pane__head {
+    #{$panel-heads} {
         background: var(--xp-pane-head);
         color: var(--xp-pane-text);
         font-weight: 700;
@@ -298,15 +296,11 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     }
 
     // the bars that pad their buttons taller
-    .player-transport .btn,
-    .edit-body__dock .player-transport .btn,
-    .me-toolbar .btn,
-    .me-selbar .btn,
-    .me-pop .btn,
-    .midi-lib__bar .btn,
-    .tour__nav .btn {
-        padding-top: 0.15rem;
-        padding-bottom: 0.15rem;
+    #{$button-bars} {
+        .btn {
+            padding-top: 0.15rem;
+            padding-bottom: 0.15rem;
+        }
     }
 
     .btn,
@@ -412,49 +406,26 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     }
 
     // the pages' own buttons, as push buttons
-    .row-btn,
-    .queue-btn,
-    .pl-icon-btn,
-    .me-ibtn,
-    .power-head__reset,
-    .coil-filter-toggle,
-    .coil-toggle,
-    .piano__oct,
-    .stepper__btn,
-    .env-lib__new {
+    #{$push-buttons} {
         @include push;
         @include push-states;
     }
 
-    .row-btn:disabled,
-    .queue-btn:disabled,
-    .pl-icon-btn:disabled,
-    .me-ibtn:disabled,
-    .power-head__reset:disabled {
-        @include disabled;
+    #{$push-buttons} {
+        &:disabled {
+            @include disabled;
+        }
     }
 
     // a toggle that is on stays pressed in
-    .queue-btn.is-active,
-    .coil-filter-toggle.is-active,
-    .coil-toggle.is-on,
-    .stepper__btn.is-active {
+    #{$pushed-on} {
         background: $pressed;
         box-shadow: $sunken;
         color: #000;
     }
 
     // and the toolbar ones, flat
-    .me-ico,
-    .me-x,
-    .dyn-row__remove,
-    .midi-lib__action,
-    .midi-lib__edit-icon,
-    .combo__clear,
-    .roll-range__x,
-    .env-steps__remove,
-    .cfg-tag-del,
-    .tour__x {
+    #{$flat-buttons} {
         @include flat;
     }
 
@@ -505,46 +476,40 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     // --- choices ------------------------------------------------------------------
     // a tool or a view (the MIDI editor's groups, a screen's mode switch): joined
     // toggle buttons, the chosen one pressed in
-    .mode-switch,
-    .me-seg,
-    .me-stepper {
+    #{$tool-choices} {
         gap: 0;
         padding: 0;
         border: 0;
         background: none;
-    }
 
-    .mode-switch button,
-    .me-seg button,
-    .me-stepper button {
-        @include push;
+        button {
+            @include push;
 
-        margin-left: -1px;
-        border-radius: 0;
-        font-weight: 400;
-    }
+            margin-left: -1px;
+            border-radius: 0;
+            font-weight: 400;
+        }
 
-    .mode-switch button:first-child,
-    .me-seg button:first-child,
-    .me-stepper button:first-child {
-        margin-left: 0;
-        border-radius: 3px 0 0 3px;
-    }
+        button:first-child {
+            margin-left: 0;
+            border-radius: 3px 0 0 3px;
+        }
 
-    .mode-switch button:last-of-type,
-    .me-seg button:last-of-type,
-    .me-stepper button:last-of-type {
-        border-radius: 0 3px 3px 0;
-    }
+        button:last-of-type {
+            border-radius: 0 3px 3px 0;
+        }
 
-    .mode-switch button:hover:not(:disabled),
-    .me-seg button:hover:not(:disabled),
-    .me-stepper button:hover:not(:disabled) {
-        position: relative;
-        z-index: 1;
-        background: #{$face};
-        box-shadow: $glow;
-        color: #000;
+        button:hover:not(:disabled) {
+            position: relative;
+            z-index: 1;
+            background: #{$face};
+            box-shadow: $glow;
+            color: #000;
+        }
+
+        button:disabled {
+            @include disabled;
+        }
     }
 
     .mode-switch button.is-active,
@@ -556,14 +521,8 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         font-weight: 700;
     }
 
-    .mode-switch button:disabled,
-    .me-seg button:disabled,
-    .me-stepper button:disabled {
-        @include disabled;
-    }
-
     // a value among a few: radio buttons (XP had no segmented control)
-    .segmented:not(.segmented--tabs, .mode-switch) {
+    #{$value-choices} {
         flex-wrap: wrap;
         gap: 0.35rem 0.9rem;
         padding: 0.15rem 0;
@@ -571,9 +530,9 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         background: none;
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button,
-    .segmented:not(.segmented--tabs, .mode-switch) button.is-active,
-    .segmented:not(.segmented--tabs, .mode-switch) button:hover:not(:disabled) {
+    #{$value-choices} button,
+    #{$value-choices} button.is-active,
+    #{$value-choices} button:hover:not(:disabled) {
         position: relative;
         flex: 0 0 auto;
         min-width: 0;
@@ -588,7 +547,7 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         text-align: left;
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button::before {
+    #{$value-choices} button::before {
         content: "";
         position: absolute;
         left: 0;
@@ -602,13 +561,13 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         box-sizing: border-box;
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button:hover:not(:disabled)::before {
+    #{$value-choices} button:hover:not(:disabled)::before {
         box-shadow:
             inset 1px 1px #fdd889,
             inset -1px -1px #f8b636;
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button.is-active::after {
+    #{$value-choices} button.is-active::after {
         content: "";
         position: absolute;
         left: 4px;
@@ -620,17 +579,17 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         background: radial-gradient(circle at 35% 35%, #8ae08a 0%, #1c9a28 100%);
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button:disabled {
+    #{$value-choices} button:disabled {
         opacity: 1;
         color: #aca899;
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button:disabled::before {
+    #{$value-choices} button:disabled::before {
         border-color: #cac8bb;
         background: #f5f4ea;
     }
 
-    .segmented:not(.segmented--tabs, .mode-switch) button:disabled::after {
+    #{$value-choices} button:disabled::after {
         background: #aca899;
     }
 
@@ -654,7 +613,7 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
 
     // a number's up-down control: drawn where the browser's own sits, which is
     // kept (invisible) to take the clicks
-    input[type="number"]:not(.me-num, .env-steps input) {
+    #{$number-fields} {
         padding-right: 0;
         background:
             url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 10'%3E%3Cpath d='M4.5 6.5h6l-3-3z' fill='%234d6185'/%3E%3C/svg%3E") right top / 15px 50% no-repeat,
@@ -664,11 +623,11 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
             #fff;
     }
 
-    input[type="number"]:not(.me-num, .env-steps input)::-webkit-inner-spin-button {
+    #{$number-fields}::-webkit-inner-spin-button {
         width: 15px;
         margin: 0;
         opacity: 0;
-        cursor: default;
+        cursor: var(--cursor-default, default);
     }
 
     // a check box and a radio button glow orange under the pointer
@@ -679,8 +638,7 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     }
 
     // a number field: XP's white box, square, in the scheme's field border
-    .readout__field,
-    .me-num {
+    #{$number-boxes} {
         border-color: var(--xp-field-border);
         border-radius: 0;
         background: #fff;
@@ -743,11 +701,7 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     }
 
     // --- menus: white, square, the selection colour under the pointer -------------
-    .sidebar-menu,
-    .me-pop,
-    .me-velpop,
-    .midi-lib__dropdown-menu,
-    .env-coil__menu {
+    #{$menus} {
         background: #fff;
         border: 1px solid var(--xp-menu-border);
         border-radius: 0;
@@ -758,29 +712,31 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         padding: 2px;
     }
 
-    .sidebar-menu__item,
-    .midi-lib__dropdown-item {
+    #{$menu-items} {
         border-radius: 0;
         padding: 0.3rem 1.4rem 0.3rem 0.5rem;
         color: #000;
     }
 
-    .sidebar-menu__item:hover,
-    .sidebar-menu__item:focus-visible,
-    .midi-lib__dropdown-item:hover,
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: var(--volt);
+            color: var(--ink);
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
     .combo__option.is-active {
         background: var(--volt);
         color: var(--ink);
     }
 
-    .sidebar-menu__item:hover .icon,
-    .sidebar-menu__item:focus-visible .icon,
-    .midi-lib__dropdown-item:hover .icon {
-        color: inherit;
-    }
-
-    .sidebar-menu__sep,
-    .midi-lib__dropdown-divider {
+    #{$menu-seps} {
         margin: 3px 1px;
         background: var(--xp-menu-border);
     }
@@ -802,6 +758,33 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
     .theme-swatch.is-active {
         outline: 1px dotted #000;
         outline-offset: 2px;
+    }
+
+    // --- sliders: the trackbar's sunken groove, its pointed cap ------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: #f4f3ee;
+        --range-track-h: 4px;
+        --range-track-radius: 2px;
+        --range-track-shadow: inset 1px 1px 0 #9d9d93, inset -1px -1px 0 #fff;
+        --range-thumb: var(--xp-slider-thumb);
+        --range-thumb-hover: var(--xp-slider-thumb-hot);
+        --range-thumb-w: 11px;
+        --range-thumb-h: 21px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 0;
+        --range-thumb-shadow: none;
+        --range-focus: 1px dotted #000;
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
     }
 
     // --- scroll bars ---------------------------------------------------------------

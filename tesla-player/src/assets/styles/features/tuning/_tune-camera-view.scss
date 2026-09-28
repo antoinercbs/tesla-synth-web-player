@@ -260,7 +260,7 @@ body.tune-cam-body {
     font-weight: 600;
     letter-spacing: 0.04em;
     font-size: 1rem;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     min-height: 3rem;
 }
 

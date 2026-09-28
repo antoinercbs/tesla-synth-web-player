@@ -217,7 +217,7 @@
     flex: 0 0 auto;
     display: grid;
     place-items: center;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     background: rgb(var(--hi-rgb) / 0.03);
     border: 1px solid var(--line-strong);
     color: var(--text-dim);
@@ -233,7 +233,7 @@
 
 .power-head__reset:disabled {
     opacity: 0.35;
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 // hero range with a tri-zone track (safe cyan → amber → red) and a big thumb
@@ -243,12 +243,12 @@
     -webkit-appearance: none;
     appearance: none;
     background: transparent;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
 }
 
 .power-range:disabled {
     opacity: 0.4;
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .power-range::-webkit-slider-runnable-track {
@@ -444,7 +444,7 @@
     height: 5px;
     background: var(--bg-2);
     border-radius: var(--radius-pill);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     touch-action: none;
 }
 

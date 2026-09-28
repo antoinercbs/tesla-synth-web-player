@@ -32,7 +32,7 @@
 }
 
 .fphone button {
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
 }
 
 .fphone__caption {
@@ -412,7 +412,7 @@
 
 .fphone__btn:disabled {
     opacity: 0.45;
-    cursor: default;
+    cursor: var(--cursor-default, default);
 }
 
 .fphone__btn--volt {

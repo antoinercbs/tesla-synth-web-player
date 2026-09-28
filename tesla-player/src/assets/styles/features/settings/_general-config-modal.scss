@@ -80,7 +80,7 @@
     background: none;
     border: none;
     color: var(--text-dim);
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0.4rem;
     border-radius: var(--radius-xs);
     transition: 0.15s;
@@ -99,7 +99,7 @@
     height: 1.2rem;
     border: none;
     border-radius: 50%;
-    cursor: pointer;
+    cursor: var(--cursor-pointer, pointer);
     padding: 0;
     background: none;
     flex: 0 0 auto;
