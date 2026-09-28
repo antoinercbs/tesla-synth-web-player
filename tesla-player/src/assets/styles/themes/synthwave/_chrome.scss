@@ -1,0 +1,420 @@
+// ===========================================================================
+//  SYNTHWAVE LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $synthwave map (synthwave/_skin.scss), its colours the
+// night picked among synthwave/_palettes.scss. Here, the night: the sky is the
+// backdrop; the striped sun on the horizon and the neon grid running toward it
+// behind the app, scan lines over it; the page's title and the club's name in
+// chrome; panels as dark glass edged in neon; the lit items, tabs and marks glowing;
+// toasts in the words of the time. The words it adds are in English, as the time's
+// were. Every rule sits under [data-skin="synthwave"]; the pages' controls are named
+// by family (../_families.scss).
+
+// a word in chrome: the gradient through the letters, a glow around them
+@mixin chrome {
+    background: var(--sw-chrome);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 6px rgb(var(--volt-rgb) / 0.55));
+}
+
+@mixin neon($rgb: var(--volt-rgb)) {
+    text-shadow: 0 0 6px rgb(#{$rgb} / 0.8), 0 0 14px rgb(#{$rgb} / 0.45);
+}
+
+[data-skin="synthwave"] {
+    ::selection {
+        background: rgb(var(--volt-rgb) / 0.4);
+        color: #ffffff;
+    }
+
+    // --- the night: the sun on the horizon, the grid running toward it, the scan lines ---------------------------
+    body::before,
+    body::after {
+        content: "";
+        position: fixed;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    body::after {
+        left: 50%;
+        bottom: 30vh;
+        width: 44vh;
+        height: 44vh;
+        border-radius: 50%;
+        transform: translateX(-50%);
+        background:
+            linear-gradient(transparent 52%, var(--sw-horizon) 52% 55%, transparent 55% 63%, var(--sw-horizon) 63% 67%, transparent 67% 74%, var(--sw-horizon) 74% 80%, transparent 80% 86%, var(--sw-horizon) 86% 94%, transparent 94%),
+            var(--sw-sun);
+        box-shadow: 0 0 80px rgb(var(--volt-rgb) / 0.45);
+    }
+
+    body::before {
+        left: -50%;
+        right: -50%;
+        bottom: 0;
+        height: 34vh;
+        background:
+            linear-gradient(var(--sw-horizon), transparent 40%),
+            repeating-linear-gradient(90deg, transparent 0 58px, var(--sw-grid) 58px 60px),
+            repeating-linear-gradient(transparent 0 38px, var(--sw-grid) 38px 40px),
+            var(--bg);
+        transform: perspective(34vh) rotateX(58deg);
+        transform-origin: 50% 0;
+        opacity: 0.7;
+        animation: sw-drive 1.6s linear infinite;
+    }
+
+    .app-shell::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: repeating-linear-gradient(rgb(0 0 0 / 0.14) 0 1px, transparent 1px 3px);
+        pointer-events: none;
+    }
+
+    .app-main {
+        background: none;
+    }
+
+    // --- the head: the page's title in chrome; the club's name -------------------------------------------------------
+    .view-head__title {
+        font-family: "Monoton", var(--font-display);
+        font-size: 2.1rem;
+        font-weight: 400;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .view-head__title,
+    .brand__app {
+        @include chrome;
+    }
+
+    .view-head__title .page-tour {
+        filter: none;
+    }
+
+    .brand__app {
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+    }
+
+    .brand__label {
+        filter: invert(1) drop-shadow(0 0 4px rgb(var(--sw-neon-rgb) / 0.8));
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: rgb(var(--bg-rgb) / 0.85);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 1px solid rgb(var(--volt-rgb) / 0.4);
+    }
+
+    // --- panels: dark glass edged in neon, a neon line under their head ------------------------------------------------
+    #{$panels} {
+        border: 1px solid rgb(var(--sw-neon-rgb) / 0.35);
+        background: rgb(var(--bg-rgb) / 0.8);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 0;
+        background:
+            linear-gradient(90deg, var(--sw-neon), var(--volt)) left bottom / 100% 1px no-repeat,
+            rgb(0 0 0 / 0.25);
+        font-family: var(--font-display);
+        letter-spacing: 0.04em;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        @include neon(var(--sw-neon-rgb));
+
+        color: var(--sw-neon);
+        font-family: var(--font-display);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    // --- the menu: its pages in neon, the open one lit ---------------------------------------------------------------
+    .sidebar {
+        border-right: 1px solid rgb(var(--sw-neon-rgb) / 0.35);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+
+    .nav-item {
+        font-family: var(--font-display);
+        letter-spacing: 0.04em;
+    }
+
+    .nav-item:hover {
+        @include neon(var(--sw-neon-rgb));
+
+        background: rgb(var(--sw-neon-rgb) / 0.08);
+        color: #ffffff;
+    }
+
+    .nav-item.router-link-active {
+        @include neon;
+
+        background: linear-gradient(90deg, rgb(var(--volt-rgb) / 0.3), transparent);
+        color: #ffffff;
+    }
+
+    .nav-item.router-link-active::before {
+        left: 0;
+        width: 3px;
+        background: var(--volt);
+        box-shadow: 0 0 10px var(--volt);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--volt);
+        filter: drop-shadow(0 0 4px var(--volt));
+    }
+
+    .sidebar-coil__dot {
+        box-shadow: 0 0 6px var(--c), 0 0 2px #fff inset;
+    }
+
+    // --- buttons: neon outlines; the main one the sunset -------------------------------------------------------------
+    .btn,
+    .icon-btn {
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        @include neon(var(--sw-neon-rgb));
+
+        filter: none;
+        background: rgb(var(--sw-neon-rgb) / 0.14);
+        box-shadow: 0 0 16px rgb(var(--sw-neon-rgb) / 0.55), inset 0 0 10px rgb(var(--sw-neon-rgb) / 0.3);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        text-shadow: none;
+        background: var(--grad);
+        filter: brightness(1.12);
+        box-shadow: 0 0 26px rgb(var(--volt-rgb) / 0.75);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 1px solid rgb(var(--sw-neon-rgb) / 0.6);
+        border-radius: 4px;
+        background: rgb(var(--bg-rgb) / 0.55);
+        color: var(--sw-neon);
+
+        &:hover:not(:disabled) {
+            box-shadow: 0 0 12px rgb(var(--sw-neon-rgb) / 0.55);
+            color: #ffffff;
+        }
+    }
+
+    #{$pushed-on} {
+        background: var(--grad);
+        box-shadow: 0 0 14px rgb(var(--volt-rgb) / 0.6);
+        color: var(--ink);
+    }
+
+    .chan-cell {
+        border: 1px solid rgb(var(--sw-neon-rgb) / 0.45);
+        background: rgb(0 0 0 / 0.35);
+    }
+
+    .chan-cell.is-on {
+        box-shadow: 0 0 10px var(--cell, var(--volt));
+    }
+
+    // --- choices, tabs: the one on lit ---------------------------------------------------------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        button.is-active,
+        button.is-on {
+            box-shadow: 0 0 14px rgb(var(--volt-rgb) / 0.55);
+        }
+    }
+
+    .segmented--tabs button {
+        font-family: var(--font-display);
+        letter-spacing: 0.04em;
+    }
+
+    .segmented--tabs button.is-active {
+        @include neon;
+    }
+
+    .segmented__arc {
+        box-shadow: 0 0 8px var(--volt);
+    }
+
+    // --- figures, bars: glowing ------------------------------------------------------------------------------------------
+    .readout__field input,
+    .power-head__val,
+    .player-progress__time {
+        @include neon(var(--sw-neon-rgb));
+
+        color: #ffffff;
+    }
+
+    .vu-fill {
+        filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.35)) saturate(1.3);
+    }
+
+    .player-progress__bar {
+        border: 1px solid rgb(var(--sw-neon-rgb) / 0.45);
+        background: rgb(0 0 0 / 0.45);
+    }
+
+    .player-progress__fill {
+        background: var(--grad);
+        box-shadow: 0 0 12px rgb(var(--volt-rgb) / 0.7);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: linear-gradient(90deg, var(--sw-neon), var(--volt));
+        --range-track-h: 3px;
+        --range-track-radius: 2px;
+        --range-track-shadow: 0 0 8px rgb(var(--volt-rgb) / 0.6);
+        --range-thumb: #ffffff;
+        --range-thumb-hover: #ffffff;
+        --range-thumb-w: 14px;
+        --range-thumb-h: 14px;
+        --range-thumb-border: 2px solid var(--volt);
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 0 10px var(--volt);
+        --range-focus: 2px solid var(--sw-neon);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 6px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, toasts ---------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 1px solid var(--sw-neon);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include neon(var(--sw-neon-rgb));
+
+            background: rgb(var(--sw-neon-rgb) / 0.12);
+            color: #ffffff;
+        }
+    }
+
+    .modal-overlay {
+        background: rgb(var(--bg-rgb) / 0.6);
+    }
+
+    .modal-card__title {
+        @include chrome;
+
+        font-family: var(--font-display);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }
+
+    .modal-card__title .icon {
+        color: var(--volt);
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-family: var(--font-display);
+        font-size: var(--fs-xs);
+        letter-spacing: 0.1em;
+    }
+
+    .toast--success::after {
+        @include neon(var(--ok-rgb));
+
+        content: "RADICAL!";
+        color: var(--ok);
+    }
+
+    .toast--error::after {
+        @include neon(var(--danger-rgb));
+
+        content: "TRACKING ERROR";
+        color: var(--danger-text);
+    }
+
+    .empty-stub::after {
+        @include neon;
+
+        content: "NO SIGNAL";
+        color: var(--volt);
+        font-family: var(--font-display);
+        letter-spacing: 0.12em;
+    }
+
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgb(0 0 0 / 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: 4px;
+        background: linear-gradient(var(--sw-neon), var(--volt));
+    }
+}
+
+@keyframes sw-drive {
+    to {
+        background-position: 0 0, 0 0, 0 40px, 0 0;
+    }
+}
+
+// the grid holds still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="synthwave"] body::before {
+        animation: none;
+    }
+}

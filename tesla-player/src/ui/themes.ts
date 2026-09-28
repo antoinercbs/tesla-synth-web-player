@@ -29,6 +29,11 @@ export const THEMES = {
   taxform: ['bluepaper', 'salmon', 'carbon'],
   sheet: ['plain', 'vintage', 'night'],
   control: ['case', 'desk', 'alert'],
+  synthwave: ['sunset', 'laser', 'vapor'],
+  tubes: ['bakelite', 'hammertone', 'enamel'],
+  modular: ['aluminium', 'blackgold', 'pastel'],
+  halloween: ['pumpkin', 'witch', 'graveyard'],
+  rpg: ['azure', 'shadow', 'crimson'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

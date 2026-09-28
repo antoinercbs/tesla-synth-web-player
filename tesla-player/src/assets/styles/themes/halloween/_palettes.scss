@@ -1,0 +1,174 @@
+@use "sass:map";
+
+// ===========================================================================
+//  HALLOWEEN LOOK: its nights
+// ===========================================================================
+// The night of the thirty-first: its sky and its moon, the fog on the ground, the
+// orange of a pumpkin's light, the green of a mad laboratory's, the bone of what
+// lies below; a web, a bat, a spider, drawn here. Each palette is written out whole,
+// as the custom properties it sets on [data-theme="<id>"]: the shared ones, then its
+// own, including the chrome halloween/_chrome.scss and the $halloween map read
+// (--hw-glow, --hw-web…). ui/themes.ts lists the ids for the look, the first is its
+// default (its spec checks both).
+
+// a web in a corner: threads from the corner, the spiral across them
+@function -hw-web($ink) {
+    $body: '<g fill="none" stroke="#{$ink}" stroke-width=".8" stroke-opacity=".55"><path d="M0 0L64 20M0 0L56 44M0 0L40 60M0 0L18 66"/><path d="M14 4Q15 10 12 13Q9 15 4 14M28 9Q29 20 24 26Q18 31 8 28M42 13Q43 29 36 38Q28 45 13 42M56 17Q57 38 48 50Q38 59 18 56"/></g>';
+    @return svg-url($body, 66, 66);
+}
+
+// a bat, its wings out
+@function -hw-bat($ink) {
+    @return svg-url('<path d="M20 9c-1.6-2.4-4-3-4-3s.6 2 .2 3.2C14.4 7 10.6 6.2 8 7c2 .8 3 2.4 3 4-2.6-1.6-6.4-1.8-9-.6 3.4.6 6.2 3 7 5.6 1.8-1.6 4.6-2 6.6-1.2.8.4 1.6 1.2 2 2.2.4-1 1.2-1.8 2-2.2 2-.8 4.8-.4 6.6 1.2.8-2.6 3.6-5 7-5.6-2.6-1.2-6.4-1-9 .6 0-1.6 1-3.2 3-4-2.6-.8-6.4 0-8.2 2.2-.4-1.2.2-3.2.2-3.2s-2.4.6-4 3z" fill="#{$ink}"/>', 40, 22);
+}
+
+// a spider on its thread
+@function -hw-spider($ink) {
+    $body: '<path d="M12 0v26" stroke="#{$ink}" stroke-width=".7" stroke-opacity=".7"/><ellipse cx="12" cy="30" rx="4" ry="5" fill="#{$ink}"/><circle cx="12" cy="24.5" r="2.6" fill="#{$ink}"/>';
+    $body: $body + '<path d="M8.5 28C5 26 3 27 1 29M8.5 30.5C5 30 3 31.5 1.5 34M8.8 32.5C6 33.5 5 35.5 4 38M15.5 28C19 26 21 27 23 29M15.5 30.5C19 30 21 31.5 22.5 34M15.2 32.5C18 33.5 19 35.5 20 38" fill="none" stroke="#{$ink}" stroke-width="1.1" stroke-linecap="round"/>';
+    $body: $body + '<circle cx="11" cy="24" r=".7" fill="#ff3b30"/><circle cx="13" cy="24" r=".7" fill="#ff3b30"/>';
+    @return svg-url($body, 24, 40);
+}
+
+@function -hw-set($ink) {
+    @return (
+        hw-web: -hw-web($ink),
+        hw-bat: -hw-bat(#000),
+        hw-spider: -hw-spider($ink),
+    );
+}
+
+$hw-shared: (
+    ink: #1a0d00,
+    on-grad: #1a0d00,
+    hi-rgb: "255 240 220",
+    text-bright: #ffffff,
+    danger: #ff3b30,
+    danger-rgb: "255 59 48",
+    danger-text: #ff6a5f,
+    danger-text-hover: #ffaea6,
+    ok: #7dff4a,
+    ok-rgb: "125 255 74",
+    amber: #ffb000,
+    amber-rgb: "255 176 0",
+    caution: #ffb000,
+    caution-rgb: "255 176 0",
+    caution-text: #ffd166,
+    warn: #ff7a1a,
+    conflict: #ff7a1a,
+    duplicate: #d67dff,
+    duplicate-rgb: "214 125 255",
+    worse: #ff3b30,
+    // the lights a coil gives off in the dark
+    coil-0: #ff7a1a,
+    coil-1: #7dff4a,
+    coil-2: #b36bff,
+    coil-3: #ffd23f,
+    coil-4: #ff3b6b,
+    coil-5: #4ad4ff,
+    plasma: #b36bff,
+    knob: #f4ead8,
+);
+
+// the order is the picker's, the first the look's default
+$halloween-palettes: (
+    // the pumpkin's orange in a violet night
+    pumpkin: map.merge(
+        -hw-set(#f4ead8),
+        (
+            bg: #120a14,
+            bg-2: #0a050c,
+            panel: #1f1320,
+            panel-2: #2a1a2b,
+            bg-rgb: "18 10 20",
+            line-rgb: "255 150 60",
+            text: #f4ead8,
+            text-rgb: "244 234 216",
+            text-dim: #d8c6ad,
+            text-mute: #9c8a78,
+            text-strong: #fff8ec,
+            volt: #ff7a1a,
+            volt-rgb: "255 122 26",
+            grad: "linear-gradient(#ffb04a, #ff7a1a 55%, #d9500a)",
+            arc-core: #fff0c0,
+            arc-mid: #ff9a2a,
+            arc-deep: #d9500a,
+            arc-glow-rgb: "255 122 26",
+            hw-glow: #7dff4a,
+            hw-glow-rgb: "125 255 74",
+            hw-sky: "radial-gradient(circle at 84% 12%, #fff6d6 0 44px, rgb(255 240 190 / 0.35) 46px, transparent 120px), radial-gradient(900px 500px at 50% 120%, #3a1a3a, transparent 70%), linear-gradient(#0a050c, #1e0f22)",
+            hw-fog: "rgb(210 190 230 / 0.16)",
+            swatch: "radial-gradient(circle at 70% 30%, #fff6d6 0 12%, transparent 14%), radial-gradient(circle at 40% 70%, #ff7a1a 0 22%, transparent 24%), #1e0f22",
+        )
+    ),
+    // the witch's violet, her cauldron's green
+    witch: map.merge(
+        -hw-set(#e9ffd8),
+        (
+            bg: #1a0a26,
+            bg-2: #10061a,
+            panel: #261238,
+            panel-2: #321a48,
+            bg-rgb: "26 10 38",
+            line-rgb: "125 255 74",
+            text: #efe6ff,
+            text-rgb: "239 230 255",
+            text-dim: #cbb6e8,
+            text-mute: #8f78b0,
+            text-strong: #ffffff,
+            volt: #7dff4a,
+            volt-rgb: "125 255 74",
+            grad: "linear-gradient(#c8ff9a, #7dff4a 55%, #3cc21a)",
+            arc-core: #eaffd8,
+            arc-mid: #7dff4a,
+            arc-deep: #3cc21a,
+            arc-glow-rgb: "125 255 74",
+            ink: #0a2200,
+            on-grad: #0a2200,
+            hw-glow: #ff7a1a,
+            hw-glow-rgb: "255 122 26",
+            hw-sky: "radial-gradient(circle at 84% 12%, #f0fff0 0 44px, rgb(200 255 190 / 0.3) 46px, transparent 120px), radial-gradient(900px 500px at 50% 120%, #2a4a1a, transparent 70%), linear-gradient(#10061a, #2a1040)",
+            hw-fog: "rgb(170 255 150 / 0.12)",
+            swatch: "radial-gradient(circle at 70% 30%, #f0fff0 0 12%, transparent 14%), radial-gradient(circle at 40% 70%, #7dff4a 0 22%, transparent 24%), #2a1040",
+        )
+    ),
+    // the graveyard's mist, bone and moss
+    graveyard: map.merge(
+        -hw-set(#e8e2cf),
+        (
+            bg: #161c1f,
+            bg-2: #0d1113,
+            panel: #212a2e,
+            panel-2: #2a3539,
+            bg-rgb: "22 28 31",
+            line-rgb: "200 210 190",
+            text: #e8e2cf,
+            text-rgb: "232 226 207",
+            text-dim: #c3bea9,
+            text-mute: #8a8a7c,
+            text-strong: #fffbea,
+            volt: #b8d46a,
+            volt-rgb: "184 212 106",
+            grad: "linear-gradient(#e0f0a8, #b8d46a 55%, #7a9a30)",
+            arc-core: #fffbea,
+            arc-mid: #b8d46a,
+            arc-deep: #7a9a30,
+            arc-glow-rgb: "184 212 106",
+            ink: #1a2200,
+            on-grad: #1a2200,
+            hw-glow: #9ad8ff,
+            hw-glow-rgb: "154 216 255",
+            hw-sky: "radial-gradient(circle at 84% 12%, #f4f8ff 0 44px, rgb(220 235 255 / 0.3) 46px, transparent 120px), radial-gradient(900px 500px at 50% 120%, #3a4a48, transparent 70%), linear-gradient(#0d1113, #1e282c)",
+            hw-fog: "rgb(230 235 240 / 0.2)",
+            swatch: "radial-gradient(circle at 70% 30%, #f4f8ff 0 12%, transparent 14%), radial-gradient(circle at 40% 70%, #b8d46a 0 22%, transparent 24%), #1e282c",
+        )
+    ),
+);
+
+@each $id, $p in $halloween-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($hw-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

@@ -1,0 +1,545 @@
+// ===========================================================================
+//  TUBE LAB LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $tubes map (tubes/_skin.scss), its colours the bench
+// picked among tubes/_palettes.scss. Here, the instruments: the sidebar a walnut
+// cheek; the panels plates screwed to the face; the page's title and the panels'
+// names on brass nameplates; the keys going down under the finger, the one on held
+// down; figures in numeral tubes behind glass and mesh; a jewel lamp for a switch, a
+// tab and a coil; toasts as the lamps of a bench. The words it adds are the bench's,
+// in French in every language. Every rule sits under [data-skin="tubes"]; the pages'
+// controls are named by family (../_families.scss).
+
+// a plate screwed to the face: its four slotted screws, small and in the very corners
+@mixin screwed($inset: 4px, $ground: var(--panel)) {
+    background:
+        var(--tb-screw) #{$inset} #{$inset} / 10px 10px no-repeat,
+        var(--tb-screw) calc(100% - #{$inset}) #{$inset} / 10px 10px no-repeat,
+        var(--tb-screw) #{$inset} calc(100% - #{$inset}) / 10px 10px no-repeat,
+        var(--tb-screw) calc(100% - #{$inset}) calc(100% - #{$inset}) / 10px 10px no-repeat,
+        #{$ground};
+}
+
+// a nameplate: brass or aluminium, its letters engraved and filled black
+@mixin nameplate {
+    padding: 0.18rem 0.6rem;
+    border: 1px solid rgb(0 0 0 / 0.55);
+    border-radius: 2px;
+    background: var(--tb-plate);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 1px 2px rgb(0 0 0 / 0.5);
+    color: var(--tb-plate-ink);
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-shadow: 0 1px 0 rgb(255 255 255 / 0.45);
+    text-transform: uppercase;
+}
+
+// figures in a numeral tube: the orange of the gas, its hot core
+@mixin nixie {
+    color: var(--tb-nixie-core);
+    font-family: var(--font-display);
+    font-weight: 300;
+    text-shadow: 0 0 3px var(--tb-nixie), 0 0 10px rgb(var(--tb-nixie-rgb) / 0.75), 0 0 18px rgb(var(--tb-nixie-rgb) / 0.4);
+}
+
+// a jewel lamp: its facets, dark or lit in a colour
+@mixin jewel($size: 14px) {
+    width: $size;
+    height: $size;
+    border-radius: 50%;
+    background:
+        conic-gradient(from 20deg, rgb(255 255 255 / 0.25), transparent 15%, rgb(255 255 255 / 0.18) 30%, transparent 45%, rgb(255 255 255 / 0.22) 60%, transparent 75%, rgb(255 255 255 / 0.16) 90%),
+        radial-gradient(circle at 40% 35%, #6a2a22, #2a0e0b 70%);
+    box-shadow: 0 0 0 2px #b8b0a0, 0 0 0 3px #3a3226, inset 0 -1px 2px rgb(0 0 0 / 0.6);
+}
+
+@mixin jewel-lit($color) {
+    background:
+        conic-gradient(from 20deg, rgb(255 255 255 / 0.45), transparent 15%, rgb(255 255 255 / 0.3) 30%, transparent 45%, rgb(255 255 255 / 0.4) 60%, transparent 75%, rgb(255 255 255 / 0.3) 90%),
+        radial-gradient(circle at 40% 35%, #fff, #{$color} 45%);
+    box-shadow: 0 0 0 2px #b8b0a0, 0 0 0 3px #3a3226, 0 0 12px 2px #{$color};
+}
+
+[data-skin="tubes"] {
+    ::selection {
+        background: rgb(var(--tb-nixie-rgb) / 0.35);
+        color: var(--text-strong);
+    }
+
+    .app-main {
+        background: none;
+    }
+
+    // --- the head: the page's nameplate -----------------------------------------------------------------------------
+    .view-head__title {
+        @include nameplate;
+
+        padding: 0.35rem 1.7rem;
+        background:
+            var(--tb-screw) 7px center / 11px 11px no-repeat,
+            var(--tb-screw) calc(100% - 7px) center / 11px 11px no-repeat,
+            var(--tb-plate);
+        font-size: var(--fs-xl);
+    }
+
+    .edit-chooser .view-head__title {
+        padding: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        color: var(--text-strong);
+        text-shadow: none;
+    }
+
+    .brand__app {
+        letter-spacing: 0.05em;
+    }
+
+    // the club's wordmark is drawn black: turned cream on the walnut, in every palette
+    .brand__label {
+        filter: invert(1) sepia(0.3);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 1px solid rgb(0 0 0 / 0.5);
+    }
+
+    // --- the walnut cheek: the sidebar, its words cream ----------------------------------------------------------------
+    .sidebar {
+        --text: #f3e6c8;
+        --text-dim: #e0cfa8;
+        --text-mute: #c2ad84;
+        --text-strong: #fff6e0;
+
+        border-right: 2px solid #2a1a0e;
+        box-shadow: inset -3px 0 6px rgb(0 0 0 / 0.35);
+        text-shadow: 0 1px 1px rgb(0 0 0 / 0.6);
+    }
+
+    .nav-item {
+        font-family: var(--font-display);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        font-size: var(--fs-md);
+    }
+
+    .nav-item:hover {
+        background: rgb(0 0 0 / 0.18);
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(0 0 0 / 0.28);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active::before {
+        @include jewel-lit(var(--tb-nixie));
+
+        top: 50%;
+        left: auto;
+        right: 12px;
+        bottom: auto;
+        width: 10px;
+        height: 10px;
+        margin-top: -5px;
+        border-radius: 50%;
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--tb-nixie);
+    }
+
+    .sidebar-section__title {
+        @include nameplate;
+
+        display: inline-block;
+        font-size: var(--fs-xs);
+    }
+
+    .sidebar-coil__dot {
+        @include jewel(12px);
+
+        background:
+            conic-gradient(from 20deg, rgb(255 255 255 / 0.4), transparent 15%, rgb(255 255 255 / 0.28) 30%, transparent 45%, rgb(255 255 255 / 0.36) 60%, transparent 75%, rgb(255 255 255 / 0.26) 90%),
+            radial-gradient(circle at 40% 35%, #fff, var(--c) 45%);
+        box-shadow: 0 0 0 2px #b8b0a0, 0 0 0 3px #3a3226, 0 0 8px var(--c);
+    }
+
+    // --- plates: screwed to the face, their names on nameplates ------------------------------------------------------------
+    #{$panels} {
+        @include screwed;
+
+        border: 1px solid rgb(0 0 0 / 0.55);
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .env-lib__group {
+        background: var(--panel);
+    }
+
+    #{$panel-heads} {
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
+        border-bottom: 1px solid rgb(0 0 0 / 0.45);
+        background: none;
+        box-shadow: 0 1px 0 rgb(255 255 255 / 0.06);
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title {
+        @include nameplate;
+
+        display: inline-flex;
+        width: fit-content;
+        font-size: var(--fs-xs);
+    }
+
+    .player-panel__title .icon {
+        color: inherit;
+    }
+
+    .player-hint {
+        border: 1px solid rgb(0 0 0 / 0.7);
+        background: var(--tb-glass);
+        color: var(--tb-nixie-core);
+    }
+
+    .empty-stub::after {
+        @include nameplate;
+
+        content: "Hors tension";
+        font-size: var(--fs-xs);
+    }
+
+    // --- keys: down under the finger; the one on held down --------------------------------------------------------------
+    .btn,
+    .icon-btn {
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: brightness(1.04);
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled) {
+        transform: translateY(3px);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.5), 0 1px 0 #6b5a3c, 0 2px 3px rgb(0 0 0 / 0.4);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    .btn--ghost,
+    .btn--danger-ghost {
+        color: var(--text);
+    }
+
+    #{$push-buttons} {
+        border: 1px solid rgb(0 0 0 / 0.55);
+        border-radius: 3px;
+        background: var(--tb-key);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 2px 0 #6b5a3c;
+        color: var(--tb-key-ink);
+    }
+
+    #{$pushed-on} {
+        transform: translateY(2px);
+        background: linear-gradient(#e0d4b6, #c9bb96);
+        box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.3);
+    }
+
+    .chan-cell {
+        border: 1px solid rgb(0 0 0 / 0.55);
+        background: var(--tb-key);
+        color: var(--tb-key-ink);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        box-shadow: 0 0 8px var(--cell, var(--volt));
+        color: #1a1410;
+    }
+
+    // the choices: keys that lock down, only one at a time
+    #{$value-choices},
+    #{$tool-choices} {
+        gap: 3px;
+        padding: 3px;
+
+        button {
+            border: 1px solid rgb(0 0 0 / 0.55);
+            background: var(--tb-key);
+            box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6), 0 3px 0 #6b5a3c;
+            color: var(--tb-key-ink);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        button.is-active,
+        button.is-on {
+            transform: translateY(2px);
+            background: linear-gradient(#d9ccaa, #c2b28b);
+            box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.35), 0 1px 0 #6b5a3c;
+        }
+    }
+
+    // the tabs: a jewel before each, lit on the open one
+    .segmented__arc {
+        display: none;
+    }
+
+    .segmented--tabs button {
+        gap: 0.5rem;
+        color: var(--text-dim);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+
+        &::before {
+            @include jewel(9px);
+
+            content: "";
+            flex: 0 0 auto;
+        }
+    }
+
+    .segmented--tabs button.is-active::before {
+        @include jewel-lit(var(--tb-nixie));
+    }
+
+    // a switch: its jewel, lit when on
+    .switch__track,
+    .switch input:checked + .switch__track {
+        @include jewel(18px);
+
+        border: 0;
+    }
+
+    .switch input:checked + .switch__track {
+        @include jewel-lit(#ff4b3a);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        display: none;
+    }
+
+    .switch input:focus-visible + .switch__track {
+        outline: 2px solid var(--tb-rim);
+        outline-offset: 4px;
+    }
+
+    // --- the numeral tubes: figures behind glass and mesh -----------------------------------------------------------------
+    #{$number-boxes} {
+        border: 1px solid rgb(0 0 0 / 0.8);
+        background: var(--tb-glass);
+        box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.8);
+    }
+
+    .readout__field input {
+        @include nixie;
+
+        font-size: 1.1rem;
+    }
+
+    .readout__field input::-webkit-inner-spin-button {
+        filter: invert(0.8);
+    }
+
+    .power-head__val,
+    .player-progress__time,
+    .player-coil__readout {
+        @include nixie;
+    }
+
+    .power-head__val,
+    .player-progress__time {
+        padding: 0.05rem 0.5rem;
+        border: 1px solid rgb(0 0 0 / 0.8);
+        border-radius: 3px;
+        background: var(--tb-glass);
+    }
+
+    .text-field,
+    .combo {
+        box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.7);
+    }
+
+    .vu-track {
+        border: 1px solid rgb(0 0 0 / 0.8);
+        background: var(--tb-glass);
+    }
+
+    .vu-fill {
+        filter: drop-shadow(0 0 4px rgb(var(--tb-nixie-rgb) / 0.5)) brightness(1.1);
+    }
+
+    .player-progress__bar {
+        height: 6px;
+        border: 1px solid rgb(0 0 0 / 0.7);
+        border-radius: 3px;
+        background: #120c08;
+    }
+
+    .player-progress__fill {
+        background: linear-gradient(var(--tb-nixie-core), var(--tb-nixie));
+        box-shadow: 0 0 8px var(--tb-nixie);
+    }
+
+    // a slider: a bakelite knob with its white index, on an engraved scale
+    #{$sliders},
+    .power-range {
+        --range-track: linear-gradient(90deg, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.6));
+        --range-track-h: 3px;
+        --range-track-radius: 2px;
+        --range-track-shadow: 0 1px 0 rgb(255 255 255 / 0.12);
+        --range-thumb: radial-gradient(circle at 40% 35%, #5a4a3a, #1a1410 70%);
+        --range-thumb-hover: radial-gradient(circle at 40% 35%, #6a5a4a, #221a14 70%);
+        --range-thumb-w: 18px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid #0d0906;
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 2px 3px rgb(0 0 0 / 0.6), inset 0 -3px 0 rgb(255 255 255 / 0.1);
+        --range-focus: 2px solid var(--tb-rim);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 6px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, toasts -----------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 1px solid var(--tb-rim);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+
+        &:hover,
+        &:focus-visible {
+            background: rgb(var(--tb-nixie-rgb) / 0.14);
+            color: var(--text-strong);
+        }
+    }
+
+    .modal-overlay {
+        background: rgb(0 0 0 / 0.5);
+    }
+
+    .modal-card {
+        @include screwed(5px);
+
+        border: 1px solid rgb(0 0 0 / 0.6);
+    }
+
+    .modal-card__title {
+        @include nameplate;
+
+        font-size: var(--fs-md);
+    }
+
+    .modal-card__title .icon {
+        color: inherit;
+    }
+
+    // a toast: a bench's lamp beside its word
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::before,
+    .toast--error::before {
+        @include jewel(14px);
+
+        content: "";
+        display: block;
+        position: static;
+        flex: 0 0 auto;
+    }
+
+    .toast--success::before {
+        @include jewel-lit(var(--ok));
+    }
+
+    .toast--error::before {
+        @include jewel-lit(var(--danger));
+
+        animation: tb-flash 0.9s steps(2, jump-none) 4;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        @include nameplate;
+
+        order: -1;
+        font-size: var(--fs-xs);
+    }
+
+    .toast--success::after {
+        content: "En service";
+    }
+
+    .toast--error::after {
+        content: "Surcharge";
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgb(0 0 0 / 0.25);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 5px;
+        background: var(--tb-rim) padding-box;
+    }
+}
+
+@keyframes tb-flash {
+    50% {
+        filter: brightness(0.45);
+    }
+}
+
+// the lamps hold still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="tubes"] .toast--error::before {
+        animation: none;
+    }
+}

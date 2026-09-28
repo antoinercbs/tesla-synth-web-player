@@ -1,0 +1,553 @@
+// ===========================================================================
+//  MODULAR SYNTH LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $modular map (modular/_skin.scss), its colours the case
+// picked among modular/_palettes.scss. Here, the case: the page on its black, the
+// head a module over a rail with two patch cables hanging from it; the sidebar and
+// the panels modules screwed to the rails, each its face (in turn, for a palette of
+// several), their names in silkscreen; a jack beside each page of the menu, plugged
+// on the open one; rubber buttons with their LED, lit on the main one; a switch a
+// jack that is plugged and lit when on; the channels on LED ladders; toasts on an
+// OLED. What sits on the case is written in its ink, what sits on a face in the
+// face's (tokens resolve where they are set: each is given again). The words it adds
+// are in English, as a module's silkscreen is. Every rule sits under
+// [data-skin="modular"]; the pages' controls are named by family (../_families.scss).
+
+// a module's face, its screws small and in its very corners
+@mixin module($face: var(--mod-face-1)) {
+    background:
+        var(--mod-screw) 4px 4px / 10px 10px no-repeat,
+        var(--mod-screw) calc(100% - 4px) 4px / 10px 10px no-repeat,
+        var(--mod-screw) 4px calc(100% - 4px) / 10px 10px no-repeat,
+        var(--mod-screw) calc(100% - 4px) calc(100% - 4px) / 10px 10px no-repeat,
+        #{$face};
+}
+
+@mixin face-ink {
+    --text: var(--mod-face-text);
+    --text-dim: var(--mod-face-dim);
+    --text-mute: var(--mod-face-mute);
+    --text-strong: var(--mod-face-strong);
+}
+
+// silkscreen: condensed capitals, a thin box round them
+@mixin silk {
+    color: var(--mod-silk);
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+// an LED beside a word: dark, or lit
+@mixin led($x: 0.8rem) {
+    background: radial-gradient(circle at #{$x} 50%, var(--mod-led-off) 0 3px, #000 3.4px, transparent 4px), var(--mod-rubber);
+}
+
+@mixin led-lit($x: 0.8rem) {
+    background:
+        radial-gradient(circle at #{$x} 50%, #fff 0 1px, var(--mod-led) 2px 3px, #000 3.4px, rgb(var(--mod-led-rgb) / 0.35) 4px, transparent 9px),
+        var(--mod-rubber);
+}
+
+[data-skin="modular"] {
+    ::selection {
+        background: rgb(var(--mod-led-rgb) / 0.35);
+    }
+
+    // what sits on the case is written in the case's ink
+    .app-main {
+        --text: var(--mod-case-text);
+        --text-dim: var(--mod-case-dim);
+        --text-mute: var(--mod-case-mute);
+        --text-strong: var(--mod-case-strong);
+
+        background: var(--mod-case);
+    }
+
+    // --- the head: a module over the rail, two cables hanging from it --------------------------------------------------
+    .screen-head,
+    .screen-head.is-scrolled {
+        @include face-ink;
+        @include module;
+
+        margin-bottom: calc(var(--head-gap) + 14px);
+        border-bottom: 1px solid #000;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        height: 14px;
+        border-bottom: 1px solid #000;
+        background: var(--mod-rail);
+    }
+
+    .screen-head::before {
+        content: "";
+        position: absolute;
+        left: 4%;
+        top: calc(100% + 4px);
+        z-index: 1;
+        width: 840px;
+        max-width: 90%;
+        height: 44px;
+        background: var(--mod-cables) 0 0 / 840px 44px no-repeat;
+        pointer-events: none;
+        filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.5));
+    }
+
+    .view-head__title {
+        @include silk;
+
+        padding: 0.2rem 0.7rem;
+        border: 1.5px solid var(--mod-silk);
+        border-radius: 2px;
+        font-size: var(--fs-xl);
+    }
+
+    .edit-chooser .view-head__title {
+        border: 0;
+    }
+
+    .brand__app {
+        @include silk;
+    }
+
+    .brand__label {
+        filter: var(--mod-wordmark, none);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        @include face-ink;
+
+        border-top: 1px solid #000;
+        background: var(--mod-face-1);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- modules: the sidebar, the panels, a face each in turn ---------------------------------------------------------
+    .sidebar {
+        @include face-ink;
+        @include module;
+
+        border-right: 2px solid #000;
+    }
+
+    #{$panels} {
+        @include face-ink;
+        @include module;
+
+        border: 1px solid #000;
+        border-radius: 3px;
+
+        &:nth-child(3n + 2) {
+            @include module(var(--mod-face-2));
+        }
+
+        &:nth-child(3n) {
+            @include module(var(--mod-face-3));
+        }
+    }
+
+    .env-lib__group {
+        background: none;
+        box-shadow: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    #{$panel-heads} {
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
+        border-bottom: 1.5px solid var(--mod-silk);
+        background: none;
+
+        &::after {
+            content: "";
+            flex: 0 0 auto;
+            width: 18px;
+            height: 18px;
+            margin-left: 0.5rem;
+            background: var(--mod-jack) center / 18px 18px no-repeat;
+        }
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title {
+        @include silk;
+    }
+
+    .player-hint {
+        border: 1px solid #000;
+        background: var(--mod-oled);
+        color: var(--mod-oled-ink);
+        font-family: var(--font-mono);
+    }
+
+    .empty-stub::after {
+        @include silk;
+
+        content: "No patch";
+    }
+
+    // --- the menu: a jack beside each page, the open one plugged ---------------------------------------------------------
+    .nav-item {
+        font-family: var(--font-display);
+        font-weight: 600;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+    }
+
+    .nav-item:hover {
+        background: rgb(0 0 0 / 0.06);
+    }
+
+    .nav-item::before,
+    .nav-item.router-link-active::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: auto;
+        right: 8px;
+        bottom: auto;
+        width: 18px;
+        height: 18px;
+        margin-top: -9px;
+        background: var(--mod-jack) center / 18px 18px no-repeat;
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(0 0 0 / 0.08);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active::before {
+        background-image: var(--mod-jack-plugged);
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--volt);
+    }
+
+    .nav-item.is-disabled::before {
+        opacity: 0.5;
+    }
+
+    // a coil's mark: the plug of its cable
+    .sidebar-coil__dot {
+        background: repeating-linear-gradient(90deg, rgb(0 0 0 / 0.25) 0 1px, transparent 1px 3px), var(--c);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35), 0 0 0 1px rgb(0 0 0 / 0.5);
+    }
+
+    // --- rubber buttons and their LED, lit on the main one ----------------------------------------------------------------
+    .btn {
+        @include led;
+
+        padding-left: 1.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .btn--volt,
+    .btn--stop:not(:disabled) {
+        @include led-lit;
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: brightness(1.18);
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled) {
+        transform: translateY(1px);
+    }
+
+    .btn--ghost,
+    .btn--danger-ghost {
+        padding-left: 0.8rem;
+        background: transparent;
+        color: var(--text);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: var(--mod-rubber);
+        color: var(--mod-rubber-ink);
+    }
+
+    #{$pushed-on} {
+        box-shadow: 0 0 0 1px var(--mod-led), 0 0 8px rgb(var(--mod-led-rgb) / 0.55);
+        color: #fff;
+    }
+
+    .chan-cell {
+        border: 1px solid #000;
+        background: var(--mod-rubber);
+        color: var(--mod-rubber-ink);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        box-shadow: 0 0 8px var(--cell, var(--volt));
+        color: #000;
+    }
+
+    // --- choices and tabs: silkscreened words, an LED before each, lit on the one on -----------------------------------------
+    #{$value-choices},
+    #{$tool-choices},
+    .segmented--tabs {
+        button {
+            gap: 0.45rem;
+            color: var(--mod-silk);
+            font-family: var(--font-display);
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+
+            &::before {
+                content: "";
+                display: inline-block;
+                flex: 0 0 auto;
+                width: 7px;
+                height: 7px;
+                margin-right: 0.4em;
+                border: 1px solid #000;
+                border-radius: 50%;
+                background: var(--mod-led-off);
+                vertical-align: 0.05em;
+            }
+        }
+
+        button.is-active,
+        button.is-on {
+            background: none;
+
+            &::before {
+                background: radial-gradient(circle at 40% 35%, #fff 0 15%, var(--mod-led) 50%);
+                box-shadow: 0 0 6px 1px rgb(var(--mod-led-rgb) / 0.7);
+            }
+        }
+    }
+
+    #{$value-choices},
+    #{$tool-choices} {
+        border: 1px solid var(--mod-silk);
+        border-radius: 3px;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // the charts' own choice sits on the OLED: written in its ink
+    .segmented.preview__param button {
+        color: rgb(var(--mod-oled-rgb) / 0.7);
+    }
+
+    .segmented.preview__param button.is-active {
+        color: var(--mod-oled-ink);
+    }
+
+    // a switch: a jack, plugged and its LED lit when on
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: 38px;
+        height: 24px;
+        border: 0;
+        border-radius: 0;
+        background: var(--mod-switch-off) center / 38px 24px no-repeat;
+    }
+
+    .switch input:checked + .switch__track {
+        background-image: var(--mod-switch-on);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        display: none;
+    }
+
+    .switch input:focus-visible + .switch__track {
+        outline: 2px solid var(--mod-led);
+        outline-offset: 2px;
+    }
+
+    // --- screens and meters: OLED figures, LED ladders ------------------------------------------------------------------------
+    .readout__field input,
+    .power-head__val,
+    .player-progress__time {
+        color: var(--mod-oled-ink);
+        font-family: var(--font-mono);
+        text-shadow: 0 0 4px rgb(var(--mod-oled-rgb) / 0.45);
+    }
+
+    .power-head__val,
+    .player-progress__time {
+        padding: 0.05rem 0.45rem;
+        border: 1px solid #000;
+        border-radius: 2px;
+        background: var(--mod-oled);
+    }
+
+    .vu-track {
+        border: 1px solid #000;
+        border-radius: 2px;
+        background:
+            radial-gradient(circle, #1f1f1f 0 3px, transparent 3.5px) center bottom / 100% 8px repeat-y,
+            #0b0c0d;
+    }
+
+    .vu-fill {
+        -webkit-mask: radial-gradient(circle, #000 0 3px, transparent 3.5px) center bottom / 100% 8px repeat-y;
+        mask: radial-gradient(circle, #000 0 3px, transparent 3.5px) center bottom / 100% 8px repeat-y;
+        filter: brightness(1.25) drop-shadow(0 0 2px rgb(255 255 255 / 0.4));
+    }
+
+    .player-progress__bar {
+        height: 6px;
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: #0b0c0d;
+    }
+
+    .player-progress__fill {
+        background: var(--mod-led);
+        box-shadow: 0 0 8px rgb(var(--mod-led-rgb) / 0.6);
+    }
+
+    // a slider: a fader's white cap in its slot
+    #{$sliders},
+    .power-range {
+        --range-track: linear-gradient(#000, #000);
+        --range-track-h: 4px;
+        --range-track-radius: 2px;
+        --range-track-shadow: 0 1px 0 rgb(255 255 255 / 0.3);
+        --range-thumb: linear-gradient(#ffffff, #d4d7da);
+        --range-thumb-hover: linear-gradient(#ffffff, #e8eaec);
+        --range-thumb-w: 12px;
+        --range-thumb-h: 22px;
+        --range-thumb-border: 1px solid #000;
+        --range-thumb-radius: 2px;
+        --range-thumb-shadow: 0 2px 0 #000, inset 0 -8px 0 -7px #000;
+        --range-focus: 2px solid var(--mod-led);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 6px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, toasts ---------------------------------------------------------------------------------------------
+    #{$menus} {
+        --text: var(--mod-case-text);
+        --text-dim: var(--mod-case-dim);
+        --text-mute: var(--mod-case-mute);
+        --text-strong: var(--mod-case-strong);
+
+        border: 1px solid #000;
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+
+        &:hover,
+        &:focus-visible {
+            background: rgb(var(--mod-led-rgb) / 0.16);
+            color: var(--text-strong);
+        }
+    }
+
+    .modal-card {
+        @include face-ink;
+        @include module;
+
+        border: 1px solid #000;
+    }
+
+    .modal-card__head {
+        border-bottom: 1.5px solid var(--mod-silk);
+    }
+
+    .modal-card__title {
+        @include silk;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast {
+        font-family: var(--font-mono);
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        padding: 0 0.35rem;
+        border: 1px solid currentColor;
+        font-size: var(--fs-xs);
+        font-weight: 700;
+        letter-spacing: 0.1em;
+    }
+
+    .toast--success::after {
+        content: "SYNC";
+        color: #7dffb0;
+    }
+
+    .toast--error::after {
+        content: "CLIP";
+        color: #ff6a5a;
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #000;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid #000;
+        border-radius: 3px;
+        background: #6b6e72;
+    }
+}

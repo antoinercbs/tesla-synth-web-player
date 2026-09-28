@@ -1,0 +1,232 @@
+@use "sass:map";
+
+// ===========================================================================
+//  MODULAR SYNTH LOOK: its cases
+// ===========================================================================
+// A case of modules, of no one maker: the black of the case, its rails, the faces of
+// its modules (one colour, or one for each in turn), their silkscreen and the inks
+// of what sits on a face and on the case, the rubber
+// of their buttons and the LEDs they light, the OLED of their screens, the colour of
+// a patch cable. Each palette is written out whole, as the custom properties it sets
+// on [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// modular/_chrome.scss and the $modular map read (--mod-face-1, --mod-led…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+// a module's screw: a silver cross head
+$-mod-screw: svg-url('<circle cx="6" cy="6" r="5" fill="#c9ccd0" stroke="#55585c" stroke-width=".8"/><circle cx="5.4" cy="5.4" r="3.2" fill="#e8eaec"/><path d="M3.6 6h4.8M6 3.6v4.8" stroke="#46494d" stroke-width="1.2"/>', 12, 12);
+
+// a jack: its nut and hole, empty, or with a plug of the palette's cable in it
+@function -mod-jack-body($plug) {
+    $body: '<circle cx="9" cy="9" r="8" fill="#b9bcc0" stroke="#4a4d51"/><path d="M9 2.2l5.9 3.4v6.8L9 15.8l-5.9-3.4V5.6z" fill="#d7d9dc" stroke="#6b6e72" stroke-width=".6"/><circle cx="9" cy="9" r="3.6" fill="#0b0c0d"/>';
+    @if $plug {
+        $body: $body + '<circle cx="9" cy="9" r="6" fill="#{$plug}" stroke="#000" stroke-opacity=".45"/><path d="M5.2 7h7.6M5 9h8M5.2 11h7.6" stroke="#000" stroke-opacity=".28"/><circle cx="7.4" cy="7" r="1.4" fill="#fff" fill-opacity=".45"/>';
+    }
+    @return $body;
+}
+
+@function -mod-jack($plug: null) {
+    @return svg-url(-mod-jack-body($plug), 18, 18);
+}
+
+// a switch: its jack and its LED, empty and dark, or plugged and lit
+@function -mod-switch($plug: null) {
+    $led: '<circle cx="31" cy="12" r="3.6" fill="#3a1414" stroke="#000" stroke-width=".6"/>';
+    @if $plug {
+        $led: '<circle cx="31" cy="12" r="6" fill="#ff7828" fill-opacity=".35"/><circle cx="31" cy="12" r="3.6" fill="#ffb070" stroke="#000" stroke-width=".6"/>';
+    }
+    @return svg-url('<g transform="translate(2 3)">#{-mod-jack-body($plug)}</g>#{$led}', 38, 24);
+}
+
+// two patch cables hanging from the rail, their plugs up in its holes
+@function -mod-cables($a, $b) {
+    $plug: '<rect x="-4" y="-2" width="8" height="12" rx="2" fill="#2a2c2e"/><rect x="-2.5" y="-6" width="5" height="6" rx="1" fill="#b9bcc0"/>';
+    $one: '<path d="M8 8C60 46 470 46 512 8" fill="none" stroke="#{$a}" stroke-width="5" stroke-linecap="round"/><g transform="translate(8 2)">#{$plug}</g><g transform="translate(512 2)">#{$plug}</g>';
+    $two: '<path d="M548 8C590 38 790 38 832 8" fill="none" stroke="#{$b}" stroke-width="5" stroke-linecap="round"/><g transform="translate(548 2)">#{$plug}</g><g transform="translate(832 2)">#{$plug}</g>';
+    @return svg-url('#{$one}#{$two}', 840, 44);
+}
+
+@function -mod-set($cable-a, $cable-b) {
+    @return (
+        mod-jack: -mod-jack(),
+        mod-jack-plugged: -mod-jack($cable-a),
+        mod-switch-off: -mod-switch(),
+        mod-switch-on: -mod-switch($cable-a),
+        mod-cables: -mod-cables($cable-a, $cable-b),
+    );
+}
+
+$mod-shared: (
+    ink: #ffffff,
+    on-grad: #ffffff,
+    hi-rgb: "0 0 0",
+    danger: #e0301e,
+    danger-rgb: "224 48 30",
+    danger-text: #c42718,
+    danger-text-hover: #8a1a10,
+    ok: #1f9e48,
+    ok-rgb: "31 158 72",
+    amber: #d98a00,
+    amber-rgb: "217 138 0",
+    caution: #d98a00,
+    caution-rgb: "217 138 0",
+    caution-text: #7a4e00,
+    warn: #d86a00,
+    conflict: #d86a00,
+    duplicate: #c2378a,
+    duplicate-rgb: "194 55 138",
+    worse: #e0301e,
+    // the cables a coil is patched with
+    coil-0: #e8412c,
+    coil-1: #f2b705,
+    coil-2: #2fa35a,
+    coil-3: #2a7fd4,
+    coil-4: #8a4fd0,
+    coil-5: #f07a1a,
+    plasma: #8a4fd0,
+    knob: #1a1b1c,
+    mod-screw: $-mod-screw,
+    // the case, its rails; a button's rubber, its LED dark and lit; the OLED's
+    mod-case: #0e0f10,
+    mod-rail: "radial-gradient(circle, #1a1b1c 0 2.5px, #5d6064 3px, transparent 3.6px) 10px 50% / 20px 100% repeat-x, linear-gradient(#e6e8ea, #a9adb1 50%, #d4d7da)",
+    mod-rubber: "linear-gradient(#3a3c3f, #232527)",
+    mod-rubber-ink: #eceef0,
+    mod-led-off: #3a1414,
+    mod-led: #ff6a1a,
+    mod-led-rgb: "255 106 26",
+    mod-oled: #050608,
+    mod-oled-ink: #cfe8ff,
+    mod-oled-rgb: "207 232 255",
+);
+
+// the order is the picker's, the first the look's default
+$modular-palettes: (
+    // brushed aluminium faces, black silkscreen, an orange cable
+    aluminium: map.merge(
+        -mod-set(#f07a1a, #2a7fd4),
+        (
+            bg: #0e0f10,
+            bg-2: #050608,
+            panel: #cfd2d5,
+            panel-2: #c2c6c9,
+            bg-rgb: "14 15 16",
+            line-rgb: "30 32 34",
+            text: #151618,
+            text-rgb: "21 22 24",
+            text-dim: #3a3d40,
+            text-mute: #62666a,
+            text-strong: #000000,
+            text-bright: #000000,
+            volt: #d45500,
+            volt-rgb: "212 85 0",
+            grad: "linear-gradient(#ff8a3d, #d45500)",
+            arc-core: #ffd0a8,
+            arc-mid: #ff6a1a,
+            arc-deep: #b84400,
+            arc-glow-rgb: "255 106 26",
+            mod-face-1: "repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1px, transparent 1px 3px), linear-gradient(#dfe2e4, #c3c7ca)",
+            mod-face-2: "repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1px, transparent 1px 3px), linear-gradient(#dfe2e4, #c3c7ca)",
+            mod-face-3: "repeating-linear-gradient(90deg, rgb(255 255 255 / 0.18) 0 1px, transparent 1px 3px), linear-gradient(#dfe2e4, #c3c7ca)",
+            mod-silk: #151618,
+            mod-face-text: #151618,
+            mod-face-dim: #3a3d40,
+            mod-face-mute: #62666a,
+            mod-face-strong: #000000,
+            mod-case-text: #e6e8ea,
+            mod-case-dim: #b9bdc1,
+            mod-case-mute: #8a8e92,
+            mod-case-strong: #ffffff,
+            swatch: "radial-gradient(circle at 62% 38%, #ff6a1a 0 12%, transparent 14%), linear-gradient(90deg, #0e0f10 0 16%, #cfd2d5 16%)",
+        )
+    ),
+    // black anodised faces, gold silkscreen, a white cable
+    blackgold: map.merge(
+        -mod-set(#f4f1e8, #d8b24a),
+        (
+            bg: #070708,
+            bg-2: #030304,
+            panel: #17181a,
+            panel-2: #1f2023,
+            bg-rgb: "7 7 8",
+            hi-rgb: "255 255 255",
+            line-rgb: "216 178 74",
+            text: #e9d9a8,
+            text-rgb: "233 217 168",
+            text-dim: #c8b27a,
+            text-mute: #8f7d52,
+            text-strong: #ffe9a8,
+            text-bright: #ffffff,
+            volt: #d8b24a,
+            volt-rgb: "216 178 74",
+            grad: "linear-gradient(#f0d27a, #b8923f)",
+            arc-core: #fff3cc,
+            arc-mid: #d8b24a,
+            arc-deep: #8f6a1f,
+            arc-glow-rgb: "216 178 74",
+            ink: #1a1408,
+            on-grad: #1a1408,
+            mod-face-1: "linear-gradient(#1c1d20, #121315)",
+            mod-face-2: "linear-gradient(#1c1d20, #121315)",
+            mod-face-3: "linear-gradient(#1c1d20, #121315)",
+            mod-silk: #d8b24a,
+            mod-wordmark: invert(1),
+            mod-face-text: #e9d9a8,
+            mod-face-dim: #c8b27a,
+            mod-face-mute: #8f7d52,
+            mod-face-strong: #ffe9a8,
+            mod-case-text: #e9d9a8,
+            mod-case-dim: #c8b27a,
+            mod-case-mute: #8f7d52,
+            mod-case-strong: #ffe9a8,
+            mod-led: #fff3cc,
+            mod-led-rgb: "255 243 204",
+            swatch: "radial-gradient(circle at 62% 38%, #d8b24a 0 12%, transparent 14%), linear-gradient(90deg, #030304 0 16%, #17181a 16%)",
+        )
+    ),
+    // a face of its own colour for each module, black silkscreen, a red cable
+    pastel: map.merge(
+        -mod-set(#e8412c, #2fa35a),
+        (
+            bg: #0e0f10,
+            bg-2: #050608,
+            panel: #f1e3c8,
+            panel-2: #e8d7b6,
+            bg-rgb: "14 15 16",
+            line-rgb: "30 30 30",
+            text: #181614,
+            text-rgb: "24 22 20",
+            text-dim: #3e3a35,
+            text-mute: #6a645c,
+            text-strong: #000000,
+            text-bright: #000000,
+            volt: #c43a24,
+            volt-rgb: "196 58 36",
+            grad: "linear-gradient(#f06a4a, #c43a24)",
+            arc-core: #ffd8cc,
+            arc-mid: #f06a4a,
+            arc-deep: #a02a18,
+            arc-glow-rgb: "240 106 74",
+            mod-face-1: "linear-gradient(#f3e4c6, #e6d3ad)",
+            mod-face-2: "linear-gradient(#bfe0d4, #a6cfc0)",
+            mod-face-3: "linear-gradient(#f2c9c2, #e3b0a7)",
+            mod-silk: #181614,
+            mod-face-text: #151618,
+            mod-face-dim: #3a3d40,
+            mod-face-mute: #62666a,
+            mod-face-strong: #000000,
+            mod-case-text: #e6e8ea,
+            mod-case-dim: #b9bdc1,
+            mod-case-mute: #8a8e92,
+            mod-case-strong: #ffffff,
+            swatch: "radial-gradient(circle at 62% 38%, #e8412c 0 12%, transparent 14%), linear-gradient(90deg, #f3e4c6 0 33%, #bfe0d4 33% 66%, #f2c9c2 66%)",
+        )
+    ),
+);
+
+@each $id, $p in $modular-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($mod-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

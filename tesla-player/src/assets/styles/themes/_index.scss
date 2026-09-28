@@ -30,6 +30,11 @@
 @import "taxform/palettes";
 @import "sheet/palettes";
 @import "control/palettes";
+@import "synthwave/palettes";
+@import "tubes/palettes";
+@import "modular/palettes";
+@import "halloween/palettes";
+@import "rpg/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -47,6 +52,11 @@
 @import "taxform/skin";
 @import "sheet/skin";
 @import "control/skin";
+@import "synthwave/skin";
+@import "tubes/skin";
+@import "modular/skin";
+@import "halloween/skin";
+@import "rpg/skin";
 
 $default-skin: lab;
 
@@ -68,6 +78,11 @@ $skins: (
     taxform: $taxform,
     sheet: $sheet,
     control: $control,
+    synthwave: $synthwave,
+    tubes: $tubes,
+    modular: $modular,
+    halloween: $halloween,
+    rpg: $rpg,
 );
 
 @mixin -skin($s) {

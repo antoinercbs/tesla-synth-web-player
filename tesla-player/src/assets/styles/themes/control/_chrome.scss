@@ -14,13 +14,14 @@
 // words it adds are the desk's, in French in every language. Every rule sits under
 // [data-skin="control"]; the pages' controls are named by family (../_families.scss).
 
-// a plate screwed to the face: its four screws, its bevel, its shadow
-@mixin plate($inset: 6px) {
+// a plate screwed to the face: its four screws (small and in the very corners, clear of
+// what the plate holds), its bevel, its shadow
+@mixin plate($inset: 4px) {
     background:
-        var(--ctl-screw) #{$inset} #{$inset} / 12px 12px no-repeat,
-        var(--ctl-screw) calc(100% - #{$inset}) #{$inset} / 12px 12px no-repeat,
-        var(--ctl-screw) #{$inset} calc(100% - #{$inset}) / 12px 12px no-repeat,
-        var(--ctl-screw) calc(100% - #{$inset}) calc(100% - #{$inset}) / 12px 12px no-repeat,
+        var(--ctl-screw) #{$inset} #{$inset} / 10px 10px no-repeat,
+        var(--ctl-screw) calc(100% - #{$inset}) #{$inset} / 10px 10px no-repeat,
+        var(--ctl-screw) #{$inset} calc(100% - #{$inset}) / 10px 10px no-repeat,
+        var(--ctl-screw) calc(100% - #{$inset}) calc(100% - #{$inset}) / 10px 10px no-repeat,
         var(--panel);
     box-shadow:
         inset 1px 1px 0 var(--ctl-plate-hi),
@@ -74,6 +75,12 @@
 
     // --- the case: its aluminium rim, the foam it sits in (a desktop's window) ------------------------------------
     @media (min-width: 1001px) {
+        // the case's margin kept inside the body (collapsing through it, it would leave
+        // the page's own ground as a band above the case)
+        body {
+            display: flow-root;
+        }
+
         .app-shell {
             height: calc(100dvh - 28px);
             margin: 14px;
@@ -177,7 +184,7 @@
 
     // --- plates: the sidebar, the panels; their names engraved -----------------------------------------------------
     .sidebar {
-        @include plate(8px);
+        @include plate(5px);
 
         border-right: 1px solid #000;
     }
@@ -199,6 +206,8 @@
     }
 
     #{$panel-heads} {
+        padding-left: 1.2rem;
+        padding-right: 1.2rem;
         border-bottom: 1px solid #000;
         background: none;
         box-shadow: 0 1px 0 var(--ctl-plate-hi);
@@ -613,7 +622,7 @@
 
     // --- menus, dialogs, toasts --------------------------------------------------------------------------------------
     #{$menus} {
-        @include plate(5px);
+        @include plate(4px);
 
         border: 1px solid #000;
         box-shadow: inset 1px 1px 0 var(--ctl-plate-hi), var(--shadow-pop);
@@ -639,7 +648,7 @@
     }
 
     .modal-card {
-        @include plate(8px);
+        @include plate(5px);
 
         border: 1px solid #000;
         box-shadow: inset 1px 1px 0 var(--ctl-plate-hi), var(--shadow-modal);

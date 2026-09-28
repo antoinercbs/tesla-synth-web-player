@@ -1,0 +1,153 @@
+@use "sass:map";
+
+// ===========================================================================
+//  TUBE LAB LOOK: its benches
+// ===========================================================================
+// A laboratory's instruments of the fifties, of no one maker: the face and plates
+// they are built of, the brass of their nameplates, the walnut of their cheeks, the
+// cream of their keys, the orange of the numeral tubes behind their glass and mesh,
+// the jewel lamps. Each palette is written out whole, as the custom properties it
+// sets on [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// tubes/_chrome.scss and the $tubes map read (--tb-nixie, --tb-plate…). ui/themes.ts
+// lists the ids for the look, the first is its default (its spec checks both).
+
+// a slotted screw's head, lit from the top left
+$-tb-screw: svg-url('<circle cx="6" cy="6" r="5.2" fill="#9c8a62" stroke="#3a2f1c" stroke-width=".8"/><circle cx="5.3" cy="5.3" r="3.6" fill="#c9b27a"/><path d="M2.6 7.6l6.8-3.2" stroke="#3a2f1c" stroke-width="1.4"/>', 12, 12);
+
+$tb-shared: (
+    ink: #fff6e0,
+    on-grad: #fff6e0,
+    danger: #ff4b3a,
+    danger-rgb: "255 75 58",
+    danger-text: #ff7a6a,
+    danger-text-hover: #ffb4aa,
+    ok: #57e36b,
+    ok-rgb: "87 227 107",
+    amber: #ffb347,
+    amber-rgb: "255 179 71",
+    caution: #ffb347,
+    caution-rgb: "255 179 71",
+    caution-text: #ffd08a,
+    warn: #ff9a3d,
+    conflict: #ff9a3d,
+    duplicate: #ff8ac0,
+    duplicate-rgb: "255 138 192",
+    worse: #ff4b3a,
+    // the jewels a coil lights
+    coil-0: #ff4b3a,
+    coil-1: #ffb347,
+    coil-2: #57e36b,
+    coil-3: #5fb8ff,
+    coil-4: #c98aff,
+    coil-5: #ff8a3d,
+    plasma: #c98aff,
+    knob: #1a1410,
+    // the numeral tubes: their orange, its core, the glass, the mesh behind the digits
+    tb-nixie: #ff8a2a,
+    tb-nixie-rgb: "255 138 42",
+    tb-nixie-core: #ffd9ae,
+    tb-glass: "linear-gradient(90deg, rgb(255 255 255 / 0.05), rgb(255 255 255 / 0.14) 18%, transparent 32%, transparent 78%, rgb(255 255 255 / 0.06)), radial-gradient(circle, rgb(255 170 90 / 0.14) 0 0.6px, transparent 1px) 0 0 / 4px 4px, #120c08",
+    // the keys: cream, the main one red, and their ink
+    tb-key: "linear-gradient(#f7efdc, #dccfae)",
+    tb-key-ink: #2a1d10,
+    tb-key-red: "linear-gradient(#e8574a, #b8261a)",
+    tb-key-red-ink: #fff6e0,
+    tb-screw: $-tb-screw,
+    tb-wood: "repeating-linear-gradient(92deg, rgb(0 0 0 / 0.14) 0 2px, transparent 2px 9px, rgb(255 255 255 / 0.04) 9px 11px, transparent 11px 19px), repeating-linear-gradient(88deg, #5a3a22 0 5px, #6b4428 5px 13px, #4e321d 13px 16px, #633f25 16px 27px)",
+);
+
+// the order is the picker's, the first the look's default
+$tubes-palettes: (
+    // black-brown bakelite, brass plates, cream keys
+    bakelite: (
+        bg: #1e1712,
+        bg-2: #150f0b,
+        panel: #2a211a,
+        panel-2: #33291f,
+        bg-rgb: "30 23 18",
+        hi-rgb: "255 240 210",
+        line-rgb: "201 162 74",
+        text: #efe3c8,
+        text-rgb: "239 227 200",
+        text-dim: #c9b99a,
+        text-mute: #8f8069,
+        text-strong: #fff6e0,
+        text-bright: #ffffff,
+        volt: #ff8a2a,
+        volt-rgb: "255 138 42",
+        grad: "linear-gradient(#e8574a, #b8261a)",
+        arc-core: #ffd9ae,
+        arc-mid: #ff8a2a,
+        arc-deep: #b8561a,
+        arc-glow-rgb: "255 138 42",
+        tb-face: "radial-gradient(1200px 600px at 30% -10%, rgb(255 230 190 / 0.07), transparent 60%), #1e1712",
+        tb-plate: "linear-gradient(#e2c77e, #b8923f 55%, #d8bb6d)",
+        tb-plate-ink: #2a1d10,
+        tb-rim: #c9a24a,
+        swatch: "radial-gradient(circle at 35% 40%, #ff8a2a 0 16%, transparent 18%), linear-gradient(135deg, #c9a24a 0 20%, #2a211a 20%)",
+    ),
+    // a laboratory's hammertone blue-grey, aluminium plates
+    hammertone: (
+        bg: #46545b,
+        bg-2: #2c363b,
+        panel: #56656c,
+        panel-2: #5f6f76,
+        bg-rgb: "70 84 91",
+        hi-rgb: "255 255 255",
+        line-rgb: "220 228 232",
+        text: #eef3f5,
+        text-rgb: "238 243 245",
+        text-dim: #c9d4d9,
+        text-mute: #9aa9b0,
+        text-strong: #ffffff,
+        text-bright: #ffffff,
+        volt: #ff8a2a,
+        volt-rgb: "255 138 42",
+        grad: "linear-gradient(#e8574a, #b8261a)",
+        arc-core: #ffd9ae,
+        arc-mid: #ff8a2a,
+        arc-deep: #b8561a,
+        arc-glow-rgb: "255 138 42",
+        tb-face: "radial-gradient(circle at 30% 30%, rgb(255 255 255 / 0.06) 0 2px, transparent 3px) 0 0 / 9px 9px, radial-gradient(circle at 70% 60%, rgb(0 0 0 / 0.08) 0 2px, transparent 3px) 4px 5px / 11px 11px, #46545b",
+        tb-plate: "linear-gradient(#eef0f1, #b9bec2 55%, #dfe2e4)",
+        tb-plate-ink: #1a1f22,
+        tb-rim: #c9cfd2,
+        swatch: "radial-gradient(circle at 35% 40%, #ff8a2a 0 16%, transparent 18%), linear-gradient(135deg, #c9cfd2 0 20%, #56656c 20%)",
+    ),
+    // the cream enamel of a fifties set, brown bakelite knobs
+    enamel: (
+        bg: #e6dbc0,
+        bg-2: #fbf6ea,
+        panel: #f1e8d2,
+        panel-2: #ece2c8,
+        bg-rgb: "230 219 192",
+        hi-rgb: "0 0 0",
+        line-rgb: "90 60 30",
+        text: #3a2a1a,
+        text-rgb: "58 42 26",
+        text-dim: #5e4a33,
+        text-mute: #8a755a,
+        text-strong: #1f150b,
+        text-bright: #000000,
+        volt: #b8561a,
+        volt-rgb: "184 86 26",
+        grad: "linear-gradient(#e8574a, #b8261a)",
+        arc-core: #ffd9ae,
+        arc-mid: #ff8a2a,
+        arc-deep: #b8561a,
+        arc-glow-rgb: "255 138 42",
+        tb-face: "radial-gradient(1200px 600px at 30% -10%, rgb(255 255 255 / 0.35), transparent 60%), #e6dbc0",
+        tb-plate: "linear-gradient(#e2c77e, #b8923f 55%, #d8bb6d)",
+        tb-plate-ink: #2a1d10,
+        tb-rim: #b8923f,
+        swatch: "radial-gradient(circle at 35% 40%, #ff8a2a 0 16%, transparent 18%), linear-gradient(135deg, #6b4428 0 20%, #f1e8d2 20%)",
+    ),
+);
+
+@each $id, $p in $tubes-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($tb-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

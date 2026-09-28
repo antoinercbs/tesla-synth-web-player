@@ -7,7 +7,7 @@ import { applyTheme, storedTheme } from './themes';
  * (listed in its _index.scss): this module lists the ids and applies the
  * chosen one, a `data-skin` attribute on <html>. The choice is per device.
  */
-export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control'] as const;
+export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control', 'synthwave', 'tubes', 'modular', 'halloween', 'rpg'] as const;
 export type SkinId = (typeof SKINS)[number];
 export const DEFAULT_SKIN: SkinId = 'lab';
 
@@ -16,12 +16,12 @@ export const DEFAULT_SKIN: SkinId = 'lab';
  * every other look once, in a group of its kind (its label under `skinGroup.` in
  * the translations).
  */
-export const SKIN_TOP: readonly SkinId[] = [DEFAULT_SKIN, 'scope', 'control'];
+export const SKIN_TOP: readonly SkinId[] = [DEFAULT_SKIN, 'control'];
 export const SKIN_GROUPS: readonly { id: string; skins: readonly SkinId[] }[] = [
-  { id: 'computers', skins: ['videotex', 'term', 'web1', 'xp', 'gel'] },
-  { id: 'workshop', skins: ['pcb', 'blueprint', 'steam'] },
+  { id: 'computers', skins: ['videotex', 'term', 'web1', 'xp', 'gel', 'synthwave'] },
+  { id: 'workshop', skins: ['scope', 'modular', 'tubes', 'pcb', 'blueprint', 'steam'] },
   { id: 'office', skins: ['cork', 'taxform', 'sheet'] },
-  { id: 'fun', skins: ['circus', 'noel', 'blocks'] },
+  { id: 'fun', skins: ['circus', 'halloween', 'noel', 'blocks', 'rpg'] },
 ];
 
 const STORE_KEY = 'skin';

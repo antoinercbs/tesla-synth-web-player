@@ -1,0 +1,143 @@
+@use "sass:map";
+
+// ===========================================================================
+//  SYNTHWAVE LOOK: its nights
+// ===========================================================================
+// The eighties seen from now: a night sky over a neon grid, a striped sun on the
+// horizon, two neon inks (the one lit most, the other: --sw-neon), the chrome of a title. Each
+// palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// synthwave/_chrome.scss and the $synthwave map read (--sw-neon, --sw-sun…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec
+// checks both).
+
+$sw-shared: (
+    ink: #1a0630,
+    on-grad: #1a0630,
+    hi-rgb: "255 255 255",
+    text-bright: #ffffff,
+    danger: #ff4d6d,
+    danger-rgb: "255 77 109",
+    danger-text: #ff7a93,
+    danger-text-hover: #ffb3c1,
+    ok: #3dffb0,
+    ok-rgb: "61 255 176",
+    amber: #ffd23f,
+    amber-rgb: "255 210 63",
+    caution: #ffd23f,
+    caution-rgb: "255 210 63",
+    caution-text: #ffe28a,
+    warn: #ffa23f,
+    conflict: #ffa23f,
+    duplicate: #ff9de2,
+    duplicate-rgb: "255 157 226",
+    worse: #ff4d6d,
+    // the neon a coil lights
+    coil-0: #ff3fa4,
+    coil-1: #ffd23f,
+    coil-2: #3dffb0,
+    coil-3: #3ff6ff,
+    coil-4: #b56bff,
+    coil-5: #ff8a3d,
+    plasma: #b56bff,
+    knob: #ffffff,
+);
+
+// the order is the picker's, the first the look's default
+$synthwave-palettes: (
+    // the classic drive at dusk: violet sky, magenta grid, yellow-to-pink sun
+    sunset: (
+        bg: #140828,
+        bg-2: #0d0520,
+        panel: #1d0c3a,
+        panel-2: #26104a,
+        bg-rgb: "20 8 40",
+        line-rgb: "255 120 230",
+        text: #f4e9ff,
+        text-rgb: "244 233 255",
+        text-dim: #cdb6f3,
+        text-mute: #9580c8,
+        text-strong: #ffffff,
+        volt: #ff3fd8,
+        volt-rgb: "255 63 216",
+        grad: "linear-gradient(90deg, #ff3f8e, #ffa23f)",
+        arc-core: #ffffff,
+        arc-mid: #3ff6ff,
+        arc-deep: #ff3fd8,
+        arc-glow-rgb: "255 63 216",
+        sw-neon: #3ff6ff,
+        sw-neon-rgb: "63 246 255",
+        sw-sky: "linear-gradient(#0a0418 0%, #1c0a3e 45%, #5a1466 78%, #ff3f8e 100%)",
+        sw-horizon: #3a0f55,
+        sw-sun: "linear-gradient(#ffe45c 0%, #ffa23f 40%, #ff3f8e 75%, #b5179e 100%)",
+        sw-grid: #ff3fd8,
+        sw-chrome: "linear-gradient(#ffffff 0%, #a9e8ff 38%, #1b0a38 50%, #ff7cf5 62%, #ffffff 100%)",
+        swatch: "radial-gradient(circle at 50% 70%, #ffa23f 0 22%, transparent 24%), linear-gradient(#1c0a3e 0 60%, #ff3fd8 60% 64%, #140828 64%)",
+    ),
+    // a colder night: black-blue sky, cyan grid, a cyan-to-violet sun
+    laser: (
+        bg: #04081c,
+        bg-2: #020410,
+        panel: #0a1230,
+        panel-2: #101a42,
+        bg-rgb: "4 8 28",
+        line-rgb: "63 200 255",
+        text: #e6f6ff,
+        text-rgb: "230 246 255",
+        text-dim: #a7c8e6,
+        text-mute: #6a8ab0,
+        text-strong: #ffffff,
+        volt: #3ff6ff,
+        volt-rgb: "63 246 255",
+        grad: "linear-gradient(90deg, #3ff6ff, #7c5cff)",
+        arc-core: #ffffff,
+        arc-mid: #7c5cff,
+        arc-deep: #3ff6ff,
+        arc-glow-rgb: "63 246 255",
+        sw-neon: #b56bff,
+        sw-neon-rgb: "181 107 255",
+        sw-sky: "linear-gradient(#01020a 0%, #04103a 50%, #0a3a7a 80%, #3ff6ff 100%)",
+        sw-horizon: #06225a,
+        sw-sun: "linear-gradient(#e6fdff 0%, #3ff6ff 40%, #7c5cff 80%, #3a1a8a 100%)",
+        sw-grid: #3ff6ff,
+        sw-chrome: "linear-gradient(#ffffff 0%, #bdf6ff 38%, #06122e 50%, #7cc8ff 62%, #ffffff 100%)",
+        swatch: "radial-gradient(circle at 50% 70%, #3ff6ff 0 22%, transparent 24%), linear-gradient(#04103a 0 60%, #3ff6ff 60% 64%, #04081c 64%)",
+    ),
+    // the pastel of vapor: lilac sky, teal grid, a peach sun
+    vapor: (
+        bg: #2a1d52,
+        bg-2: #1f1540,
+        panel: #34245f,
+        panel-2: #3e2c6e,
+        bg-rgb: "42 29 82",
+        line-rgb: "126 249 255",
+        text: #fff4fb,
+        text-rgb: "255 244 251",
+        text-dim: #e3c9ef,
+        text-mute: #b39ac9,
+        text-strong: #ffffff,
+        volt: #ff9de2,
+        volt-rgb: "255 157 226",
+        grad: "linear-gradient(90deg, #ff9de2, #7ef9ff)",
+        arc-core: #ffffff,
+        arc-mid: #7ef9ff,
+        arc-deep: #ff9de2,
+        arc-glow-rgb: "255 157 226",
+        sw-neon: #7ef9ff,
+        sw-neon-rgb: "126 249 255",
+        sw-sky: "linear-gradient(#1f1540 0%, #4a2d7a 45%, #c56cc9 80%, #ffc2d9 100%)",
+        sw-horizon: #6a3a8a,
+        sw-sun: "linear-gradient(#fff3b0 0%, #ffc8a2 40%, #ff9de2 80%, #c56cc9 100%)",
+        sw-grid: #7ef9ff,
+        sw-chrome: "linear-gradient(#ffffff 0%, #d8fbff 38%, #3a2466 50%, #ffc2ea 62%, #ffffff 100%)",
+        swatch: "radial-gradient(circle at 50% 70%, #ffc8a2 0 22%, transparent 24%), linear-gradient(#4a2d7a 0 60%, #7ef9ff 60% 64%, #2a1d52 64%)",
+    ),
+);
+
+@each $id, $p in $synthwave-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($sw-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}
