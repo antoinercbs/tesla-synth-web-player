@@ -1,108 +1,22 @@
-@use "sass:map";
-
 // ===========================================================================
-//  THE LOOKS: each whole in its folder, and which one is on
+//  THE LOOKS: the default in the app's stylesheet, the others fetched when put on
 // ===========================================================================
 // A look (a skin) is a folder: <look>/_palettes.scss its colours (the user picks
 // one of them), <look>/_skin.scss its structure (a map every look gives the same
-// entries of), <look>/_chrome.scss what tokens cannot say (../_chrome.scss imports
-// it last). This file brings their palettes and maps in and turns each map into
-// custom properties under [data-skin="<id>"]. ui/skins.ts lists the ids (its spec
-// checks they match $skins) and applies the chosen one, a data-skin attribute on
-// <html>; ui/themes.ts does the same for a look's palettes.
-@import "svg";
-@import "cursors";
-@import "well";
+// entries of), <look>/_chrome.scss what tokens cannot say. The default look is
+// here, in the app's stylesheet: its palettes, and its map as custom properties on
+// :root (so a page without data-skin still has every token) and under
+// [data-skin="lab"]. Every other look is a stylesheet of its own,
+// <look>/look.scss, brought in with its fonts by <look>/look.ts the first time the
+// look is put on; ui/skins.ts lists the ids (its spec checks each has its folder)
+// and applies the chosen one, a data-skin attribute on <html>; ui/themes.ts does the
+// same for a look's palettes.
+@import "kit";
 @import "lab/palettes";
-@import "xp/palettes";
-@import "scope/palettes";
-@import "term/palettes";
-@import "web1/palettes";
-@import "steam/palettes";
-@import "blueprint/palettes";
-@import "blocks/palettes";
-@import "videotex/palettes";
-@import "gel/palettes";
-@import "circus/palettes";
-@import "noel/palettes";
-@import "pcb/palettes";
-@import "cork/palettes";
-@import "taxform/palettes";
-@import "sheet/palettes";
-@import "control/palettes";
-@import "synthwave/palettes";
-@import "tubes/palettes";
-@import "modular/palettes";
-@import "halloween/palettes";
-@import "rpg/palettes";
-@import "lab/skin";
-@import "xp/skin";
-@import "scope/skin";
-@import "term/skin";
-@import "web1/skin";
-@import "steam/skin";
-@import "blueprint/skin";
-@import "blocks/skin";
-@import "videotex/skin";
-@import "gel/skin";
-@import "circus/skin";
-@import "noel/skin";
-@import "pcb/skin";
-@import "cork/skin";
-@import "taxform/skin";
-@import "sheet/skin";
-@import "control/skin";
-@import "synthwave/skin";
-@import "tubes/skin";
-@import "modular/skin";
-@import "halloween/skin";
-@import "rpg/skin";
 
 $default-skin: lab;
 
-$skins: (
-    lab: $lab,
-    xp: $xp,
-    scope: $scope,
-    term: $term,
-    web1: $web1,
-    steam: $steam,
-    blueprint: $blueprint,
-    blocks: $blocks,
-    videotex: $videotex,
-    gel: $gel,
-    circus: $circus,
-    noel: $noel,
-    pcb: $pcb,
-    cork: $cork,
-    taxform: $taxform,
-    sheet: $sheet,
-    control: $control,
-    synthwave: $synthwave,
-    tubes: $tubes,
-    modular: $modular,
-    halloween: $halloween,
-    rpg: $rpg,
-);
-
-@mixin -skin($s) {
-    @each $key, $value in $s {
-        --#{$key}: #{$value};
-    }
-}
-
-// the default first, on :root, so a page without data-skin still has every token
-:root {
-    @include -skin(map.get($skins, $default-skin));
-}
-
-// every look but the default starts its chips and charts from its fields (_well.scss)
-@each $name, $s in $skins {
-    [data-skin="#{$name}"] {
-        @if $name == $default-skin {
-            @include -skin($s);
-        } @else {
-            @include -skin(map.merge($well, $s));
-        }
-    }
+:root,
+[data-skin="lab"] {
+    @include -skin($lab);
 }

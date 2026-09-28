@@ -67,7 +67,7 @@ $rpg-shared: (
 // the order is the picker's, the first the look's default
 $rpg-palettes: (
     // the blue windows everyone remembers
-    azure: (
+    "azure": (
         bg: #05051a,
         bg-2: #000a38,
         panel: #1c3aa8,
@@ -89,7 +89,7 @@ $rpg-palettes: (
         swatch: "linear-gradient(#4a4a58, #0e0e14)",
     ),
     // crimson windows
-    crimson: (
+    "crimson": (
         bg: #120408,
         bg-2: #240610,
         panel: #7a1a26,

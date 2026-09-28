@@ -1,0 +1,30 @@
+@use "sass:map";
+
+// ===========================================================================
+//  THE KIT: what every look's stylesheet is built on
+// ===========================================================================
+// Imported by _index.scss (the default look, in the app's own stylesheet) and by each
+// look's look.scss (a stylesheet of its own, fetched when the look is put on:
+// ui/skins.ts): the helpers for drawings and cursors, the lab's map a look merges its
+// own onto, the well its chips and charts start from, the families its chrome names,
+// the drawn sliders, and the mixins that write a map out as custom properties. None
+// of it writes CSS by itself.
+@import "svg";
+@import "cursors";
+@import "well";
+@import "families";
+@import "range";
+@import "lab/skin";
+
+@mixin -skin($s) {
+    @each $key, $value in $s {
+        --#{$key}: #{$value};
+    }
+}
+
+// a look's map under its [data-skin], its chips and charts started from its fields
+@mixin look($name, $map) {
+    [data-skin="#{$name}"] {
+        @include -skin(map.merge($well, $map));
+    }
+}

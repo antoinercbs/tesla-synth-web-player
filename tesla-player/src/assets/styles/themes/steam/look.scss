@@ -1,0 +1,13 @@
+// ===========================================================================
+//  STEAMPUNK LOOK: its stylesheet
+// ===========================================================================
+// Fetched the first time the look is put on (look.ts, ui/skins.ts), not in the app's
+// own stylesheet: the kit (../_kit.scss), the look's palettes, its map as custom
+// properties under [data-skin="steam"], then its chrome, last, over the app's rules.
+@import "../kit";
+@import "palettes";
+@import "skin";
+
+@include look(steam, $steam);
+
+@import "chrome";

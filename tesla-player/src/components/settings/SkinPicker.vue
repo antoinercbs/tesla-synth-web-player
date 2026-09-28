@@ -98,7 +98,8 @@ function toggle(): void {
 }
 
 function pick(id: SkinId): void {
-  setSkin(id);
+  // put on once its stylesheet is in; the menu closes now
+  void setSkin(id);
   close(true);
 }
 

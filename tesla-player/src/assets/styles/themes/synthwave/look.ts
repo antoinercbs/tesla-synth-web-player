@@ -1,0 +1,6 @@
+// the synthwave look, fetched when it is put on (ui/skins.ts): the faces it names, then its stylesheet
+import '@fontsource/monoton/400.css';
+import '@fontsource/audiowide/400.css';
+import '@fontsource/exo-2/400.css';
+import '@fontsource/exo-2/600.css';
+import './look.scss';

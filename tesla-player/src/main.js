@@ -8,12 +8,13 @@ import App from './App.vue'
 import router from './router'
 import { messages } from './assets/translations'
 import { applyTheme, storedTheme } from '@/ui/themes'
-import { applySkin, storedSkin } from '@/ui/skins'
+import { DEFAULT_SKIN, applySkin, loadSkin, storedSkin } from '@/ui/skins'
 import { useAuthStore } from '@/stores/auth'
 import { getAccessToken, isAuthEnabled, tryRenew } from '@/auth/oidc'
 
-// the faces the looks name, shipped with the app (no font service is called): each
-// weight a look uses, in every script (a browser only fetches the ones a page shows)
+// the default look's faces, shipped with the app (no font service is called): each
+// weight it uses, in every script (a browser only fetches the ones a page shows); the
+// other looks bring theirs with their stylesheet (assets/styles/themes/<look>/look.ts)
 import '@fontsource/ibm-plex-sans/400.css'
 import '@fontsource/ibm-plex-sans/500.css'
 import '@fontsource/ibm-plex-sans/600.css'
@@ -23,53 +24,18 @@ import '@fontsource/ibm-plex-mono/600.css'
 import '@fontsource/chakra-petch/500.css'
 import '@fontsource/chakra-petch/600.css'
 import '@fontsource/chakra-petch/700.css'
-import '@fontsource/im-fell-english-sc/400.css'
-import '@fontsource/tiny5/400.css'
-import '@fontsource/vt323/400.css'
-import '@fontsource/rye/400.css'
-import '@fontsource/fredoka/500.css'
-import '@fontsource/fredoka/600.css'
-import '@fontsource/mountains-of-christmas/700.css'
-import '@fontsource/permanent-marker/400.css'
-import '@fontsource/patrick-hand/400.css'
-import '@fontsource/fira-sans-condensed/300.css'
-import '@fontsource/fira-sans-condensed/300-italic.css'
-import '@fontsource/fira-sans-condensed/400.css'
-import '@fontsource/fira-sans-condensed/500.css'
-import '@fontsource/fira-sans-condensed/700.css'
-import '@fontsource/fira-sans-condensed/800.css'
-import '@fontsource/arimo/400.css'
-import '@fontsource/arimo/700.css'
-import '@fontsource/b612/400.css'
-import '@fontsource/b612/700.css'
-import '@fontsource/b612-mono/400.css'
-import '@fontsource/b612-mono/700.css'
-import '@fontsource/dseg7/classic-700.css'
-import '@fontsource/monoton/400.css'
-import '@fontsource/audiowide/400.css'
-import '@fontsource/exo-2/400.css'
-import '@fontsource/exo-2/600.css'
-import '@fontsource/jost/300.css'
-import '@fontsource/jost/400.css'
-import '@fontsource/jost/500.css'
-import '@fontsource/jost/600.css'
-import '@fontsource/barlow/400.css'
-import '@fontsource/barlow/500.css'
-import '@fontsource/barlow-condensed/500.css'
-import '@fontsource/barlow-condensed/600.css'
-import '@fontsource/barlow-condensed/700.css'
-import '@fontsource/creepster/400.css'
-import '@fontsource/dotgothic16/400.css'
-import '@fontsource/press-start-2p/400.css'
 import '@/assets/main.scss'
 // CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
 // of <i> elements fights Vue's reactive re-renders and makes icons disappear.
 import '@fortawesome/fontawesome-free/css/all.css'
 
-// before anything paints, so the app never flashes the default look or palette
+// the stored look fetched before the app mounts, so it never flashes the default look
+// or palette; one that cannot be fetched gives way to the default
 const skin = storedSkin()
-applySkin(skin)
-applyTheme(storedTheme(skin))
+const lookReady = loadSkin(skin).then(() => skin, () => DEFAULT_SKIN).then((id) => {
+  applySkin(id)
+  applyTheme(storedTheme(id))
+})
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 
@@ -158,6 +124,7 @@ async function bootstrap() {
   // bare, chrome-less tuning camera page) is honoured from the very first frame
   // and the sidebar never mounts for a split second on a phone.
   await router.isReady()
+  await lookReady
   app.mount('#app')
 }
 

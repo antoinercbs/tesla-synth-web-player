@@ -3,9 +3,11 @@ import { applyTheme, storedTheme } from './themes';
 
 /**
  * Skins, the looks: the structure of the interface (type, shape, depth, motion),
- * and each its own palettes (themes.ts). Each is a folder of assets/styles/themes
- * (listed in its _index.scss): this module lists the ids and applies the
- * chosen one, a `data-skin` attribute on <html>. The choice is per device.
+ * and each its own palettes (themes.ts). Each is a folder of assets/styles/themes:
+ * the default's styles are in the app's stylesheet, every other look's are a
+ * stylesheet of its own with its fonts (<look>/look.ts), fetched the first time it is
+ * put on. This module lists the ids, fetches and applies the chosen one, a
+ * `data-skin` attribute on <html>. The choice is per device.
  */
 export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control', 'synthwave', 'tubes', 'modular', 'halloween', 'rpg'] as const;
 export type SkinId = (typeof SKINS)[number];
@@ -42,14 +44,32 @@ export function storedSkin(): SkinId {
 /** The applied skin, shared by every picker. */
 export const currentSkin = ref<SkinId>(storedSkin());
 
-/** Dress the page in a skin (no persistence: boot uses this). */
+const LOOKS = import.meta.glob('../assets/styles/themes/*/look.ts');
+
+/** A look's stylesheet and fonts, fetched once (the default's are the app's own). */
+export async function loadSkin(id: SkinId): Promise<void> {
+  await LOOKS[`../assets/styles/themes/${id}/look.ts`]?.();
+}
+
+/** Dress the page in a skin whose stylesheet is in (no persistence: boot uses this). */
 export function applySkin(id: SkinId): void {
   document.documentElement.dataset.skin = id;
   currentSkin.value = id;
 }
 
-/** The user's pick: applied now and remembered on this device. */
-export function setSkin(id: SkinId): void {
+// the last look picked: one that arrives after a later pick is not put on
+let picked: SkinId | null = null;
+
+/** The user's pick: fetched, then applied and remembered on this device. */
+export async function setSkin(id: SkinId): Promise<void> {
+  picked = id;
+  try {
+    await loadSkin(id);
+  } catch {
+    // not fetched (offline, a deploy since the page was opened): the look in use stays
+    return;
+  }
+  if (picked !== id) return;
   applySkin(id);
   // a look comes with its palette, the one last picked for it
   applyTheme(storedTheme(id));
