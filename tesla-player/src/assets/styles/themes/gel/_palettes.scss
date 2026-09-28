@@ -1,0 +1,164 @@
+@use "sass:map";
+
+// ===========================================================================
+//  GEL LOOK: its appearances
+// ===========================================================================
+// A desktop of the early 2000s: glossy gel buttons, pinstriped windows, the brushed
+// metal of the media apps. Each palette is written out whole, as the custom
+// properties it sets on [data-theme="<id>"]: the shared ones every appearance keeps
+// (black text on a light face, the white gel, the window's three coloured dots),
+// then its own, including the chrome gel/_chrome.scss and the $gel map read
+// (--gel-default, --gel-select…). ui/themes.ts lists the ids for the look, the
+// first is its default (its spec checks both).
+
+// a gel: its light top, the bright line where the light breaks, its glowing base
+@function -gel($top, $mid, $break, $low, $base, $deg: 180deg) {
+    @return "linear-gradient(#{$deg}, #{$top} 0%, #{$mid} 42%, #{$break} 50%, #{$low} 80%, #{$base} 100%)";
+}
+
+$gel-shared: (
+    text: #000000,
+    text-rgb: "0 0 0",
+    text-dim: #4a4a4a,
+    text-mute: #6e6e6e,
+    text-strong: #000000,
+    text-bright: #000000,
+    // on a light face a faint fill darkens
+    hi-rgb: "0 0 0",
+    line-rgb: "0 0 0",
+    bg-2: #ffffff,
+    panel-2: #ffffff,
+    on-grad: #ffffff,
+    danger: #d9302f,
+    danger-rgb: "217 48 47",
+    danger-text: #b3261e,
+    danger-text-hover: #7f1510,
+    ok: #238636,
+    ok-rgb: "35 134 54",
+    amber: #b87400,
+    amber-rgb: "184 116 0",
+    caution: #d4a000,
+    caution-rgb: "212 160 0",
+    caution-text: #6b4e00,
+    warn: #b36b00,
+    conflict: #a85a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #d6203e,
+    coil-1: #b98a00,
+    coil-2: #1f9d5c,
+    coil-3: #1689b8,
+    coil-4: #7d3cc9,
+    coil-5: #d9661a,
+    plasma: #7d3cc9,
+    key-white: linear-gradient(180deg, #ffffff 0%, #e6e6e6 100%),
+    key-white-hover: linear-gradient(180deg, #ffffff 0%, #f2f2f2 100%),
+    key-black: linear-gradient(180deg, #5c5c5c 0%, #1a1a1a 55%, #0a0a0a 100%),
+    key-black-hover: linear-gradient(180deg, #707070 0%, #2a2a2a 55%, #151515 100%),
+    key-glow-rgb: "80 150 240",
+    key-ink-rgb: "0 0 0",
+    knob: #ffffff,
+    // the white gel of every plain button, its grey edge
+    gel-button: -gel(#ffffff, #f3f3f3, #dedede, #ececec, #ffffff),
+    gel-edge: #8a8a8a,
+    // a window's three dots: close, minimise, zoom
+    gel-close: "radial-gradient(circle at 50% 30%, #ffd0cc 0 15%, transparent 45%), radial-gradient(circle at 50% 70%, #ff8a7a, #d63b2b 70%)",
+    gel-minimise: "radial-gradient(circle at 50% 30%, #fff1c2 0 15%, transparent 45%), radial-gradient(circle at 50% 70%, #ffd36a, #d9960f 70%)",
+    gel-zoom: "radial-gradient(circle at 50% 30%, #d9ffcc 0 15%, transparent 45%), radial-gradient(circle at 50% 70%, #8fe06a, #3c9e1c 70%)",
+    // an inset field's grey, the track of a slider or a progress bar
+    gel-well: "linear-gradient(180deg, #c9c9c9 0%, #efefef 60%, #fafafa 100%)",
+);
+
+$gel-pinstripes: "repeating-linear-gradient(0deg, #f6f6f6 0 2px, #e8e8e8 2px 4px)";
+
+// the order is the picker's, the first the look's default
+$gel-palettes: (
+    // the blue gel, pinstripes everywhere
+    jelly: (
+        bg: #ececec,
+        panel: #f7f7f7,
+        bg-rgb: "236 236 236",
+        ink: #ffffff,
+        volt: #3875d7,
+        volt-rgb: "56 117 215",
+        grad: -gel(#d6ebff, #8cc2f5, #3d8ee8, #5aa6f2, #b7ddff),
+        arc-core: #b7ddff,
+        arc-mid: #5aa6f2,
+        arc-deep: #2d7de0,
+        arc-glow-rgb: "90 166 242",
+        gel-default: -gel(#d6ebff, #8cc2f5, #3d8ee8, #5aa6f2, #b7ddff),
+        gel-select: "linear-gradient(180deg, #6d9ce6 0%, #3a6fd0 100%)",
+        gel-select-text: #ffffff,
+        gel-focus: rgb(95 150 230 / 0.7),
+        gel-sidebar: "linear-gradient(90deg, #dde3ea 0%, #e8ecf1 100%)",
+        gel-backdrop: $gel-pinstripes,
+        gel-window: $gel-pinstripes,
+        gel-toolbar: "linear-gradient(180deg, #f5f5f5 0%, #d6d6d6 100%)",
+        gel-titlebar: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.5) 0 1px, transparent 1px 2px), linear-gradient(180deg, #ececec 0%, #cdcdcd 100%)",
+        gel-scroll-v: -gel(#b2dcff, #5aa8f5, #2b7ade, #4f9ef0, #a8d3ff, 90deg),
+        gel-scroll-h: -gel(#b2dcff, #5aa8f5, #2b7ade, #4f9ef0, #a8d3ff),
+        swatch: "radial-gradient(circle at 38% 28%, #ffffff 0 14%, transparent 42%), linear-gradient(180deg, #8cc2f5 0%, #2d7de0 55%, #a8d6ff 100%)",
+    ),
+    // the grey gel of who found the blue too loud
+    graphite: (
+        bg: #ececec,
+        panel: #f7f7f7,
+        bg-rgb: "236 236 236",
+        ink: #ffffff,
+        volt: #6b7d93,
+        volt-rgb: "107 125 147",
+        grad: -gel(#eef2f6, #b4bfcb, #7f8d9c, #98a5b3, #d4dbe3),
+        arc-core: #d4dbe3,
+        arc-mid: #98a5b3,
+        arc-deep: #6b7d93,
+        arc-glow-rgb: "152 165 179",
+        gel-default: -gel(#eef2f6, #b4bfcb, #7f8d9c, #98a5b3, #d4dbe3),
+        gel-select: "linear-gradient(180deg, #9ba8b7 0%, #6c7a8b 100%)",
+        gel-select-text: #ffffff,
+        gel-focus: rgb(130 145 165 / 0.7),
+        gel-sidebar: "linear-gradient(90deg, #e1e3e6 0%, #eaecee 100%)",
+        gel-backdrop: $gel-pinstripes,
+        gel-window: $gel-pinstripes,
+        gel-toolbar: "linear-gradient(180deg, #f5f5f5 0%, #d6d6d6 100%)",
+        gel-titlebar: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.5) 0 1px, transparent 1px 2px), linear-gradient(180deg, #ececec 0%, #cdcdcd 100%)",
+        gel-scroll-v: -gel(#e4e9ee, #a9b4c0, #7c8a99, #93a0ae, #d0d7df, 90deg),
+        gel-scroll-h: -gel(#e4e9ee, #a9b4c0, #7c8a99, #93a0ae, #d0d7df),
+        swatch: "radial-gradient(circle at 38% 28%, #ffffff 0 14%, transparent 42%), linear-gradient(180deg, #b4bfcb 0%, #7f8d9c 55%, #d4dbe3 100%)",
+    ),
+    // the media apps' brushed metal, the blue gel on it
+    brushed: (
+        bg: #c8c8c8,
+        panel: #f2f2f2,
+        bg-rgb: "200 200 200",
+        ink: #ffffff,
+        volt: #3875d7,
+        volt-rgb: "56 117 215",
+        grad: -gel(#d6ebff, #8cc2f5, #3d8ee8, #5aa6f2, #b7ddff),
+        arc-core: #b7ddff,
+        arc-mid: #5aa6f2,
+        arc-deep: #2d7de0,
+        arc-glow-rgb: "90 166 242",
+        gel-default: -gel(#d6ebff, #8cc2f5, #3d8ee8, #5aa6f2, #b7ddff),
+        gel-select: "linear-gradient(180deg, #6d9ce6 0%, #3a6fd0 100%)",
+        gel-select-text: #ffffff,
+        gel-focus: rgb(95 150 230 / 0.7),
+        gel-sidebar: "rgb(255 255 255 / 0.3)",
+        gel-backdrop: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.12) 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 5px), linear-gradient(180deg, #dcdcdc 0%, #bcbcbc 55%, #d2d2d2 100%)",
+        gel-window: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.12) 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 5px), linear-gradient(180deg, #dadada 0%, #c2c2c2 100%)",
+        // the head is the page's own metal, fixed like it so their streaks meet
+        gel-toolbar: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.12) 0 1px, transparent 1px 3px) fixed, repeating-linear-gradient(0deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 5px) fixed, linear-gradient(180deg, #dcdcdc 0%, #bcbcbc 55%, #d2d2d2 100%) fixed",
+        gel-titlebar: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.12) 0 1px, transparent 1px 3px), linear-gradient(180deg, #e2e2e2 0%, #c6c6c6 100%)",
+        gel-scroll-v: -gel(#b2dcff, #5aa8f5, #2b7ade, #4f9ef0, #a8d3ff, 90deg),
+        gel-scroll-h: -gel(#b2dcff, #5aa8f5, #2b7ade, #4f9ef0, #a8d3ff),
+        swatch: "repeating-linear-gradient(0deg, rgb(255 255 255 / 0.25) 0 1px, transparent 1px 3px), linear-gradient(180deg, #dcdcdc 0%, #aaaaaa 100%)",
+    ),
+);
+
+@each $id, $p in $gel-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($gel-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

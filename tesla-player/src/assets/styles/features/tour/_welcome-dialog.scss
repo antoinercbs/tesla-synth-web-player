@@ -23,12 +23,18 @@
     line-height: 1.5;
 }
 
-.welcome__lang {
+.welcome__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     font-size: var(--fs-sm);
     color: var(--text-dim);
+}
+
+// the look's list: as tall as the language switch above it
+.welcome__row .select-field select {
+    padding: 0.25rem 1.8rem 0.25rem 0.6rem;
+    font-size: var(--fs-sm);
 }
 
 .welcome__later {

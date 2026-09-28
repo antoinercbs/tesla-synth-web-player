@@ -12,6 +12,23 @@ import { applySkin, storedSkin } from '@/ui/skins'
 import { useAuthStore } from '@/stores/auth'
 import { getAccessToken, isAuthEnabled, tryRenew } from '@/auth/oidc'
 
+// the faces the looks name, shipped with the app (no font service is called): each
+// weight a look uses, in every script (a browser only fetches the ones a page shows)
+import '@fontsource/ibm-plex-sans/400.css'
+import '@fontsource/ibm-plex-sans/500.css'
+import '@fontsource/ibm-plex-sans/600.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/ibm-plex-mono/600.css'
+import '@fontsource/chakra-petch/500.css'
+import '@fontsource/chakra-petch/600.css'
+import '@fontsource/chakra-petch/700.css'
+import '@fontsource/im-fell-english-sc/400.css'
+import '@fontsource/tiny5/400.css'
+import '@fontsource/vt323/400.css'
+import '@fontsource/rye/400.css'
+import '@fontsource/fredoka/500.css'
+import '@fontsource/fredoka/600.css'
 import '@/assets/main.scss'
 // CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
 // of <i> elements fights Vue's reactive re-renders and makes icons disappear.

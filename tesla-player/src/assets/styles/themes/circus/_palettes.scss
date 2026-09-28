@@ -1,0 +1,163 @@
+@use "sass:list";
+@use "sass:map";
+
+// ===========================================================================
+//  CIRCUS LOOK: its big tops
+// ===========================================================================
+// The show: a striped tent, cream posters, a velvet curtain, gold, fairground
+// bulbs. Each palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones (dark ink on cream, the gold, the cursors),
+// then its own, including the chrome circus/_chrome.scss and the $circus map read
+// (--circus-marquee, --circus-curtain…). Its drawings (bulbs, pennants, a nose, a
+// star) are SVG (../_svg.scss) in the palette's colours. ui/themes.ts lists the
+// ids for the look, the first is its default (its spec checks both).
+
+// a marquee's frame: a 32px square sliced at 8px (border-image), a bulb in each
+// corner and two along each edge, one of each pair lit: the other phase lights
+// the other, and the two alternating make the lights chase
+$circus-bulbs: (
+    (4, 4, 0), (28, 4, 1), (4, 28, 1), (28, 28, 0),
+    (12, 4, 1), (20, 4, 0), (12, 28, 0), (20, 28, 1),
+    (4, 12, 1), (4, 20, 0), (28, 12, 0), (28, 20, 1),
+);
+
+@function -marquee($frame, $edge, $lit, $dim, $phase) {
+    $body: '<rect width="32" height="32" fill="#{$frame}"/><rect x="7.5" y="7.5" width="17" height="17" fill="none" stroke="#{$edge}"/>';
+    @each $bulb in $circus-bulbs {
+        $x: list.nth($bulb, 1);
+        $y: list.nth($bulb, 2);
+        @if list.nth($bulb, 3) == $phase {
+            $body: $body + '<circle cx="#{$x}" cy="#{$y}" r="3" fill="#{$lit}"/><circle cx="#{$x}" cy="#{$y}" r="1.3" fill="#fffbe6"/>';
+        } @else {
+            $body: $body + '<circle cx="#{$x}" cy="#{$y}" r="2.6" fill="#{$dim}"/>';
+        }
+    }
+    @return svg-url($body, 32, 32);
+}
+
+// a garland of pennants on its string, three colours
+@function -bunting($a, $b, $c, $string) {
+    $body: '<path d="M1 1.5L19 1.5L10 17Z" fill="#{$a}"/><path d="M21 1.5L39 1.5L30 17Z" fill="#{$b}"/><path d="M41 1.5L59 1.5L50 17Z" fill="#{$c}"/><path d="M0 1.5H60" stroke="#{$string}" stroke-width="1.4"/>';
+    @return svg-url($body, 60, 18);
+}
+
+// the tent seen from inside: its stripes running up to the pole
+@function -tent($a, $b) {
+    @return "radial-gradient(ellipse at 50% 0%, transparent 30%, rgb(0 0 0 / 0.35) 100%), repeating-conic-gradient(from 180deg at 50% -40%, #{$a} 0 4deg, #{$b} 4deg 8deg)";
+}
+
+$circus-nose: '<circle cx="12" cy="12" r="9" fill="#e11d2a" stroke="#6a0a10" stroke-width="1.5"/><circle cx="8.8" cy="8.4" r="2.6" fill="#fff" opacity=".8"/>';
+$circus-star: '<path d="M12 1.5L14.9 8.2L22 8.7L16.6 13.4L18.3 20.5L12 16.6L5.7 20.5L7.4 13.4L2 8.7L9.1 8.2Z" fill="#ffd23f" stroke="#7a3a00" stroke-width="1.3" stroke-linejoin="round"/>';
+
+$circus-shared: (
+    text: #3a1a0a,
+    text-rgb: "58 26 10",
+    text-dim: #6b3f23,
+    text-mute: #8a6a50,
+    hi-rgb: "0 0 0",
+    line-rgb: "90 40 10",
+    bg: #fff6e0,
+    bg-2: #fffaf0,
+    panel: #fff6e0,
+    panel-2: #fffdf6,
+    bg-rgb: "255 246 224",
+    ink: #ffffff,
+    on-grad: #3a1a0a,
+    grad: "linear-gradient(180deg, #ffe066 0%, #f4b400 55%, #c88a00 100%)",
+    arc-core: #ffe066,
+    arc-mid: #f4b400,
+    arc-deep: #c88a00,
+    arc-glow-rgb: "244 180 0",
+    danger: #d62828,
+    danger-rgb: "214 40 40",
+    danger-text: #b3121c,
+    danger-text-hover: #7a0a10,
+    ok: #2e8b3a,
+    ok-rgb: "46 139 58",
+    amber: #d98a00,
+    amber-rgb: "217 138 0",
+    caution: #d98a00,
+    caution-rgb: "217 138 0",
+    caution-text: #7a4a00,
+    warn: #c26a00,
+    conflict: #c26a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #d62828,
+    coil-1: #d99a00,
+    coil-2: #2e9e44,
+    coil-3: #1d7fd0,
+    coil-4: #8e3cc9,
+    coil-5: #e36414,
+    plasma: #8e3cc9,
+    knob: #ffffff,
+    circus-gold: #f4b400,
+    circus-board: "linear-gradient(180deg, #ffe066 0%, #f4b400 70%, #d99a00 100%)",
+    circus-ticket: #ffd23f,
+    cursor-default: cursor-url($circus-nose, 12, 12, default),
+    cursor-pointer: cursor-url($circus-star, 12, 12, pointer),
+);
+
+// the order is the picker's, the first the look's default
+$circus-palettes: (
+    // red and white canvas, red velvet
+    bigtop: (
+        text-strong: #8b0f16,
+        text-bright: #b3121c,
+        volt: #d62828,
+        volt-rgb: "214 40 40",
+        circus-tent: -tent(#d62828, #fff3e0),
+        circus-curtain: "repeating-linear-gradient(90deg, #5c0a10 0, #b3161f 14px, #5c0a10 28px)",
+        circus-curtain-text: #ffd84d,
+        circus-curtain-dim: #f6c98f,
+        circus-board-text: #8b0f16,
+        circus-stripes: "repeating-linear-gradient(45deg, #d62828 0 9px, #fff3e0 9px 18px)",
+        circus-marquee-a: -marquee(#7a1216, #f4b400, #ffe680, #5a2a10, 0),
+        circus-marquee-b: -marquee(#7a1216, #f4b400, #ffe680, #5a2a10, 1),
+        circus-bunting: -bunting(#d62828, #ffd23f, #1d4ed8, #5a3a1a),
+        swatch: "repeating-linear-gradient(90deg, #d62828 0 25%, #fff3e0 25% 50%)",
+    ),
+    // blue and yellow, the fairground's
+    carnival: (
+        text-strong: #1e2a78,
+        text-bright: #1d4ed8,
+        volt: #1d4ed8,
+        volt-rgb: "29 78 216",
+        circus-tent: -tent(#1d4ed8, #ffd23f),
+        circus-curtain: "repeating-linear-gradient(90deg, #0c1a50 0, #2340a8 14px, #0c1a50 28px)",
+        circus-curtain-text: #ffd84d,
+        circus-curtain-dim: #c8d2ff,
+        circus-board-text: #1e2a78,
+        circus-stripes: "repeating-linear-gradient(45deg, #1d4ed8 0 9px, #ffd23f 9px 18px)",
+        circus-marquee-a: -marquee(#1e2a78, #ffd23f, #ffe680, #3a3a60, 0),
+        circus-marquee-b: -marquee(#1e2a78, #ffd23f, #ffe680, #3a3a60, 1),
+        circus-bunting: -bunting(#1d4ed8, #ffd23f, #d62828, #1e2a78),
+        swatch: "repeating-linear-gradient(90deg, #1d4ed8 0 25%, #ffd23f 25% 50%)",
+    ),
+    // a clown's polka dots, purple velvet
+    clown: (
+        text-strong: #4a2a78,
+        text-bright: #6a4c93,
+        volt: #6a4c93,
+        volt-rgb: "106 76 147",
+        circus-tent: "radial-gradient(circle, #ff595e 10px, transparent 11px) 0 0 / 70px 70px, radial-gradient(circle, #ffca3a 10px, transparent 11px) 35px 35px / 70px 70px, radial-gradient(circle, #1982c4 7px, transparent 8px) 35px 0 / 70px 70px, radial-gradient(circle, #8ac926 7px, transparent 8px) 0 35px / 70px 70px, #fffaf2",
+        circus-curtain: "repeating-linear-gradient(90deg, #2e1a4d 0, #6a4c93 14px, #2e1a4d 28px)",
+        circus-curtain-text: #ffca3a,
+        circus-curtain-dim: #e6d8ff,
+        circus-board-text: #4a2a78,
+        circus-stripes: "repeating-linear-gradient(45deg, #ff595e 0 9px, #ffca3a 9px 18px, #8ac926 18px 27px, #1982c4 27px 36px)",
+        circus-marquee-a: -marquee(#4a2a78, #ffca3a, #ffe680, #3e2a5a, 0),
+        circus-marquee-b: -marquee(#4a2a78, #ffca3a, #ffe680, #3e2a5a, 1),
+        circus-bunting: -bunting(#ff595e, #8ac926, #1982c4, #4a2a78),
+        swatch: "radial-gradient(circle at 30% 30%, #ff595e 18%, transparent 20%), radial-gradient(circle at 70% 65%, #1982c4 18%, transparent 20%), radial-gradient(circle at 30% 75%, #8ac926 12%, transparent 14%), #ffca3a",
+    ),
+);
+
+@each $id, $p in $circus-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($circus-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

@@ -24,8 +24,9 @@
  * spectrum of Megalovania: 2.2 dB rms (was 8 dB). Caveat: the reference audio went through a
  * phone microphone, whose own low-frequency roll-off (~100 Hz) was fitted separately and is
  * NOT part of this model. Listening next to the real coils found the measured balance too
- * thin in the bass, so a +5 dB low shelf below 350 Hz (`bassShelfDb`) lifts the floor to ≈ −10 dB
- * and the pitch gain leans a little more toward the low notes.
+ * thin in the bass — bass notes buzzed like a kazoo, their 2 kHz hump drowning the fundamental —
+ * so a +12 dB low shelf below 350 Hz (`bassShelfDb`, picked by A/B listening over +5 dB) lifts
+ * the floor to ≈ −4 dB and the pitch gain leans a little more toward the low notes.
  */
 export interface ImpulseParams {
   /** Doublet spacing = arc duration (s): sets the +6 dB/oct rise, the ~2.3 kHz peak and the k/τ notches. */
@@ -46,7 +47,7 @@ export interface ImpulseParams {
    * Low shelf (RBJ, Q = 1/√2) applied below `bassShelfHz`: listener compensation. The
    * recordings (phone mic, far from the coils) put the low-frequency floor ~16 dB under the
    * 2 kHz peak, which sounded too thin next to the real thing — the shelf lifts it back to
-   * ≈ −10 dB. Set `bassShelfDb` to 0 for the raw measured balance.
+   * ≈ −4 dB. Set `bassShelfDb` to 0 for the raw measured balance.
    */
   bassShelfHz: number;
   bassShelfDb: number;
@@ -64,7 +65,7 @@ export const TESLA_IMPULSE: ImpulseParams = {
   midDb: 5,
   midQ: 1.8,
   bassShelfHz: 350,
-  bassShelfDb: 5,
+  bassShelfDb: 12,
 };
 
 /**
@@ -175,6 +176,36 @@ export function pulseCoefficients(
     const c = impulseSpectrum(h * f0, p);
     real[h] = 2 * c.re;
     imag[h] = -2 * c.im;
+  }
+  return { real, imag };
+}
+
+/**
+ * The synth's first model, kept as the "retro pulse" timbre: a rectangular pulse of fixed
+ * duration (the strike, ≈231 µs), so the duty grows with pitch — narrow and buzzy in the bass,
+ * fuller up high — and the first sinc null stays near 4.3 kHz. Clamped to 4–26 % of the
+ * period (≈B2..C6), with a 2nd-order roll-off at 9 kHz that tames the over-clean upper lobes.
+ */
+export const RETRO_PULSE = { widthS: 0.000231, dutyMin: 0.04, dutyMax: 0.26, lowpassHz: 9000 };
+
+export function retroPulseDuty(f0: number): number {
+  return Math.min(RETRO_PULSE.dutyMax, Math.max(RETRO_PULSE.dutyMin, RETRO_PULSE.widthS * f0));
+}
+
+/** Same contract as {@link pulseCoefficients}: harmonics below Nyquist only, DC left at 0. */
+export function retroPulseCoefficients(
+  f0: number,
+  sampleRate: number,
+  maxHarmonics = 256,
+): { real: Float32Array; imag: Float32Array } {
+  const n = Math.max(1, Math.min(maxHarmonics, Math.floor(sampleRate / 2 / f0) - 1));
+  const d = retroPulseDuty(f0);
+  const real = new Float32Array(new ArrayBuffer((n + 1) * 4));
+  const imag = new Float32Array(new ArrayBuffer((n + 1) * 4));
+  for (let h = 1; h <= n; h++) {
+    const w = (h * f0) / RETRO_PULSE.lowpassHz;
+    // pulse centred on t = 0 → cosine series, amplitude (2/πh)·sin(πhd)
+    real[h] = ((2 / (Math.PI * h)) * Math.sin(Math.PI * h * d)) / Math.sqrt(1 + w ** 4);
   }
   return { real, imag };
 }

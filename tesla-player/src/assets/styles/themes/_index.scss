@@ -21,6 +21,8 @@
 @import "blueprint/palettes";
 @import "blocks/palettes";
 @import "videotex/palettes";
+@import "gel/palettes";
+@import "circus/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -30,6 +32,8 @@
 @import "blueprint/skin";
 @import "blocks/skin";
 @import "videotex/skin";
+@import "gel/skin";
+@import "circus/skin";
 
 $default-skin: lab;
 
@@ -43,6 +47,8 @@ $skins: (
     blueprint: $blueprint,
     blocks: $blocks,
     videotex: $videotex,
+    gel: $gel,
+    circus: $circus,
 );
 
 @mixin -skin($s) {

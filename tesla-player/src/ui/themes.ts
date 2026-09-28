@@ -21,6 +21,8 @@ export const THEMES = {
   blueprint: ['prussian', 'whiteprint', 'tracing'],
   blocks: ['dirt', 'redrock', 'obsidian'],
   videotex: ['grey', 'colour', 'blue'],
+  gel: ['jelly', 'graphite', 'brushed'],
+  circus: ['bigtop', 'carnival', 'clown'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

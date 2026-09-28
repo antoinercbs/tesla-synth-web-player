@@ -1,0 +1,502 @@
+// ===========================================================================
+//  CIRCUS LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $circus map (circus/_skin.scss), its colours the big
+// top picked among circus/_palettes.scss. Here, the show: a gold sign for each
+// screen's head with its pennants, panels framed in chasing bulbs, the sidebar as
+// a velvet curtain and the open page in the spotlight, buttons that wobble, a
+// dialog as a ticket lit by a spotlight, a tightrope for a slider. Every rule sits
+// under [data-skin="circus"]; the pages' controls are named by family
+// (../_families.scss). The words it adds are a barker's, in English in every
+// language.
+
+@mixin ticket {
+    background: var(--circus-ticket);
+    border: 2px solid var(--danger-text);
+    color: var(--danger-text);
+    box-shadow: 0 3px 0 var(--danger-text);
+}
+
+@mixin striped {
+    background: var(--circus-stripes);
+    color: var(--text-strong);
+    text-shadow:
+        0 0 3px #fff,
+        0 0 3px #fff,
+        0 0 3px #fff;
+}
+
+// the bulbs light one pair, then the other
+@keyframes circus-chase {
+    50% {
+        border-image-source: var(--circus-marquee-b);
+    }
+}
+
+@keyframes circus-wobble {
+    20% {
+        transform: rotate(-4deg) scale(1.06);
+    }
+
+    40% {
+        transform: rotate(3deg) scale(1.06);
+    }
+
+    60% {
+        transform: rotate(-2deg) scale(1.03);
+    }
+
+    80% {
+        transform: rotate(1deg);
+    }
+}
+
+@keyframes circus-splash {
+    to {
+        transform: rotate(-6deg) scale(1.08);
+    }
+}
+
+@keyframes circus-barber {
+    to {
+        background-position: 36px 0;
+    }
+}
+
+[data-skin="circus"] {
+    ::selection {
+        background: var(--circus-gold);
+        color: var(--text-strong);
+    }
+
+    // --- each screen's head: a gold sign, its pennants hanging under it -----------------------------
+    .screen-head,
+    .screen-head.is-scrolled {
+        --text: var(--circus-board-text);
+        --text-dim: var(--circus-board-text);
+        --text-strong: var(--circus-board-text);
+
+        background: var(--circus-board);
+        border-bottom: 3px solid var(--danger-text);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        box-shadow: none;
+    }
+
+    // room under the sign for its pennants to hang, clear of the page
+    .screen-head {
+        margin-bottom: 1.6rem;
+    }
+
+    .screen-head::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 18px;
+        background: var(--circus-bunting) 0 0 / 60px 18px repeat-x;
+        pointer-events: none;
+    }
+
+    .view-head__title {
+        font-family: var(--font-display);
+        font-weight: 400;
+        color: var(--circus-board-text);
+        text-shadow:
+            2px 2px 0 #fff,
+            3px 3px 0 rgb(0 0 0 / 0.25);
+        transform: rotate(-1.5deg);
+    }
+
+    .view-head__title::before {
+        content: "\2605\FE0E  ";
+        white-space: pre;
+    }
+
+    // the name in lights, its barker's line under it
+    .brand {
+        position: relative;
+    }
+
+    .brand__app {
+        font-family: var(--font-display);
+        font-weight: 400;
+        color: var(--circus-gold);
+        text-shadow: 2px 2px 0 var(--danger-text);
+        letter-spacing: 0.03em;
+    }
+
+    .brand::after {
+        content: "Now 100% more shocking!";
+        position: absolute;
+        right: 0.8rem;
+        bottom: 0.15rem;
+        color: var(--circus-curtain-text);
+        font-size: var(--fs-xs);
+        font-style: italic;
+        white-space: nowrap;
+        pointer-events: none;
+        transform: rotate(-6deg);
+        animation: circus-splash 0.6s ease-in-out infinite alternate;
+    }
+
+    .sidebar--compact .brand::after {
+        display: none;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        border-top: 3px dashed var(--danger-text);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- panels: posters in a marquee of chasing bulbs --------------------------------------------
+    #{$panels} {
+        border: 8px solid;
+        border-image: var(--circus-marquee-a) 8 round;
+        background: var(--panel);
+        animation: circus-chase 1.2s infinite;
+    }
+
+    // a box inside a poster keeps a plain line
+    .env-lib__group {
+        border: 2px dashed var(--danger-text);
+        border-image: none;
+        animation: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    #{$panel-heads} {
+        border-bottom: 2px dashed rgb(var(--line-rgb) / 0.35);
+    }
+
+    .coil-card__title,
+    .editor-section__title,
+    .sidebar-section__title,
+    #{$panel-heads} {
+        font-family: var(--font-display);
+        font-weight: 400;
+        color: var(--text-strong);
+        letter-spacing: 0.02em;
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        height: 3px;
+        background: var(--circus-stripes);
+    }
+
+    .empty-stub::after {
+        content: "Coming soon to this ring!";
+        font-family: var(--font-display);
+        color: var(--text-strong);
+    }
+
+    // --- the sidebar: the velvet curtain, the open page in the spotlight --------------------------
+    .sidebar {
+        --text: var(--circus-curtain-text);
+        --text-dim: var(--circus-curtain-dim);
+        --text-mute: var(--circus-curtain-dim);
+        --text-strong: #fff;
+        --line: rgb(255 216 77 / 0.25);
+
+        border-right: 5px solid var(--circus-gold);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 999px;
+    }
+
+    .nav-item:hover {
+        background: rgb(255 255 255 / 0.1);
+        color: #fff;
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(255 216 77 / 0.2);
+        box-shadow: inset 0 0 0 2px var(--circus-gold);
+        color: #fff;
+        text-shadow: 0 1px 2px rgb(0 0 0 / 0.5);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    // --- buttons: tickets that wobble under the pointer ---------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled),
+    #{$push-buttons}:hover:not(:disabled) {
+        filter: none;
+        animation: circus-wobble 0.5s ease-in-out;
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled) {
+        transform: translateY(3px);
+        box-shadow: none;
+    }
+
+    .btn--volt {
+        border-color: rgb(0 0 0 / 0.35);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        @include ticket;
+
+        border-radius: 999px;
+    }
+
+    #{$pushed-on} {
+        @include striped;
+    }
+
+    #{$flat-buttons} {
+        border-radius: 999px;
+
+        &:hover:not(:disabled) {
+            @include ticket;
+        }
+    }
+
+    // a MIDI channel: a ticket, its coil's colour when on
+    .chan-cell {
+        @include ticket;
+
+        border-radius: 8px;
+        box-shadow: 0 2px 0 var(--danger-text);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: #fff;
+        text-shadow: 0 1px 0 rgb(0 0 0 / 0.4);
+    }
+
+    // --- choices: the chosen one in stripes, readable over them -------------------------------------
+    .segmented button.is-active,
+    #{$tool-choices} button.is-on {
+        text-shadow:
+            0 0 3px #fff,
+            0 0 3px #fff,
+            0 0 3px #fff;
+    }
+
+    .segmented--tabs button {
+        padding: 0.3rem 0.9rem;
+        border-radius: 999px;
+    }
+
+    .segmented--tabs button.is-active {
+        @include striped;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // --- fields: a ticket's dotted edge ------------------------------------------------------------
+    .text-field,
+    .select-field select,
+    .combo,
+    #{$number-boxes} {
+        border-style: dashed;
+        border-width: 2px;
+    }
+
+    // --- menus ---------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 3px solid var(--danger-text);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: var(--circus-ticket);
+            color: var(--danger-text);
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        background: var(--circus-ticket);
+        color: var(--danger-text);
+    }
+
+    // --- a dialog: a ticket in the spotlight -----------------------------------------------------------
+    .modal-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: radial-gradient(circle at 50% 48%, rgb(255 244 200 / 0.14) 0 24%, rgb(0 0 0 / 0.85) 50%);
+    }
+
+    // its four corners punched out, the perforation under its head
+    .modal-card {
+        border-width: 3px;
+        -webkit-mask:
+            radial-gradient(circle at 0 0, transparent 16px, #000 17px) top left / 51% 51% no-repeat,
+            radial-gradient(circle at 100% 0, transparent 16px, #000 17px) top right / 51% 51% no-repeat,
+            radial-gradient(circle at 0 100%, transparent 16px, #000 17px) bottom left / 51% 51% no-repeat,
+            radial-gradient(circle at 100% 100%, transparent 16px, #000 17px) bottom right / 51% 51% no-repeat;
+        mask:
+            radial-gradient(circle at 0 0, transparent 16px, #000 17px) top left / 51% 51% no-repeat,
+            radial-gradient(circle at 100% 0, transparent 16px, #000 17px) top right / 51% 51% no-repeat,
+            radial-gradient(circle at 0 100%, transparent 16px, #000 17px) bottom left / 51% 51% no-repeat,
+            radial-gradient(circle at 100% 100%, transparent 16px, #000 17px) bottom right / 51% 51% no-repeat;
+    }
+
+    // up the ticket's right edge, in its margin, as on a stub
+    .modal-card::after {
+        content: "ADMIT ONE";
+        position: absolute;
+        right: 0.15rem;
+        top: 50%;
+        writing-mode: vertical-rl;
+        padding: 0.4rem 0;
+        border: 1.5px solid var(--danger-text);
+        border-radius: 4px;
+        color: var(--danger-text);
+        font-family: var(--font-display);
+        font-size: 0.6rem;
+        letter-spacing: 0.08em;
+        opacity: 0.55;
+        transform: translateY(-50%);
+        pointer-events: none;
+    }
+
+    .modal-card__head {
+        padding-bottom: 0.6rem;
+        border-bottom: 3px dashed var(--danger-text);
+    }
+
+    .modal-card__title {
+        font-family: var(--font-display);
+        font-weight: 400;
+    }
+
+    // gold on a gold ticket would vanish: the logo in red
+    .modal-card .brand__emblem {
+        background: var(--danger-text);
+    }
+
+    // --- a toast: the barker's cry ------------------------------------------------------------------------
+    .toast {
+        flex-wrap: wrap;
+        border-width: 2px;
+        font-weight: 600;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        flex-basis: 100%;
+        font-family: var(--font-display);
+    }
+
+    .toast--success::after {
+        content: "Ta-da!";
+    }
+
+    .toast--error::after {
+        content: "Oops!";
+    }
+
+    // --- the song's progress: a candy stripe ----------------------------------------------------------
+    .player-progress__bar {
+        height: 10px;
+        border: 2px solid var(--danger-text);
+        border-radius: 999px;
+        background: #fffdf6;
+    }
+
+    .player-progress__fill {
+        border-radius: 999px;
+        background: var(--circus-stripes) 0 0 / 36px 100%;
+        animation: circus-barber 0.8s linear infinite;
+    }
+
+    // --- scroll bars: candy canes -----------------------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid var(--danger-text);
+        border-radius: 7px;
+        background: var(--circus-stripes);
+    }
+
+    // --- sliders: a juggler's ball on a tightrope ----------------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: repeating-linear-gradient(-60deg, #c8a06a 0 3px, #8a6030 3px 6px);
+        --range-track-h: 5px;
+        --range-track-radius: 3px;
+        --range-track-shadow: 0 1px 0 rgb(0 0 0 / 0.25);
+        --range-thumb: conic-gradient(#e11d2a 0 25%, #ffd23f 0 50%, #e11d2a 0 75%, #ffd23f 0);
+        --range-thumb-w: 18px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid #6a0a10;
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 2px 0 rgb(0 0 0 / 0.3);
+        --range-focus: 3px solid var(--circus-gold);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+}
+
+// the show holds still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="circus"] #{$panels},
+    [data-skin="circus"] .brand::after,
+    [data-skin="circus"] .player-progress__fill,
+    [data-skin="circus"] .btn:hover,
+    [data-skin="circus"] .icon-btn:hover {
+        animation: none;
+    }
+}

@@ -72,9 +72,21 @@
           },
         ]" />
 
-      <p v-if="output1Mode === 'synth'" class="sidebar-hint">
-        <i class="fas fa-wave-square"></i>{{ $t('label.emulationHint') }}
-      </p>
+      <template v-if="output1Mode === 'synth'">
+        <p class="sidebar-hint">
+          <i class="fas fa-wave-square"></i>{{ $t('label.emulationHint') }}
+        </p>
+        <!-- the editor and the envelope audition play on this synth too, whatever the output -->
+        <div class="sidebar-row">
+          <label class="sidebar-row__label" for="synth-model">{{ $t('label.synthModel') }}</label>
+          <div class="select-field sidebar-select synth-model">
+            <select id="synth-model" v-model="synthModel" :title="$t(`label.synthModelHint.${synthModel}`)"
+              @change="onSynthModelChange">
+              <option v-for="m in synthModels" :key="m" :value="m">{{ $t(`label.synthModelName.${m}`) }}</option>
+            </select>
+          </div>
+        </div>
+      </template>
 
       <div v-else-if="output1Mode === 'midi'" class="select-field sidebar-select">
         <select v-if="outputs.length" v-model="selectedOutputId" :aria-label="$t('label.firstOutput')"
@@ -244,7 +256,7 @@ import { useAuthStore } from '@/stores/auth'
 import { coilColor } from '@/ui/coil-colors'
 import { startTour } from '@/tour/tour'
 import { notify } from '@/utils/toast'
-import { getTeslaSynth, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
+import { getTeslaSynth, SYNTH_MODELS, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
 import { WebMidiLink } from '@/serial/webmidi-link'
 import SegmentedControl from '@/components/ui/SegmentedControl.vue'
@@ -276,6 +288,10 @@ export default {
       // from the legacy persisted device id (synth vs a real MIDI output).
       output1Mode: localStorage.getItem('output1Mode')
         || ((localStorage.getItem('midiOutput1Id') || SYNTH_OUTPUT_ID) === SYNTH_OUTPUT_ID ? 'synth' : 'midi'),
+      // built-in synth timbre (persisted); an unknown stored value falls back to the coil
+      synthModels: SYNTH_MODELS,
+      synthModel: SYNTH_MODELS.includes(localStorage.getItem('synthModel'))
+        ? localStorage.getItem('synthModel') : 'tesla',
       serialError: '',
       isConnected: false,
       pingTimer: null,
@@ -433,6 +449,10 @@ export default {
         this.resolveOutputs() // midi → device/synth ; serial → synth until Connect
       }
     },
+    onSynthModelChange() {
+      localStorage.setItem('synthModel', this.synthModel)
+      getTeslaSynth().setModel(this.synthModel)
+    },
     async connectSerial() {
       this.serialError = ''
       if (!this.serialSupported) return
@@ -567,6 +587,7 @@ export default {
     }
   },
   mounted() {
+    getTeslaSynth().setModel(this.synthModel)
     this.resolveOutputs() // built-in synth available immediately, even before/without WebMIDI
     WebMidi.enable({ sysex: true }).then(this.onEnabled).catch(err => console.error('WebMIDI:', err))
     // Serial mode persisted → silently reopen a previously-authorized port (no prompt).
