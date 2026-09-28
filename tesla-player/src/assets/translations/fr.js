@@ -447,6 +447,22 @@ export default {
     azure: "Fenêtre bleue",
     shadow: "Fenêtre sombre",
     crimson: "Fenêtre pourpre",
+
+    lagoon: "Lagon",
+    abyss: "Abysses",
+    koi: "Bassin à carpes",
+
+    peasoup: "Petit pois",
+    pocketgrey: "Gris de poche",
+    backlit: "Rétroéclairé",
+
+    ivory: "Ivoire",
+    sepia: "Sépia",
+    nocturne: "Nocturne",
+
+    citymap: "Plan de ville",
+    nightmap: "Plan de nuit",
+    signage: "Signalétique",
   },
   skin: {
     title: "Apparence",
@@ -472,12 +488,22 @@ export default {
     modular: "Synthé modulaire",
     halloween: "Halloween",
     rpg: "Jeu de rôle",
+
+    aquarium: "Aquarium",
+
+    pocket: "Console de poche",
+
+    sheetmusic: "Partition",
+
+    metro: "Plan de métro",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",
     workshop: "Labo et atelier",
     office: "Au bureau",
     fun: "Fêtes et jeux",
+
+    scenes: "Décors",
   },
   welcome: {
     title: "Bienvenue sur Tesla Player",

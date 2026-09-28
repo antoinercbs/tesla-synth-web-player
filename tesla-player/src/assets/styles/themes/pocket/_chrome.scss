@@ -1,0 +1,474 @@
+// ===========================================================================
+//  HANDHELD CONSOLE LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $pocket map (pocket/_skin.scss), its four shades the
+// screen picked among pocket/_palettes.scss. Here, the console (a desktop's window: on
+// a phone the screen is the whole of it): the body's plastic round the app, the bezel
+// with its lamp, its words and its one round corner, the pixel grid over the screen;
+// panels, menus and dialogs as windows with their double lines; the ▶ cursor before
+// the open page, the open tab, the chosen value; bars in blocks; the logo in the
+// screen's shades; toasts as the dialogue box, its arrow blinking. The words it adds
+// are in English, as the games' were. Every rule sits under [data-skin="pocket"]; the
+// pages' controls are named by family (../_families.scss).
+
+// a window: the darkest line, the lightest, the dark one inside
+@mixin window {
+    border: 2px solid var(--pk-0);
+    background: var(--pk-3);
+    box-shadow: inset 0 0 0 2px var(--pk-3), inset 0 0 0 4px var(--pk-1);
+}
+
+// the cursor before what is picked
+@mixin cursor {
+    content: "\25B6";
+    font-family: var(--font-display);
+    font-size: 0.55rem;
+    color: var(--pk-0);
+}
+
+[data-skin="pocket"] {
+    ::selection {
+        background: var(--pk-1);
+        color: var(--pk-3);
+    }
+
+    // --- the console: its body, the bezel round the screen, the pixel grid -------------------------------------------
+    @media (min-width: 1001px) {
+        body {
+            display: flow-root;
+        }
+
+        .app-shell {
+            position: relative;
+            height: calc(100dvh - 36px);
+            margin: 18px;
+            border: 26px solid transparent;
+            border-radius: 10px 10px 56px 10px;
+            background:
+                linear-gradient(var(--pk-3), var(--pk-3)) padding-box,
+                var(--pk-label) center 7px / 260px 12px no-repeat border-box,
+                var(--pk-lamp) left center / 26px 48px no-repeat border-box,
+                linear-gradient(var(--pk-bezel), var(--pk-bezel)) border-box;
+            box-shadow: 0 2px 0 rgb(255 255 255 / 0.5), 0 8px 24px rgb(0 0 0 / 0.35);
+        }
+
+        .sidebar,
+        .app-main {
+            height: auto;
+        }
+
+        .app-shell::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 44;
+            background:
+                repeating-linear-gradient(90deg, rgb(var(--pk-0-rgb) / 0.06) 0 1px, transparent 1px 3px),
+                repeating-linear-gradient(rgb(var(--pk-0-rgb) / 0.06) 0 1px, transparent 1px 3px);
+            pointer-events: none;
+        }
+    }
+
+    .app-main {
+        background: var(--pk-3);
+    }
+
+    // --- the head, the logo in the screen's shades ---------------------------------------------------------------------
+    .view-head__title {
+        font-size: 1.05rem;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    // the pixel face stands above the lab's line box, which clips what overflows it
+    .brand__app {
+        font-family: var(--font-display);
+        font-size: 0.56rem;
+        letter-spacing: 0;
+        line-height: 1.6;
+    }
+
+    .brand__emblem,
+    .brand__label {
+        filter: grayscale(1) contrast(3) brightness(0.55) sepia(1) hue-rotate(40deg) saturate(1.4);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--pk-3);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        box-shadow: 0 2px 0 var(--pk-0);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 2px solid var(--pk-0);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- windows -------------------------------------------------------------------------------------------------------
+    #{$panels} {
+        @include window;
+    }
+
+    .env-lib__group {
+        border: 0;
+        box-shadow: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    #{$panel-heads} {
+        border-bottom: 2px solid var(--pk-0);
+        background: none;
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        font-family: var(--font-display);
+        font-size: 0.6rem;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .sidebar {
+        border-right: 2px solid var(--pk-0);
+    }
+
+    .empty-stub::after {
+        content: "NO DATA";
+        font-family: var(--font-display);
+        font-size: 0.6rem;
+    }
+
+    // --- the menu: the ▶ before the open page --------------------------------------------------------------------------
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+        background: none;
+        color: var(--pk-1);
+        font-family: var(--font-body);
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        background: var(--pk-2);
+        color: var(--pk-0);
+    }
+
+    .nav-item.router-link-active {
+        color: var(--pk-0);
+    }
+
+    .nav-item.router-link-active::before {
+        @include cursor;
+
+        top: 50%;
+        left: 2px;
+        bottom: auto;
+        width: auto;
+        height: auto;
+        margin-top: -0.35rem;
+        background: none;
+        line-height: 1;
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--pk-0);
+    }
+
+    // --- buttons: pushed a pixel down; one out of reach dithered ---------------------------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: none;
+        background: var(--pk-1);
+        color: var(--pk-3);
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled) {
+        transform: translate(2px, 2px);
+        box-shadow: none;
+    }
+
+    .btn:disabled,
+    .icon-btn:disabled {
+        opacity: 1;
+        background: repeating-conic-gradient(var(--pk-2) 0 25%, var(--pk-3) 0 50%) 0 0 / 4px 4px;
+        color: var(--pk-1);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 2px solid var(--pk-0);
+        border-radius: 0;
+        background: var(--pk-2);
+        box-shadow: 2px 2px 0 var(--pk-1);
+        color: var(--pk-0);
+
+        &:hover:not(:disabled) {
+            background: var(--pk-1);
+            color: var(--pk-3);
+        }
+    }
+
+    #{$pushed-on} {
+        background: var(--pk-0);
+        color: var(--pk-3);
+    }
+
+    .chan-cell {
+        border: 2px solid var(--pk-0);
+        border-radius: 0;
+        background: var(--pk-3);
+        color: var(--pk-0);
+    }
+
+    .chan-cell.is-on {
+        background: var(--pk-0);
+        color: var(--pk-3);
+    }
+
+    // --- choices and tabs: the ▶ before the one picked ------------------------------------------------------------------
+    #{$value-choices},
+    #{$tool-choices},
+    .segmented--tabs {
+        button {
+            gap: 0.35rem;
+            border: 0;
+            background: none;
+            box-shadow: none;
+        }
+
+        button.is-active,
+        button.is-on {
+            background: none;
+            color: var(--pk-0);
+
+            &::before {
+                @include cursor;
+            }
+        }
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // a switch in pixels: a square cap in a square slot, dark on the light slot when off,
+    // light on the dark one when on, so its state reads at a glance
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: 34px;
+        height: 18px;
+        border: 2px solid var(--pk-0);
+        border-radius: 0;
+        background: var(--pk-3);
+        box-shadow: 2px 2px 0 var(--pk-1);
+    }
+
+    .switch input:checked + .switch__track {
+        background: var(--pk-1);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        top: 2px;
+        left: 2px;
+        width: 10px;
+        height: 10px;
+        border-radius: 0;
+        background: var(--pk-0);
+        box-shadow: inset -2px -2px 0 var(--pk-1);
+    }
+
+    .switch input:checked + .switch__track::after {
+        transform: translateX(16px);
+        background: var(--pk-3);
+        box-shadow: inset -2px -2px 0 var(--pk-2);
+    }
+
+    .switch input:focus-visible + .switch__track {
+        outline: 2px solid var(--pk-0);
+        outline-offset: 2px;
+    }
+
+    // --- bars in blocks --------------------------------------------------------------------------------------------------
+    .vu-track {
+        border: 2px solid var(--pk-0);
+        border-radius: 0;
+        background: var(--pk-3);
+    }
+
+    .vu-fill {
+        -webkit-mask: repeating-linear-gradient(to top, #000 0 5px, transparent 5px 7px) bottom / 100% 100%;
+        mask: repeating-linear-gradient(to top, #000 0 5px, transparent 5px 7px) bottom / 100% 100%;
+    }
+
+    .player-progress__bar {
+        height: 10px;
+        border: 2px solid var(--pk-0);
+        border-radius: 0;
+        background: var(--pk-3);
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: repeating-linear-gradient(90deg, var(--pk-0) 0 6px, transparent 6px 8px);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: var(--pk-0);
+        --range-track-h: 4px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: var(--pk-3);
+        --range-thumb-hover: var(--pk-2);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid var(--pk-0);
+        --range-thumb-radius: 0;
+        --range-thumb-shadow: 2px 2px 0 var(--pk-1);
+        --range-focus: 2px solid var(--pk-0);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, the dialogue box ---------------------------------------------------------------------------------
+    #{$menus} {
+        @include window;
+
+        box-shadow: inset 0 0 0 2px var(--pk-3), inset 0 0 0 4px var(--pk-1), var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: var(--pk-2);
+            color: var(--pk-0);
+        }
+    }
+
+    .combo__option.is-active {
+        background: var(--pk-2);
+    }
+
+    .modal-overlay {
+        background: rgb(var(--pk-0-rgb) / 0.45);
+    }
+
+    .modal-card {
+        @include window;
+
+        box-shadow: inset 0 0 0 2px var(--pk-3), inset 0 0 0 4px var(--pk-1), var(--shadow-modal);
+    }
+
+    .modal-card__head {
+        border-bottom: 2px solid var(--pk-0);
+    }
+
+    .modal-card__title {
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 400;
+    }
+
+    .toast {
+        @include window;
+
+        flex-wrap: wrap;
+        padding-right: 2rem;
+        box-shadow: inset 0 0 0 2px var(--pk-3), inset 0 0 0 4px var(--pk-1), var(--shadow-float);
+    }
+
+    .toast::before {
+        content: "\25BC";
+        position: absolute;
+        top: auto;
+        left: auto;
+        right: 0.8rem;
+        bottom: 0.45rem;
+        width: auto;
+        height: auto;
+        background: none;
+        color: var(--pk-0);
+        font-size: 0.55rem;
+        animation: pk-blink 0.8s steps(2, jump-none) infinite;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-family: var(--font-display);
+        font-size: 0.6rem;
+    }
+
+    .toast--success::after {
+        content: "YOU WIN!";
+    }
+
+    .toast--error::after {
+        content: "TRY AGAIN";
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--pk-3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid var(--pk-3);
+        border-radius: 0;
+        background: var(--pk-1);
+    }
+}
+
+@keyframes pk-blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+// the arrow holds still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="pocket"] .toast::before {
+        animation: none;
+    }
+}

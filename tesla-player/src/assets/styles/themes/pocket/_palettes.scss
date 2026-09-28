@@ -1,0 +1,102 @@
+@use "sass:map";
+
+// ===========================================================================
+//  HANDHELD CONSOLE LOOK: its screens
+// ===========================================================================
+// A pocket console of no one maker: its screen's four shades (the darkest, the dark,
+// the light, the lightest) and nothing else, the plastic of its body, the bezel round
+// the screen with its power lamp and its words, drawn here. Each palette is written
+// out whole, as the custom properties it sets on [data-theme="<id>"]: the four shades
+// mapped onto the app's tokens, then the chrome's own (pocket/_chrome.scss: --pk-0
+// to --pk-3, --pk-body, --pk-bezel…). ui/themes.ts lists the ids for the look, the
+// first is its default (its spec checks both).
+
+// the power lamp on the bezel's left, and its word
+@function -pk-lamp($ink) {
+    @return svg-url('<circle cx="13" cy="18" r="6" fill="#ff2a2a" fill-opacity=".35"/><circle cx="13" cy="18" r="3.4" fill="#ff3a3a" stroke="#6a0000" stroke-width=".6"/><text x="13" y="40" font-family="Arial, Helvetica, sans-serif" font-size="6.5" font-weight="700" fill="#{$ink}" text-anchor="middle" letter-spacing=".6">PILE</text>', 26, 48);
+}
+
+// the bezel's words above the screen
+@function -pk-label($ink) {
+    @return svg-url('<text x="130" y="9.5" font-family="Arial, Helvetica, sans-serif" font-size="8.5" font-style="italic" font-weight="700" fill="#{$ink}" text-anchor="middle" letter-spacing="1.6">&#201;CRAN &#192; MATRICE DE POINTS</text>', 260, 12);
+}
+
+// a screen: its four shades as the app's colours, the body and the bezel round it
+@function -pk-screen($s0, $s1, $s2, $s3, $rgb0, $rgb3, $body, $bezel, $bezel-ink) {
+    @return (
+        pk-0: $s0,
+        pk-1: $s1,
+        pk-2: $s2,
+        pk-3: $s3,
+        pk-0-rgb: $rgb0,
+        pk-body: $body,
+        pk-bezel: $bezel,
+        pk-lamp: -pk-lamp($bezel-ink),
+        pk-label: -pk-label($bezel-ink),
+        bg: $s3,
+        bg-2: $s3,
+        panel: $s3,
+        panel-2: $s2,
+        bg-rgb: $rgb3,
+        hi-rgb: $rgb0,
+        line-rgb: $rgb0,
+        text: $s0,
+        text-rgb: $rgb0,
+        text-dim: $s1,
+        text-mute: $s1,
+        text-strong: $s0,
+        text-bright: $s0,
+        ink: $s3,
+        on-grad: $s3,
+        volt: $s0,
+        volt-rgb: $rgb0,
+        grad: linear-gradient($s0, $s0),
+        arc-core: $s0,
+        arc-mid: $s0,
+        arc-deep: $s0,
+        arc-glow-rgb: $rgb0,
+        danger: $s0,
+        danger-rgb: $rgb0,
+        danger-text: $s0,
+        danger-text-hover: $s1,
+        ok: $s1,
+        ok-rgb: $rgb0,
+        amber: $s1,
+        amber-rgb: $rgb0,
+        caution: $s1,
+        caution-rgb: $rgb0,
+        caution-text: $s0,
+        warn: $s1,
+        conflict: $s1,
+        duplicate: $s1,
+        duplicate-rgb: $rgb0,
+        worse: $s0,
+        coil-0: $s0,
+        coil-1: $s1,
+        coil-2: color-mix(in srgb, $s1 55%, $s2),
+        coil-3: color-mix(in srgb, $s0 60%, $s1),
+        coil-4: color-mix(in srgb, $s1 70%, $s3),
+        coil-5: color-mix(in srgb, $s0 40%, $s2),
+        plasma: $s1,
+        knob: $s3,
+        swatch: "linear-gradient(90deg, #{$s0} 0 25%, #{$s1} 25% 50%, #{$s2} 50% 75%, #{$s3} 75%)",
+    );
+}
+
+// the order is the picker's, the first the look's default
+$pocket-palettes: (
+    // the pea-soup green of the first one
+    peasoup: -pk-screen(#0f380f, #306230, #8bac0f, #9bbc0f, "15 56 15", "155 188 15", "linear-gradient(135deg, #d4d0ca, #b9b5ae)", #5d5f73, #b9bacb),
+    // the grey of the slimmer one
+    pocketgrey: -pk-screen(#1d1d1b, #525246, #9a9a86, #c4c6b2, "29 29 27", "196 198 178", "linear-gradient(135deg, #d8d8d8, #b4b4b4)", #333336, #9a9aa0),
+    // the lit screen of the one that glowed
+    backlit: -pk-screen(#00302f, #0c6b68, #3fb8a8, #9ff4e0, "0 48 47", "159 244 224", "linear-gradient(135deg, #e6e6ea, #c8c8d0)", #3a3a4a, #a8a8b8),
+);
+
+@each $id, $p in $pocket-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in $p {
+            --#{$key}: #{$value};
+        }
+    }
+}

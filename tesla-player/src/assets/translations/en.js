@@ -444,6 +444,22 @@ export default {
     azure: "Blue window",
     shadow: "Dark window",
     crimson: "Crimson window",
+
+    lagoon: "Lagoon",
+    abyss: "Abyss",
+    koi: "Koi pond",
+
+    peasoup: "Pea soup",
+    pocketgrey: "Pocket grey",
+    backlit: "Backlit",
+
+    ivory: "Ivory",
+    sepia: "Sepia",
+    nocturne: "Nocturne",
+
+    citymap: "City map",
+    nightmap: "Night map",
+    signage: "Signage",
   },
   skin: {
     title: "Look",
@@ -469,12 +485,22 @@ export default {
     modular: "Modular synth",
     halloween: "Halloween",
     rpg: "Role-playing game",
+
+    aquarium: "Aquarium",
+
+    pocket: "Handheld console",
+
+    sheetmusic: "Sheet music",
+
+    metro: "Metro map",
   },
   skinGroup: {
     computers: "Vintage computers",
     workshop: "Lab and workshop",
     office: "At the office",
     fun: "Fun and games",
+
+    scenes: "Scenes",
   },
   welcome: {
     title: "Welcome to Tesla Player",

@@ -1,0 +1,150 @@
+@use "sass:map";
+
+// ===========================================================================
+//  SHEET MUSIC LOOK: its papers
+// ===========================================================================
+// An engraved score of no one publisher: its paper, its ink, the faint ink of its
+// staves, the colour of an edition's titles, the inks a hand would mark the parts in.
+// Each palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// sheetmusic/_chrome.scss and the $sheetmusic map read (--sm-ink, --sm-staff…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+$sm-shared: (
+    danger: #a4161a,
+    danger-rgb: "164 22 26",
+    danger-text: #a4161a,
+    danger-text-hover: #6a040f,
+    ok: #2d6a4f,
+    ok-rgb: "45 106 79",
+    amber: #9a6a00,
+    amber-rgb: "154 106 0",
+    caution: #9a6a00,
+    caution-rgb: "154 106 0",
+    caution-text: #6b4a00,
+    warn: #a85a00,
+    conflict: #a85a00,
+    duplicate: #7a1f5b,
+    duplicate-rgb: "122 31 91",
+    worse: #a4161a,
+    knob: #ffffff,
+);
+
+// the order is the picker's, the first the look's default
+$sheetmusic-palettes: (
+    // white-cream paper, black ink, a bordeaux title
+    ivory: (
+        bg: #f6f1e3,
+        bg-2: #fffdf6,
+        panel: #fbf7ec,
+        panel-2: #f3ecd9,
+        bg-rgb: "246 241 227",
+        hi-rgb: "0 0 0",
+        line-rgb: "28 26 23",
+        text: #1c1a17,
+        text-rgb: "28 26 23",
+        text-dim: #4a4540,
+        text-mute: #857d70,
+        text-strong: #000000,
+        text-bright: #000000,
+        ink: #fffdf6,
+        on-grad: #fffdf6,
+        volt: #7a1f2b,
+        volt-rgb: "122 31 43",
+        grad: linear-gradient(#1c1a17, #1c1a17),
+        arc-core: #1c1a17,
+        arc-mid: #1c1a17,
+        arc-deep: #1c1a17,
+        arc-glow-rgb: "28 26 23",
+        coil-0: #1c1a17,
+        coil-1: #7a1f2b,
+        coil-2: #1f3a6a,
+        coil-3: #2d6a4f,
+        coil-4: #6a4a2a,
+        coil-5: #5a2a7a,
+        plasma: #5a2a7a,
+        sm-ink: #1c1a17,
+        sm-staff: "rgb(28 26 23 / 0.28)",
+        swatch: "repeating-linear-gradient(transparent 0 5px, #1c1a17 5px 6px) 0 30% / 100% 30px no-repeat, #f6f1e3",
+    ),
+    // the yellowed paper of an old score, a brown ink
+    sepia: (
+        bg: #e9dab4,
+        bg-2: #f6ecd2,
+        panel: #f1e5c4,
+        panel-2: #e6d6ac,
+        bg-rgb: "233 218 180",
+        hi-rgb: "0 0 0",
+        line-rgb: "58 42 22",
+        text: #3a2a16,
+        text-rgb: "58 42 22",
+        text-dim: #5e4a30,
+        text-mute: #8a7556,
+        text-strong: #22170a,
+        text-bright: #000000,
+        ink: #f6ecd2,
+        on-grad: #f6ecd2,
+        volt: #7a3a12,
+        volt-rgb: "122 58 18",
+        grad: linear-gradient(#3a2a16, #3a2a16),
+        arc-core: #3a2a16,
+        arc-mid: #3a2a16,
+        arc-deep: #3a2a16,
+        arc-glow-rgb: "58 42 22",
+        coil-0: #3a2a16,
+        coil-1: #8a2a1a,
+        coil-2: #2a3a5a,
+        coil-3: #3a5a2a,
+        coil-4: #7a5a2a,
+        coil-5: #5a3a6a,
+        plasma: #5a3a6a,
+        sm-ink: #3a2a16,
+        sm-staff: "rgb(58 42 22 / 0.3)",
+        swatch: "repeating-linear-gradient(transparent 0 5px, #3a2a16 5px 6px) 0 30% / 100% 30px no-repeat, #e9dab4",
+    ),
+    // a nocturne: a dark sheet, a cream ink, gold titles
+    nocturne: (
+        bg: #15151b,
+        bg-2: #1c1c24,
+        panel: #1c1c24,
+        panel-2: #24242e,
+        bg-rgb: "21 21 27",
+        hi-rgb: "255 255 255",
+        line-rgb: "236 230 214",
+        text: #ece6d6,
+        text-rgb: "236 230 214",
+        text-dim: #c4bca8,
+        text-mute: #8a8474,
+        text-strong: #fffaf0,
+        text-bright: #ffffff,
+        ink: #15151b,
+        on-grad: #15151b,
+        volt: #d8b25a,
+        volt-rgb: "216 178 90",
+        grad: linear-gradient(#ece6d6, #ece6d6),
+        arc-core: #ece6d6,
+        arc-mid: #ece6d6,
+        arc-deep: #ece6d6,
+        arc-glow-rgb: "236 230 214",
+        coil-0: #ece6d6,
+        coil-1: #d8b25a,
+        coil-2: #8ab0e0,
+        coil-3: #8ad0a8,
+        coil-4: #e09a8a,
+        coil-5: #c0a0e0,
+        plasma: #c0a0e0,
+        sm-ink: #ece6d6,
+        sm-staff: "rgb(236 230 214 / 0.26)",
+        sm-wordmark: invert(1),
+        swatch: "repeating-linear-gradient(transparent 0 5px, #ece6d6 5px 6px) 0 30% / 100% 30px no-repeat, #15151b",
+    ),
+);
+
+@each $id, $p in $sheetmusic-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($sm-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

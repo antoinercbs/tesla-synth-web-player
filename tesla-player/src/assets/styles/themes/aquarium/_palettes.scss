@@ -1,0 +1,168 @@
+@use "sass:map";
+
+// ===========================================================================
+//  AQUARIUM LOOK: its tanks
+// ===========================================================================
+// A tank seen through its glass: the water from the surface down, the light dancing
+// in it, the sand and the weeds at the bottom, the bubbles, a fish's colour for what
+// is lit; a fish and its bubbles, drawn here. Each palette is written out whole, as
+// the custom properties it sets on [data-theme="<id>"]: the shared ones, then its
+// own, including the chrome aquarium/_chrome.scss and the $aquarium map read
+// (--aq-water, --aq-fish…). ui/themes.ts lists the ids for the look, the first is its
+// default (its spec checks both).
+
+// a fish swimming right: its body, its tail, its stripes, its eye
+@function -aq-fish($body, $stripe) {
+    @return svg-url('<path d="M6 12L0 5v14z" fill="#{$body}"/><ellipse cx="17" cy="12" rx="12" ry="7.5" fill="#{$body}"/><path d="M13 5.2c1.6 2 2 4.4 2 6.8s-.4 4.8-2 6.8M20 4.8c1.3 2.2 1.6 4.6 1.6 7.2s-.3 5-1.6 7.2" fill="none" stroke="#{$stripe}" stroke-width="2.2"/><circle cx="24.5" cy="10.5" r="1.6" fill="#1a1a1a"/><path d="M15 4.6l3-3.6 2 4z" fill="#{$body}"/>', 30, 24);
+}
+
+// the bubbles rising: a column of them, sizes and places scattered
+$-aq-bubbles: svg-url('<g fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1.2"><circle cx="20" cy="30" r="5"/><circle cx="24" cy="90" r="3"/><circle cx="14" cy="150" r="4"/><circle cx="90" cy="60" r="3.5"/><circle cx="96" cy="130" r="6"/><circle cx="86" cy="190" r="2.5"/><circle cx="150" cy="20" r="2.5"/><circle cx="158" cy="110" r="4.5"/><circle cx="146" cy="170" r="3"/></g><g fill="#fff" fill-opacity=".5"><circle cx="18.4" cy="28.2" r="1.2"/><circle cx="94" cy="128" r="1.4"/><circle cx="156.6" cy="108.6" r="1"/></g>', 180, 220);
+
+// the weeds at the bottom, swaying from their roots
+@function -aq-weeds($weed) {
+    @return svg-url('<g fill="#{$weed}"><path d="M20 120C8 96 30 76 16 50 10 36 22 20 18 0c10 22-2 34 6 50 12 24-4 46 8 70z"/><path d="M60 120C54 100 70 88 62 66 58 54 66 44 64 30c8 16 0 26 6 38 8 20-2 34 4 52z"/><path d="M104 120C92 104 110 90 100 72 94 60 104 52 100 40c10 14 2 24 8 34 10 18-2 30 6 46z" fill-opacity=".8"/></g>', 130, 120);
+}
+
+@function -aq-set($fish, $stripe, $weed) {
+    @return (
+        aq-fish: -aq-fish($fish, $stripe),
+        aq-bubbles: $-aq-bubbles,
+        aq-weeds: -aq-weeds($weed),
+    );
+}
+
+$aq-shared: (
+    ink: #2a0e00,
+    on-grad: #2a0e00,
+    hi-rgb: "255 255 255",
+    text-bright: #ffffff,
+    danger: #ff5a5f,
+    danger-rgb: "255 90 95",
+    danger-text: #ffb3b0,
+    danger-text-hover: #ffd6d4,
+    ok: #7dffc8,
+    ok-rgb: "125 255 200",
+    amber: #ffd166,
+    amber-rgb: "255 209 102",
+    caution: #ffd166,
+    caution-rgb: "255 209 102",
+    caution-text: #ffe29a,
+    warn: #ffb04a,
+    conflict: #ffb04a,
+    duplicate: #ff9ad8,
+    duplicate-rgb: "255 154 216",
+    worse: #ff5a5f,
+    // the fish a coil is
+    coil-0: #ff7a59,
+    coil-1: #ffd166,
+    coil-2: #7dffc8,
+    coil-3: #9ad4ff,
+    coil-4: #d69aff,
+    coil-5: #ff9ad8,
+    plasma: #d69aff,
+    knob: #ffffff,
+    aq-glass: "rgb(255 255 255 / 0.13)",
+    aq-glass-edge: "rgb(255 255 255 / 0.38)",
+);
+
+// the order is the picker's, the first the look's default
+$aquarium-palettes: (
+    // a tropical lagoon: turquoise to deep blue, an orange fish
+    lagoon: map.merge(
+        -aq-set(#ff7a3d, #ffffff, #2f9e6a),
+        (
+            bg: #0a5f8f,
+            bg-2: #073a5c,
+            panel: #0f5f82,
+            panel-2: #13709a,
+            bg-rgb: "10 95 143",
+            line-rgb: "220 245 255",
+            text: #f2fbff,
+            text-rgb: "242 251 255",
+            text-dim: #c8ecf6,
+            text-mute: #8ec6d8,
+            text-strong: #ffffff,
+            volt: #ff7a59,
+            volt-rgb: "255 122 89",
+            grad: "linear-gradient(#ffb08a, #ff7a59 55%, #e2553a)",
+            arc-core: #fff4d6,
+            arc-mid: #ffd166,
+            arc-deep: #ff7a59,
+            arc-glow-rgb: "255 209 102",
+            aq-water: "linear-gradient(#6fdcec 0%, #1ea3c8 30%, #0a6a98 70%, #073a5c 100%)",
+            aq-sand: "linear-gradient(transparent, #e8d49a 30%, #cdb378)",
+            aq-light: "rgb(255 255 240 / 0.5)",
+            swatch: "radial-gradient(circle at 70% 60%, #ff7a59 0 14%, transparent 16%), linear-gradient(#6fdcec, #0a6a98 70%, #e8d49a 70%)",
+        )
+    ),
+    // the deep: nearly black, what lives there glowing
+    abyss: map.merge(
+        -aq-set(#3ff0ff, #0a1a33, #1a3a6a),
+        (
+            bg: #031a33,
+            bg-2: #020f1f,
+            panel: #06264a,
+            panel-2: #0a3058,
+            bg-rgb: "3 26 51",
+            line-rgb: "150 240 255",
+            text: #e6fbff,
+            text-rgb: "230 251 255",
+            text-dim: #a8dcec,
+            text-mute: #6aa0b8,
+            text-strong: #ffffff,
+            volt: #3ff0ff,
+            volt-rgb: "63 240 255",
+            grad: "linear-gradient(#b8faff, #3ff0ff 55%, #1ab0c8)",
+            ink: #001a24,
+            on-grad: #001a24,
+            arc-core: #e6fdff,
+            arc-mid: #3ff0ff,
+            arc-deep: #b56bff,
+            arc-glow-rgb: "63 240 255",
+            coil-0: #3ff0ff,
+            coil-1: #b56bff,
+            coil-2: #7dffc8,
+            aq-water: "linear-gradient(#0a3a66 0%, #052447 40%, #020f1f 100%)",
+            aq-sand: "linear-gradient(transparent, #0f2a3a 40%, #081a24)",
+            aq-light: "rgb(120 220 255 / 0.22)",
+            swatch: "radial-gradient(circle at 70% 60%, #3ff0ff 0 14%, transparent 16%), linear-gradient(#0a3a66, #020f1f)",
+        )
+    ),
+    // a garden pond: green water, a koi's orange, lily light
+    koi: map.merge(
+        -aq-set(#ff8a3d, #fff4e6, #3a7a3a),
+        (
+            bg: #2f6a4a,
+            bg-2: #1c4a32,
+            panel: #2f6a4a,
+            panel-2: #3a7a56,
+            bg-rgb: "47 106 74",
+            line-rgb: "230 255 230",
+            text: #f4fff2,
+            text-rgb: "244 255 242",
+            text-dim: #cdebc8,
+            text-mute: #94c28c,
+            text-strong: #ffffff,
+            volt: #ff8a3d,
+            volt-rgb: "255 138 61",
+            grad: "linear-gradient(#ffc08a, #ff8a3d 55%, #e0602a)",
+            arc-core: #fff4d6,
+            arc-mid: #ffd166,
+            arc-deep: #ff8a3d,
+            arc-glow-rgb: "255 209 102",
+            aq-water: "linear-gradient(#9fd48f 0%, #4f9a6a 35%, #2f6a4a 75%, #1c4a32 100%)",
+            aq-sand: "linear-gradient(transparent, #7a6a4a 30%, #5a4e36)",
+            aq-light: "rgb(255 255 220 / 0.4)",
+            swatch: "radial-gradient(circle at 70% 60%, #ff8a3d 0 14%, transparent 16%), linear-gradient(#9fd48f, #2f6a4a)",
+        )
+    ),
+);
+
+@each $id, $p in $aquarium-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($aq-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

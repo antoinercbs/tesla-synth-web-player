@@ -34,6 +34,10 @@ export const THEMES = {
   modular: ['aluminium', 'blackgold', 'pastel'],
   halloween: ['pumpkin', 'witch', 'graveyard'],
   rpg: ['azure', 'shadow', 'crimson'],
+  aquarium: ['lagoon', 'abyss', 'koi'],
+  pocket: ['peasoup', 'pocketgrey', 'backlit'],
+  sheetmusic: ['ivory', 'sepia', 'nocturne'],
+  metro: ['citymap', 'nightmap', 'signage'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 
