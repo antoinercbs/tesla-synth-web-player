@@ -3,12 +3,12 @@
 // ===========================================================================
 // Its type and shape are the $portal map (portal/_skin.scss), its colours the campaign
 // picked among portal/_palettes.scss. Here, the caricature: the page's head a glossy
-// banner, rounded, its circles above the title and "Votre assistant Carrière" after
+// banner, rounded, its circles above the title and "Votre espace agent" after
 // it; the sidebar the portal's periwinkle column, its bottom corner curved into the
 // page, the menu its glossy pills each with a bead on its edge, further right down the
 // column, the open one teal; tabs teal, the open one indigo, on an indigo line; each
-// panel a table under an indigo head, its rows lavender and pale yellow in turn, the
-// yellow ones explained; sub-heads lavender bands under a ▼; a coil's card its grade
+// panel a table under an indigo head, its rows lavender and pale yellow in turn;
+// sub-heads lavender bands under a ▼; a coil's card its grade
 // and step; the version, and the session running out, under the column; the page's
 // code at its foot; toasts as the administration's answers. The words it adds are the
 // portal's, in French in every language. Every rule sits under [data-skin="portal"];
@@ -104,7 +104,7 @@ $cp-bar-top: 4px;
         border-radius: calc(#{$cp-bar-h} / 2) 0 0 calc(#{$cp-bar-h} / 2);
     }
 
-    // the head holds the assistant's words, its circles above them, then the page's title and controls
+    // the head holds the agent's space, its circles above it, then the page's title and controls
     .screen-head {
         --text: #ffffff;
         --text-dim: #ffffff;
@@ -123,7 +123,7 @@ $cp-bar-top: 4px;
     .screen-head::before {
         @include shaded(2px);
 
-        content: "- Votre assistant Carri\E8 re";
+        content: "- Votre espace agent";
         flex: 0 1 auto;
         min-width: 0;
         align-self: flex-end;
@@ -579,18 +579,7 @@ $cp-bar-top: 4px;
         color: var(--text-dim);
     }
 
-    // --- rows: lavender and pale yellow in turn, the yellow ones explained ----------------------------------------------
-    .play-rows::before {
-        content: "Les morceaux de cette couleur sont issus du dispositif Galvani.";
-        display: block;
-        padding: 0.3rem 0.4rem 0.35rem 1.6rem;
-        background:
-            linear-gradient(var(--cp-yellow), var(--cp-yellow)) calc(0.45rem + 1px) 50% / calc(0.8rem - 2px) calc(0.8rem - 2px) no-repeat,
-            linear-gradient(var(--text), var(--text)) 0.45rem 50% / 0.8rem 0.8rem no-repeat;
-        color: var(--text);
-        font-size: var(--fs-sm);
-    }
-
+    // --- rows: lavender and pale yellow in turn --------------------------------------------------------------------------
     .play-row {
         border-radius: 0;
     }
