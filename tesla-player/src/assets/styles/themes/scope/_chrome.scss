@@ -261,3 +261,15 @@
         background: rgb(var(--glow-rgb) / 0.6);
     }
 }
+
+// the charts: a graticule's dotted lines; the sidebar's coil marks glowing traces
+[data-skin="scope"] {
+    .preview__grid,
+    .preview__tick {
+        stroke-dasharray: 1 3;
+    }
+
+    .sidebar-coil__dot {
+        box-shadow: 0 0 6px var(--c);
+    }
+}

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, useId } from 'vue';
-import { DEFAULT_SKIN, SKIN_GROUPS, currentSkin, setSkin, type SkinId } from '@/ui/skins';
+import { SKIN_GROUPS, SKIN_TOP, currentSkin, setSkin, type SkinId } from '@/ui/skins';
 
 /**
- * The look switch (sidebar menu, welcome dialog): the default look, then a submenu
- * per group of looks. The menu and its submenu are manual popovers: in the top layer,
+ * The look switch (sidebar menu, welcome dialog): the top looks, then a submenu per
+ * group of looks. The menu and its submenu are manual popovers: in the top layer,
  * neither the sidebar's menu nor a dialog clips them, and staying in this
  * component's DOM, a click in them is still a click inside the sidebar's menu (which
  * closes on a click outside it).
@@ -56,7 +56,10 @@ async function openMenu(): Promise<void> {
   placeBelow(menu.value, trigger.value.getBoundingClientRect());
   bind(true);
   await nextTick();
-  const start = currentGroup.value ? groupItem(currentGroup.value) : items(menu.value)[0];
+  const top = items(menu.value);
+  const start = currentGroup.value
+    ? groupItem(currentGroup.value)
+    : (top.find((el) => el.dataset.look === currentSkin.value) ?? top[0]);
   start?.focus();
 }
 
@@ -213,11 +216,11 @@ function onSubKey(e: KeyboardEvent): void {
 
     <div :id="`${uid}-menu`" ref="menu" class="skin-menu" popover="manual" role="menu"
       :aria-label="$t('skin.title')" @keydown="onMenuKey">
-      <button class="skin-menu__item" :class="{ 'is-current': currentSkin === DEFAULT_SKIN }" type="button"
-        role="menuitemradio" :aria-checked="currentSkin === DEFAULT_SKIN" :data-look="DEFAULT_SKIN"
-        @pointerenter="hover(null)" @click="pick(DEFAULT_SKIN)">
-        <span class="skin-menu__check"><i v-if="currentSkin === DEFAULT_SKIN" class="fas fa-check"></i></span>
-        {{ $t(`skin.${DEFAULT_SKIN}`) }}
+      <button v-for="id in SKIN_TOP" :key="id" class="skin-menu__item" :class="{ 'is-current': currentSkin === id }"
+        type="button" role="menuitemradio" :aria-checked="currentSkin === id" :data-look="id"
+        @pointerenter="hover(null)" @click="pick(id)">
+        <span class="skin-menu__check"><i v-if="currentSkin === id" class="fas fa-check"></i></span>
+        {{ $t(`skin.${id}`) }}
       </button>
       <div class="skin-menu__sep" role="separator"></div>
       <button v-for="g in SKIN_GROUPS" :key="g.id" class="skin-menu__item"

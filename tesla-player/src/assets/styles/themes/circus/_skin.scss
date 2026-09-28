@@ -91,5 +91,11 @@ $circus: map.merge(
         toast-border: var(--danger-text),
         toast-radius: 999px,
         sidebar-bg: var(--circus-curtain),
+        // the charts' notes rounder, the sidebar's coil marks balloons
+        preview-note-rx: 4px,
+        coil-mark-w: 11px,
+        coil-mark-h: 11px,
+        coil-mark-radius: 50%,
+        coil-mark-shadow: "inset -2px -2px 0 rgb(0 0 0 / 0.2)",
     )
 );

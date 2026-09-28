@@ -97,5 +97,12 @@ $scope: map.merge(
         toast-border: var(--volt),
         toast-radius: 2px,
         sidebar-bg: var(--bg),
+        // the charts traced in phosphor, the sidebar's coil marks a short trace each
+        preview-note-rx: 0,
+        preview-blocks: 0.4,
+        preview-glow: "drop-shadow(0 0 2px rgb(var(--volt-rgb) / 0.55))",
+        coil-mark-w: 12px,
+        coil-mark-h: 2px,
+        coil-mark-radius: 0,
     )
 );

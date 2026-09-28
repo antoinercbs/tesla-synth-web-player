@@ -1,0 +1,28 @@
+// ===========================================================================
+//  THE WELL: the player's chips and charts, drawn as a look's own fields
+// ===========================================================================
+// The chips (a coil's readouts, an instrument: --chip-*, features/player/_player.scss)
+// and the preview's views (score, lanes, combined: --preview-*,
+// features/player/_midi-preview.scss) read component tokens the lab leaves unset.
+// Every other look starts them from its fields' tokens: their ground, border,
+// corners, ink and face, the ink faded for what is secondary; _index.scss merges
+// this map under the look's own, which sets any of them again. Being set on <html>
+// with the look's field tokens, they resolve to that look's fields.
+$well: (
+    chip-bg: var(--field-bg, var(--bg-2)),
+    chip-border: var(--field-border, var(--line)),
+    chip-radius: var(--field-radius, var(--radius-sm)),
+    chip-color: var(--field-color, var(--text)),
+    chip-font: var(--field-font, var(--font-mono)),
+    chip-num-color: var(--field-color, var(--text-strong)),
+    chip-unit-color: "color-mix(in srgb, var(--field-color, var(--text)) 60%, transparent)",
+    preview-bg: var(--field-bg, var(--bg-2)),
+    preview-border: var(--field-border, var(--line)),
+    preview-radius: var(--field-radius, var(--radius-sm)),
+    preview-rail-bg: "color-mix(in srgb, var(--field-color, var(--text)) 7%, var(--field-bg, var(--bg-2)))",
+    preview-line: "color-mix(in srgb, var(--field-color, var(--text)) 24%, transparent)",
+    preview-ink: var(--field-color, var(--text-strong)),
+    preview-ink-dim: "color-mix(in srgb, var(--field-color, var(--text)) 80%, transparent)",
+    preview-ink-mute: "color-mix(in srgb, var(--field-color, var(--text)) 60%, transparent)",
+    preview-font: var(--field-font, var(--font-mono)),
+);

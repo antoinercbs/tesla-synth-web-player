@@ -93,5 +93,10 @@ $videotex: map.merge(
         toast-border: var(--text-strong),
         toast-radius: 0,
         sidebar-bg: var(--bg),
+        // the charts' notes square, the sidebar's coil marks a mosaic's block each
+        preview-note-rx: 0,
+        coil-mark-w: 8px,
+        coil-mark-h: 12px,
+        coil-mark-radius: 0,
     )
 );

@@ -87,5 +87,11 @@ $cork: map.merge(
         toast-border: transparent,
         toast-radius: 2px,
         sidebar-bg: var(--cork-kraft),
+        // the charts' notes softened, the sidebar's coil marks push pins
+        preview-note-rx: 2px,
+        coil-mark-w: 11px,
+        coil-mark-h: 11px,
+        coil-mark-radius: 50%,
+        coil-mark-shadow: "1px 2px 2px rgb(0 0 0 / 0.35), inset -2px -2px 0 rgb(0 0 0 / 0.2)",
     )
 );

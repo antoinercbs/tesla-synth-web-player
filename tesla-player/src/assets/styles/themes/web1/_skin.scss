@@ -97,5 +97,10 @@ $web1: map.merge(
         toast-color: #000,
         toast-radius: 0,
         sidebar-bg: var(--bg-2),
+        // the charts' notes square, the sidebar's coil marks a list's bullets
+        preview-note-rx: 0,
+        coil-mark-w: 8px,
+        coil-mark-h: 8px,
+        coil-mark-radius: 50%,
     )
 );

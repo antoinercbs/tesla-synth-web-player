@@ -93,5 +93,11 @@ $xp: map.merge(
         toast-color: #000,
         toast-radius: 6px,
         sidebar-bg: var(--xp-pane),
+        // the charts' notes square, the sidebar's coil marks a legend's keys
+        preview-note-rx: 0,
+        coil-mark-w: 9px,
+        coil-mark-h: 9px,
+        coil-mark-radius: 0,
+        coil-mark-shadow: "inset 0 0 0 1px rgb(0 0 0 / 0.35)",
     )
 );

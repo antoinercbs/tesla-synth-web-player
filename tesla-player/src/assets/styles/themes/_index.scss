@@ -12,6 +12,7 @@
 // <html>; ui/themes.ts does the same for a look's palettes.
 @import "svg";
 @import "cursors";
+@import "well";
 @import "lab/palettes";
 @import "xp/palettes";
 @import "scope/palettes";
@@ -80,8 +81,13 @@ $skins: (
     @include -skin(map.get($skins, $default-skin));
 }
 
+// every look but the default starts its chips and charts from its fields (_well.scss)
 @each $name, $s in $skins {
     [data-skin="#{$name}"] {
-        @include -skin($s);
+        @if $name == $default-skin {
+            @include -skin($s);
+        } @else {
+            @include -skin(map.merge($well, $s));
+        }
     }
 }

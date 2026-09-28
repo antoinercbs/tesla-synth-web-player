@@ -86,5 +86,18 @@ $term: map.merge(
         toast-border: var(--term-dialog-frame),
         toast-radius: 0,
         sidebar-bg: var(--bg),
+        // the charts on the screen's ground (the field's cyan is a bar's, not a page's),
+        // their notes square; the sidebar's coil marks a block each
+        preview-bg: var(--bg),
+        preview-rail-bg: "color-mix(in srgb, var(--text) 8%, var(--bg))",
+        preview-line: "color-mix(in srgb, var(--text) 26%, transparent)",
+        preview-ink: var(--text-strong),
+        preview-ink-dim: var(--text),
+        preview-ink-mute: var(--text-dim),
+        preview-note-rx: 0,
+        chip-accent: var(--term-field-text),
+        coil-mark-w: 8px,
+        coil-mark-h: 12px,
+        coil-mark-radius: 0,
     )
 );

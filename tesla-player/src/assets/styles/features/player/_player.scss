@@ -545,37 +545,41 @@
     font-size: var(--fs-xl);
 }
 
+// a chip (an instrument here, a coil below); a skin restyles both through these
+// tokens (unset, the lab look): --chip-bg --chip-border --chip-radius --chip-shadow
+// --chip-color --chip-font --chip-num-color --chip-unit-color --chip-accent
 .env-chip {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
     padding: 0.2rem 0.5rem;
-    border-radius: var(--radius-sm);
-    background: var(--bg-2);
-    border: 1px solid var(--line-strong);
-    color: var(--text-dim);
+    border-radius: var(--chip-radius, var(--radius-sm));
+    background: var(--chip-bg, var(--bg-2));
+    border: 1px solid var(--chip-border, var(--line-strong));
+    box-shadow: var(--chip-shadow, none);
+    color: var(--chip-color, var(--text-dim));
     font-size: var(--fs-sm);
 }
 
 .env-chip .icon {
-    color: var(--volt);
+    color: var(--chip-accent, var(--volt));
     font-size: var(--fs-xs);
 }
 
 .env-chip__pn {
-    font-family: var(--font-mono);
+    font-family: var(--chip-font, var(--font-mono));
     font-weight: 700;
-    color: var(--volt);
+    color: var(--chip-accent, var(--volt));
 }
 
 .env-chip__name {
-    color: var(--text);
+    color: var(--chip-color, var(--text));
 }
 
 .env-chip__chs {
-    font-family: var(--font-mono);
+    font-family: var(--chip-font, var(--font-mono));
     font-size: var(--fs-xs);
-    color: var(--text-mute);
+    color: var(--chip-unit-color, var(--text-mute));
 }
 
 // per-coil legend (colour + ontime + duty): lives inside the song line, wraps
@@ -596,9 +600,10 @@
     align-items: center;
     gap: 0.45rem;
     padding: 0.3rem 0.55rem 0.3rem 0.7rem;
-    border-radius: var(--radius-md);
-    background: var(--bg-2);
-    border: 1px solid var(--line);
+    border-radius: var(--chip-radius, var(--radius-md));
+    background: var(--chip-bg, var(--bg-2));
+    border: 1px solid var(--chip-border, var(--line));
+    box-shadow: var(--chip-shadow, none);
 }
 
 .player-coil::before {
@@ -615,7 +620,7 @@
     font-family: var(--font-display);
     font-size: 0.82rem;
     font-weight: 700;
-    color: var(--text-strong);
+    color: var(--chip-num-color, var(--text-strong));
 }
 
 .player-coil__readouts {
@@ -624,13 +629,13 @@
 }
 
 .player-coil__readout {
-    font-family: var(--font-mono);
+    font-family: var(--chip-font, var(--font-mono));
     font-size: var(--fs-md);
-    color: var(--text);
+    color: var(--chip-color, var(--text));
 }
 
 .player-coil__readout i {
-    color: var(--text-mute);
+    color: var(--chip-unit-color, var(--text-mute));
     font-style: normal;
     font-size: var(--fs-xs);
     margin-left: 1px;

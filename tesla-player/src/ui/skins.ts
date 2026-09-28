@@ -12,12 +12,14 @@ export type SkinId = (typeof SKINS)[number];
 export const DEFAULT_SKIN: SkinId = 'lab';
 
 /**
- * The picker's order: the default alone at the top, then every other look once, in
- * a group of its kind (its label under `skinGroup.` in the translations).
+ * The picker's order: the default and the looks meant in earnest at the top, then
+ * every other look once, in a group of its kind (its label under `skinGroup.` in
+ * the translations).
  */
+export const SKIN_TOP: readonly SkinId[] = [DEFAULT_SKIN, 'scope', 'control'];
 export const SKIN_GROUPS: readonly { id: string; skins: readonly SkinId[] }[] = [
   { id: 'computers', skins: ['videotex', 'term', 'web1', 'xp', 'gel'] },
-  { id: 'workshop', skins: ['scope', 'pcb', 'blueprint', 'steam', 'control'] },
+  { id: 'workshop', skins: ['pcb', 'blueprint', 'steam'] },
   { id: 'office', skins: ['cork', 'taxform', 'sheet'] },
   { id: 'fun', skins: ['circus', 'noel', 'blocks'] },
 ];

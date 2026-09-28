@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_SKIN, SKIN_GROUPS, SKINS } from './skins';
+import { DEFAULT_SKIN, SKIN_GROUPS, SKIN_TOP, SKINS } from './skins';
 
 // the looks are listed in themes/_index.scss, each one's map in themes/<look>/_skin.scss;
 // the ids are listed again here for the picker
@@ -25,10 +25,11 @@ describe('skins', () => {
     }
   });
 
-  // the picker lists the default alone, then the groups: a look left out of them could not be picked
-  it('groups every look but the default, each once', () => {
-    const grouped = SKIN_GROUPS.flatMap((g) => g.skins);
-    expect([...grouped].sort()).toEqual(SKINS.filter((s) => s !== DEFAULT_SKIN).sort());
+  // the picker lists the top looks, then the groups: a look left out of both could not be picked
+  it('lists every look once, the default first', () => {
+    const listed = [...SKIN_TOP, ...SKIN_GROUPS.flatMap((g) => g.skins)];
+    expect(SKIN_TOP[0]).toBe(DEFAULT_SKIN);
+    expect([...listed].sort()).toEqual([...SKINS].sort());
   });
 
   it('has the same default as themes/_index.scss', () => {

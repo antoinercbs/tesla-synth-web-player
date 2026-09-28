@@ -85,5 +85,10 @@ $pcb: map.merge(
         toast-border: var(--pcb-gold-flat),
         toast-radius: 3px,
         sidebar-bg: var(--pcb-mask-dark),
+        // the charts' notes square, the sidebar's coil marks drilled pads (pcb/_chrome.scss)
+        preview-note-rx: 0,
+        coil-mark-w: 11px,
+        coil-mark-h: 11px,
+        coil-mark-radius: 50%,
     )
 );

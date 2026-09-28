@@ -93,5 +93,11 @@ $blocks: map.merge(
         toast-border: #000,
         toast-radius: 0,
         sidebar-bg: "rgb(0 0 0 / 0.4)",
+        // the charts' notes square, the sidebar's coil marks bevelled blocks
+        preview-note-rx: 0,
+        coil-mark-w: 10px,
+        coil-mark-h: 10px,
+        coil-mark-radius: 0,
+        coil-mark-shadow: "inset -2px -2px 0 rgb(0 0 0 / 0.35), inset 2px 2px 0 rgb(255 255 255 / 0.3)",
     )
 );

@@ -31,7 +31,11 @@
     color: var(--text-dim);
 }
 
-// the look's list: as tall as the language switch above it
+// the look's list: as tall as the language switch above it, shrinking to the row
+.welcome__row .select-field {
+    min-width: 0;
+}
+
 .welcome__row .select-field select,
 .welcome__row .select-field__button {
     padding: 0.25rem 1.8rem 0.25rem 0.6rem;

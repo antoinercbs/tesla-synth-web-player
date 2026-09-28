@@ -100,5 +100,11 @@ $sheet: map.merge(
         toast-border: var(--sheet-head-line),
         toast-radius: 2px,
         sidebar-bg: var(--sheet-bar),
+        // the charts' notes square, the sidebar's coil marks a chart legend's keys
+        preview-note-rx: 0,
+        coil-mark-w: 10px,
+        coil-mark-h: 10px,
+        coil-mark-radius: 0,
+        coil-mark-shadow: "inset 0 0 0 1px rgb(0 0 0 / 0.25)",
     )
 );

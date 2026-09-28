@@ -91,5 +91,11 @@ $noel: map.merge(
         toast-border: var(--noel-gold),
         toast-radius: 999px,
         sidebar-bg: var(--noel-wool),
+        // the charts' notes rounder, the sidebar's coil marks baubles
+        preview-note-rx: 4px,
+        coil-mark-w: 11px,
+        coil-mark-h: 11px,
+        coil-mark-radius: 50%,
+        coil-mark-shadow: "inset -2px -2px 3px rgb(0 0 0 / 0.3), inset 2px 2px 2px rgb(255 255 255 / 0.6)",
     )
 );

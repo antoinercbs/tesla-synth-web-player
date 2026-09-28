@@ -94,5 +94,11 @@ $taxform: map.merge(
         toast-border: var(--tax-ink),
         toast-radius: 0,
         sidebar-bg: var(--bg),
+        // the charts' notes square, the sidebar's coil marks boxes in the ink
+        preview-note-rx: 0,
+        coil-mark-w: 11px,
+        coil-mark-h: 11px,
+        coil-mark-radius: 0,
+        coil-mark-shadow: "inset 0 0 0 1px var(--tax-ink)",
     )
 );

@@ -92,5 +92,12 @@ $control: map.merge(
         toast-border: #000,
         toast-radius: 3px,
         sidebar-bg: var(--panel),
+        // the charts on a lit display, the sidebar's coil marks lamps (control/_chrome.scss)
+        preview-note-rx: 0,
+        preview-blocks: 0.5,
+        preview-glow: "drop-shadow(0 0 2px rgb(var(--ctl-digit-rgb) / 0.5))",
+        coil-mark-w: 9px,
+        coil-mark-h: 9px,
+        coil-mark-radius: 50%,
     )
 );

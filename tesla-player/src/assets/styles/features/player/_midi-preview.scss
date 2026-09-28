@@ -1,7 +1,12 @@
 // ===========================================================================
 //  MIDI PREVIEW
 // ===========================================================================
-// components/player/MidiPreview.vue
+// components/player/MidiPreview.vue: the score, the coils' lanes, both combined. A
+// skin restyles them through these tokens (unset, the lab look):
+//   --preview-bg --preview-border --preview-radius --preview-shadow --preview-rail-bg
+//   --preview-line (grid, ticks, edges) --preview-ink --preview-ink-dim --preview-ink-mute
+//   --preview-font --preview-playhead --preview-note-rx --preview-blocks (the lanes'
+//   fill opacity) --preview-glow (a filter on the drawing)
 
 .preview {
     display: flex;
@@ -17,10 +22,11 @@
     min-height: 0;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--preview-border, var(--line));
+    border-radius: var(--preview-radius, var(--radius-md));
     overflow: hidden;
-    background: rgb(var(--hi-rgb) / 0.02);
+    background: var(--preview-bg, rgb(var(--hi-rgb) / 0.02));
+    box-shadow: var(--preview-shadow, none);
     user-select: none;
     -webkit-user-select: none;
 }
@@ -29,8 +35,8 @@
     display: flex;
     border-radius: 0;
     border: 0;
-    border-bottom: 1px solid var(--line);
-    background: rgb(var(--lo-rgb) / 0.18);
+    border-bottom: 1px solid var(--preview-line, var(--line));
+    background: var(--preview-rail-bg, rgb(var(--lo-rgb) / 0.18));
     padding: 4px;
     gap: 4px;
     flex: 0 0 auto;
@@ -41,6 +47,12 @@
     flex: 1 1 0;
     padding: 0.35rem;
     font-size: var(--fs-xs);
+}
+
+// the choice left off is written in the well's ink, the frame's ground being its
+// (the pointer's hover keeps the look's own)
+.segmented.preview__param button:not(.is-active, :hover) {
+    color: var(--preview-ink-dim, var(--seg-color, var(--text-dim)));
 }
 
 .preview__body {
@@ -59,6 +71,17 @@
 
 .preview__svg {
     display: block;
+    filter: var(--preview-glow, none);
+}
+
+// the notes' and blocks' corners: the SVG's rx attribute, which a skin may replace
+.preview__svg > rect,
+.preview__svg g rect {
+    rx: var(--preview-note-rx, 1.5px);
+}
+
+.preview__blocks {
+    opacity: var(--preview-blocks, 0.32);
 }
 
 .preview__inner {
@@ -68,19 +91,19 @@
 
 .preview__rail {
     flex: 0 0 auto;
-    border-right: 1px solid var(--line);
-    background: rgb(var(--lo-rgb) / 0.18);
+    border-right: 1px solid var(--preview-line, var(--line));
+    background: var(--preview-rail-bg, rgb(var(--lo-rgb) / 0.18));
 }
 
 .preview__rail-head {
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--preview-line, var(--line));
 }
 
 .preview__rail-roll {
     display: grid;
     place-items: center;
-    color: var(--text-mute);
-    border-bottom: 1px solid var(--line);
+    color: var(--preview-ink-mute, var(--text-mute));
+    border-bottom: 1px solid var(--preview-line, var(--line));
 }
 
 .preview__rail-lane {
@@ -91,7 +114,7 @@
     padding: 0 0.5rem;
     position: relative;
     overflow: hidden;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--preview-line, var(--line));
 }
 
 .preview__rail-dot {
@@ -105,7 +128,7 @@
 
 .preview__rail-id {
     font-size: var(--fs-sm);
-    color: var(--text-strong);
+    color: var(--preview-ink, var(--text-strong));
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -113,14 +136,14 @@
 }
 
 .preview__rail-name {
-    color: var(--text-dim);
+    color: var(--preview-ink-dim, var(--text-dim));
     font-weight: 400;
 }
 
 .preview__rail-sub {
-    font-family: var(--font-mono);
+    font-family: var(--preview-font, var(--font-mono));
     font-size: 0.62rem;
-    color: var(--text-mute);
+    color: var(--preview-ink-mute, var(--text-mute));
     white-space: nowrap;
 }
 
@@ -132,19 +155,19 @@
 }
 
 .preview__rail-cnum {
-    font-family: var(--font-mono);
+    font-family: var(--preview-font, var(--font-mono));
     font-size: var(--fs-xs);
     font-weight: 600;
-    color: var(--text);
+    color: var(--preview-ink, var(--text));
     flex: 0 0 auto;
 }
 
 .preview__rail-csub {
     writing-mode: vertical-rl;
     transform: rotate(180deg);
-    font-family: var(--font-mono);
+    font-family: var(--preview-font, var(--font-mono));
     font-size: 0.6rem;
-    color: var(--text-mute);
+    color: var(--preview-ink-mute, var(--text-mute));
     white-space: nowrap;
     overflow: hidden;
     min-height: 0;
@@ -152,19 +175,19 @@
 }
 
 .preview__grid {
-    stroke: var(--line);
+    stroke: var(--preview-line, var(--line));
     stroke-width: 1;
     opacity: 0.6;
 }
 
 .preview__divider {
-    stroke: var(--line-strong, var(--line));
+    stroke: var(--preview-line, var(--line-strong, var(--line)));
     stroke-width: 1.5;
     opacity: 0.9;
 }
 
 .preview__tick {
-    stroke: var(--line);
+    stroke: var(--preview-line, var(--line));
     stroke-width: 1;
     opacity: 0.3;
 }
@@ -174,14 +197,14 @@
 }
 
 .preview__ticklabel {
-    fill: var(--text-mute);
-    font-family: var(--font-mono);
+    fill: var(--preview-ink-mute, var(--text-mute));
+    font-family: var(--preview-font, var(--font-mono));
     font-size: 0.5625rem;
 }
 
 // the arc's white-blue core, shared by score / lanes / combined
 .preview__playhead {
-    stroke: var(--arc-core);
+    stroke: var(--preview-playhead, var(--arc-core));
     stroke-width: 1.5;
 }
 
@@ -190,7 +213,7 @@
     min-height: 120px;
     display: grid;
     place-items: center;
-    color: var(--text-mute);
+    color: var(--preview-ink-mute, var(--text-mute));
     font-family: var(--font-body);
     font-size: var(--fs-md);
 }

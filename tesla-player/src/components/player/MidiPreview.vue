@@ -361,7 +361,7 @@ watch(() => props.playheadMs, () => {
               <rect v-for="(r, i) in rollRects" :key="`r${i}`" :x="r.x" :y="r.y" :width="r.w" :height="r.h"
                 :fill="r.fill" rx="1.5" />
               <!-- opacity on the group, not per block: overlapping notes would stack back up to full colour -->
-              <g opacity="0.32">
+              <g class="preview__blocks">
                 <g v-for="g in laneGroups" :key="`g${g.lane}`" :clip-path="g.clipId ? `url(#${g.clipId})` : undefined">
                   <rect v-for="(r, i) in g.rects" :key="i" :x="r.x" :y="r.y" :width="r.w" :height="r.h" :fill="r.fill"
                     :fill-opacity="r.alpha" rx="1.5" />

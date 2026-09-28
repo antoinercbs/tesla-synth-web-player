@@ -374,3 +374,11 @@
         @include drawn-range($track: false);
     }
 }
+
+// the sidebar's coil marks: a drilled pad in the coil's colour
+[data-skin="pcb"] {
+    .sidebar-coil__dot {
+        background: radial-gradient(circle, var(--pcb-mask-dark) 0 2px, var(--c) 2.5px);
+        box-shadow: 0 0 0 1px rgb(0 0 0 / 0.35);
+    }
+}

@@ -387,18 +387,22 @@
     min-width: 0;
 }
 
+// the coil's colour mark and number; a skin reshapes them through these tokens
+// (unset, the lab look): --coil-mark-w --coil-mark-h --coil-mark-radius
+// --coil-mark-shadow --coil-idx-font --coil-idx-color
 .sidebar-coil__dot {
-    width: 4px;
-    height: 12px;
-    border-radius: var(--radius-2xs);
+    width: var(--coil-mark-w, 4px);
+    height: var(--coil-mark-h, 12px);
+    border-radius: var(--coil-mark-radius, var(--radius-2xs));
     flex: 0 0 auto;
     background: var(--c);
+    box-shadow: var(--coil-mark-shadow, none);
 }
 
 .sidebar-coil__idx {
-    font-family: var(--font-mono);
+    font-family: var(--coil-idx-font, var(--font-mono));
     font-size: 0.68rem;
-    color: var(--text-mute);
+    color: var(--coil-idx-color, var(--text-mute));
     width: 0.7rem;
     text-align: center;
     flex: 0 0 auto;
@@ -541,7 +545,12 @@
     padding: 0.25rem 0.55rem;
 }
 
-// the look's list: as tall as the language switch beside it
+// the look's list: as tall as the language switch beside it, shrinking to the menu's
+// width (a long name ends in an ellipsis) rather than past it
+.sidebar-menu__row .select-field {
+    min-width: 0;
+}
+
 .sidebar-menu__row .select-field select,
 .sidebar-menu__row .select-field__button {
     padding: 0.25rem 1.8rem 0.25rem 0.6rem;
