@@ -23,6 +23,9 @@
 @import "videotex/palettes";
 @import "gel/palettes";
 @import "circus/palettes";
+@import "noel/palettes";
+@import "pcb/palettes";
+@import "cork/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -34,6 +37,9 @@
 @import "videotex/skin";
 @import "gel/skin";
 @import "circus/skin";
+@import "noel/skin";
+@import "pcb/skin";
+@import "cork/skin";
 
 $default-skin: lab;
 
@@ -49,6 +55,9 @@ $skins: (
     videotex: $videotex,
     gel: $gel,
     circus: $circus,
+    noel: $noel,
+    pcb: $pcb,
+    cork: $cork,
 );
 
 @mixin -skin($s) {

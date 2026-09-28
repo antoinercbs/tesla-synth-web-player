@@ -2,6 +2,8 @@
 //  SCREENS
 // ===========================================================================
 // The scaffold of every page: a full-bleed sticky header over a padded body.
+// A skin that gives the header a band of its own (a title bar, a toolbar) spaces the
+// page from it: --head-gap (unset, none: the lab's header is transparent).
 
 // fills app-main; a full-bleed, transparent, sticky header + a padded body.
 .screen {
@@ -18,7 +20,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0;
+    margin: 0 0 var(--head-gap, 0);
     padding: 0.9rem 2rem;
     background-color: transparent;
     transition: all ease 300ms;

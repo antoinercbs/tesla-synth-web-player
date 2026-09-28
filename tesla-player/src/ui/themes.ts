@@ -23,6 +23,9 @@ export const THEMES = {
   videotex: ['grey', 'colour', 'blue'],
   gel: ['jelly', 'graphite', 'brushed'],
   circus: ['bigtop', 'carnival', 'clown'],
+  noel: ['fir', 'snow', 'gingerbread'],
+  pcb: ['greenmask', 'purplemask', 'blackmask'],
+  cork: ['natural', 'darkcork', 'felt'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

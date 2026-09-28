@@ -43,6 +43,8 @@ $videotex: map.merge(
         focus-ring-strong: "0 0 0 2px var(--text-strong)",
         dur-fast: 0s,
         dur: 0s,
+        // the page kept clear of the head's band
+        head-gap: 1rem,
         backdrop: var(--bg),
         // the shared pieces (their tokens: components/*.scss): inverse video
         btn-bg: var(--vtx-inverse),

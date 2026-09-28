@@ -83,11 +83,6 @@
         box-shadow: none;
     }
 
-    // room under the sign for its pennants to hang, clear of the page
-    .screen-head {
-        margin-bottom: 1.6rem;
-    }
-
     .screen-head::after {
         content: "";
         position: absolute;

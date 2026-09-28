@@ -1,0 +1,108 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CORK BOARD LOOK: its boards
+// ===========================================================================
+// A pin board: paper sheets pinned and taped on cork, sticky notes, a strip of
+// kraft paper, a red marker and a highlighter. Each palette is the board under the
+// paper, written out whole as the custom properties it sets on [data-theme="<id>"]:
+// the shared ones (the paper, the notes, the marker), then its own, including the
+// chrome cork/_chrome.scss and the $cork map read (--cork-paper, --cork-tape…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec
+// checks both).
+
+// cork: grains of four sizes on tiles of four sizes, so no pattern shows
+@function -cork($base, $dark, $light) {
+    @return "radial-gradient(circle at 30% 40%, #{$dark} 1px, transparent 1.6px) 0 0 / 7px 7px, radial-gradient(circle at 70% 20%, #{$dark} 1.3px, transparent 2px) 0 0 / 11px 11px, radial-gradient(circle at 50% 80%, #{$light} 1px, transparent 1.6px) 0 0 / 13px 13px, radial-gradient(circle at 20% 60%, #{$dark} 2px, transparent 2.8px) 0 0 / 23px 23px, #{$base}";
+}
+
+$cork-shared: (
+    // ink on paper
+    text: #2a2a2a,
+    text-rgb: "42 42 42",
+    text-dim: #4d4a45,
+    text-mute: #77716a,
+    text-strong: #111111,
+    text-bright: #111111,
+    hi-rgb: "0 0 0",
+    line-rgb: "42 42 42",
+    bg-2: #fffdf5,
+    panel: #fffdf5,
+    panel-2: #ffffff,
+    ink: #ffffff,
+    on-grad: #ffffff,
+    volt: #d62828,
+    volt-rgb: "214 40 40",
+    grad: "linear-gradient(180deg, #ff6b6b 0%, #d62828 100%)",
+    arc-core: #ff6b6b,
+    arc-mid: #d62828,
+    arc-deep: #9d1a1a,
+    arc-glow-rgb: "214 40 40",
+    danger: #d62828,
+    danger-rgb: "214 40 40",
+    danger-text: #b3121c,
+    danger-text-hover: #7a0a10,
+    ok: #2e8b3a,
+    ok-rgb: "46 139 58",
+    amber: #c98a00,
+    amber-rgb: "201 138 0",
+    caution: #c98a00,
+    caution-rgb: "201 138 0",
+    caution-text: #6b4a00,
+    warn: #b36b00,
+    conflict: #a85a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #d62828,
+    coil-1: #c98a00,
+    coil-2: #2e8b3a,
+    coil-3: #1d6fd0,
+    coil-4: #8e3cc9,
+    coil-5: #e36414,
+    plasma: #8e3cc9,
+    knob: #ffffff,
+    cork-paper: #fffdf5,
+    cork-note: #fff27a,
+    cork-note-2: #ffc2dd,
+    cork-note-3: #bdf0a8,
+    cork-tape: "rgb(250 245 220 / 0.72)",
+    cork-pin: "radial-gradient(circle at 42% 38%, #ffb3b3 0 1.5px, #e02b2b 2.5px 5px, #8a1010 6px, transparent 6.5px)",
+    cork-pin-shadow: "radial-gradient(circle, rgb(0 0 0 / 0.3) 0 5px, transparent 8px)",
+    cork-marker: #d62828,
+    cork-highlight: "rgb(255 236 0 / 0.55)",
+);
+
+// the order is the picker's, the first the look's default
+$cork-palettes: (
+    natural: (
+        bg: #c9a06a,
+        bg-rgb: "201 160 106",
+        cork-board: -cork(#c9a06a, rgb(96 60 26 / 0.38), rgb(255 232 196 / 0.3)),
+        cork-kraft: "radial-gradient(circle at 40% 50%, rgb(90 60 30 / 0.12) 1px, transparent 1.5px) 0 0 / 5px 5px, #c8a26b",
+        swatch: -cork(#c9a06a, rgb(96 60 26 / 0.5), rgb(255 232 196 / 0.4)),
+    ),
+    darkcork: (
+        bg: #7a5230,
+        bg-rgb: "122 82 48",
+        cork-board: -cork(#7a5230, rgb(40 22 8 / 0.45), rgb(255 220 170 / 0.18)),
+        cork-kraft: "radial-gradient(circle at 40% 50%, rgb(60 40 20 / 0.14) 1px, transparent 1.5px) 0 0 / 5px 5px, #b08652",
+        swatch: -cork(#7a5230, rgb(40 22 8 / 0.55), rgb(255 220 170 / 0.25)),
+    ),
+    // a blue felt board
+    felt: (
+        bg: #2f4a6b,
+        bg-rgb: "47 74 107",
+        cork-board: "radial-gradient(circle at 30% 40%, rgb(255 255 255 / 0.06) 0.8px, transparent 1.2px) 0 0 / 4px 4px, radial-gradient(circle at 70% 70%, rgb(0 0 0 / 0.12) 0.8px, transparent 1.2px) 0 0 / 5px 5px, #2f4a6b",
+        cork-kraft: "radial-gradient(circle at 40% 50%, rgb(90 60 30 / 0.12) 1px, transparent 1.5px) 0 0 / 5px 5px, #c8a26b",
+        swatch: "radial-gradient(circle at 50% 50%, #e02b2b 0 14%, transparent 16%), #2f4a6b",
+    ),
+);
+
+@each $id, $p in $cork-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($cork-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

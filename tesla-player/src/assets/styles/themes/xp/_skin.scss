@@ -35,6 +35,8 @@ $xp: map.merge(
         shadow-float: "3px 3px 6px rgb(0 0 0 / 0.35)",
         shadow-modal: "4px 4px 10px rgb(0 0 0 / 0.4)",
         shadow-panel: none,
+        // the page kept clear of the head's band
+        head-gap: 1rem,
         backdrop: var(--bg),
         // the active marker: a plain bar (the orange of a selected tab)
         micro-arc: linear-gradient(#000, #000),

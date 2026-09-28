@@ -29,6 +29,9 @@ import '@fontsource/vt323/400.css'
 import '@fontsource/rye/400.css'
 import '@fontsource/fredoka/500.css'
 import '@fontsource/fredoka/600.css'
+import '@fontsource/mountains-of-christmas/700.css'
+import '@fontsource/permanent-marker/400.css'
+import '@fontsource/patrick-hand/400.css'
 import '@/assets/main.scss'
 // CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
 // of <i> elements fights Vue's reactive re-renders and makes icons disappear.

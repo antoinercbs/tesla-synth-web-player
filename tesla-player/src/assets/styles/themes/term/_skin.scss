@@ -39,6 +39,8 @@ $term: map.merge(
         dur: 0s,
         micro-arc: linear-gradient(#000, #000),
         micro-arc-v: linear-gradient(#000, #000),
+        // the page kept clear of the head's band
+        head-gap: 1rem,
         backdrop: var(--term-backdrop),
         // the shared pieces (their tokens: components/*.scss)
         btn-bg: var(--term-button),

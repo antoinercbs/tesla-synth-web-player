@@ -1,0 +1,89 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CIRCUIT BOARD LOOK: its structure
+// ===========================================================================
+// A board: silkscreen lettering (a mono face in capitals) for what is labelled,
+// a plain sans for the rest, pads for buttons (tin, gold for the main one), square
+// corners barely eased, the board's thickness as its only shadow. The lab's map
+// merged with what the board changes; its colours are its masks
+// (pcb/_palettes.scss), what tokens cannot say (the mounting holes, the edge
+// connector, the DIP switch, the pin-1 mark) pcb/_chrome.scss.
+$pcb: map.merge(
+    $lab,
+    (
+        font-display: '"IBM Plex Mono", ui-monospace, monospace',
+        radius-2xs: 1px,
+        radius-xs: 2px,
+        radius-sm: 2px,
+        radius-md: 3px,
+        radius: 3px,
+        radius-xl: 4px,
+        radius-lg: 4px,
+        shadow-pop: "0 3px 0 rgb(0 0 0 / 0.45), 0 8px 18px rgb(0 0 0 / 0.4)",
+        shadow-float: "0 4px 0 rgb(0 0 0 / 0.45), 0 12px 26px rgb(0 0 0 / 0.45)",
+        shadow-modal: "0 5px 0 rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.5)",
+        shadow-panel: "0 3px 0 rgb(0 0 0 / 0.35)",
+        focus-ring: "0 0 0 2px var(--volt)",
+        focus-ring-strong: "0 0 0 3px var(--volt)",
+        // the page kept clear of the head's band
+        head-gap: 1rem,
+        backdrop: var(--pcb-backdrop),
+        micro-arc: linear-gradient(#000, #000),
+        micro-arc-v: linear-gradient(#000, #000),
+        // the shared pieces (their tokens: components/*.scss): pads
+        btn-radius: 3px,
+        btn-bg: var(--pcb-tin),
+        btn-border: "rgb(0 0 0 / 0.35)",
+        btn-color: #1a1a1a,
+        btn-weight: 600,
+        btn-shadow: "inset 0 1px 0 rgb(255 255 255 / 0.6)",
+        btn-hover-border: "rgb(0 0 0 / 0.5)",
+        btn-hover-color: #1a1a1a,
+        btn-primary-bg: var(--pcb-gold),
+        btn-primary-color: #1a1a1a,
+        btn-primary-shadow: "inset 0 1px 0 rgb(255 255 255 / 0.6)",
+        btn-danger-bg: var(--pcb-tin),
+        btn-danger-color: #b3121c,
+        icon-btn-radius: 50%,
+        icon-btn-bg: var(--pcb-tin),
+        icon-btn-border: "rgb(0 0 0 / 0.35)",
+        icon-btn-color: #1a1a1a,
+        field-bg: var(--pcb-mask-dark),
+        field-color: var(--pcb-silk),
+        field-border: var(--pcb-silk),
+        field-radius: 2px,
+        field-focus-border: var(--volt),
+        field-focus-ring: "0 0 0 1px var(--volt)",
+        field-label-color: var(--text-dim),
+        field-btn-bg: var(--pcb-tin),
+        field-btn-border: "rgb(0 0 0 / 0.35)",
+        field-btn-color: #1a1a1a,
+        seg-bg: transparent,
+        seg-border: var(--pcb-silk),
+        seg-radius: 3px,
+        seg-item-radius: 2px,
+        seg-color: var(--text),
+        seg-active-bg: var(--pcb-gold),
+        seg-active-color: #1a1a1a,
+        tab-active-color: var(--text-strong),
+        // a DIP switch: the red body, its white slider
+        switch-bg: var(--pcb-dip),
+        switch-border: "rgb(0 0 0 / 0.4)",
+        switch-knob: #f4f4f4,
+        switch-on-bg: var(--pcb-dip),
+        switch-on-knob: #ffffff,
+        modal-bg: var(--panel),
+        modal-border: var(--pcb-silk),
+        modal-radius: 4px,
+        menu-bg: var(--panel-2),
+        menu-border: var(--pcb-silk),
+        menu-radius: 3px,
+        menu-item-radius: 2px,
+        toast-bg: var(--panel),
+        toast-color: var(--text),
+        toast-border: var(--pcb-gold-flat),
+        toast-radius: 3px,
+        sidebar-bg: var(--pcb-mask-dark),
+    )
+);

@@ -1,0 +1,414 @@
+// ===========================================================================
+//  CHRISTMAS LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $noel map (noel/_skin.scss), its colours the evening
+// picked among noel/_palettes.scss. Here, December: snow falling over the page, a
+// garland blinking under each screen's head, cards capped with snow, the sidebar
+// as a knitted jumper with a star on the open page, a red ribbon across a dialog,
+// candy canes, an ornament on a slider. Every rule sits under [data-skin="noel"];
+// the pages' controls are named by family (../_families.scss). The words it adds
+// are in English in every language.
+
+// the flakes of one tile: a layer of snow moves down by its own height, so it loops
+$noel-flakes-small:
+    radial-gradient(1.6px 1.6px at 20px 30px, var(--noel-flake) 50%, transparent) 0 0 / 180px 180px,
+    radial-gradient(1.2px 1.2px at 110px 70px, var(--noel-flake) 50%, transparent) 0 0 / 180px 180px,
+    radial-gradient(1.8px 1.8px at 60px 140px, var(--noel-flake) 50%, transparent) 0 0 / 180px 180px,
+    radial-gradient(1.3px 1.3px at 150px 160px, var(--noel-flake) 50%, transparent) 0 0 / 180px 180px,
+    radial-gradient(1.5px 1.5px at 170px 20px, var(--noel-flake) 50%, transparent) 0 0 / 180px 180px;
+$noel-flakes-big:
+    radial-gradient(3px 3px at 50px 80px, var(--noel-flake) 50%, transparent) 0 0 / 300px 300px,
+    radial-gradient(2.6px 2.6px at 210px 30px, var(--noel-flake) 50%, transparent) 0 0 / 300px 300px,
+    radial-gradient(3.2px 3.2px at 260px 220px, var(--noel-flake) 50%, transparent) 0 0 / 300px 300px,
+    radial-gradient(2.4px 2.4px at 120px 260px, var(--noel-flake) 50%, transparent) 0 0 / 300px 300px;
+
+@mixin ribbon {
+    background: var(--noel-ribbon);
+    color: #fff;
+    box-shadow: inset 0 0 0 2px var(--noel-ribbon-edge);
+}
+
+@keyframes noel-snow-small {
+    to {
+        transform: translateY(180px);
+    }
+}
+
+@keyframes noel-snow-big {
+    to {
+        transform: translateY(300px);
+    }
+}
+
+@keyframes noel-blink {
+    50% {
+        background-image: var(--noel-lights-b);
+    }
+}
+
+@keyframes noel-cane {
+    to {
+        background-position: 36px 0;
+    }
+}
+
+[data-skin="noel"] {
+    ::selection {
+        background: var(--noel-gold);
+        color: #3a2a00;
+    }
+
+    // --- snow, behind the cards and the sidebar (the app sits on z-index 1) ------------------------
+    body::before,
+    body::after {
+        content: "";
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    body::before {
+        top: -300px;
+        height: calc(100% + 300px);
+        background: $noel-flakes-big;
+        opacity: 0.7;
+        animation: noel-snow-big 24s linear infinite;
+    }
+
+    body::after {
+        top: -180px;
+        height: calc(100% + 180px);
+        background: $noel-flakes-small;
+        opacity: 0.85;
+        animation: noel-snow-small 11s linear infinite;
+    }
+
+    // --- each screen's head: the garland under it (the room it hangs in: head-gap) -------------------
+    .screen-head.is-scrolled {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 20px;
+        background: var(--noel-lights-a) 0 0 / 120px 20px repeat-x;
+        pointer-events: none;
+        animation: noel-blink 1.4s infinite;
+    }
+
+    .view-head__title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--text-bright);
+        text-shadow: 0 2px 0 rgb(0 0 0 / 0.25);
+    }
+
+    .view-head__title::before {
+        content: "\2744\FE0E ";
+        white-space: pre;
+    }
+
+    .brand__app {
+        font-family: var(--font-body);
+        font-weight: 600;
+        color: var(--noel-gold);
+        letter-spacing: 0.04em;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        border-top: var(--noel-border);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- cards: a cap of snow on each ------------------------------------------------------------------
+    #{$panels} {
+        border: var(--noel-border);
+        background:
+            radial-gradient(circle at 10px -3px, var(--noel-cap) 9px, transparent 10px) 0 0 / 20px 12px repeat-x,
+            linear-gradient(var(--noel-cap), var(--noel-cap)) 0 0 / 100% 3px no-repeat,
+            var(--panel);
+    }
+
+    #{$panel-heads},
+    .coil-card__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--text-bright);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px dashed var(--noel-edge);
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        height: 3px;
+        background: repeating-linear-gradient(90deg, #e63946 0 8px, #fff 8px 16px);
+    }
+
+    .empty-stub::after {
+        content: "Nothing under the tree yet!";
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--text-bright);
+    }
+
+    // --- the sidebar: a knitted jumper, a star on the open page ---------------------------------------
+    // plain wool where the text is, its band knitted across the top only
+    .sidebar {
+        --text: var(--noel-jumper-text);
+        --text-dim: var(--noel-jumper-text);
+        --text-mute: var(--noel-jumper-text);
+        --text-strong: #fff;
+
+        background:
+            var(--noel-band) 0 0 / 40px 16px repeat-x,
+            repeating-linear-gradient(60deg, rgb(255 255 255 / 0.035) 0 2px, transparent 2px 6px),
+            repeating-linear-gradient(-60deg, rgb(0 0 0 / 0.08) 0 2px, transparent 2px 6px),
+            var(--noel-wool);
+        border-right: 4px solid var(--noel-gold);
+    }
+
+    // the festive face is for titles: the menu is read in the round one
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 999px;
+        font-family: var(--font-body);
+        font-weight: 600;
+    }
+
+    .sidebar .sidebar-section__title {
+        font-family: var(--font-body);
+        font-weight: 600;
+        color: var(--noel-gold);
+    }
+
+    .nav-item:hover {
+        background: rgb(255 255 255 / 0.12);
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(255 255 255 / 0.16);
+        box-shadow: inset 0 0 0 2px var(--noel-gold);
+        color: #fff;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .nav-item__label::before {
+        content: "\2605  ";
+        color: var(--noel-gold);
+        white-space: pre;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    // --- buttons, choices ---------------------------------------------------------------------------------
+    .btn:hover:not(:disabled) {
+        filter: brightness(1.06);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        box-shadow: none;
+        color: var(--text);
+    }
+
+    #{$pushed-on} {
+        @include ribbon;
+    }
+
+    .segmented--tabs button {
+        padding: 0.3rem 0.9rem;
+        border-radius: 999px;
+    }
+
+    .segmented--tabs button.is-active {
+        @include ribbon;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    .chan-cell.is-on {
+        color: #fff;
+        text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+    }
+
+    // --- menus -----------------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 2px solid var(--noel-gold);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include ribbon;
+
+            box-shadow: none;
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        @include ribbon;
+
+        box-shadow: none;
+    }
+
+    // --- a dialog: a card with a red ribbon across its head ----------------------------------------------------
+    .modal-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: rgb(0 0 0 / 0.45);
+    }
+
+    .modal-card {
+        border-width: 2px;
+    }
+
+    .modal-card__head {
+        margin: -1.4rem -1.5rem 1.1rem;
+        padding: 0.55rem 1rem 0.55rem 1.5rem;
+        background: var(--noel-ribbon);
+        border-top: 3px solid var(--noel-ribbon-edge);
+        border-bottom: 3px solid var(--noel-ribbon-edge);
+        border-radius: 14px 14px 0 0;
+    }
+
+    .modal-card__title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        font-size: var(--fs-xl);
+    }
+
+    .modal-card__title .icon {
+        color: var(--noel-gold);
+    }
+
+    .modal-card__head .icon-btn {
+        background: rgb(255 255 255 / 0.9);
+    }
+
+    // --- a toast: the season's cry --------------------------------------------------------------------------------
+    .toast {
+        flex-wrap: wrap;
+        border-width: 2px;
+        font-weight: 600;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        flex-basis: 100%;
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .toast--success::after {
+        content: "Ho ho ho!";
+    }
+
+    .toast--error::after {
+        content: "Naughty list!";
+    }
+
+    // --- candy canes: the song's progress, the scroll bars ---------------------------------------------------------
+    .player-progress__bar {
+        height: 10px;
+        border: 2px solid var(--noel-gold);
+        border-radius: 999px;
+        background: #fffdf8;
+    }
+
+    .player-progress__fill {
+        border-radius: 999px;
+        background: repeating-linear-gradient(45deg, #e63946 0 9px, #fff 9px 18px) 0 0 / 36px 100%;
+        animation: noel-cane 0.9s linear infinite;
+    }
+
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid var(--noel-gold);
+        border-radius: 6px;
+        background: repeating-linear-gradient(45deg, #e63946 0 6px, #fff 6px 12px);
+    }
+
+    // --- sliders: an ornament on a strand of tinsel ------------------------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: repeating-linear-gradient(90deg, #2e9e5b 0 4px, #1f7a45 4px 8px);
+        --range-track-h: 5px;
+        --range-track-radius: 3px;
+        --range-track-shadow: none;
+        --range-thumb: radial-gradient(circle at 35% 30%, #fff 0 12%, #ff6b6b 25%, #b5172b 70%);
+        --range-thumb-w: 18px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid var(--noel-gold);
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 2px 3px rgb(0 0 0 / 0.35);
+        --range-focus: 3px solid var(--noel-gold);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+}
+
+// the snow and the garland hold still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="noel"] body::before,
+    [data-skin="noel"] body::after,
+    [data-skin="noel"] .screen-head::after,
+    [data-skin="noel"] .player-progress__fill {
+        animation: none;
+    }
+}

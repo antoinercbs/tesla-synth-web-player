@@ -33,6 +33,8 @@ $circus: map.merge(
         shadow-panel: "0 6px 0 rgb(0 0 0 / 0.18)",
         focus-ring: "0 0 0 3px var(--circus-gold)",
         focus-ring-strong: "0 0 0 4px var(--circus-gold)",
+        // room under the sign for its pennants to hang, clear of the page
+        head-gap: 1.6rem,
         backdrop: var(--circus-tent),
         // the shared pieces (their tokens: components/*.scss): tickets and red noses
         btn-radius: 999px,

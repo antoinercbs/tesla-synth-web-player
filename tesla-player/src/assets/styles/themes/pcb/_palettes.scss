@@ -1,0 +1,124 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CIRCUIT BOARD LOOK: its solder masks
+// ===========================================================================
+// A printed circuit board: the solder mask, the copper traces showing through it,
+// gold and tin pads, the white silkscreen. Each palette is a mask colour, written
+// out whole as the custom properties it sets on [data-theme="<id>"]: the shared
+// ones (the metals, the silkscreen), then its own, including the chrome
+// pcb/_chrome.scss and the $pcb map read (--pcb-gold, --pcb-silk…). Behind the page,
+// a panel of a real board: pcb/board.svg, the front of the club's ESP32 interrupter
+// drawn from its KiCad file with its routed outline, repeated near its real size,
+// under a veil of the mask so the page reads over it; its copper is white at low
+// alpha so any mask shows through.
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+$pcb-shared: (
+    ink: #1a1a1a,
+    on-grad: #1a1a1a,
+    hi-rgb: "255 255 255",
+    line-rgb: "240 240 240",
+    danger: #ff5a4f,
+    danger-rgb: "255 90 79",
+    danger-text: #ff8a80,
+    danger-text-hover: #ffc2bc,
+    ok: #5ee07a,
+    ok-rgb: "94 224 122",
+    amber: #ffc24a,
+    amber-rgb: "255 194 74",
+    caution: #ffc24a,
+    caution-rgb: "255 194 74",
+    caution-text: #ffd580,
+    warn: #ffb03a,
+    conflict: #ffb03a,
+    duplicate: #ff8ad9,
+    duplicate-rgb: "255 138 217",
+    worse: #ff5a4f,
+    // the LEDs a coil lights
+    coil-0: #ff4d4d,
+    coil-1: #ffd23f,
+    coil-2: #4dff88,
+    coil-3: #4db8ff,
+    coil-4: #d18aff,
+    coil-5: #ff9a3d,
+    plasma: #d18aff,
+    text: #f0f4f0,
+    text-rgb: "240 244 240",
+    text-strong: #ffffff,
+    text-bright: #ffffff,
+    grad: "linear-gradient(180deg, #ffe7a3 0%, #d9a93b 55%, #b8862a 100%)",
+    arc-core: #ffe7a3,
+    arc-mid: #d9a93b,
+    arc-deep: #b8862a,
+    arc-glow-rgb: "217 169 59",
+    volt: #e7c35a,
+    volt-rgb: "231 195 90",
+    knob: #e8e8e8,
+    key-white: linear-gradient(180deg, #f4f4f4 0%, #d4d4d4 100%),
+    key-white-hover: linear-gradient(180deg, #ffffff 0%, #e4e4e4 100%),
+    key-black: linear-gradient(180deg, #2a2a2a 0%, #0e0e0e 100%),
+    key-black-hover: linear-gradient(180deg, #3a3a3a 0%, #1a1a1a 100%),
+    key-glow-rgb: "231 195 90",
+    key-ink-rgb: "0 0 0",
+    // the metals: gold (the main pads), tin (the others), the copper of an edge
+    pcb-gold: "linear-gradient(180deg, #ffe7a3 0%, #d9a93b 55%, #b8862a 100%)",
+    pcb-gold-flat: #d9a93b,
+    pcb-tin: "linear-gradient(180deg, #f6f6f6 0%, #c8c8c8 55%, #a8a8a8 100%)",
+    pcb-silk: #f4f4f4,
+    pcb-hole: "radial-gradient(circle, #1a1a1a 0 3px, #ffe7a3 3.5px, #b8862a 5.5px, transparent 6px)",
+    pcb-dip: #c81e1e,
+    pcb-board: url("./board.svg"),
+);
+
+// the order is the picker's, the first the look's default
+$pcb-palettes: (
+    // the classic green mask
+    greenmask: (
+        bg: #1d5e2f,
+        bg-2: #164a25,
+        panel: #1a5429,
+        panel-2: #20663a,
+        bg-rgb: "29 94 47",
+        text-dim: #bcd7c2,
+        text-mute: #8fb59a,
+        pcb-mask-dark: #123d1e,
+        pcb-backdrop: "linear-gradient(rgb(29 94 47 / 0.45), rgb(29 94 47 / 0.45)), var(--pcb-board) 0 0 / 600px auto repeat, #1d5e2f",
+        swatch: "radial-gradient(circle, #e0c070 0 18%, transparent 20%), linear-gradient(90deg, #1d5e2f 0 45%, #2c7a40 45% 55%, #1d5e2f 55%)",
+    ),
+    // a purple mask, gold everywhere
+    purplemask: (
+        bg: #3d1f5c,
+        bg-2: #2f174a,
+        panel: #371b54,
+        panel-2: #462769,
+        bg-rgb: "61 31 92",
+        text-dim: #d4c2ea,
+        text-mute: #a892c4,
+        pcb-mask-dark: #26123d,
+        pcb-backdrop: "linear-gradient(rgb(61 31 92 / 0.45), rgb(61 31 92 / 0.45)), var(--pcb-board) 0 0 / 600px auto repeat, #3d1f5c",
+        swatch: "radial-gradient(circle, #e0c070 0 18%, transparent 20%), linear-gradient(90deg, #3d1f5c 0 45%, #56307f 45% 55%, #3d1f5c 55%)",
+    ),
+    // a matte black mask
+    blackmask: (
+        bg: #151515,
+        bg-2: #0e0e0e,
+        panel: #1a1a1a,
+        panel-2: #232323,
+        bg-rgb: "21 21 21",
+        text-dim: #c4c4c4,
+        text-mute: #8e8e8e,
+        pcb-mask-dark: #0a0a0a,
+        pcb-backdrop: "linear-gradient(rgb(21 21 21 / 0.45), rgb(21 21 21 / 0.45)), var(--pcb-board) 0 0 / 600px auto repeat, #151515",
+        swatch: "radial-gradient(circle, #d9b45a 0 18%, transparent 20%), linear-gradient(90deg, #151515 0 45%, #2a2a2a 45% 55%, #151515 55%)",
+    ),
+);
+
+@each $id, $p in $pcb-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($pcb-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

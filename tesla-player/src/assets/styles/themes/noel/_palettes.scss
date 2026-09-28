@@ -1,0 +1,217 @@
+@use "sass:list";
+@use "sass:map";
+
+// ===========================================================================
+//  CHRISTMAS LOOK: its evenings
+// ===========================================================================
+// December: a night sky and falling snow, a garland of lights, cards capped with
+// snow, a knitted jumper for the sidebar, red ribbons and gold. Each palette is
+// written out whole, as the custom properties it sets on [data-theme="<id>"]: the
+// shared ones, then its own, including the chrome noel/_chrome.scss and the $noel
+// map read (--noel-lights-a, --noel-wool…). Its drawings (the garland's bulbs,
+// the jumper's band) are SVG (../_svg.scss) in the palette's colours.
+// ui/themes.ts lists the ids for the look, the first is its default (its spec
+// checks both).
+
+// a garland: its wire, five bulbs hanging from it, the lit ones swapping with
+// the other phase so the lights blink in turn
+@function -garland($wire, $colours, $phase) {
+    $body: '<path d="M0 3C20 9 40 9 60 3S100 -3 120 3" fill="none" stroke="#{$wire}" stroke-width="1.5"/>';
+    $xs: (12, 36, 60, 84, 108);
+    @for $i from 1 through 5 {
+        $x: list.nth($xs, $i);
+        // the wire sags between the posts: odd bulbs hang lower
+        $y: 5;
+        @if $i % 2 == 1 {
+            $y: 8;
+        }
+        $c: list.nth($colours, $i);
+        $on: ($i + $phase) % 2 == 0;
+        $body: $body + '<rect x="#{$x - 1.5}" y="#{$y - 3}" width="3" height="3" fill="#{$wire}"/>';
+        @if $on {
+            $body: $body + '<ellipse cx="#{$x}" cy="#{$y + 4}" rx="3.2" ry="4.6" fill="#{$c}"/><ellipse cx="#{$x - 1}" cy="#{$y + 2.6}" rx="1" ry="1.6" fill="#fff" opacity=".8"/>';
+        } @else {
+            $body: $body + '<ellipse cx="#{$x}" cy="#{$y + 4}" rx="3.2" ry="4.6" fill="#{$c}" opacity=".35"/>';
+        }
+    }
+    @return svg-url($body, 120, 20);
+}
+
+// a jumper's band: a zigzag knitted across it, dots under the peaks
+@function -jumper-band($wool, $zig, $dot) {
+    $body: '<rect width="40" height="16" fill="#{$wool}"/>'
+        + '<path d="M0 10L5 4L10 10L15 4L20 10L25 4L30 10L35 4L40 10" fill="none" stroke="#{$zig}" stroke-width="2.4"/>'
+        + '<circle cx="5" cy="13.5" r="1.3" fill="#{$dot}"/><circle cx="25" cy="13.5" r="1.3" fill="#{$dot}"/>';
+    @return svg-url($body, 40, 16);
+}
+
+$noel-lights: (#ff3b3b, #ffd23f, #3bd16f, #3b8bff, #ff7ad9);
+
+$noel-shared: (
+    danger: #e63946,
+    danger-rgb: "230 57 70",
+    ok: #2e9e5b,
+    ok-rgb: "46 158 91",
+    amber: #e9b949,
+    amber-rgb: "233 185 73",
+    caution: #e9b949,
+    caution-rgb: "233 185 73",
+    warn: #e0a030,
+    conflict: #e0a030,
+    duplicate: #ff7ad9,
+    duplicate-rgb: "255 122 217",
+    worse: #e63946,
+    plasma: #c77dff,
+    noel-gold: #e9b949,
+    noel-ribbon: "linear-gradient(180deg, #e63946 0%, #b5172b 100%)",
+    noel-ribbon-edge: #e9b949,
+);
+
+// the order is the picker's, the first the look's default
+$noel-palettes: (
+    // a night sky, fir-green cards, red and gold
+    fir: (
+        bg: #0e2a47,
+        bg-2: #0a2038,
+        panel: #15392a,
+        panel-2: #1c4735,
+        bg-rgb: "14 42 71",
+        line-rgb: "244 241 232",
+        text: #f4f1e8,
+        text-rgb: "244 241 232",
+        text-dim: #cfd8c9,
+        text-mute: #9fb3a3,
+        text-strong: #ffffff,
+        text-bright: #ffd97a,
+        ink: #ffffff,
+        hi-rgb: "255 255 255",
+        volt: #e63946,
+        volt-rgb: "230 57 70",
+        grad: "linear-gradient(180deg, #ffe08a 0%, #e9b949 60%, #c8932a 100%)",
+        on-grad: #3a2a00,
+        arc-core: #ffe08a,
+        arc-mid: #e9b949,
+        arc-deep: #c8932a,
+        arc-glow-rgb: "233 185 73",
+        danger-text: #ff8a94,
+        danger-text-hover: #ffc2c7,
+        caution-text: #ffe08a,
+        coil-0: #ff5a64,
+        coil-1: #ffd23f,
+        coil-2: #5ee08a,
+        coil-3: #6fb1ff,
+        coil-4: #ff8ad9,
+        coil-5: #ffa04a,
+        noel-sky: "radial-gradient(1.5px 1.5px at 40px 60px, #fff 50%, transparent) 0 0 / 230px 230px, radial-gradient(1px 1px at 150px 20px, #fff 50%, transparent) 0 0 / 230px 230px, radial-gradient(1.2px 1.2px at 90px 170px, #fffbe0 50%, transparent) 0 0 / 230px 230px, linear-gradient(180deg, #0b1d3a 0%, #13305a 60%, #1d4470 100%)",
+        noel-flake: #ffffff,
+        noel-cap: #ffffff,
+        noel-edge: "rgb(255 255 255 / 0.18)",
+        noel-border: "1px solid rgb(255 255 255 / 0.2)",
+        noel-lights-a: -garland(#1a3d2b, $noel-lights, 0),
+        noel-lights-b: -garland(#1a3d2b, $noel-lights, 1),
+        noel-wool: #a4161a,
+        noel-band: -jumper-band(#a4161a, #ffffff, #2e9e5b),
+        noel-jumper-text: #ffffff,
+        swatch: "radial-gradient(circle at 50% 30%, #ffd23f 0 12%, transparent 14%), linear-gradient(180deg, #13305a 0 55%, #15392a 55%)",
+    ),
+    // a snowy day: white cards on ice blue, navy ink
+    snow: (
+        bg: #e6f0fa,
+        bg-2: #ffffff,
+        panel: #ffffff,
+        panel-2: #f3f8fd,
+        bg-rgb: "230 240 250",
+        line-rgb: "29 53 87",
+        text: #1d3557,
+        text-rgb: "29 53 87",
+        text-dim: #3f5a7a,
+        text-mute: #6a809b,
+        text-strong: #0d2240,
+        text-bright: #b5172b,
+        ink: #ffffff,
+        hi-rgb: "0 0 0",
+        volt: #d62828,
+        volt-rgb: "214 40 40",
+        grad: "linear-gradient(180deg, #ff6b6b 0%, #d62828 60%, #9d0208 100%)",
+        on-grad: #ffffff,
+        arc-core: #ff6b6b,
+        arc-mid: #d62828,
+        arc-deep: #9d0208,
+        arc-glow-rgb: "214 40 40",
+        danger-text: #b5172b,
+        danger-text-hover: #7a0a14,
+        caution-text: #7a5a00,
+        coil-0: #d62828,
+        coil-1: #c48a00,
+        coil-2: #1f8a4c,
+        coil-3: #1d6fd0,
+        coil-4: #b0368f,
+        coil-5: #d9661a,
+        noel-sky: "linear-gradient(180deg, #f4f9ff 0%, #d9e8f7 100%)",
+        noel-flake: #a9c9ea,
+        noel-cap: #ffffff,
+        noel-edge: "rgb(29 53 87 / 0.18)",
+        noel-border: "1px solid rgb(29 53 87 / 0.18)",
+        noel-lights-a: -garland(#3a4a5e, $noel-lights, 0),
+        noel-lights-b: -garland(#3a4a5e, $noel-lights, 1),
+        noel-wool: #1d3557,
+        noel-band: -jumper-band(#1d3557, #ffffff, #d62828),
+        noel-jumper-text: #ffffff,
+        swatch: "radial-gradient(circle at 30% 30%, #fff 0 14%, transparent 16%), radial-gradient(circle at 70% 60%, #fff 0 10%, transparent 12%), linear-gradient(180deg, #cfe0f2, #9fc3e8)",
+    ),
+    // gingerbread, piped with icing
+    gingerbread: (
+        bg: #4a2a12,
+        bg-2: #3a200d,
+        panel: #8b5a2b,
+        panel-2: #9a6834,
+        bg-rgb: "74 42 18",
+        line-rgb: "255 244 224",
+        text: #fff4e0,
+        text-rgb: "255 244 224",
+        text-dim: #f3dcc0,
+        text-mute: #dcbf9c,
+        text-strong: #ffffff,
+        text-bright: #ffe08a,
+        ink: #4a2a12,
+        hi-rgb: "255 255 255",
+        // gold icing: red would sink into the gingerbread
+        volt: #ffe08a,
+        volt-rgb: "255 224 138",
+        grad: "linear-gradient(180deg, #fff4e0 0%, #f3dcc0 100%)",
+        on-grad: #4a2a12,
+        arc-core: #ffffff,
+        arc-mid: #fff4e0,
+        arc-deep: #f3dcc0,
+        arc-glow-rgb: "255 244 224",
+        danger-text: #ffb3b8,
+        danger-text-hover: #ffd6d8,
+        caution-text: #ffe08a,
+        coil-0: #ff6b75,
+        coil-1: #ffd23f,
+        coil-2: #7de0a0,
+        coil-3: #8ec5ff,
+        coil-4: #ff9ae0,
+        coil-5: #ffb070,
+        noel-sky: "radial-gradient(circle, rgb(255 244 224 / 0.18) 2px, transparent 3px) 0 0 / 26px 26px, #4a2a12",
+        noel-flake: #ffffff,
+        noel-cap: #fff8ec,
+        noel-edge: "#fff4e0",
+        // piped icing
+        noel-border: "3px dashed #fff4e0",
+        noel-lights-a: -garland(#2a1808, $noel-lights, 0),
+        noel-lights-b: -garland(#2a1808, $noel-lights, 1),
+        noel-wool: #6b3f1f,
+        noel-band: -jumper-band(#6b3f1f, #fff4e0, #d62839),
+        noel-jumper-text: #fff4e0,
+        swatch: "radial-gradient(circle at 50% 50%, #fff4e0 0 10%, transparent 12%), #8b5a2b",
+    ),
+);
+
+@each $id, $p in $noel-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($noel-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

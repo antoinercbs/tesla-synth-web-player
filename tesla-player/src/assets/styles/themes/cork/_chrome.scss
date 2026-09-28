@@ -1,0 +1,392 @@
+// ===========================================================================
+//  CORK BOARD LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $cork map (cork/_skin.scss), its colours the board
+// picked among cork/_palettes.scss. Here, the pin board: paper sheets held by a
+// pin (the coil cards by tape), each page's title on a strip of masking tape, the
+// sidebar on kraft paper, choices circled in red marker, a highlighter under the
+// pointer in a menu, index cards for fields, sticky notes a little askew, a red
+// thread on a pin for a slider. The pins and the tape are background layers: a
+// sheet needs no positioning for them, and no overflow cuts them. Every rule sits
+// under [data-skin="cork"]; the pages' controls are named by family
+// (../_families.scss). The words it adds are in English in every language.
+
+// a ring drawn by hand, with a marker: uneven on purpose
+$cork-circled: 255px 15px 225px 15px / 15px 225px 15px 255px;
+
+// a sheet held by a pin at its top, the pin's shadow under it
+@mixin pinned {
+    background:
+        var(--cork-pin) 50% 2px / 14px 14px no-repeat,
+        var(--cork-pin-shadow) calc(50% + 3px) 6px / 18px 18px no-repeat,
+        var(--cork-paper);
+}
+
+// a sheet held by two pieces of tape across its top corners
+@mixin taped {
+    background:
+        linear-gradient(-35deg, transparent 38%, var(--cork-tape) 38% 72%, transparent 72%) 0 0 / 44px 30px no-repeat,
+        linear-gradient(35deg, transparent 38%, var(--cork-tape) 38% 72%, transparent 72%) 100% 0 / 44px 30px no-repeat,
+        var(--cork-paper);
+}
+
+@mixin circled {
+    border-color: var(--cork-marker);
+    border-radius: $cork-circled;
+    color: var(--cork-marker);
+    background: transparent;
+}
+
+@mixin highlighted {
+    background: linear-gradient(transparent 40%, var(--cork-highlight) 40% 90%, transparent 90%);
+    color: var(--text-strong);
+}
+
+[data-skin="cork"] {
+    ::selection {
+        background: var(--cork-highlight);
+        color: var(--text-strong);
+    }
+
+    // --- the page's head: its title on a strip of masking tape ----------------------------------------
+    // a bar over the page: the board itself, fixed like the page's so their grain meets
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--cork-board);
+        background-attachment: fixed;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        box-shadow: 0 -2px 6px rgb(0 0 0 / 0.2);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .view-head__title {
+        padding: 0.15rem 0.9rem;
+        background: var(--cork-tape);
+        color: var(--text-strong);
+        font-family: var(--font-display);
+        font-weight: 400;
+        box-shadow: 1px 2px 3px rgb(0 0 0 / 0.2);
+        transform: rotate(-1.2deg);
+    }
+
+    .brand__app {
+        font-family: var(--font-display);
+        font-weight: 400;
+        color: var(--text-strong);
+        letter-spacing: 0.02em;
+    }
+
+    // the club's wordmark is drawn black: on kraft it stays so
+    .brand__label {
+        filter: none;
+    }
+
+    // --- sheets: pinned; a coil card taped -------------------------------------------------------------
+    #{$panels} {
+        @include pinned;
+
+        border: 0;
+        border-radius: 2px;
+    }
+
+    .coil-card {
+        @include taped;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    // a box on a sheet: a pencil line
+    .env-lib__group {
+        background: transparent;
+        border: 1px solid rgb(0 0 0 / 0.25);
+        box-shadow: none;
+    }
+
+    #{$panel-heads},
+    .coil-card__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        font-family: var(--font-display);
+        font-weight: 400;
+        color: var(--text-strong);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 2px solid rgb(0 0 0 / 0.12);
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        height: 2px;
+        background: rgb(0 0 0 / 0.2);
+    }
+
+    // a hint and an empty sheet: sticky notes, a little askew
+    .player-hint {
+        border-radius: 1px;
+        background: var(--cork-note);
+        color: var(--text-strong);
+        box-shadow: 1px 2px 4px rgb(0 0 0 / 0.25);
+        transform: rotate(-0.6deg);
+    }
+
+    .player-hint .icon {
+        color: var(--cork-marker);
+    }
+
+    .empty-stub::after {
+        content: "Nothing pinned here yet";
+        padding: 0.5rem 0.9rem;
+        background: var(--cork-note);
+        color: var(--text-strong);
+        font-family: var(--font-display);
+        box-shadow: 1px 2px 4px rgb(0 0 0 / 0.25);
+        transform: rotate(2deg);
+    }
+
+    // --- the sidebar: a strip of kraft paper, the open page circled ------------------------------------
+    .sidebar {
+        box-shadow: 3px 0 8px rgb(0 0 0 / 0.3);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border: 2px solid transparent;
+        border-radius: $cork-circled;
+    }
+
+    .nav-item:hover {
+        @include highlighted;
+    }
+
+    .nav-item.router-link-active {
+        @include circled;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    // --- sticky-note buttons, lifting under the pointer ------------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled),
+    #{$push-buttons}:hover:not(:disabled) {
+        filter: none;
+        transform: translateY(-1px) rotate(-1.5deg);
+        box-shadow: 2px 4px 6px rgb(0 0 0 / 0.3);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        background: var(--cork-note);
+        border: 0;
+        border-radius: 2px;
+        color: var(--text-strong);
+        box-shadow: 1px 2px 3px rgb(0 0 0 / 0.28);
+    }
+
+    #{$pushed-on} {
+        background: var(--cork-note-3);
+    }
+
+    #{$flat-buttons} {
+        &:hover:not(:disabled) {
+            @include highlighted;
+        }
+    }
+
+    .chan-cell {
+        background: #fff;
+        border: 1px solid rgb(0 0 0 / 0.2);
+        border-radius: 2px;
+        color: var(--text-dim);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: #fff;
+        text-shadow: 0 1px 0 rgb(0 0 0 / 0.35);
+    }
+
+    // --- choices: the chosen one circled in red --------------------------------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        button {
+            border: 2px solid transparent;
+            border-radius: $cork-circled;
+            background: transparent;
+        }
+
+        button:hover:not(:disabled) {
+            @include highlighted;
+        }
+
+        button.is-active,
+        button.is-on {
+            @include circled;
+        }
+    }
+
+    .segmented--tabs button {
+        border: 2px solid transparent;
+        border-radius: $cork-circled;
+        padding: 0.2rem 0.8rem;
+    }
+
+    .segmented--tabs button.is-active {
+        @include circled;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // --- fields: index cards, their red margin and blue line -------------------------------------------
+    .text-field,
+    .select-field select,
+    .combo,
+    #{$number-boxes} {
+        border: 0;
+        border-bottom: 2px solid #7fa7d9;
+        border-radius: 0;
+        background:
+            linear-gradient(90deg, transparent 8px, rgb(230 90 90 / 0.6) 8px 9px, transparent 9px),
+            #fff;
+        box-shadow: 1px 1px 2px rgb(0 0 0 / 0.15);
+    }
+
+    // --- menus: a note pinned; the highlighter under the pointer ----------------------------------------
+    #{$menus} {
+        @include pinned;
+
+        box-shadow: var(--shadow-pop);
+        padding-top: 1rem;
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include highlighted;
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        @include highlighted;
+    }
+
+    // --- a dialog: a sheet taped across its corners ------------------------------------------------------
+    .modal-overlay {
+        background: rgb(0 0 0 / 0.35);
+    }
+
+    .modal-card {
+        @include taped;
+    }
+
+    .modal-card__title {
+        font-family: var(--font-display);
+        font-weight: 400;
+    }
+
+    .modal-card__head {
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid rgb(0 0 0 / 0.12);
+    }
+
+    // --- a toast: a sticky note slapped on ----------------------------------------------------------------
+    .toast {
+        box-shadow: 2px 4px 8px rgb(0 0 0 / 0.3);
+        transform: rotate(-2deg);
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--error {
+        background: var(--cork-note-2);
+    }
+
+    // --- a red thread: the song's progress, a slider's groove, a pin for its knob ---------------------------
+    .player-progress__bar {
+        height: 6px;
+        border-radius: 3px;
+        background: repeating-linear-gradient(90deg, rgb(0 0 0 / 0.25) 0 6px, transparent 6px 10px);
+    }
+
+    .player-progress__fill {
+        height: 3px;
+        margin-top: 1.5px;
+        border-radius: 2px;
+        background: var(--cork-marker);
+    }
+
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgb(0 0 0 / 0.1);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 6px;
+        background: var(--cork-kraft) padding-box;
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: #c0392b;
+        --range-track-h: 3px;
+        --range-track-radius: 2px;
+        --range-track-shadow: 0 1px 1px rgb(0 0 0 / 0.3);
+        --range-thumb: radial-gradient(circle at 40% 35%, #ffb3b3 0 12%, #e02b2b 30%, #8a1010 100%);
+        --range-thumb-w: 16px;
+        --range-thumb-h: 16px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 2px 3px 3px rgb(0 0 0 / 0.35);
+        --range-focus: 3px solid var(--cork-highlight);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+}
