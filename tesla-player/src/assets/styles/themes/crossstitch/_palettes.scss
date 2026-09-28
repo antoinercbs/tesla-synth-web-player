@@ -1,0 +1,192 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CROSS-STITCH LOOK: its cloths
+// ===========================================================================
+// An embroidery in progress: the cloth and its grid of holes, the threads (the main
+// one and a second), the felt of a patch, a sewing button, the needle with its thread;
+// a stitch's X drawn here, in a thread's colour or as a mask. Each palette is written
+// out whole, as the custom properties it sets on [data-theme="<id>"]: the shared ones,
+// then its own, including the chrome crossstitch/_chrome.scss and the $crossstitch map
+// read (--cs-thread, --cs-x…). ui/themes.ts lists the ids for the look, the first is
+// its default (its spec checks both).
+
+// a cloth's cell: its weave, the holes at its corners
+@function -cs-aida($cloth, $hole) {
+    @return svg-url('<rect width="8" height="8" fill="#{$cloth}"/><path d="M0 4h8M4 0v8" stroke="#fff" stroke-opacity=".12"/><g fill="#{$hole}" fill-opacity=".32"><circle cx="0" cy="0" r="1.05"/><circle cx="8" cy="0" r="1.05"/><circle cx="0" cy="8" r="1.05"/><circle cx="8" cy="8" r="1.05"/></g>', 8, 8);
+}
+
+// a stitch: two crossing strokes of thread, the upper one catching the light
+@function -cs-x($thread) {
+    @return svg-url('<path d="M1.6 1.6l4.8 4.8" stroke="#{$thread}" stroke-width="2" stroke-linecap="round"/><path d="M6.4 1.6L1.6 6.4" stroke="#{$thread}" stroke-width="2" stroke-linecap="round"/><path d="M6.1 1.9L1.9 6.1" stroke="#fff" stroke-opacity=".3" stroke-width=".7"/>', 8, 8);
+}
+
+// the needle, its eye, its thread hanging
+@function -cs-needle($thread) {
+    @return svg-url('<path d="M3 34L36 6" stroke="#c4c8ce" stroke-width="2.2" stroke-linecap="round"/><path d="M3 34L36 6" stroke="#fff" stroke-opacity=".6" stroke-width=".6"/><ellipse cx="33" cy="8.5" rx="2.6" ry="1.1" transform="rotate(-40 33 8.5)" fill="none" stroke="#7a7e84" stroke-width=".9"/><path d="M33 8.5c12 7 6 20 18 26s18-4 24 6" fill="none" stroke="#{$thread}" stroke-width="1.8" stroke-linecap="round"/>', 80, 44);
+}
+
+// a sewing button: its rim, its four holes
+@function -cs-button($face, $rim) {
+    @return svg-url('<circle cx="10" cy="10" r="9" fill="#{$face}" stroke="#{$rim}"/><circle cx="10" cy="10" r="6.4" fill="none" stroke="#{$rim}" stroke-opacity=".4"/><g fill="#{$rim}"><circle cx="7.7" cy="7.7" r="1.3"/><circle cx="12.3" cy="7.7" r="1.3"/><circle cx="7.7" cy="12.3" r="1.3"/><circle cx="12.3" cy="12.3" r="1.3"/></g><circle cx="7" cy="6" r="2" fill="#fff" fill-opacity=".3"/>', 20, 20);
+}
+
+@function -cs-set($cloth, $hole, $thread, $thread-2, $button, $rim) {
+    @return (
+        cs-thread: $thread,
+        cs-thread-2: $thread-2,
+        cs-aida: -cs-aida($cloth, $hole),
+        cs-x: -cs-x($thread),
+        cs-x-2: -cs-x($thread-2),
+        cs-needle: -cs-needle($thread),
+        cs-button: -cs-button($button, $rim),
+    );
+}
+
+$cs-shared: (
+    ink: #ffffff,
+    on-grad: #ffffff,
+    danger: #c0392b,
+    danger-rgb: "192 57 43",
+    danger-text: #a8321f,
+    danger-text-hover: #6a1a10,
+    ok: #2e7d4a,
+    ok-rgb: "46 125 74",
+    amber: #c8922a,
+    amber-rgb: "200 146 42",
+    caution: #c8922a,
+    caution-rgb: "200 146 42",
+    caution-text: #7a5410,
+    warn: #b8661a,
+    conflict: #b8661a,
+    duplicate: #8a3a8a,
+    duplicate-rgb: "138 58 138",
+    worse: #c0392b,
+    knob: #ffffff,
+    // a stitch's X as a mask: its shape, whatever fills it
+    cs-x-mask: -cs-x(#000),
+    // the stitches' texture over a stitched word: their strokes faintly lighter
+    cs-x-sheen: svg-url('<path d="M1.6 1.6l4.8 4.8M6.4 1.6L1.6 6.4" stroke="#fff" stroke-opacity=".32" stroke-width="1.4" stroke-linecap="round"/>', 8, 8),
+);
+
+// the order is the picker's, the first the look's default
+$crossstitch-palettes: (
+    // a white Aida cloth, the red and blue of a sampler
+    aida: map.merge(
+        -cs-set(#f7f4ec, #8a8274, #c0392b, #2a5aa0, #e8e2d4, #6a6254),
+        (
+            bg: #f7f4ec,
+            bg-2: #fffdf8,
+            panel: #fbf8f1,
+            panel-2: #efe8da,
+            bg-rgb: "247 244 236",
+            hi-rgb: "0 0 0",
+            line-rgb: "60 50 40",
+            text: #2e2820,
+            text-rgb: "46 40 32",
+            text-dim: #5a5044,
+            text-mute: #8a8070,
+            text-strong: #1a140c,
+            text-bright: #000000,
+            volt: #c0392b,
+            volt-rgb: "192 57 43",
+            grad: linear-gradient(#c0392b, #c0392b),
+            arc-core: #c0392b,
+            arc-mid: #c0392b,
+            arc-deep: #c0392b,
+            arc-glow-rgb: "192 57 43",
+            coil-0: #c0392b,
+            coil-1: #2a5aa0,
+            coil-2: #2e7d4a,
+            coil-3: #d4a017,
+            coil-4: #8a3a8a,
+            coil-5: #d96a1a,
+            plasma: #8a3a8a,
+            cs-felt: #efe8da,
+            cs-wordmark: none,
+            swatch: "radial-gradient(circle, #c0392b 0 18%, transparent 20%) 0 0 / 50% 50%, #f7f4ec",
+        )
+    ),
+    // natural linen, earthen threads
+    "linen": map.merge(
+        -cs-set(#d9ccb2, #6a5a40, #7a4a2a, #5a7a4a, #c8a878, #5a4630),
+        (
+            bg: #d9ccb2,
+            bg-2: #e8dec8,
+            panel: #e2d6bd,
+            panel-2: #cfbf9f,
+            bg-rgb: "217 204 178",
+            hi-rgb: "0 0 0",
+            line-rgb: "70 55 35",
+            text: #3a2e1e,
+            text-rgb: "58 46 30",
+            text-dim: #5e4e36,
+            text-mute: #8a7858,
+            text-strong: #22190c,
+            text-bright: #000000,
+            volt: #7a4a2a,
+            volt-rgb: "122 74 42",
+            grad: linear-gradient(#7a4a2a, #7a4a2a),
+            arc-core: #7a4a2a,
+            arc-mid: #7a4a2a,
+            arc-deep: #7a4a2a,
+            arc-glow-rgb: "122 74 42",
+            coil-0: #a64a2a,
+            coil-1: #5a7a4a,
+            coil-2: #c08a2a,
+            coil-3: #4a6a8a,
+            coil-4: #7a4a6a,
+            coil-5: #8a6a3a,
+            plasma: #7a4a6a,
+            cs-felt: #cfbf9f,
+            cs-wordmark: none,
+            swatch: "radial-gradient(circle, #7a4a2a 0 18%, transparent 20%) 0 0 / 50% 50%, #d9ccb2",
+        )
+    ),
+    // a black Aida, bright threads
+    blackaida: map.merge(
+        -cs-set(#16161a, #000000, #ff4db8, #3fd0ff, #3a3a44, #0a0a0c),
+        (
+            bg: #16161a,
+            bg-2: #1e1e24,
+            panel: #1c1c22,
+            panel-2: #26262e,
+            bg-rgb: "22 22 26",
+            hi-rgb: "255 255 255",
+            line-rgb: "230 230 240",
+            text: #eeeaf4,
+            text-rgb: "238 234 244",
+            text-dim: #c4c0cc,
+            text-mute: #8e8a96,
+            text-strong: #ffffff,
+            text-bright: #ffffff,
+            ink: #1a0614,
+            on-grad: #1a0614,
+            volt: #ff4db8,
+            volt-rgb: "255 77 184",
+            grad: linear-gradient(#ff4db8, #ff4db8),
+            arc-core: #ff4db8,
+            arc-mid: #ff4db8,
+            arc-deep: #ff4db8,
+            arc-glow-rgb: "255 77 184",
+            coil-0: #ff4db8,
+            coil-1: #3fd0ff,
+            coil-2: #ffd23f,
+            coil-3: #7dff4a,
+            coil-4: #b98aff,
+            coil-5: #ff8a3d,
+            plasma: #b98aff,
+            cs-felt: #26262e,
+            cs-wordmark: invert(1),
+            swatch: "radial-gradient(circle, #ff4db8 0 18%, transparent 20%) 0 0 / 50% 50%, #16161a",
+        )
+    ),
+);
+
+@each $id, $p in $crossstitch-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($cs-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

@@ -39,6 +39,8 @@ export const THEMES = {
   sheetmusic: ['ivory', 'sepia', 'nocturne'],
   metro: ['citymap', 'nightmap', 'signage'],
   network: ['openspace', 'afterwork', 'premium'],
+  karaoke: ['lyricblue', 'glitter', 'velvet'],
+  crossstitch: ['aida', 'linen', 'blackaida'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

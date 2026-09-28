@@ -1,0 +1,134 @@
+@use "sass:map";
+
+// ===========================================================================
+//  KARAOKE LOOK: its screens
+// ===========================================================================
+// A karaoke's screen, of no one machine: the video's ground behind the lyrics, the
+// white of a line still to sing and the colour of the one sung, their black outline,
+// the sparkles, the microphone's colour. Each palette is written out whole, as the
+// custom properties it sets on [data-theme="<id>"]: the shared ones, then its own,
+// including the chrome karaoke/_chrome.scss and the $karaoke map read (--kk-sung…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+// sparkles scattered, big and small
+$-kk-sparkles: svg-url('<g fill="#fff"><path d="M30 20l2 6 6 2-6 2-2 6-2-6-6-2 6-2z" fill-opacity=".7"/><path d="M150 70l1.4 4 4 1.4-4 1.4-1.4 4-1.4-4-4-1.4 4-1.4z" fill-opacity=".5"/><path d="M90 150l2.6 7.4 7.4 2.6-7.4 2.6-2.6 7.4-2.6-7.4-7.4-2.6 7.4-2.6z" fill-opacity=".6"/><circle cx="190" cy="140" r="1.6" fill-opacity=".6"/><circle cx="60" cy="100" r="1.2" fill-opacity=".5"/><circle cx="120" cy="30" r="1.4" fill-opacity=".55"/></g>', 220, 200);
+
+$kk-shared: (
+    ink: #1a0630,
+    on-grad: #1a0630,
+    hi-rgb: "255 255 255",
+    text-bright: #ffffff,
+    danger: #ff4d6d,
+    danger-rgb: "255 77 109",
+    danger-text: #ff8fa3,
+    danger-text-hover: #ffc2cd,
+    ok: #6dffb0,
+    ok-rgb: "109 255 176",
+    amber: #ffd23f,
+    amber-rgb: "255 210 63",
+    caution: #ffd23f,
+    caution-rgb: "255 210 63",
+    caution-text: #ffe28a,
+    warn: #ffa23f,
+    conflict: #ffa23f,
+    duplicate: #ff9de2,
+    duplicate-rgb: "255 157 226",
+    worse: #ff4d6d,
+    // the microphones a coil sings into
+    coil-0: #ff4d9d,
+    coil-1: #ffd23f,
+    coil-2: #4dffc8,
+    coil-3: #4dc3ff,
+    coil-4: #c77dff,
+    coil-5: #ff8a3d,
+    plasma: #c77dff,
+    knob: #ffffff,
+    kk-unsung: #ffffff,
+    kk-outline: #0a0418,
+    kk-sparkles: $-kk-sparkles,
+);
+
+// the order is the picker's, the first the look's default
+$karaoke-palettes: (
+    // the machine's own video: a deep blue, the lines turning yellow
+    lyricblue: (
+        bg: #0a1a6a,
+        bg-2: #071250,
+        panel: #0e2382,
+        panel-2: #12298f,
+        bg-rgb: "10 26 106",
+        line-rgb: "180 200 255",
+        text: #eef2ff,
+        text-rgb: "238 242 255",
+        text-dim: #c3cdf4,
+        text-mute: #8e9bd6,
+        text-strong: #ffffff,
+        volt: #ffd23f,
+        volt-rgb: "255 210 63",
+        grad: "linear-gradient(#ffe68a, #ffd23f 55%, #f0a800)",
+        arc-core: #fff4c8,
+        arc-mid: #ffd23f,
+        arc-deep: #f0a800,
+        arc-glow-rgb: "255 210 63",
+        kk-sung: #ffd23f,
+        kk-video: "radial-gradient(900px 500px at 30% 20%, #2a4ad0, transparent 60%), radial-gradient(700px 500px at 80% 90%, #1a2a9a, transparent 60%), linear-gradient(#0a1a6a, #050c3a)",
+        swatch: "linear-gradient(90deg, #ffd23f 0 45%, #ffffff 45%) 0 45% / 100% 22% no-repeat, #0a1a6a",
+    ),
+    // the party: violet, pink lines, sparkles everywhere
+    glitter: (
+        bg: #2a0a4a,
+        bg-2: #1c0634,
+        panel: #3a1266,
+        panel-2: #461675,
+        bg-rgb: "42 10 74",
+        line-rgb: "255 180 240",
+        text: #fff0fb,
+        text-rgb: "255 240 251",
+        text-dim: #e8c4ec,
+        text-mute: #b690c4,
+        text-strong: #ffffff,
+        volt: #ff4db8,
+        volt-rgb: "255 77 184",
+        grad: "linear-gradient(#ff9ad8, #ff4db8 55%, #d61a8a)",
+        arc-core: #ffe0f4,
+        arc-mid: #ff4db8,
+        arc-deep: #d61a8a,
+        arc-glow-rgb: "255 77 184",
+        kk-sung: #ff4db8,
+        kk-video: "radial-gradient(800px 480px at 25% 25%, #7a2ab8, transparent 60%), radial-gradient(700px 500px at 85% 85%, #b81a8a, transparent 60%), linear-gradient(#2a0a4a, #14042a)",
+        swatch: "linear-gradient(90deg, #ff4db8 0 45%, #ffffff 45%) 0 45% / 100% 22% no-repeat, #2a0a4a",
+    ),
+    // the lounge: red velvet, the lines going gold
+    velvet: (
+        bg: #3a0610,
+        bg-2: #26040a,
+        panel: #4a0a18,
+        panel-2: #580d1e,
+        bg-rgb: "58 6 16",
+        line-rgb: "255 200 180",
+        text: #fff2ea,
+        text-rgb: "255 242 234",
+        text-dim: #eccab8,
+        text-mute: #b88f80,
+        text-strong: #ffffff,
+        volt: #f0c35a,
+        volt-rgb: "240 195 90",
+        grad: "linear-gradient(#ffe7a3, #f0c35a 55%, #c8962a)",
+        arc-core: #fff3cc,
+        arc-mid: #f0c35a,
+        arc-deep: #c8962a,
+        arc-glow-rgb: "240 195 90",
+        kk-sung: #f0c35a,
+        kk-video: "repeating-linear-gradient(90deg, rgb(0 0 0 / 0.18) 0 14px, rgb(255 255 255 / 0.03) 14px 30px), radial-gradient(900px 500px at 50% 0%, #7a1024, transparent 65%), linear-gradient(#3a0610, #1a0206)",
+        swatch: "linear-gradient(90deg, #f0c35a 0 45%, #ffffff 45%) 0 45% / 100% 22% no-repeat, #3a0610",
+    ),
+);
+
+@each $id, $p in $karaoke-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($kk-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

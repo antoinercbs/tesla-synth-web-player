@@ -467,6 +467,14 @@ export default {
     openspace: "Open space",
     afterwork: "Afterwork",
     premium: "Premium",
+
+    lyricblue: "Écran bleu",
+    glitter: "Paillettes",
+    velvet: "Velours rouge",
+
+    aida: "Toile Aida",
+    linen: "Lin naturel",
+    blackaida: "Aida noire",
   },
   skin: {
     title: "Apparence",
@@ -502,6 +510,10 @@ export default {
     metro: "Plan de métro",
 
     network: "Réseau pro",
+
+    karaoke: "Karaoké",
+
+    crossstitch: "Point de croix",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",

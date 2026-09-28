@@ -9,7 +9,7 @@ import { applyTheme, storedTheme } from './themes';
  * put on. This module lists the ids, fetches and applies the chosen one, a
  * `data-skin` attribute on <html>. The choice is per device.
  */
-export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control', 'synthwave', 'tubes', 'modular', 'halloween', 'rpg', 'aquarium', 'pocket', 'sheetmusic', 'metro', 'network'] as const;
+export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control', 'synthwave', 'tubes', 'modular', 'halloween', 'rpg', 'aquarium', 'pocket', 'sheetmusic', 'metro', 'network', 'karaoke', 'crossstitch'] as const;
 export type SkinId = (typeof SKINS)[number];
 export const DEFAULT_SKIN: SkinId = 'lab';
 
@@ -23,8 +23,8 @@ export const SKIN_GROUPS: readonly { id: string; skins: readonly SkinId[] }[] = 
   { id: 'computers', skins: ['videotex', 'term', 'web1', 'xp', 'gel', 'synthwave'] },
   { id: 'workshop', skins: ['scope', 'modular', 'tubes', 'pcb', 'blueprint', 'steam'] },
   { id: 'office', skins: ['cork', 'taxform', 'sheet', 'network'] },
-  { id: 'fun', skins: ['circus', 'halloween', 'noel', 'blocks', 'rpg', 'pocket'] },
-  { id: 'scenes', skins: ['aquarium', 'sheetmusic', 'metro'] },
+  { id: 'fun', skins: ['circus', 'halloween', 'noel', 'blocks', 'rpg', 'pocket', 'karaoke'] },
+  { id: 'scenes', skins: ['aquarium', 'sheetmusic', 'metro', 'crossstitch'] },
 ];
 
 const STORE_KEY = 'skin';

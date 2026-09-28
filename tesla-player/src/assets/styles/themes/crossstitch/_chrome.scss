@@ -1,0 +1,410 @@
+// ===========================================================================
+//  CROSS-STITCH LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $crossstitch map (crossstitch/_skin.scss), its colours the
+// cloth picked among crossstitch/_palettes.scss. Here, the embroidery: the cloth's grid
+// behind (the backdrop); each panel bordered by a row of cross-stitches; the page's
+// title stitched in the thread, the needle beside it, its thread hanging; heads and
+// tabs underlined in back-stitch; felt patches for buttons, a running stitch inside
+// them; a switch's knob and a slider's cap sewing buttons; the channels' bars and the
+// song's progress stitched in X; a coil's mark an X of its colour; toasts as the
+// embroiderer's words. The words it adds are the embroiderer's, in French in every
+// language. Every rule sits under [data-skin="crossstitch"]; the pages' controls are
+// named by family (../_families.scss).
+
+// a row of stitches along each edge
+@mixin stitched-edge($x: var(--cs-x)) {
+    background:
+        #{$x} left top / 8px 8px repeat-x,
+        #{$x} left bottom / 8px 8px repeat-x,
+        #{$x} left top / 8px 8px repeat-y,
+        #{$x} right top / 8px 8px repeat-y,
+        var(--panel);
+}
+
+// a back-stitch under a word: the thread in short dashes
+@mixin backstitch($w: 2px) {
+    background: repeating-linear-gradient(90deg, var(--cs-thread) 0 7px, transparent 7px 10px) left bottom / 100% #{$w} no-repeat;
+}
+
+// a running stitch inside a patch
+@mixin running($color: rgb(var(--line-rgb) / 0.45)) {
+    outline: 1.5px dashed #{$color};
+    outline-offset: -5px;
+}
+
+[data-skin="crossstitch"] {
+    ::selection {
+        background: rgb(var(--volt-rgb) / 0.25);
+    }
+
+    .app-main {
+        background: none;
+    }
+
+    // --- the head: the title stitched, the needle beside it -------------------------------------------------------------
+    .view-head__title {
+        position: relative;
+        padding-right: 5.2rem;
+        background: var(--cs-x-sheen) 0 0 / 6px 6px, var(--cs-thread);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        filter: drop-shadow(1px 1px 0 rgb(0 0 0 / 0.22));
+    }
+
+    .view-head__title .page-tour {
+        filter: none;
+    }
+
+    .view-head__title::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        width: 80px;
+        height: 44px;
+        margin-top: -26px;
+        background: var(--cs-needle) center / contain no-repeat;
+        pointer-events: none;
+    }
+
+    .edit-chooser .view-head__title {
+        padding-right: 0;
+    }
+
+    .edit-chooser .view-head__title::after {
+        display: none;
+    }
+
+    .brand__app {
+        color: var(--cs-thread);
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .brand__label {
+        filter: var(--cs-wordmark);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: rgb(var(--bg-rgb) / 0.94);
+    }
+
+    // --- panels: pieces of cloth bordered in stitches ------------------------------------------------------------------------
+    #{$panels} {
+        @include stitched-edge;
+
+        border: 0;
+    }
+
+    .env-lib__group {
+        background: none;
+        box-shadow: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    // a coil's card in its own colour's stitches: every other card in the second thread
+    .coil-card:nth-child(even) {
+        @include stitched-edge(var(--cs-x-2));
+    }
+
+    #{$panel-heads} {
+        margin: 0 8px;
+        border-bottom: 0;
+        background: none;
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title {
+        @include backstitch;
+
+        padding-bottom: 3px;
+        color: var(--text-strong);
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .empty-stub::after {
+        content: "Motif \E0  broder";
+        color: var(--text-mute);
+        font-family: var(--font-display);
+    }
+
+    // --- the menu: an X stitched before the open page -----------------------------------------------------------------------
+    .sidebar {
+        border-right: 0;
+        background:
+            var(--cs-x) right top / 8px 8px repeat-y,
+            var(--panel);
+    }
+
+    .nav-item {
+        font-family: var(--font-display);
+        font-weight: 500;
+        letter-spacing: 0.02em;
+    }
+
+    .nav-item:hover {
+        background: rgb(var(--line-rgb) / 0.05);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active {
+        background: none;
+        color: var(--cs-thread);
+        font-weight: 700;
+    }
+
+    .nav-item.router-link-active::before {
+        top: 50%;
+        left: 2px;
+        bottom: auto;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        background: var(--cs-x) center / 12px 12px no-repeat;
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--cs-thread);
+    }
+
+    // a coil's mark: an X in its colour
+    .sidebar-coil__dot {
+        background:
+            linear-gradient(45deg, transparent 38%, var(--c) 38% 62%, transparent 62%),
+            linear-gradient(-45deg, transparent 38%, var(--c) 38% 62%, transparent 62%);
+    }
+
+    // --- felt patches, a running stitch inside ------------------------------------------------------------------------------
+    .btn,
+    .icon-btn {
+        @include running;
+    }
+
+    .btn--volt {
+        @include running(rgb(255 255 255 / 0.7));
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: brightness(1.04);
+    }
+
+    .btn--ghost,
+    .btn--danger-ghost {
+        outline: 0;
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+    }
+
+    #{$push-buttons} {
+        @include running;
+
+        border: 1px solid rgb(var(--line-rgb) / 0.25);
+        border-radius: 50%;
+        background: var(--cs-felt);
+        color: var(--text-strong);
+    }
+
+    #{$pushed-on} {
+        @include running(rgb(255 255 255 / 0.7));
+
+        background: var(--cs-thread);
+        color: var(--ink);
+    }
+
+    .chan-cell {
+        border: 1px solid rgb(var(--line-rgb) / 0.2);
+        background: var(--bg-2);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: #fff;
+    }
+
+    // --- choices, tabs -------------------------------------------------------------------------------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        button.is-active,
+        button.is-on {
+            @include running(rgb(255 255 255 / 0.7));
+        }
+    }
+
+    .segmented--tabs button {
+        font-family: var(--font-display);
+    }
+
+    .segmented--tabs button.is-active {
+        @include backstitch(3px);
+
+        color: var(--cs-thread);
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // a switch: a sewing button sliding on its strip
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: 2.5rem;
+        height: 1.3rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgb(var(--line-rgb) / 0.12);
+        box-shadow: inset 0 0 0 1.5px rgb(var(--line-rgb) / 0.25);
+    }
+
+    .switch input:checked + .switch__track {
+        background: rgb(var(--volt-rgb) / 0.35);
+        box-shadow: inset 0 0 0 1.5px var(--cs-thread);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        top: 1px;
+        left: 1px;
+        width: calc(1.3rem - 2px);
+        height: calc(1.3rem - 2px);
+        border-radius: 50%;
+        background: var(--cs-button) center / contain no-repeat;
+    }
+
+    .switch input:checked + .switch__track::after {
+        transform: translateX(1.2rem);
+    }
+
+    // --- bars in stitches ---------------------------------------------------------------------------------------------------
+    .vu-track {
+        border-radius: 2px;
+        background: rgb(var(--line-rgb) / 0.05);
+    }
+
+    .vu-fill {
+        -webkit-mask: var(--cs-x-mask) center bottom / 8px 8px repeat;
+        mask: var(--cs-x-mask) center bottom / 8px 8px repeat;
+    }
+
+    .player-progress__bar {
+        height: 10px;
+        border-radius: 2px;
+        background: radial-gradient(circle, rgb(var(--line-rgb) / 0.3) 0 1px, transparent 1.5px) 0 50% / 8px 8px repeat-x;
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: var(--cs-x) 0 50% / 8px 8px repeat-x;
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: repeating-linear-gradient(90deg, var(--cs-thread) 0 7px, transparent 7px 10px);
+        --range-track-h: 3px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: var(--cs-button) center / contain no-repeat;
+        --range-thumb-hover: var(--cs-button) center / contain no-repeat;
+        --range-thumb-w: 20px;
+        --range-thumb-h: 20px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
+        --range-focus: 2px dashed var(--cs-thread);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 7px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, toasts ----------------------------------------------------------------------------------------------
+    #{$menus} {
+        @include stitched-edge;
+
+        border: 0;
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: rgb(var(--volt-rgb) / 0.12);
+            color: var(--text-strong);
+        }
+    }
+
+    .modal-card {
+        @include stitched-edge;
+    }
+
+    .modal-card__title {
+        color: var(--cs-thread);
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .toast {
+        @include running(var(--cs-thread));
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .toast--success::after {
+        content: "Bien brod\E9  !";
+        color: var(--ok);
+    }
+
+    .toast--error::after {
+        content: "N\153 ud dans le fil !";
+        color: var(--danger-text);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 5px;
+        background: rgb(var(--line-rgb) / 0.3) padding-box;
+    }
+}

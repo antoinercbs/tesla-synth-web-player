@@ -464,6 +464,14 @@ export default {
     openspace: "Open space",
     afterwork: "After work",
     premium: "Premium",
+
+    lyricblue: "Blue screen",
+    glitter: "Glitter",
+    velvet: "Red velvet",
+
+    aida: "Aida cloth",
+    linen: "Natural linen",
+    blackaida: "Black Aida",
   },
   skin: {
     title: "Look",
@@ -499,6 +507,10 @@ export default {
     metro: "Metro map",
 
     network: "Pro network",
+
+    karaoke: "Karaoke",
+
+    crossstitch: "Cross-stitch",
   },
   skinGroup: {
     computers: "Vintage computers",

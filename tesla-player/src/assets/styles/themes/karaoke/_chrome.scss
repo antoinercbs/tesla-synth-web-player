@@ -1,0 +1,464 @@
+// ===========================================================================
+//  KARAOKE LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $karaoke map (karaoke/_skin.scss), its colours the screen
+// picked among karaoke/_palettes.scss. Here, the screen: its video behind (the
+// backdrop), sparkles drifting over it; words written as lyrics, white in a black
+// outline, the page's title turning to the sung colour as it is sung, a ball bouncing
+// over it; the open page, the open tab, the chosen value already sung; the song's
+// progress and a slider's cap the ball; a coil's mark a lit microphone; an empty
+// panel instrumental; toasts as the score. The words it adds are the screen's, in
+// French in every language. Every rule sits under [data-skin="karaoke"]; the pages'
+// controls are named by family (../_families.scss).
+
+// a lyric's outline: four shadows of the outline colour (a filter: a text-shadow would
+// cover a clipped gradient)
+@mixin outline($w: 2px) {
+    filter:
+        drop-shadow(#{$w} 0 0 var(--kk-outline)) drop-shadow(-#{$w} 0 0 var(--kk-outline))
+        drop-shadow(0 #{$w} 0 var(--kk-outline)) drop-shadow(0 -#{$w} 0 var(--kk-outline));
+}
+
+// a lyric: its sung part (the left of the line) in the sung colour, the rest white
+@mixin lyric($sung: 0%) {
+    @include outline;
+
+    background: linear-gradient(90deg, var(--kk-sung) 0 50%, var(--kk-unsung) 50%) #{100% - $sung} 0 / 200% 100% no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+[data-skin="karaoke"] {
+    ::selection {
+        background: rgb(var(--volt-rgb) / 0.4);
+        color: #ffffff;
+    }
+
+    .app-main {
+        background: none;
+    }
+
+    // the sparkles drifting over the screen
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 44;
+        background: var(--kk-sparkles) 0 0 / 360px 330px repeat;
+        opacity: 0.2;
+        pointer-events: none;
+        animation: kk-drift 30s linear infinite;
+    }
+
+    // --- the head: the title sung, the ball bouncing over it -----------------------------------------------------------
+    .view-head__title {
+        @include lyric;
+
+        position: relative;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        animation: kk-sing 5s linear infinite;
+    }
+
+    .view-head__title .page-tour {
+        filter: none;
+    }
+
+    .view-head__title::after {
+        content: "";
+        position: absolute;
+        top: -0.35em;
+        left: 0;
+        width: 0.34em;
+        height: 0.34em;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #fff 0 20%, var(--kk-sung) 55%);
+        box-shadow: 0 0 10px var(--kk-sung);
+        animation: kk-ball 5s linear infinite;
+        pointer-events: none;
+    }
+
+    .edit-chooser .view-head__title::after {
+        display: none;
+    }
+
+    .brand__app {
+        @include lyric(100%);
+    }
+
+    .brand__label {
+        filter: invert(1);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: rgb(var(--bg-rgb) / 0.85);
+    }
+
+    // --- panels: the screen's boxes; their names lyrics ------------------------------------------------------------------
+    #{$panels} {
+        border: 1px solid rgb(255 255 255 / 0.18);
+        background: rgb(var(--bg-rgb) / 0.62);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+
+    .env-lib__group {
+        border: 0;
+        background: rgb(255 255 255 / 0.04);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid rgb(255 255 255 / 0.15);
+        background: none;
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title {
+        @include outline(1.5px);
+
+        color: var(--kk-unsung);
+        font-family: var(--font-display);
+        font-weight: 800;
+    }
+
+    .empty-stub::after {
+        content: "\266A  (instrumental)  \266A";
+        color: var(--text-dim);
+        font-family: var(--font-display);
+        font-style: italic;
+        white-space: pre;
+    }
+
+    // --- the menu: its pages as lines, the open one sung ------------------------------------------------------------------
+    .sidebar {
+        border-right: 1px solid rgb(255 255 255 / 0.12);
+    }
+
+    .nav-item {
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        background: rgb(255 255 255 / 0.08);
+        color: #ffffff;
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(var(--volt-rgb) / 0.14);
+    }
+
+    .nav-item.router-link-active .nav-item__label {
+        @include lyric(100%);
+    }
+
+    .nav-item.router-link-active::before {
+        left: 0;
+        width: 4px;
+        background: var(--kk-sung);
+        box-shadow: 0 0 10px var(--kk-sung);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--kk-sung);
+    }
+
+    // a coil's mark: its microphone, lit
+    .sidebar-coil__dot {
+        background: radial-gradient(circle at 35% 30%, #fff 0 18%, var(--c) 50%);
+        box-shadow: 0 0 8px var(--c);
+    }
+
+    // --- tabs, choices: the one picked sung --------------------------------------------------------------------------------
+    .segmented--tabs button {
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    // the tab's label is its button's own text: the whole button is sung
+    .segmented--tabs button.is-active {
+        @include lyric(100%);
+    }
+
+    .segmented__arc {
+        box-shadow: 0 0 10px var(--kk-sung);
+    }
+
+    #{$value-choices},
+    #{$tool-choices} {
+        button.is-active,
+        button.is-on {
+            box-shadow: 0 0 14px rgb(var(--volt-rgb) / 0.55);
+        }
+    }
+
+    // --- buttons: glossy, glowing under the pointer ------------------------------------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: none;
+        box-shadow: 0 0 16px rgb(255 255 255 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.4);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        filter: brightness(1.1);
+        box-shadow: 0 0 22px rgb(var(--volt-rgb) / 0.7);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 1px solid rgb(255 255 255 / 0.45);
+        border-radius: 999px;
+        background: linear-gradient(rgb(255 255 255 / 0.2), rgb(255 255 255 / 0.06));
+        color: #ffffff;
+    }
+
+    #{$pushed-on} {
+        background: var(--grad);
+        color: var(--ink);
+    }
+
+    .chan-cell {
+        border: 1px solid rgb(255 255 255 / 0.3);
+        border-radius: 999px;
+        background: rgb(0 0 0 / 0.25);
+        color: #ffffff;
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        box-shadow: 0 0 10px var(--cell, var(--volt));
+        color: var(--ink);
+    }
+
+    // --- the song's progress: the line sung so far, the ball on it ---------------------------------------------------------
+    .player-progress__bar {
+        height: 6px;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.2);
+    }
+
+    .player-progress__fill {
+        border-radius: 999px;
+        background: var(--kk-sung);
+        box-shadow: 0 0 10px var(--kk-sung);
+    }
+
+    .player-progress__knob {
+        width: 16px;
+        height: 16px;
+        border: 0;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #fff 0 22%, var(--kk-sung) 60%);
+        box-shadow: 0 0 10px var(--kk-sung);
+    }
+
+    .readout__field input,
+    .power-head__val {
+        @include outline(1.5px);
+
+        color: #ffffff;
+        font-family: var(--font-display);
+        font-weight: 800;
+    }
+
+    .vu-fill {
+        filter: drop-shadow(0 0 4px rgb(255 255 255 / 0.4));
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: rgb(255 255 255 / 0.25);
+        --range-track-h: 6px;
+        --range-track-radius: 999px;
+        --range-track-shadow: none;
+        --range-thumb: radial-gradient(circle at 35% 30%, #ffffff 0 22%, var(--kk-sung) 60%);
+        --range-thumb-hover: radial-gradient(circle at 35% 30%, #ffffff 0 30%, var(--kk-sung) 60%);
+        --range-thumb-w: 20px;
+        --range-thumb-h: 20px;
+        --range-thumb-border: 2px solid var(--kk-outline);
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 0 10px var(--kk-sung);
+        --range-focus: 2px solid var(--kk-sung);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, the score ------------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 1px solid rgb(255 255 255 / 0.3);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: rgb(255 255 255 / 0.12);
+            color: #ffffff;
+        }
+    }
+
+    .modal-overlay {
+        background: rgb(0 0 0 / 0.55);
+    }
+
+    .modal-card__title {
+        @include lyric(100%);
+
+        font-family: var(--font-display);
+        font-weight: 800;
+    }
+
+    .modal-card__title .icon {
+        filter: none;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        @include outline(1.5px);
+
+        order: -1;
+        font-family: var(--font-display);
+        font-size: var(--fs-lg);
+        font-weight: 800;
+    }
+
+    .toast--success::after {
+        content: "100 POINTS ! \1F3A4";
+        color: var(--kk-sung);
+    }
+
+    .toast--error::after {
+        content: "Hors tempo\2026  12 points";
+        color: var(--danger-text);
+    }
+
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid transparent;
+        border-radius: 999px;
+        background: rgb(255 255 255 / 0.3) padding-box;
+    }
+}
+
+// the line sung from its start to its end, held, then sung again
+@keyframes kk-sing {
+    0% {
+        background-position: 100% 0;
+    }
+
+    80%,
+    100% {
+        background-position: 0% 0;
+    }
+}
+
+// the ball over the line: bouncing from word to word as it is sung
+@keyframes kk-ball {
+    0% {
+        left: 0;
+        transform: translateY(0);
+    }
+
+    10% {
+        transform: translateY(-0.3em);
+    }
+
+    20% {
+        transform: translateY(0);
+    }
+
+    30% {
+        transform: translateY(-0.3em);
+    }
+
+    40% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-0.3em);
+    }
+
+    60% {
+        transform: translateY(0);
+    }
+
+    70% {
+        transform: translateY(-0.3em);
+    }
+
+    80% {
+        left: calc(100% - 0.34em);
+        transform: translateY(0);
+    }
+
+    100% {
+        left: calc(100% - 0.34em);
+        opacity: 0;
+    }
+}
+
+@keyframes kk-drift {
+    to {
+        background-position: 360px -330px;
+    }
+}
+
+// the screen holds still for who asks: the title sung whole, the ball resting
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="karaoke"] {
+        .view-head__title {
+            animation: none;
+            background-position: 0% 0;
+        }
+
+        .view-head__title::after {
+            display: none;
+        }
+
+        body::after {
+            animation: none;
+        }
+    }
+}
