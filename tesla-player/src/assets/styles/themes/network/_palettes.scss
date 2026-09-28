@@ -1,0 +1,166 @@
+@use "sass:map";
+
+// ===========================================================================
+//  PRO NETWORK LOOK: its feeds
+// ===========================================================================
+// A caricature of a professional social network, of no one site: its feed's grey,
+// the white of a post, a corporate blue, the green ring of one open to offers, the
+// red of a notification, the gold of what is paid for; a default avatar and a post's
+// Follow and ··· drawn here. Each palette is written out whole, as the custom
+// properties it sets on [data-theme="<id>"]: the shared ones, then its own, including
+// the chrome network/_chrome.scss and the $network map read (--pro-avatar…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+// the default avatar: a head and shoulders on grey
+@function -pro-avatar($ground, $figure) {
+    @return svg-url('<circle cx="24" cy="24" r="24" fill="#{$ground}"/><circle cx="24" cy="19" r="8.5" fill="#{$figure}"/><path d="M8.5 41.5C11 32.5 17 29 24 29s13 3.5 15.5 12.5A23.8 23.8 0 0 1 8.5 41.5z" fill="#{$figure}"/>', 48, 48);
+}
+
+// a post's corner: Follow, and the menu of three dots
+@function -pro-follow($accent, $mute) {
+    @return svg-url('<g font-family="Segoe UI, Roboto, Helvetica, Arial, sans-serif" font-weight="700" font-size="13"><text x="0" y="14" fill="#{$accent}">+ Suivre</text></g><g fill="#{$mute}"><circle cx="80" cy="10" r="1.8"/><circle cx="87" cy="10" r="1.8"/><circle cx="94" cy="10" r="1.8"/></g>', 100, 20);
+}
+
+@function -pro-set($accent, $mute, $ground, $figure) {
+    @return (
+        pro-avatar: -pro-avatar($ground, $figure),
+        pro-follow: -pro-follow($accent, $mute),
+    );
+}
+
+$pro-shared: (
+    ink: #ffffff,
+    on-grad: #ffffff,
+    danger: #cb112d,
+    danger-rgb: "203 17 45",
+    danger-text: #b3102a,
+    danger-text-hover: #7a0a1c,
+    ok: #0e7a4a,
+    ok-rgb: "14 122 74",
+    amber: #b8860b,
+    amber-rgb: "184 134 11",
+    caution: #b8860b,
+    caution-rgb: "184 134 11",
+    caution-text: #7a5800,
+    warn: #c2570c,
+    conflict: #c2570c,
+    duplicate: #8a3ab9,
+    duplicate-rgb: "138 58 185",
+    worse: #cb112d,
+    coil-0: #0b5fb4,
+    coil-1: #e7a33e,
+    coil-2: #0e7a4a,
+    coil-3: #8a3ab9,
+    coil-4: #cb112d,
+    coil-5: #1a8fa0,
+    plasma: #8a3ab9,
+    knob: #ffffff,
+    pro-open: #0e7a4a,
+    pro-alert: #cb112d,
+    pro-gold: #c9a227,
+);
+
+// the order is the picker's, the first the look's default
+$network-palettes: (
+    // the feed by day: its grey, its white posts, the corporate blue
+    openspace: map.merge(
+        -pro-set(#0a66c2, #666666, #d0d4d8, #8c96a0),
+        (
+            bg: #f4f2ee,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #f8f8f6,
+            bg-rgb: "243 242 239",
+            hi-rgb: "0 0 0",
+            line-rgb: "0 0 0",
+            text: #1d1d1b,
+            text-rgb: "29 29 27",
+            text-dim: #555555,
+            text-mute: #7a7a7a,
+            text-strong: #000000,
+            text-bright: #000000,
+            volt: #0a66c2,
+            volt-rgb: "10 102 194",
+            grad: linear-gradient(#0a66c2, #0a66c2),
+            arc-core: #0a66c2,
+            arc-mid: #0a66c2,
+            arc-deep: #0a66c2,
+            arc-glow-rgb: "10 102 194",
+            pro-cover: "linear-gradient(120deg, #a0b4c8, #d6c9b4)",
+            pro-wordmark: none,
+            swatch: "radial-gradient(circle at 30% 45%, #8c96a0 0 18%, transparent 20%), linear-gradient(#0b5fb4 0 22%, #ffffff 22%)",
+        )
+    ),
+    // the feed after hours
+    afterwork: map.merge(
+        -pro-set(#71b7fb, #b0b0b0, #3a4046, #7c8690),
+        (
+            bg: #1b1f23,
+            bg-2: #22272c,
+            panel: #22272c,
+            panel-2: #2a3036,
+            bg-rgb: "27 31 35",
+            hi-rgb: "255 255 255",
+            line-rgb: "255 255 255",
+            text: #e6e6e6,
+            text-rgb: "230 230 230",
+            text-dim: #bcbcbc,
+            text-mute: #929292,
+            text-strong: #ffffff,
+            text-bright: #ffffff,
+            ink: #0b1a2a,
+            on-grad: #0b1a2a,
+            volt: #71b7fb,
+            volt-rgb: "113 183 251",
+            grad: linear-gradient(#71b7fb, #71b7fb),
+            arc-core: #71b7fb,
+            arc-mid: #71b7fb,
+            arc-deep: #71b7fb,
+            arc-glow-rgb: "113 183 251",
+            pro-open: #4ec07e,
+            pro-cover: "linear-gradient(120deg, #2a3a4e, #3a3040)",
+            pro-wordmark: invert(1),
+            swatch: "radial-gradient(circle at 30% 45%, #7c8690 0 18%, transparent 20%), linear-gradient(#6aaaf0 0 22%, #22272c 22%)",
+        )
+    ),
+    // the gold of those who pay for it
+    premium: map.merge(
+        -pro-set(#8a6a10, #7a6a4a, #e0d4b0, #a8946a),
+        (
+            bg: #f4efe3,
+            bg-2: #fffdf7,
+            panel: #fffdf7,
+            panel-2: #f8f2e4,
+            bg-rgb: "244 239 227",
+            hi-rgb: "0 0 0",
+            line-rgb: "60 45 10",
+            text: #221c10,
+            text-rgb: "34 28 16",
+            text-dim: #5a4e36,
+            text-mute: #857656,
+            text-strong: #000000,
+            text-bright: #000000,
+            ink: #1a1408,
+            on-grad: #1a1408,
+            volt: #b8920e,
+            volt-rgb: "184 146 14",
+            grad: "linear-gradient(#e6c65a, #c9a227 55%, #a8840e)",
+            arc-core: #c9a227,
+            arc-mid: #c9a227,
+            arc-deep: #a8840e,
+            arc-glow-rgb: "201 162 39",
+            pro-cover: "linear-gradient(120deg, #f3e6bd, #fff6dc 55%, #ecdba6)",
+            pro-wordmark: none,
+            swatch: "radial-gradient(circle at 30% 45%, #a8946a 0 18%, transparent 20%), linear-gradient(#c9a227 0 22%, #fffdf7 22%)",
+        )
+    ),
+);
+
+@each $id, $p in $network-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($pro-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

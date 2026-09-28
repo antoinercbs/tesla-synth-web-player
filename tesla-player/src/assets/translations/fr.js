@@ -463,6 +463,10 @@ export default {
     citymap: "Plan de ville",
     nightmap: "Plan de nuit",
     signage: "Signalétique",
+
+    openspace: "Open space",
+    afterwork: "Afterwork",
+    premium: "Premium",
   },
   skin: {
     title: "Apparence",
@@ -496,6 +500,8 @@ export default {
     sheetmusic: "Partition",
 
     metro: "Plan de métro",
+
+    network: "Réseau pro",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",

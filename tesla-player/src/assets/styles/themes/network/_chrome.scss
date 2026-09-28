@@ -1,0 +1,365 @@
+// ===========================================================================
+//  PRO NETWORK LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $network map (network/_skin.scss), its colours the feed
+// picked among network/_palettes.scss. Here, the caricature: the sidebar's top a
+// profile's cover and headline; the page's title a profile
+// (its verified mark, its connections); the main panels posts, their author above them
+// (the avatar, the headline of a thought leader, Follow) and their reactions below;
+// notification badges on the menu; "see more" on
+// a hint; a coil's mark an avatar open to offers; toasts as the congratulations and
+// the rejection. The words it adds are the feed's, in French in every language. Every
+// rule sits under [data-skin="network"]; the pages' controls are named by family
+// (../_families.scss).
+
+// the panels a page shows as its posts
+$pro-posts: ".play-panel, .player-panel, .editor-meta, .pl-pane";
+
+// a notification badge
+@mixin badge {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.35rem;
+    height: 1.2rem;
+    padding: 0 0.35rem;
+    border-radius: 999px;
+    background: var(--pro-alert);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+[data-skin="network"] {
+    .app-main {
+        background: none;
+    }
+
+    // --- the sidebar's top: a profile's cover, its headline -------------------------------------------------------------
+    // the cover behind the whole of the brand, edge to edge (the sidebar's padding undone)
+    .brand {
+        margin: -1.4rem -1rem 0.9rem;
+        padding: 1.4rem 1.25rem 0.9rem;
+        border-bottom: 1px solid rgb(var(--line-rgb) / 0.08);
+        background: var(--pro-cover);
+    }
+
+    .brand__text::after {
+        content: "● Ouvert aux opportunités";
+        color: var(--pro-open);
+        font-family: var(--font-body);
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0;
+        white-space: pre;
+    }
+
+    .sidebar--compact .brand__text::after {
+        display: none;
+    }
+
+    // --- the head: a profile, verified, well connected ------------------------------------------------------------------
+    .view-head__title {
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    // the verified mark: a blue rosette, its white tick
+    .view-head__title::before {
+        content: "\2714";
+        display: inline-grid;
+        place-items: center;
+        width: 1.1rem;
+        height: 1.1rem;
+        order: 2;
+        border-radius: 50%;
+        background: var(--volt);
+        color: var(--ink);
+        font-size: 0.62rem;
+    }
+
+    .view-head__title::after {
+        content: "\B7  3e  \B7  500+ relations";
+        order: 3;
+        color: var(--text-mute);
+        font-size: 0.45em;
+        font-weight: 400;
+        white-space: pre;
+    }
+
+    .view-head__title .page-tour {
+        order: 4;
+    }
+
+    .edit-chooser .view-head__title::before,
+    .edit-chooser .view-head__title::after {
+        display: none;
+    }
+
+    .brand__app {
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .brand__label {
+        filter: var(--pro-wordmark);
+    }
+
+    .screen-head.is-scrolled {
+        background: var(--panel);
+        box-shadow: 0 1px 0 rgb(var(--line-rgb) / 0.1);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- posts: the author above, the reactions below -----------------------------------------------------------------------
+    // a card: the feed's hairline round it, no more
+    #{$panels} {
+        border: 0;
+        border-radius: 8px;
+        background: var(--panel);
+        box-shadow: 0 0 0 1px rgb(140 140 140 / 0.2), 0 2px 3px rgb(0 0 0 / 0.04);
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .env-lib__group {
+        box-shadow: none;
+    }
+
+    #{$pro-posts} {
+        &::before {
+            content: "Tesla Player  \B7  1er\A PDG de l\2019 arc \E9 lectrique | Thought Leader | \1F680  Disruptor\A 2 h  \B7  Modifi\E9   \B7  \1F310";
+            display: block;
+            flex: 0 0 auto;
+            padding: 0.7rem 7.5rem 0.65rem 4.1rem;
+            border-bottom: 1px solid rgb(var(--line-rgb) / 0.08);
+            background:
+                var(--pro-follow) right 1rem top 0.9rem / 100px 20px no-repeat,
+                var(--pro-avatar) 1rem 0.7rem / 2.6rem 2.6rem no-repeat;
+            color: var(--text-mute);
+            font-size: var(--fs-xs);
+            line-height: 1.4;
+            white-space: pre;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        &::after {
+            content: "\1F44D\2764\FE0F\1F44F   1 337  \B7  42 commentaires  \B7  12 republications\A\1F44D  J\2019 aime        \1F4AC  Commenter        \1F501  Republier        \27A4  Envoyer";
+            display: block;
+            flex: 0 0 auto;
+            padding: 0.5rem 1rem 0.6rem;
+            border-top: 1px solid rgb(var(--line-rgb) / 0.08);
+            color: var(--text-mute);
+            font-size: var(--fs-xs);
+            font-weight: 600;
+            line-height: 1.9;
+            white-space: pre;
+            overflow: hidden;
+        }
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid rgb(var(--line-rgb) / 0.08);
+        background: none;
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title {
+        font-weight: 700;
+    }
+
+    .player-hint::after {
+        content: "\2026  voir plus";
+        margin-left: 0.3em;
+        color: var(--text-mute);
+        font-weight: 600;
+        white-space: pre;
+    }
+
+    .empty-stub::after {
+        content: "Pas encore de publications. Partagez votre parcours ! \1F64F";
+        color: var(--text-mute);
+    }
+
+    // --- the menu: its notifications ---------------------------------------------------------------------------------------
+    .sidebar {
+        border-right: 1px solid rgb(var(--line-rgb) / 0.08);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+        font-family: var(--font-body);
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        background: rgb(var(--line-rgb) / 0.05);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active {
+        background: none;
+        box-shadow: inset 3px 0 0 var(--text-strong);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--text-strong);
+    }
+
+    @media (min-width: 1001px) {
+        .sidebar:not(.sidebar--compact) {
+            a.nav-item:nth-of-type(1)::after,
+            a.nav-item:nth-of-type(2)::after,
+            a.nav-item:nth-of-type(4)::after,
+            a.nav-item:nth-of-type(6)::after {
+                @include badge;
+
+                margin-left: auto;
+            }
+
+            a.nav-item:nth-of-type(1)::after {
+                content: "3";
+            }
+
+            a.nav-item:nth-of-type(2)::after {
+                content: "99+";
+            }
+
+            a.nav-item:nth-of-type(4)::after {
+                content: "12";
+            }
+
+            a.nav-item:nth-of-type(6)::after {
+                content: "1";
+            }
+        }
+    }
+
+    // --- buttons: pills; the ghost ones plain words ----------------------------------------------------------------------
+    .btn:hover:not(:disabled) {
+        filter: none;
+        background: rgb(var(--volt-rgb) / 0.08);
+        box-shadow: inset 0 0 0 1px var(--volt);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        filter: brightness(0.9);
+        background: var(--grad);
+    }
+
+    .icon-btn:hover:not(:disabled) {
+        background: rgb(var(--line-rgb) / 0.08);
+    }
+
+    .btn--ghost,
+    .btn--danger-ghost {
+        border-color: transparent;
+    }
+
+    #{$push-buttons} {
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text-dim);
+
+        &:hover:not(:disabled) {
+            background: rgb(var(--line-rgb) / 0.08);
+            color: var(--text-strong);
+        }
+    }
+
+    #{$pushed-on} {
+        background: rgb(var(--volt-rgb) / 0.14);
+        color: var(--volt);
+    }
+
+    .segmented--tabs button.is-active {
+        font-weight: 700;
+    }
+
+    .segmented__arc {
+        box-shadow: none;
+    }
+
+    // a coil's chip: a skill, its endorsements
+    .player-coil {
+        border-radius: 999px;
+    }
+
+    // --- menus, toasts ------------------------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 0;
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: rgb(var(--line-rgb) / 0.06);
+            color: var(--text-strong);
+        }
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-weight: 700;
+    }
+
+    .toast--success::after {
+        content: "\1F389  F\E9 licitations pour votre nouveau poste !";
+        color: var(--ok);
+    }
+
+    .toast--error::after {
+        content: "Nous avons d\E9 cid\E9  de poursuivre avec d\2019 autres candidats.";
+        color: var(--danger-text);
+    }
+
+    .player-progress__fill {
+        background: var(--volt);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: rgb(var(--line-rgb) / 0.2);
+        --range-track-h: 4px;
+        --range-track-radius: 999px;
+        --range-track-shadow: none;
+        --range-thumb: var(--panel);
+        --range-thumb-hover: var(--panel);
+        --range-thumb-w: 18px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 2px solid var(--volt);
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+        --range-focus: 2px solid var(--volt);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 6px;
+
+        @include drawn-range($track: false);
+    }
+}

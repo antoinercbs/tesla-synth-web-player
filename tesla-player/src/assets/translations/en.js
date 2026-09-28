@@ -460,6 +460,10 @@ export default {
     citymap: "City map",
     nightmap: "Night map",
     signage: "Signage",
+
+    openspace: "Open space",
+    afterwork: "After work",
+    premium: "Premium",
   },
   skin: {
     title: "Look",
@@ -493,6 +497,8 @@ export default {
     sheetmusic: "Sheet music",
 
     metro: "Metro map",
+
+    network: "Pro network",
   },
   skinGroup: {
     computers: "Vintage computers",

@@ -38,6 +38,7 @@ export const THEMES = {
   pocket: ['peasoup', 'pocketgrey', 'backlit'],
   sheetmusic: ['ivory', 'sepia', 'nocturne'],
   metro: ['citymap', 'nightmap', 'signage'],
+  network: ['openspace', 'afterwork', 'premium'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 
