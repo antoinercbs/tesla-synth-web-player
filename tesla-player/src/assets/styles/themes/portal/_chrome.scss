@@ -123,7 +123,7 @@ $cp-bar-top: 4px;
     .screen-head::before {
         @include shaded(2px);
 
-        content: "- Votre espace agent";
+        content: "- Votre espace musique";
         flex: 0 1 auto;
         min-width: 0;
         align-self: flex-end;
