@@ -475,6 +475,10 @@ export default {
     aida: "Toile Aida",
     linen: "Lin naturel",
     blackaida: "Aida noire",
+
+    periwinkle: "Pervenche",
+    mauve: "Mauve",
+    afterhours: "Après 20 h",
   },
   skin: {
     title: "Apparence",
@@ -514,6 +518,8 @@ export default {
     karaoke: "Karaoké",
 
     crossstitch: "Point de croix",
+
+    portal: "Portail carrière",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",

@@ -472,6 +472,10 @@ export default {
     aida: "Aida cloth",
     linen: "Natural linen",
     blackaida: "Black Aida",
+
+    periwinkle: "Periwinkle",
+    mauve: "Mauve",
+    afterhours: "After hours",
   },
   skin: {
     title: "Look",
@@ -511,6 +515,8 @@ export default {
     karaoke: "Karaoke",
 
     crossstitch: "Cross-stitch",
+
+    portal: "Career portal",
   },
   skinGroup: {
     computers: "Vintage computers",

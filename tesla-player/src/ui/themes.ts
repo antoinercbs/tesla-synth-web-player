@@ -41,6 +41,7 @@ export const THEMES = {
   network: ['openspace', 'afterwork', 'premium'],
   karaoke: ['lyricblue', 'glitter', 'velvet'],
   crossstitch: ['aida', 'linen', 'blackaida'],
+  portal: ['periwinkle', 'mauve', 'afterhours'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

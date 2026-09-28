@@ -1,0 +1,911 @@
+// ===========================================================================
+//  CAREER PORTAL LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $portal map (portal/_skin.scss), its colours the campaign
+// picked among portal/_palettes.scss. Here, the caricature: the page's head a glossy
+// banner, rounded, its circles above the title and "Votre assistant Carrière" after
+// it; the sidebar the portal's periwinkle column, its bottom corner curved into the
+// page, the menu its glossy pills each with a bead on its edge, further right down the
+// column, the open one teal; tabs teal, the open one indigo, on an indigo line; each
+// panel a table under an indigo head, its rows lavender and pale yellow in turn, the
+// yellow ones explained; sub-heads lavender bands under a ▼; a coil's card its grade
+// and step; the version, and the session running out, under the column; the page's
+// code at its foot; toasts as the administration's answers. The words it adds are the
+// portal's, in French in every language. Every rule sits under [data-skin="portal"];
+// the pages' controls are named by family (../_families.scss).
+
+// the session's time left, counted down from the page's opening: minutes, seconds
+@property --cp-m {
+    syntax: "<integer>";
+    inherits: false;
+    initial-value: 19;
+}
+
+@property --cp-s {
+    syntax: "<integer>";
+    inherits: false;
+    initial-value: 59;
+}
+
+// jump-none: both ends shown, each figure held the same time (19 to 0 over 20 minutes)
+@keyframes cp-minutes {
+    from {
+        --cp-m: 19;
+    }
+
+    to {
+        --cp-m: 0;
+    }
+}
+
+@keyframes cp-seconds {
+    from {
+        --cp-s: 59;
+    }
+
+    to {
+        --cp-s: 0;
+    }
+}
+
+@keyframes cp-expired {
+    to {
+        color: #ffd0d0;
+    }
+}
+
+// the banner's height, and its gap from the window's top
+$cp-bar-h: 4.6rem;
+$cp-bar-top: 4px;
+
+// white letters with the navy shadow the portal gave them
+@mixin shaded($d: 1px) {
+    color: #ffffff;
+    text-shadow: #{$d} #{$d} 1px var(--cp-shade);
+}
+
+// a glossy pill outlined in navy
+@mixin pill($fill: var(--cp-pill)) {
+    @include shaded;
+
+    border: 2px solid var(--cp-frame);
+    border-radius: 999px;
+    background: $fill;
+    box-shadow: 1px 1px 1px rgb(0 0 0 / 0.25);
+    font-family: var(--font-display);
+}
+
+[data-skin="portal"] {
+    ::selection {
+        background: var(--volt);
+        color: #ffffff;
+    }
+
+    .app-main {
+        background: none;
+    }
+
+    // --- the banner: one bar across the window, the column's top its left end ----------------------------------------
+    // the brand (in the column) and the page's head (in the page) draw one bar: the same
+    // height, top and fill, the brand closed on the left, the head on the right, both open
+    // where they meet at the column's edge
+    .brand,
+    .screen-head {
+        height: $cp-bar-h;
+        min-height: $cp-bar-h;
+        border: 2px solid var(--cp-frame);
+        background: var(--cp-banner);
+    }
+
+    .brand {
+        margin: calc(#{$cp-bar-top} - 1.4rem) -1rem 1.2rem calc(#{$cp-bar-top} - 1rem);
+        padding: 0 0.4rem 0 1rem;
+        border-right: 0;
+        border-radius: calc(#{$cp-bar-h} / 2) 0 0 calc(#{$cp-bar-h} / 2);
+    }
+
+    // the head holds the assistant's words, its circles above them, then the page's title and controls
+    .screen-head {
+        --text: #ffffff;
+        --text-dim: #ffffff;
+        --text-mute: rgb(255 255 255 / 0.8);
+        --text-strong: #ffffff;
+        --text-bright: #ffffff;
+
+        top: $cp-bar-top;
+        margin: $cp-bar-top 0.6rem var(--head-gap) 0;
+        padding: 0 0.8rem 0 0.55rem;
+        border-left: 0;
+        border-radius: 0 calc(#{$cp-bar-h} / 2) calc(#{$cp-bar-h} / 2) 0;
+        background: var(--cp-rings) 0.9rem 4px / 100px 24px no-repeat, var(--cp-banner);
+    }
+
+    .screen-head::before {
+        @include shaded(2px);
+
+        content: "- Votre assistant Carri\E8 re";
+        flex: 0 1 auto;
+        min-width: 0;
+        align-self: flex-end;
+        margin-bottom: 0.72rem;
+        overflow: hidden;
+        font-family: var(--font-display);
+        font-size: 1.4rem;
+        white-space: pre;
+        text-overflow: ellipsis;
+    }
+
+    // a page without a head (a chooser): the brand closes the bar on itself
+    .app-shell:not(:has(.screen-head)) .brand {
+        border-right: 2px solid var(--cp-frame);
+        border-radius: calc(#{$cp-bar-h} / 2);
+        margin-right: calc(#{$cp-bar-top} - 1rem);
+    }
+
+    .screen-head.is-scrolled {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // the page's title where the portal names its agent: small, right, before the controls
+    .screen-head .view-head__title {
+        @include shaded;
+
+        margin-right: 1.2rem;
+        margin-left: auto;
+        font-size: var(--fs-xl);
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    .screen-head .btn--ghost,
+    .screen-head .btn--danger-ghost {
+        &,
+        &:hover:not(:disabled) {
+            @include shaded;
+        }
+    }
+
+    // the envelopes' head: its subtitle under its title, on one line, the actions beside
+    .env-head,
+    .env-head__actions {
+        flex-wrap: nowrap;
+    }
+
+    .env-head__title {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        align-items: flex-end;
+        gap: 0.15rem;
+        margin: 0 1rem 0 auto;
+    }
+
+    .env-head__title .view-head__title {
+        margin: 0;
+    }
+
+    .env-head__sub {
+        max-width: 100%;
+        overflow: hidden;
+        font-size: var(--fs-xs);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- the column: periwinkle, white words, its corner curved into the page -------------------------------------------
+    // the words set on the column white (the fields it holds keep the page's ink)
+    .sidebar {
+        --text: var(--cp-on-column);
+        --text-dim: var(--cp-on-column);
+        --text-mute: rgb(255 255 255 / 0.8);
+        --text-strong: var(--cp-on-column);
+        --text-bright: var(--cp-on-column);
+        --line: rgb(255 255 255 / 0.35);
+        --line-strong: rgb(255 255 255 / 0.5);
+
+        border-right: 0;
+        border-bottom-right-radius: 56px;
+    }
+
+    .brand__emblem {
+        width: 34px;
+        height: 34px;
+        background: #ffffff;
+        animation: none;
+        filter: drop-shadow(1px 1px 0 var(--cp-shade));
+    }
+
+    .brand__sep {
+        display: none;
+    }
+
+    .brand__text {
+        gap: 0.15rem;
+    }
+
+    // the name as the portal's own: big, bold, its shadow cast down to the right
+    .brand__app {
+        @include shaded(2px);
+
+        font-family: var(--font-display);
+        font-size: 1.55rem;
+        letter-spacing: -0.01em;
+        text-transform: none;
+    }
+
+    .brand__label {
+        height: 11px;
+        filter: var(--cp-wordmark) drop-shadow(1px 1px 0 var(--cp-shade));
+    }
+
+    .brand__toggle {
+        color: #ffffff;
+    }
+
+    // folded, the column is narrower (its padding .55rem): the glyph above the toggle, in the bar
+    .sidebar--compact .brand {
+        margin-right: -0.55rem;
+        margin-left: calc(#{$cp-bar-top} - 0.55rem);
+        padding: 0;
+        gap: 0.1rem;
+        justify-content: center;
+    }
+
+    .sidebar--compact .brand__emblem {
+        width: 28px;
+        height: 28px;
+    }
+
+    .app-shell:not(:has(.screen-head)) .sidebar--compact .brand {
+        margin-right: calc(#{$cp-bar-top} - 0.55rem);
+    }
+
+    .sidebar-section__title {
+        @include shaded;
+
+        font-family: var(--font-display);
+        font-weight: 700;
+    }
+
+    .sidebar .segmented button.is-active,
+    .sidebar-menu .segmented button.is-active {
+        background: var(--cp-pill-on);
+        box-shadow: inset 0 0 0 1.5px var(--cp-frame);
+        color: #ffffff;
+    }
+
+    // a coil's mark: a bead of its colour
+    .sidebar-coil__dot {
+        background:
+            radial-gradient(circle at 36% 32%, rgb(255 255 255 / 0.85) 0 14%, transparent 42%),
+            var(--c);
+    }
+
+    // the version, and the session running out
+    .sidebar::after {
+        @include shaded;
+
+        content: "\A9  T-Player  V3\A D\E9 connexion dans " counter(cp-m, decimal-leading-zero) ":" counter(cp-s, decimal-leading-zero);
+        display: block;
+        margin: 0.7rem 0 -0.5rem 0.1rem;
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-style: italic;
+        font-weight: 700;
+        line-height: 1.5;
+        white-space: pre;
+        counter-reset: cp-m var(--cp-m) cp-s var(--cp-s);
+        animation:
+            cp-minutes 1200s steps(20, jump-none) forwards,
+            cp-seconds 60s steps(60, jump-none) 20 forwards,
+            cp-expired 1ms 1200s forwards;
+    }
+
+    .sidebar--compact::after {
+        display: none;
+    }
+
+    // --- the menu: glossy pills, a bead on each one's edge, the open one teal -------------------------------------------
+    .nav {
+        gap: 0;
+    }
+
+    .nav-item {
+        @include pill;
+
+        margin: 0.55rem 2.2rem 0.55rem 0.1rem;
+        padding: 0.3rem 0.9rem;
+        font-size: var(--fs-md);
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        @include shaded;
+
+        background: var(--cp-pill);
+        filter: brightness(1.08);
+    }
+
+    .nav-item.router-link-active {
+        background: var(--cp-pill-on);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item .icon,
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .nav-item.is-disabled {
+        opacity: 0.6;
+    }
+
+    // each pill's bead sits on its top edge, a little further right than the one above
+    .nav-item::after {
+        content: "";
+        position: absolute;
+        top: -10px;
+        left: var(--cp-bead-x, 4%);
+        width: 19px;
+        height: 19px;
+        background: var(--cp-bead) center / contain no-repeat;
+    }
+
+    .nav-item.router-link-active::after {
+        background-image: var(--cp-bead-on);
+    }
+
+    .nav > :nth-child(2) {
+        --cp-bead-x: 10%;
+    }
+
+    .nav > :nth-child(3) {
+        --cp-bead-x: 36%;
+    }
+
+    .nav > :nth-child(4) {
+        --cp-bead-x: 58%;
+    }
+
+    .nav > :nth-child(5) {
+        --cp-bead-x: 74%;
+    }
+
+    .nav > :nth-child(n + 7) {
+        --cp-bead-x: 86%;
+    }
+
+    .nav__sep {
+        opacity: 0;
+    }
+
+    @media (min-width: 1001px) {
+        .sidebar:not(.sidebar--compact) .nav-item .icon {
+            display: none;
+        }
+    }
+
+    .sidebar--compact .nav-item {
+        width: 2.6rem;
+        height: 2.6rem;
+        margin: 0.4rem auto;
+        padding: 0;
+        border-radius: 50%;
+    }
+
+    .sidebar--compact .nav-item::after {
+        display: none;
+    }
+
+    @media (max-width: 1000px) {
+        .sidebar {
+            border-bottom-right-radius: 0;
+        }
+
+        .sidebar::after,
+        .nav-item::after {
+            display: none;
+        }
+
+        .nav-item {
+            margin: 0.2rem 0.1rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .screen-head {
+            height: auto;
+            min-height: 4.6rem;
+            margin-left: 0.4rem;
+            padding-left: 1rem;
+            border-left: 2px solid var(--cp-frame);
+            border-radius: 1.4rem;
+            background: var(--cp-banner);
+        }
+
+        .screen-head::before {
+            display: none;
+        }
+    }
+
+    // --- tabs: teal, the open one indigo, on an indigo line --------------------------------------------------------------
+    .segmented--tabs {
+        gap: 3px;
+        border-bottom: 3px solid var(--cp-tab-line);
+    }
+
+    .segmented--tabs button {
+        padding: 0.3rem 0.85rem 0.25rem;
+        border: 1px solid var(--cp-frame);
+        border-bottom: 0;
+        border-radius: 9px 9px 0 0;
+        background: var(--cp-tab);
+        font-family: var(--font-display);
+        font-weight: 700;
+        text-shadow: 1px 1px 1px rgb(0 0 0 / 0.45);
+    }
+
+    .segmented--tabs button,
+    .segmented--tabs button:hover,
+    .segmented--tabs button.is-active {
+        color: #ffffff;
+    }
+
+    .segmented--tabs button.is-active {
+        background: var(--cp-tab-on);
+    }
+
+    .segmented--tabs button:hover:not(.is-active) {
+        filter: brightness(1.08);
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // --- panels: a table under its indigo head ---------------------------------------------------------------------------
+    #{$panels} {
+        border: 1px solid var(--cp-rule);
+        border-radius: 0;
+        background: var(--panel);
+        box-shadow: none;
+    }
+
+    .env-lib__group {
+        border: 0;
+        background: none;
+    }
+
+    // the head's words white on the indigo; one holding tabs sits the tabs on the page instead
+    #{$panel-heads} {
+        border-bottom: 0;
+        background: none;
+
+        &:not(:has(.segmented--tabs)) {
+            --text: #ffffff;
+            --text-dim: #ffffff;
+            --text-mute: rgb(255 255 255 / 0.78);
+            --text-strong: #ffffff;
+            --text-bright: #ffffff;
+
+            background: var(--cp-head);
+            color: #ffffff;
+
+            .icon {
+                color: #ffffff;
+            }
+        }
+    }
+
+    .player-synth-badge {
+        border: 1px solid rgb(255 255 255 / 0.5);
+        background: rgb(255 255 255 / 0.14);
+        color: #ffffff;
+    }
+
+    .player-panel__title {
+        font-family: var(--font-body);
+        font-size: var(--fs-xl);
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    // a sub-head: a lavender band under its triangle
+    .coil-card__head {
+        margin: -1rem -1.05rem 0.85rem -1.25rem;
+        padding: 0.35rem 1.05rem 0.35rem 1.25rem;
+        background: var(--cp-band);
+    }
+
+    .editor-section__title,
+    .coil-card__title {
+        color: var(--text-strong);
+        font-family: var(--font-body);
+        font-weight: 700;
+        letter-spacing: 0;
+
+        &::before {
+            content: "▼";
+            margin-right: 0.4em;
+            font-size: 0.7em;
+            vertical-align: 0.1em;
+        }
+    }
+
+    // a coil's card: its grade and its step
+    .coil-card__title::after {
+        content: "\B7  Classe normale, 7e \E9 chelon";
+        margin-left: 0.5em;
+        color: var(--text-dim);
+        font-size: var(--fs-sm);
+        font-weight: 400;
+        white-space: pre;
+    }
+
+    .coil-card:nth-child(2) .coil-card__title::after {
+        content: "\B7  Hors classe, 2e \E9 chelon";
+    }
+
+    .coil-card:nth-child(3) .coil-card__title::after {
+        content: "\B7  Classe exceptionnelle, \E9 chelon sp\E9 cial";
+    }
+
+    .coil-card:nth-child(4) .coil-card__title::after {
+        content: "\B7  Stagiaire, titularisation en attente";
+    }
+
+    .player-hint {
+        border: 1px solid var(--cp-rule);
+        border-radius: 0;
+        background: var(--cp-yellow);
+        color: var(--text);
+    }
+
+    .field-label {
+        font-weight: 700;
+    }
+
+    .empty-stub::after {
+        content: "Aucune information n\2019 est disponible \E0  ce jour.";
+        color: var(--text-dim);
+    }
+
+    // --- rows: lavender and pale yellow in turn, the yellow ones explained ----------------------------------------------
+    .play-rows::before {
+        content: "Les morceaux de cette couleur sont issus du dispositif Galvani.";
+        display: block;
+        padding: 0.3rem 0.4rem 0.35rem 1.6rem;
+        background:
+            linear-gradient(var(--cp-yellow), var(--cp-yellow)) calc(0.45rem + 1px) 50% / calc(0.8rem - 2px) calc(0.8rem - 2px) no-repeat,
+            linear-gradient(var(--text), var(--text)) 0.45rem 50% / 0.8rem 0.8rem no-repeat;
+        color: var(--text);
+        font-size: var(--fs-sm);
+    }
+
+    .play-row {
+        border-radius: 0;
+    }
+
+    // the MIDI files: the portal's table, its head indigo, its rows in turn
+    .midi-lib__head {
+        border-bottom: 0;
+        background: var(--cp-head);
+        color: #ffffff;
+        font-size: var(--fs-sm);
+        font-weight: 700;
+    }
+
+    .midi-lib__item:nth-child(even of .midi-lib__item) {
+        background: var(--cp-zebra);
+    }
+
+    .midi-lib__item:nth-child(3n of .midi-lib__item) {
+        background: var(--cp-yellow);
+    }
+
+    .play-row:nth-child(even) {
+        background: var(--cp-zebra);
+    }
+
+    .play-row:nth-child(3n) {
+        background: var(--cp-yellow);
+    }
+
+    .play-row:hover,
+    .play-row.is-current {
+        background: var(--cp-band);
+    }
+
+    .play-row__name {
+        font-size: var(--fs-lg);
+        font-weight: 400;
+    }
+
+    // --- buttons: glossy pills ------------------------------------------------------------------------------------------
+    .btn {
+        border-width: 2px;
+        text-shadow: 1px 1px 1px var(--cp-shade);
+    }
+
+    .btn--volt,
+    .btn--volt:hover {
+        border-color: var(--cp-frame);
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        border-color: var(--cp-frame);
+        color: #ffffff;
+        filter: brightness(1.08);
+    }
+
+    .btn--xs {
+        --btn-pad: 0.16rem 0.6rem 0.16rem 1.35rem;
+
+        background-position: 0.22rem 50%, 0 0;
+        background-size: 12px 12px, auto;
+    }
+
+    // a ghost button: a link, as the portal's were
+    .btn--ghost,
+    .btn--danger-ghost {
+        &,
+        &:hover:not(:disabled) {
+            padding-left: 0.6rem;
+            border-color: transparent;
+            background: none;
+            box-shadow: none;
+            color: var(--cp-link);
+            text-decoration: underline;
+            text-shadow: none;
+            filter: none;
+        }
+    }
+
+    .btn--danger-ghost {
+        &,
+        &:hover:not(:disabled) {
+            color: var(--danger-text);
+        }
+    }
+
+    .icon-btn {
+        box-shadow: 1px 1px 1px rgb(0 0 0 / 0.25);
+        text-shadow: 1px 1px 1px var(--cp-shade);
+    }
+
+    #{$push-buttons} {
+        @include shaded;
+
+        border: 1.5px solid var(--cp-frame);
+        border-radius: 999px;
+        background: var(--cp-pill);
+        box-shadow: 1px 1px 1px rgb(0 0 0 / 0.25);
+
+        &:hover:not(:disabled) {
+            @include shaded;
+
+            border-color: var(--cp-frame);
+            filter: brightness(1.08);
+        }
+    }
+
+    #{$pushed-on} {
+        background: var(--cp-pill-on);
+    }
+
+    .chan-cell {
+        border: 1px solid var(--cp-rule);
+        border-radius: 0;
+        background: var(--bg-2);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        color: #ffffff;
+    }
+
+    // --- choices: pills, the picked one teal ----------------------------------------------------------------------------
+    #{$value-choices} {
+        padding: 2px;
+        gap: 2px;
+
+        button {
+            font-family: var(--font-display);
+        }
+
+        button.is-active {
+            box-shadow: inset 0 0 0 1.5px var(--cp-frame);
+            text-shadow: 1px 1px 1px var(--cp-shade);
+        }
+    }
+
+    #{$tool-choices} {
+        gap: 0.35rem;
+        padding: 0;
+        border: 0;
+        background: none;
+
+        button {
+            @include pill;
+
+            padding-right: 0.9rem;
+            padding-left: 0.9rem;
+        }
+
+        button:hover:not(:disabled) {
+            @include shaded;
+
+            filter: brightness(1.08);
+        }
+
+        button.is-active,
+        button.is-on {
+            background: var(--cp-pill-on);
+        }
+    }
+
+    // a switch: a pill, its knob a bead
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: 2.6rem;
+        height: 1.3rem;
+        border: 1.5px solid var(--cp-frame);
+        border-radius: 999px;
+        box-shadow: 1px 1px 1px rgb(0 0 0 / 0.25);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        top: 0;
+        left: 0;
+        width: calc(1.3rem - 3px);
+        height: calc(1.3rem - 3px);
+        border-radius: 50%;
+        background: var(--cp-bead) center / contain no-repeat;
+    }
+
+    .switch input:checked + .switch__track::after {
+        background-image: var(--cp-bead-on);
+        transform: translateX(1.3rem);
+    }
+
+    // --- bars -----------------------------------------------------------------------------------------------------------
+    .vu-track {
+        border: 1px solid var(--cp-rule);
+        border-radius: 0;
+        background: var(--cp-zebra);
+    }
+
+    .player-progress__bar {
+        height: 10px;
+        border: 1px solid var(--cp-frame);
+        border-radius: 999px;
+        background: var(--bg-2);
+    }
+
+    .player-progress__fill {
+        border-radius: 999px;
+        background: var(--cp-pill-on);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: var(--cp-zebra);
+        --range-track-h: 6px;
+        --range-track-radius: 999px;
+        --range-track-shadow: inset 0 0 0 1px var(--cp-frame);
+        --range-thumb: var(--cp-bead) center / contain no-repeat;
+        --range-thumb-hover: var(--cp-bead-on) center / contain no-repeat;
+        --range-thumb-w: 18px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 1px 1px 2px rgb(0 0 0 / 0.35);
+        --range-focus: 2px solid var(--arc-core);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 7px;
+
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, toasts, the page's code -------------------------------------------------------------------------
+    #{$menus} {
+        border: 2px solid var(--cp-frame);
+        border-radius: 0;
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        font-family: var(--font-display);
+
+        &:hover,
+        &:focus-visible {
+            background: var(--cp-head);
+            color: #ffffff;
+        }
+    }
+
+    // a dialog: its title on the indigo, edge to edge
+    .modal-card {
+        border-width: 2px;
+    }
+
+    .modal-card__head {
+        margin: -1.4rem -1.5rem 1.1rem;
+        padding: 0.55rem 0.7rem 0.55rem 1.5rem;
+        background: var(--cp-head);
+    }
+
+    .modal-card__title {
+        font-family: var(--font-body);
+    }
+
+    .modal-card__title .icon,
+    .modal-card--confirm .modal-card__title .icon {
+        color: #ffffff;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        font-weight: 700;
+    }
+
+    .toast--success::after {
+        content: "Votre demande a bien \E9 t\E9  transmise \E0  votre gestionnaire.";
+        color: var(--ok);
+    }
+
+    .toast--error::after {
+        content: "Cette page n\2019 est pas disponible. Code page : Erreur_Generale.";
+        color: var(--danger-text);
+    }
+
+    .app-main::after {
+        content: "Code page : Dossier_Bobine_Lecture.";
+        margin-top: auto;
+        padding: 0.3rem 0.8rem 0.4rem;
+        color: var(--text);
+        font-size: 0.72rem;
+    }
+
+    // a page with its own foot bar keeps it last
+    .app-main:has(.editor-footer, .pl-footer, .wiz-foot)::after {
+        display: none;
+    }
+
+    ::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--cp-zebra);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 1px solid var(--cp-frame);
+        border-radius: 7px;
+        background: var(--cp-pill);
+    }
+}

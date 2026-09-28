@@ -1,0 +1,208 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CAREER PORTAL LOOK: its campaigns
+// ===========================================================================
+// A caricature of a ministry's career portal of the early 2000s, of no one ministry:
+// its periwinkle column and banner, the glossy pills outlined in navy, the beads set
+// on them, the teal of its tabs and of what is picked, the indigo of a table's head,
+// the lavender and the pale yellow of its rows; the beads and the banner's circles
+// drawn here. Each palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// portal/_chrome.scss and the $portal map read (--cp-pill, --cp-bead…). ui/themes.ts
+// lists the ids for the look, the first is its default (its spec checks both).
+
+// a glass bead: its light, its body, its shadow, its rim, the glint on it
+@function -cp-bead($light, $body, $shadow, $rim) {
+    @return svg-url('<defs><radialGradient id="b" cx=".4" cy=".36" r=".68"><stop offset="0" stop-color="#{$light}"/><stop offset=".3" stop-color="#{$body}"/><stop offset=".78" stop-color="#{$shadow}"/><stop offset="1" stop-color="#{$rim}"/></radialGradient></defs><circle cx="10" cy="10" r="9.3" fill="url(#b)" stroke="#{$rim}" stroke-width=".8"/><ellipse cx="7.4" cy="6.2" rx="3.2" ry="2" fill="#fff" fill-opacity=".8"/>', 20, 20);
+}
+
+// the banner's four circles, shrinking
+@function -cp-rings($c) {
+    @return svg-url('<g fill="#{$c}"><circle cx="11" cy="11" r="10.5"/><circle cx="41" cy="11" r="8"/><circle cx="66" cy="11" r="5.5"/><circle cx="85" cy="11" r="3"/></g>', 90, 22);
+}
+
+$cp-shared: (
+    ink: #ffffff,
+    on-grad: #ffffff,
+    danger: #c8203a,
+    danger-rgb: "200 32 58",
+    danger-text: #b0102a,
+    danger-text-hover: #700018,
+    ok: #1a7a3a,
+    ok-rgb: "26 122 58",
+    amber: #d09000,
+    amber-rgb: "208 144 0",
+    caution: #d09000,
+    caution-rgb: "208 144 0",
+    caution-text: #6a4a00,
+    warn: #d06a10,
+    conflict: #d06a10,
+    duplicate: #8a30b0,
+    duplicate-rgb: "138 48 176",
+    worse: #c8203a,
+    knob: #ffffff,
+    cp-on-column: #ffffff,
+    cp-yellow: #ffffcc,
+    cp-wordmark: invert(1),
+);
+
+// the order is the picker's, the first the look's default
+$portal-palettes: (
+    // the portal as teachers remember it: periwinkle, teal, indigo
+    periwinkle: (
+        bg: #ffffff,
+        bg-2: #ffffff,
+        panel: #ffffff,
+        panel-2: #f2f2fd,
+        bg-rgb: "255 255 255",
+        hi-rgb: "0 0 0",
+        line-rgb: "40 30 140",
+        text: #000000,
+        text-rgb: "0 0 0",
+        text-dim: #2a2a55,
+        text-mute: #5a5a88,
+        text-strong: #14106e,
+        text-bright: #000000,
+        volt: #2a1aa0,
+        volt-rgb: "42 26 160",
+        grad: "linear-gradient(#52cdc8, #2aa8a3)",
+        arc-core: #52cdc8,
+        arc-mid: #6d6dd8,
+        arc-deep: #2a1aa0,
+        arc-glow-rgb: "82 205 200",
+        coil-0: #2a1aa0,
+        coil-1: #2aa8a3,
+        coil-2: #d0a000,
+        coil-3: #c02060,
+        coil-4: #7040c0,
+        coil-5: #e06a10,
+        plasma: #7040c0,
+        cp-column: #6d6dd8,
+        cp-banner: "linear-gradient(#8a8ae8, #7272dc 45%, #6a6ad6)",
+        cp-rings: -cp-rings(#ffffff),
+        cp-frame: #10106a,
+        cp-shade: #10106a,
+        cp-pill: "linear-gradient(#9c9cee, #8080e4 55%, #7676de)",
+        cp-pill-on: "linear-gradient(#66d6d4, #46c4c2 55%, #3cb8b6)",
+        cp-pill-danger: "linear-gradient(#e88894, #d45a6a 55%, #cc5062)",
+        cp-bead: -cp-bead(#e6e8ff, #5a62e0, #14147a, #08083e),
+        cp-bead-on: -cp-bead(#e8ffff, #54d4ce, #127a76, #063e3c),
+        cp-tab: "linear-gradient(#48b4ac, #36a098)",
+        cp-tab-on: "linear-gradient(#2e1eb4, #2616a6)",
+        cp-tab-line: #2414a8,
+        cp-head: #2c1aa6,
+        cp-band: #ccccff,
+        cp-zebra: #e8e8fc,
+        cp-rule: #9a9ae4,
+        cp-link: #0000cc,
+        swatch: "radial-gradient(circle at 70% 40%, #2aa8a3 0 16%, transparent 18%), linear-gradient(90deg, #6d6dd8 0 34%, #ffffff 34%)",
+    ),
+    // the same portal in its mauve moods
+    mauve: (
+        bg: #ffffff,
+        bg-2: #ffffff,
+        panel: #ffffff,
+        panel-2: #f8f2fd,
+        bg-rgb: "255 255 255",
+        hi-rgb: "0 0 0",
+        line-rgb: "70 20 120",
+        text: #000000,
+        text-rgb: "0 0 0",
+        text-dim: #3a2250,
+        text-mute: #6a5080,
+        text-strong: #3a0a6e,
+        text-bright: #000000,
+        volt: #5a1aa0,
+        volt-rgb: "90 26 160",
+        grad: "linear-gradient(#f07cc0, #d0509e)",
+        arc-core: #f07cc0,
+        arc-mid: #9a6cc8,
+        arc-deep: #5a1aa0,
+        arc-glow-rgb: "240 124 192",
+        coil-0: #5a1aa0,
+        coil-1: #d0509e,
+        coil-2: #2aa8a3,
+        coil-3: #d0a000,
+        coil-4: #2a5ad0,
+        coil-5: #e06a10,
+        plasma: #2a5ad0,
+        cp-column: #9a6cc8,
+        cp-banner: "linear-gradient(#b294e8, #9e7ede 45%, #9674d8)",
+        cp-rings: -cp-rings(#ffffff),
+        cp-frame: #3a0a5e,
+        cp-shade: #3a0a5e,
+        cp-pill: "linear-gradient(#c2a6f0, #a888e6 55%, #9e7ee0)",
+        cp-pill-on: "linear-gradient(#f29ccc, #e678b8 55%, #dc6cae)",
+        cp-pill-danger: "linear-gradient(#e88894, #d45a6a 55%, #cc5062)",
+        cp-bead: -cp-bead(#f4e6ff, #9a5ae0, #3e1480, #1e0840),
+        cp-bead-on: -cp-bead(#ffe8f6, #f070c0, #8a1a60, #4a0830),
+        cp-tab: "linear-gradient(#e27cb8, #d0609f)",
+        cp-tab-on: "linear-gradient(#5a1eaa, #4e1494)",
+        cp-tab-line: #4e1494,
+        cp-head: #4e1a98,
+        cp-band: #e2d0fa,
+        cp-zebra: #f3ebfd,
+        cp-rule: #bfa0e6,
+        cp-link: #6a00b0,
+        swatch: "radial-gradient(circle at 70% 40%, #d0509e 0 16%, transparent 18%), linear-gradient(90deg, #9a6cc8 0 34%, #ffffff 34%)",
+    ),
+    // the portal after hours, when it is closed anyway
+    afterhours: (
+        bg: #0c0b26,
+        bg-2: #08071c,
+        panel: #14123a,
+        panel-2: #1a1848,
+        bg-rgb: "12 11 38",
+        hi-rgb: "255 255 255",
+        line-rgb: "170 170 255",
+        text: #e4e4ff,
+        text-rgb: "228 228 255",
+        text-dim: #b8b8e8,
+        text-mute: #8a8ac0,
+        text-strong: #ffffff,
+        text-bright: #ffffff,
+        volt: #8f8ff5,
+        volt-rgb: "143 143 245",
+        grad: "linear-gradient(#52cdc8, #1e8a86)",
+        arc-core: #52cdc8,
+        arc-mid: #6d6dd8,
+        arc-deep: #3a3aa8,
+        arc-glow-rgb: "82 205 200",
+        coil-0: #8f8ff5,
+        coil-1: #52cdc8,
+        coil-2: #f0c040,
+        coil-3: #ff6a9a,
+        coil-4: #b98aff,
+        coil-5: #ff9a40,
+        plasma: #b98aff,
+        cp-column: #2c2c86,
+        cp-banner: "linear-gradient(#4444b8, #36369e 45%, #30308e)",
+        cp-rings: -cp-rings(#c8c8ff),
+        cp-frame: #04041e,
+        cp-shade: #04041e,
+        cp-pill: "linear-gradient(#5454c4, #4242ae 55%, #3a3aa2)",
+        cp-pill-on: "linear-gradient(#36b4b0, #26a09c 55%, #1e928e)",
+        cp-pill-danger: "linear-gradient(#c85466, #b03a4e 55%, #a4344a)",
+        cp-bead: -cp-bead(#c8ccff, #4a52c8, #10105e, #04041e),
+        cp-bead-on: -cp-bead(#e8ffff, #54d4ce, #127a76, #063e3c),
+        cp-tab: "linear-gradient(#2a968e, #1e827c)",
+        cp-tab-on: "linear-gradient(#4232cc, #3a2ac0)",
+        cp-tab-line: #3a2ac0,
+        cp-head: #2c1aa6,
+        cp-band: #262466,
+        cp-zebra: #191744,
+        cp-yellow: #2e2c10,
+        cp-rule: #3a3a90,
+        cp-link: #a8b0ff,
+        swatch: "radial-gradient(circle at 70% 40%, #52cdc8 0 16%, transparent 18%), linear-gradient(90deg, #2c2c86 0 34%, #14123a 34%)",
+    ),
+);
+
+@each $id, $p in $portal-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($cp-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}
