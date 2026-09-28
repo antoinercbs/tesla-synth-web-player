@@ -32,7 +32,8 @@
 }
 
 // the look's list: as tall as the language switch above it
-.welcome__row .select-field select {
+.welcome__row .select-field select,
+.welcome__row .select-field__button {
     padding: 0.25rem 1.8rem 0.25rem 0.6rem;
     font-size: var(--fs-sm);
 }

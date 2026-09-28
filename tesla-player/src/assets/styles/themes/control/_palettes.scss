@@ -1,0 +1,205 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CONTROL DESK LOOK: its desks
+// ===========================================================================
+// A control desk in a hard case, of no one maker or army: the face its modules are
+// screwed to, their engraved black labels, the caps of its push buttons and the
+// colours their lamps light, the glass and the digits of its displays, the case's
+// rim and the foam around it. Each palette is written out whole, as the custom
+// properties it sets on [data-theme="<id>"]: the shared ones, then its own,
+// including the chrome control/_chrome.scss and the $control map read (--ctl-face,
+// --ctl-cap…). ui/themes.ts lists the ids for the look, the first is its default
+// (its spec checks both).
+
+// a screw's head, its cross slot lit from the top left
+$-ctl-screw: svg-url('<circle cx="6" cy="6" r="5.2" fill="#8d8f92" stroke="#2a2b2d" stroke-width=".8"/><circle cx="5.3" cy="5.3" r="3.4" fill="#babcbf"/><path d="M3.3 6h5.4M6 3.3v5.4" stroke="#26272a" stroke-width="1.3"/>', 12, 12);
+
+// a toggle's hex nut and its lever, thrown to the left (off) or the right (on)
+@function -ctl-toggle($on) {
+    $end: 7;
+    @if $on {
+        $end: 37;
+    }
+    $body: '<path d="M30 12l-4 6.9h-8L14 12l4-6.9h8z" fill="#a4a7ab" stroke="#3d3f42"/><circle cx="22" cy="12" r="4" fill="#5a5d61"/>';
+    $body: $body + '<path d="M22 12H#{$end}" stroke="#6b6e72" stroke-width="5" stroke-linecap="round"/><path d="M22 11.5H#{$end}" stroke="#e1e3e6" stroke-width="2.6" stroke-linecap="round"/><circle cx="#{$end}" cy="12" r="4.2" fill="#eceef0" stroke="#6b6e72"/>';
+    @return svg-url($body, 44, 24);
+}
+
+// the lightning in a triangle, then its words
+$-ctl-warning: svg-url('<rect x="1" y="1" width="198" height="54" rx="3" fill="#f5c400" stroke="#111" stroke-width="2"/><path d="M28 9l20 36H8z" fill="#f5c400" stroke="#111" stroke-width="3" stroke-linejoin="round"/><path d="M30 17l-8 13h6l-3 11 10-15h-6l3-9z" fill="#111"/><g font-family="Arial, Helvetica, sans-serif" font-weight="700" fill="#111"><text x="60" y="26" font-size="17">DANGER</text><text x="60" y="44" font-size="12.5">HAUTE TENSION</text></g>', 200, 56);
+
+// the key switch: its plate, its cylinder turned to safe, safe lit, armed dark
+$-ctl-key: svg-url('<rect x="1" y="1" width="198" height="62" rx="4" fill="#2a2c30" stroke="#000" stroke-width="2"/><path d="M58 30l24 4M142 30l-24 4" stroke="#6b6e72"/><circle cx="100" cy="34" r="18" fill="#c9c9c9" stroke="#555"/><circle cx="100" cy="34" r="13" fill="#8e8e8e"/><rect x="97" y="22" width="6" height="24" rx="1" fill="#1a1a1a" transform="rotate(-40 100 34)"/><g font-family="Arial, Helvetica, sans-serif" font-weight="700" font-size="10" fill="#e8e8e8" text-anchor="middle"><text x="42" y="21">S&#219;R</text><text x="158" y="21">ARM&#201;</text></g><circle cx="42" cy="32" r="4.5" fill="#39ff6a" stroke="#0b3a17"/><circle cx="158" cy="32" r="4.5" fill="#3a1414" stroke="#000"/><text x="100" y="60" font-family="Arial, Helvetica, sans-serif" font-size="8.5" font-weight="700" fill="#9aa0a6" text-anchor="middle" letter-spacing="1.5">CL&#201; A</text>', 200, 64);
+
+$ctl-shared: (
+    ink: #06260f,
+    on-grad: #06260f,
+    danger: #ff3b30,
+    danger-rgb: "255 59 48",
+    danger-text: #ff6a60,
+    danger-text-hover: #ffb0aa,
+    ok: #39ff6a,
+    ok-rgb: "57 255 106",
+    amber: #ffb300,
+    amber-rgb: "255 179 0",
+    caution: #ffb300,
+    caution-rgb: "255 179 0",
+    caution-text: #ffd166,
+    warn: #ff9500,
+    conflict: #ff9500,
+    duplicate: #ff66c4,
+    duplicate-rgb: "255 102 196",
+    worse: #ff3b30,
+    // the lamps a coil lights
+    coil-0: #ff3b30,
+    coil-1: #ffb300,
+    coil-2: #39ff6a,
+    coil-3: #3db8ff,
+    coil-4: #c77dff,
+    coil-5: #ff8a3d,
+    plasma: #c77dff,
+    knob: #e8e8e8,
+    // the lamps: lit green, lit amber, lit red; the caps of a lit and an unlit green, red
+    ctl-lamp: #39ff6a,
+    ctl-lamp-rgb: "57 255 106",
+    ctl-amber: #ffb300,
+    ctl-amber-rgb: "255 179 0",
+    ctl-red: #ff3b30,
+    ctl-red-rgb: "255 59 48",
+    ctl-green-lit: "radial-gradient(ellipse at 50% 30%, #c8ffd6, #45e374 55%, #1f9e48)",
+    ctl-green-dark: "linear-gradient(#2d4a36, #1b2e21)",
+    ctl-red-lit: "radial-gradient(ellipse at 50% 30%, #ffc2bd, #ff4a3f 55%, #b3140e)",
+    ctl-red-dark: "linear-gradient(#4a2422, #2e1514)",
+    ctl-amber-lit: "radial-gradient(ellipse at 50% 30%, #ffe7a8, #ffb300 55%, #b87800)",
+    ctl-hazard: "repeating-linear-gradient(-45deg, #f5c400 0 9px, #141414 9px 18px)",
+    ctl-screw: $-ctl-screw,
+    ctl-toggle-off: -ctl-toggle(false),
+    ctl-toggle-on: -ctl-toggle(true),
+    ctl-warning: $-ctl-warning,
+    ctl-key: $-ctl-key,
+    ctl-label-bg: #0b0b0c,
+    ctl-label-ink: #f2f2f2,
+    ctl-alarm: none,
+);
+
+// the order is the picker's, the first the look's default
+$control-palettes: (
+    // the hard case: black anodised face, brushed aluminium rim, grey foam, red digits
+    "case": (
+        bg: #1c1d20,
+        bg-2: #0c0d0f,
+        panel: #26282c,
+        panel-2: #2e3035,
+        bg-rgb: "28 29 32",
+        hi-rgb: "255 255 255",
+        line-rgb: "200 205 212",
+        text: #e8e8e8,
+        text-rgb: "232 232 232",
+        text-dim: #b8bcc2,
+        text-mute: #80858c,
+        text-strong: #ffffff,
+        text-bright: #ffffff,
+        volt: #ffb300,
+        volt-rgb: "255 179 0",
+        grad: "linear-gradient(180deg, #ffe7a8, #ffb300 55%, #b87800)",
+        arc-core: #ffe7a8,
+        arc-mid: #ffb300,
+        arc-deep: #b87800,
+        arc-glow-rgb: "255 179 0",
+        ctl-plate-hi: "rgb(255 255 255 / 0.1)",
+        ctl-plate-lo: "rgb(0 0 0 / 0.6)",
+        ctl-cap: "linear-gradient(#4a4d52, #2c2e32)",
+        ctl-cap-ink: #e8e8e8,
+        ctl-lamp-off: #2a2c2f,
+        ctl-led-off: #1c1e21,
+        ctl-glass: #080a08,
+        ctl-digit: #ff3b30,
+        ctl-digit-rgb: "255 59 48",
+        ctl-wordmark: invert(1),
+        ctl-rim: "linear-gradient(135deg, #f4f4f4, #a9abae 22%, #e9eaeb 45%, #8f9194 70%, #dcdddf)",
+        ctl-foam: "radial-gradient(circle, #3a3c40 0 2px, #1f2023 6.5px) 0 0 / 13px 13px, #1f2023",
+        swatch: "radial-gradient(circle at 70% 35%, #ff3b30 0 14%, transparent 16%), linear-gradient(135deg, #d8d9db 0 18%, #1c1d20 18%)",
+    ),
+    // the control room of the seventies: beige desk, mint wall, green digits
+    desk: (
+        bg: #cfc9b8,
+        bg-2: #e6e0cf,
+        panel: #bdb6a2,
+        panel-2: #c8c1ad,
+        bg-rgb: "207 201 184",
+        hi-rgb: "0 0 0",
+        line-rgb: "70 64 50",
+        text: #1f1d18,
+        text-rgb: "31 29 24",
+        text-dim: #4a463c,
+        text-mute: #726c5e,
+        text-strong: #000000,
+        text-bright: #000000,
+        volt: #2e6b52,
+        volt-rgb: "46 107 82",
+        grad: "linear-gradient(180deg, #c8ffd6, #45e374 55%, #1f9e48)",
+        arc-core: #45e374,
+        arc-mid: #2e9e5a,
+        arc-deep: #1f6b3e,
+        arc-glow-rgb: "57 200 106",
+        ctl-plate-hi: "rgb(255 255 255 / 0.45)",
+        ctl-plate-lo: "rgb(60 52 36 / 0.55)",
+        ctl-cap: "linear-gradient(#ece7da, #c6bfab)",
+        ctl-cap-ink: #1f1d18,
+        ctl-lamp-off: #7d786b,
+        ctl-led-off: #1a221c,
+        ctl-glass: #10140f,
+        ctl-digit: #39ff6a,
+        ctl-digit-rgb: "57 255 106",
+        ctl-wordmark: none,
+        ctl-rim: "linear-gradient(#3a3a3a, #1f1f1f)",
+        ctl-foam: "linear-gradient(90deg, rgb(0 0 0 / 0.14) 0 1px, transparent 1px) 0 0 / 160px 100%, #5d6e66",
+        swatch: "radial-gradient(circle at 70% 35%, #39ff6a 0 14%, transparent 16%), linear-gradient(135deg, #5d6e66 0 18%, #cfc9b8 18%)",
+    ),
+    // the same case under the emergency lighting: everything red, the light pulsing
+    alert: (
+        bg: #1a0c0c,
+        bg-2: #0a0404,
+        panel: #241212,
+        panel-2: #2e1616,
+        bg-rgb: "26 12 12",
+        hi-rgb: "255 220 215",
+        line-rgb: "230 150 140",
+        text: #ffd6d0,
+        text-rgb: "255 214 208",
+        text-dim: #e0a39b,
+        text-mute: #a5655d,
+        text-strong: #fff0ee,
+        text-bright: #ffffff,
+        volt: #ff5a47,
+        volt-rgb: "255 90 71",
+        grad: "linear-gradient(180deg, #ffc2bd, #ff4a3f 55%, #b3140e)",
+        arc-core: #ffc2bd,
+        arc-mid: #ff4a3f,
+        arc-deep: #b3140e,
+        arc-glow-rgb: "255 74 63",
+        ctl-plate-hi: "rgb(255 200 190 / 0.1)",
+        ctl-plate-lo: "rgb(0 0 0 / 0.6)",
+        ctl-cap: "linear-gradient(#4a2e2c, #2c1a19)",
+        ctl-cap-ink: #ffd6d0,
+        ctl-lamp-off: #3a1a18,
+        ctl-led-off: #2a0e0d,
+        ctl-glass: #0a0404,
+        ctl-digit: #ff3b30,
+        ctl-digit-rgb: "255 59 48",
+        ctl-wordmark: invert(1),
+        ctl-rim: "linear-gradient(135deg, #9a7a76, #4a3533 30%, #8a6a66 55%, #3a2826)",
+        ctl-foam: "radial-gradient(circle, #3a2020 0 2px, #1c0d0d 6.5px) 0 0 / 13px 13px, #1c0d0d",
+        ctl-alarm: "radial-gradient(ellipse at 50% 50%, transparent 55%, rgb(255 30 20 / 0.35))",
+        swatch: "radial-gradient(circle at 70% 35%, #ff3b30 0 14%, transparent 16%), linear-gradient(135deg, #8a6a66 0 18%, #1a0c0c 18%)",
+    ),
+);
+
+@each $id, $p in $control-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($ctl-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

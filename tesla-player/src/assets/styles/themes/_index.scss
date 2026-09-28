@@ -27,6 +27,8 @@
 @import "pcb/palettes";
 @import "cork/palettes";
 @import "taxform/palettes";
+@import "sheet/palettes";
+@import "control/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -42,6 +44,8 @@
 @import "pcb/skin";
 @import "cork/skin";
 @import "taxform/skin";
+@import "sheet/skin";
+@import "control/skin";
 
 $default-skin: lab;
 
@@ -61,6 +65,8 @@ $skins: (
     pcb: $pcb,
     cork: $cork,
     taxform: $taxform,
+    sheet: $sheet,
+    control: $control,
 );
 
 @mixin -skin($s) {

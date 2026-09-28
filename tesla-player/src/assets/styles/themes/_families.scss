@@ -19,9 +19,9 @@ $tool-choices: ".mode-switch, .me-seg, .me-stepper";
 $value-choices: ".segmented:not(.segmented--tabs, .mode-switch)";
 
 // the menus and popovers, their items and separators
-$menus: ".sidebar-menu, .me-pop, .me-velpop, .midi-lib__dropdown-menu, .env-coil__menu";
-$menu-items: ".sidebar-menu__item, .midi-lib__dropdown-item";
-$menu-seps: ".sidebar-menu__sep, .midi-lib__dropdown-divider";
+$menus: ".sidebar-menu, .me-pop, .me-velpop, .midi-lib__dropdown-menu, .env-coil__menu, .skin-menu";
+$menu-items: ".sidebar-menu__item, .midi-lib__dropdown-item, .skin-menu__item";
+$menu-seps: ".sidebar-menu__sep, .midi-lib__dropdown-divider, .skin-menu__sep";
 
 // a panel (a card on the page), and its head band
 $panels: ".player-panel, .play-panel, .editor-section, .editor-meta, .coil-card, .pl-pane, .pl-meta, .me-card, .env-card, .env-lib__group, .fixed-bar, .live-console, .sy-card, .sy-panel, .tune-panel, .tune-col, .cam-card, .hist-table-wrap, .midi-lib__table, .sg-block";
@@ -31,6 +31,9 @@ $panel-heads: ".player-panel__head, .play-panel__head, .queue-head, .pl-pane__he
 // the number fields drawn as a box of their own
 $number-fields: 'input[type="number"]:not(.me-num, .env-steps input)';
 $number-boxes: ".readout__field, .me-num";
+
+// a list to pick from: the native one, and the button opening a menu in its place
+$selects: ".select-field select, .select-field__button";
 
 // the sliders but the power fader, whose groove is its zones (a look draws its cap alone)
 $sliders: 'input[type="range"]:not(.power-range)';

@@ -685,7 +685,7 @@ defineExpose({ loadSong, playSong, stop });
       <button class="btn btn--stop" type="button" :disabled="!canStop" @click="stop">
         <span class="icon"><i class="fas fa-stop"></i></span>Stop
       </button>
-      <button class="btn" type="button" :disabled="!canPanic" @click="panic">
+      <button class="btn btn--panic" type="button" :disabled="!canPanic" @click="panic">
         <span class="icon"><i class="fas fa-bell-slash"></i></span>Panic
       </button>
       <button class="btn" type="button" :disabled="!canSysex" @click="executeConfig">

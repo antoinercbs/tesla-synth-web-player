@@ -1,0 +1,280 @@
+@use "sass:list";
+@use "sass:map";
+@use "sass:string";
+
+// ===========================================================================
+//  SPREADSHEET LOOK: its workbooks
+// ===========================================================================
+// A free office suite's spreadsheet, of no one release: its white cells and their
+// grid, the grey of its headers and bars, the black cell cursor, the blue of what
+// is highlighted, the suite's old chart colours for the coils; the menus, toolbar,
+// formula bar, sheet tabs, status bar and deck drawn with their words (in French,
+// in every language) and our own icons. Each palette is written out whole, as the
+// custom properties it sets on [data-theme="<id>"]: the shared ones, then its own,
+// including the chrome sheet/_chrome.scss and the $sheet map read (--sheet-grid,
+// --sheet-cursor…). ui/themes.ts lists the ids for the look, the first is its
+// default (its spec checks both).
+
+// the words a drawing writes: the system's faces (an image reaches no web font)
+$-sheet-face: "Arial, Arimo, Helvetica, sans-serif";
+
+// the column letters, one per 64px column (a text each: a list of x on one text is
+// not spread glyph by glyph everywhere)
+@function -sheet-cols($ink) {
+    $letters: "";
+    @for $i from 1 through 26 {
+        $letters: $letters + '<text x="#{$i * 64 - 32}">#{string.slice("ABCDEFGHIJKLMNOPQRSTUVWXYZ", $i, $i)}</text>';
+    }
+    @return svg-url('<g font-family="#{$-sheet-face}" font-size="11" fill="#{$ink}" text-anchor="middle" transform="translate(0 14.5)">#{$letters}</g>', 1664, 20);
+}
+
+// the row numbers, one per 20px row, sixty then again
+@function -sheet-rows($ink) {
+    $spans: "";
+    @for $i from 1 through 60 {
+        $spans: $spans + '<text x="15" y="#{$i * 20 - 5.5}">#{$i}</text>';
+    }
+    @return svg-url('<g font-family="#{$-sheet-face}" font-size="11" fill="#{$ink}" text-anchor="middle">#{$spans}</g>', 30, 1200);
+}
+
+// the menu bar's words, then the toolbar: files, print, clipboard, undo, the font
+// and its size, bold italic underline, alignment, sum, chart, sort, filter
+@function -sheet-bars($ink, $line, $cell) {
+    $menus: (("Fichier", 8), ("&#201;dition", 72), ("Affichage", 138), ("Insertion", 218), ("Format", 296), ("Styles", 358), ("Feuille", 416), ("Donn&#233;es", 480), ("Outils", 550), ("Fen&#234;tre", 606), ("Aide", 676));
+    $body: "";
+    @each $menu in $menus {
+        $body: $body + '<text x="#{list.nth($menu, 2)}" y="15">#{list.nth($menu, 1)}</text>';
+    }
+    $page: '<path d="M3.5 .5h6l3 3v12h-9z" fill="#fff" stroke="#{$ink}"/><path d="M9.5 .5v3h3" fill="none" stroke="#{$ink}"/>';
+    $icons: (
+        (6, $page),
+        (30, '<path d="M.5 3.5h5l1.5 1.5h7.5v9h-14z" fill="#e8b33d" stroke="#9a6d12"/>'),
+        (54, '<rect x="1.5" y="1.5" width="13" height="13" rx="1" fill="#3d6fb4"/><rect x="4" y="2" width="8" height="4.5" fill="#fff"/><rect x="4" y="9" width="8" height="5" fill="#dfe8f5"/>'),
+        (90, '#{$page}<rect x="2" y="8" width="12" height="5" fill="#d9342b"/>'),
+        (114, '<rect x="4.5" y="1.5" width="7" height="4" fill="#fff" stroke="#{$ink}"/><rect x="1.5" y="5.5" width="13" height="6" rx="1" fill="#9aa4b1" stroke="#{$ink}"/><rect x="4.5" y="9.5" width="7" height="5" fill="#fff" stroke="#{$ink}"/>'),
+        (150, '<circle cx="4.5" cy="12" r="2.3" fill="none" stroke="#{$ink}"/><circle cx="11.5" cy="12" r="2.3" fill="none" stroke="#{$ink}"/><path d="M5.8 10.2 11 1.5M10.2 10.2 5 1.5" stroke="#{$ink}"/>'),
+        (174, '<rect x="1.5" y="1.5" width="8" height="10" fill="#fff" stroke="#{$ink}"/><rect x="6.5" y="4.5" width="8" height="10" fill="#fff" stroke="#{$ink}"/>'),
+        (198, '<rect x="2.5" y="2.5" width="11" height="12" rx="1" fill="#c9924a" stroke="#7a5424"/><rect x="5" y="1" width="6" height="3" fill="#dcdcdc" stroke="#{$ink}" stroke-width=".8"/><rect x="5.5" y="6.5" width="8" height="8" fill="#fff" stroke="#{$ink}"/>'),
+        (234, '<path d="M5 4.5h5a3.5 3.5 0 0 1 0 7H6" fill="none" stroke="#{$ink}" stroke-width="1.4"/><path d="M6 1.5 2.5 4.5 6 7.5z" fill="#{$ink}"/>'),
+        (258, '<path d="M11 4.5H6a3.5 3.5 0 0 0 0 7h4" fill="none" stroke="#{$ink}" stroke-width="1.4"/><path d="M10 1.5l3.5 3-3.5 3z" fill="#{$ink}"/>'),
+        (472, '<text x="8" y="13" font-size="13" font-weight="700" text-anchor="middle">B</text>'),
+        (496, '<text x="8" y="13" font-size="13" font-family="Georgia, serif" font-style="italic" text-anchor="middle">I</text>'),
+        (520, '<text x="8" y="12" font-size="12" text-anchor="middle">U</text><path d="M3.5 14.5h9" stroke="#{$ink}"/>'),
+        (556, '<path d="M2 3.5h12M2 6.5h8M2 9.5h12M2 12.5h8" stroke="#{$ink}"/>'),
+        (580, '<path d="M2 3.5h12M4 6.5h8M2 9.5h12M4 12.5h8" stroke="#{$ink}"/>'),
+        (604, '<path d="M2 3.5h12M6 6.5h8M2 9.5h12M6 12.5h8" stroke="#{$ink}"/>'),
+        (640, '<text x="8" y="14" font-size="15" text-anchor="middle">&#931;</text>'),
+        (664, '<rect x="2" y="8" width="3" height="6" fill="#004586"/><rect x="6.5" y="4" width="3" height="10" fill="#ff420e"/><rect x="11" y="6" width="3" height="8" fill="#ffd320"/><path d="M1 14.5h14" stroke="#{$ink}"/>'),
+        (688, '<text x="4" y="7" font-size="7" text-anchor="middle">A</text><text x="4" y="15" font-size="7" text-anchor="middle">Z</text><path d="M11.5 2v11M9 10.5l2.5 2.5 2.5-2.5" fill="none" stroke="#{$ink}"/>'),
+        (712, '<path d="M1.5 2.5h13l-5 6v5l-3 1.5v-6.5z" fill="#fff" stroke="#{$ink}"/>'),
+    );
+    $tools: "";
+    @each $icon in $icons {
+        $tools: $tools + '<g transform="translate(#{list.nth($icon, 1)} 7)">#{list.nth($icon, 2)}</g>';
+    }
+    $seps: '<path d="M82.5 6v18M142.5 6v18M226.5 6v18M284.5 6v18M462.5 6v18M546.5 6v18M630.5 6v18" stroke="#{$line}"/>';
+    $boxes: '<rect x="292.5" y="5.5" width="110" height="19" fill="#{$cell}" stroke="#{$line}"/><text x="298" y="19">Arimo</text><path d="M391 13l3 3 3-3" fill="none" stroke="#{$ink}"/>';
+    $boxes: $boxes + '<rect x="408.5" y="5.5" width="48" height="19" fill="#{$cell}" stroke="#{$line}"/><text x="414" y="19">10 pt</text><path d="M445 13l3 3 3-3" fill="none" stroke="#{$ink}"/>';
+    $bar: '<g font-size="12">#{$body}</g><g transform="translate(0 22)" font-size="11">#{$tools}#{$seps}#{$boxes}</g>';
+    @return svg-url('<g font-family="#{$-sheet-face}" fill="#{$ink}">#{$bar}</g>', 760, 52);
+}
+
+// the formula bar's start: the name box and its arrow, the function wizard, sum, formula
+@function -sheet-namebox($ink, $line, $cell) {
+    $body: '<rect x="0.5" y="0.5" width="92" height="23" fill="#{$cell}" stroke="#{$line}"/><text x="6" y="16.5" font-size="12">A1</text><path d="M79 10.5l3 3 3-3" fill="none" stroke="#{$ink}"/>';
+    $body: $body + '<text x="104" y="16.5" font-family="Georgia, serif" font-style="italic" font-size="13">fx</text>';
+    $body: $body + '<text x="128" y="17" font-size="15">&#931;</text><path d="M140 15l2 2 2-2" fill="none" stroke="#{$ink}"/><text x="156" y="17" font-size="15">=</text>';
+    @return svg-url('<g font-family="#{$-sheet-face}" fill="#{$ink}">#{$body}</g>', 172, 24);
+}
+
+// the sheet tabs at the status bar's start: the four arrows, the new sheet, the one sheet
+@function -sheet-tabs($ink, $line, $cell) {
+    $body: '<path d="M5.5 8v8M13 8l-5 4 5 4zM24 8l-5 4 5 4zM31 8l5 4-5 4zM42 8l5 4-5 4zM49.5 8v8" fill="#{$ink}" stroke="#{$ink}" stroke-width=".8"/>';
+    $body: $body + '<path d="M62 12h8M66 8v8" stroke="#{$ink}" stroke-width="1.4"/>';
+    $body: $body + '<path d="M80.5 24V1.5h68V24" fill="#{$cell}" stroke="#{$line}"/><text x="114.5" y="16.5" font-size="11" font-weight="700" text-anchor="middle">Feuille1</text>';
+    @return svg-url('<g font-family="#{$-sheet-face}" fill="#{$ink}">#{$body}</g>', 156, 24);
+}
+
+// the status bar's end: the selection's average and sum, the zoom
+@function -sheet-status($ink) {
+    $body: '<text x="0" y="16">Moyenne : 42 ; Somme : 126</text>';
+    $body: $body + '<path d="M180 12.5h8M204 12.5h100M320 12.5h8M324 8.5v8" stroke="#{$ink}"/><rect x="252" y="7" width="4" height="11" fill="#{$ink}"/><text x="338" y="16">100 %</text>';
+    @return svg-url('<g font-family="#{$-sheet-face}" font-size="11" fill="#{$ink}">#{$body}</g>', 380, 24);
+}
+
+// the deck's tabs down the window's right edge: its menu, properties, styles,
+// gallery, navigator, functions
+@function -sheet-deck($ink, $line) {
+    $body: '<path d="M8 9.5h12M8 13.5h12M8 17.5h12" stroke="#{$ink}" stroke-width="1.4"/><path d="M4 28.5h20" stroke="#{$line}"/>';
+    $body: $body + '<g transform="translate(6 38)"><path d="M1 3.5h14M1 8.5h14M1 13.5h14" stroke="#{$ink}"/><rect x="3" y="1.5" width="3" height="4" fill="#fff" stroke="#{$ink}"/><rect x="9" y="6.5" width="3" height="4" fill="#fff" stroke="#{$ink}"/><rect x="5" y="11.5" width="3" height="4" fill="#fff" stroke="#{$ink}"/></g>';
+    $body: $body + '<g transform="translate(6 68)"><text x="6" y="13" font-size="14" font-weight="700" text-anchor="middle">A</text><path d="M11 15l4-9" stroke="#e8b33d" stroke-width="2.2" stroke-linecap="round"/></g>';
+    $body: $body + '<g transform="translate(6 98)"><rect x=".5" y="1.5" width="15" height="13" fill="#fff" stroke="#{$ink}"/><path d="M1 14l5-6 3 3 2-2 4 5z" fill="#579d1c"/><circle cx="11.5" cy="5" r="1.6" fill="#ffd320"/></g>';
+    $body: $body + '<g transform="translate(6 128)"><circle cx="8" cy="8" r="7" fill="#fff" stroke="#{$ink}"/><path d="M8 2.5l2 5.5H6z" fill="#d9342b"/><path d="M8 13.5l2-5.5H6z" fill="#{$ink}"/></g>';
+    $body: $body + '<g transform="translate(6 158)"><text x="8" y="12" font-size="13" font-family="Georgia, serif" font-style="italic" text-anchor="middle">fx</text></g>';
+    @return svg-url('<g font-family="#{$-sheet-face}" fill="#{$ink}">#{$body}</g>', 28, 184);
+}
+
+@function -sheet-set($ink, $line, $cell, $head-ink) {
+    @return (
+        sheet-cols: -sheet-cols($head-ink),
+        sheet-rows: -sheet-rows($head-ink),
+        sheet-bars: -sheet-bars($ink, $line, $cell),
+        sheet-namebox: -sheet-namebox($ink, $line, $cell),
+        sheet-tabs: -sheet-tabs($ink, $line, $cell),
+        sheet-status: -sheet-status($ink),
+        sheet-deck: -sheet-deck($ink, $line),
+    );
+}
+
+$sheet-shared: (
+    ink: #ffffff,
+    on-grad: #ffffff,
+    danger: #c9211e,
+    danger-rgb: "201 33 30",
+    danger-text: #c9211e,
+    danger-text-hover: #8a1614,
+    ok: #3a8a1c,
+    ok-rgb: "58 138 28",
+    amber: #c99c00,
+    amber-rgb: "201 156 0",
+    caution: #c99c00,
+    caution-rgb: "201 156 0",
+    caution-text: #7a5e00,
+    warn: #d86500,
+    conflict: #d86500,
+    duplicate: #b83fb0,
+    duplicate-rgb: "184 63 176",
+    worse: #c9211e,
+    // the suite's old chart colours, series after series
+    coil-0: #004586,
+    coil-1: #ff420e,
+    coil-2: #ffd320,
+    coil-3: #579d1c,
+    coil-4: #7e0021,
+    coil-5: #83caff,
+    plasma: #7e0021,
+    knob: #ffffff,
+);
+
+// the order is the picker's, the first the look's default
+$sheet-palettes: (
+    // today's flat greys, the system's blue
+    plain: map.merge(
+        -sheet-set(#3c3c3c, #c4c4c4, #ffffff, #444444),
+        (
+            bg: #ffffff,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #f7f7f7,
+            bg-rgb: "255 255 255",
+            hi-rgb: "0 0 0",
+            line-rgb: "120 120 120",
+            text: #1f1f1f,
+            text-rgb: "31 31 31",
+            text-dim: #444444,
+            text-mute: #7a7a7a,
+            text-strong: #000000,
+            text-bright: #000000,
+            volt: #0063b1,
+            volt-rgb: "0 99 177",
+            grad: linear-gradient(#0063b1, #0063b1),
+            arc-core: #0063b1,
+            arc-mid: #0063b1,
+            arc-deep: #0063b1,
+            arc-glow-rgb: "0 99 177",
+            sheet-bar: #f0f0f0,
+            sheet-bar-line: #d4d4d4,
+            sheet-head: #ececec,
+            sheet-head-line: #c4c4c4,
+            sheet-grid: #dadada,
+            sheet-band: #f5f8fc,
+            sheet-cursor: #000000,
+            sheet-hi: "rgb(0 120 215 / 0.14)",
+            sheet-hi-line: #0078d7,
+            sheet-wordmark: none,
+            swatch: "linear-gradient(#0078d7, #0078d7) 30% 70% / 40% 24% no-repeat, linear-gradient(#dcdcdc 0 34%, #ffffff 34%)",
+        )
+    ),
+    // the suite of 2008: bars in a pale blue gradient, blue-grey headers
+    vintage: map.merge(
+        -sheet-set(#2c3e5c, #a7b6cc, #ffffff, #34496b),
+        (
+            bg: #ffffff,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #f5f8fc,
+            bg-rgb: "255 255 255",
+            hi-rgb: "0 0 0",
+            line-rgb: "90 110 140",
+            text: #1a1a1a,
+            text-rgb: "26 26 26",
+            text-dim: #34496b,
+            text-mute: #6d7f99,
+            text-strong: #000000,
+            text-bright: #000000,
+            volt: #316ac5,
+            volt-rgb: "49 106 197",
+            grad: linear-gradient(#316ac5, #316ac5),
+            arc-core: #316ac5,
+            arc-mid: #316ac5,
+            arc-deep: #316ac5,
+            arc-glow-rgb: "49 106 197",
+            sheet-bar: "linear-gradient(#f4f7fc, #cfdcee)",
+            sheet-bar-line: #9fb2cc,
+            sheet-head: #dfe8f5,
+            sheet-head-line: #9fb2cc,
+            sheet-grid: #c0c0c0,
+            sheet-band: #f1f5fb,
+            sheet-cursor: #000000,
+            sheet-hi: "rgb(49 106 197 / 0.16)",
+            sheet-hi-line: #316ac5,
+            sheet-wordmark: none,
+            swatch: "linear-gradient(#316ac5, #316ac5) 30% 70% / 40% 24% no-repeat, linear-gradient(#bccde6 0 34%, #ffffff 34%)",
+        )
+    ),
+    // the dark cells of a late night
+    night: map.merge(
+        -sheet-set(#d0d0d0, #4a4a4a, #1e1e1e, #b8b8b8),
+        (
+            bg: #1e1e1e,
+            bg-2: #1e1e1e,
+            panel: #242424,
+            panel-2: #2b2b2b,
+            bg-rgb: "30 30 30",
+            hi-rgb: "255 255 255",
+            line-rgb: "150 150 150",
+            text: #e0e0e0,
+            text-rgb: "224 224 224",
+            text-dim: #c0c0c0,
+            text-mute: #8e8e8e,
+            text-strong: #ffffff,
+            text-bright: #ffffff,
+            volt: #5aa0ff,
+            volt-rgb: "90 160 255",
+            grad: linear-gradient(#5aa0ff, #5aa0ff),
+            arc-core: #5aa0ff,
+            arc-mid: #5aa0ff,
+            arc-deep: #5aa0ff,
+            arc-glow-rgb: "90 160 255",
+            sheet-bar: #2b2b2b,
+            sheet-bar-line: #3d3d3d,
+            sheet-head: #333333,
+            sheet-head-line: #4a4a4a,
+            sheet-grid: #3a3a3a,
+            sheet-band: #262a30,
+            sheet-cursor: #ffffff,
+            sheet-hi: "rgb(90 160 255 / 0.22)",
+            sheet-hi-line: #5aa0ff,
+            sheet-wordmark: invert(1),
+            swatch: "linear-gradient(#5aa0ff, #5aa0ff) 30% 70% / 40% 24% no-repeat, linear-gradient(#3a3a3a 0 34%, #1e1e1e 34%)",
+        )
+    ),
+);
+
+@each $id, $p in $sheet-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($sheet-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

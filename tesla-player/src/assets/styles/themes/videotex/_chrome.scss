@@ -382,7 +382,7 @@
 
     // --- entry zones: a row of dots to write on ---------------------------------------------------
     .text-field,
-    .select-field select,
+    #{$selects},
     .combo,
     #{$number-boxes} {
         border: 0;
@@ -394,6 +394,8 @@
 
     .text-field:focus,
     .select-field select:focus,
+    .select-field__button:focus-visible,
+    .select-field__button[aria-expanded="true"],
     .combo:focus-within {
         background:
             radial-gradient(circle, var(--text-strong) 1px, transparent 1.5px) 0 100% / 8px 6px repeat-x,

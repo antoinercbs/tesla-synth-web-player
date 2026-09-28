@@ -1,0 +1,776 @@
+// ===========================================================================
+//  CONTROL DESK LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $control map (control/_skin.scss), its colours the desk
+// picked among control/_palettes.scss. Here, the desk: on a desktop, the app set in
+// a hard case (its rim, the foam around it); the sidebar and the panels as plates
+// screwed to the face; the page's title, the panels' and sections' names on engraved
+// labels, a hazard band under the head; the menu's lamps, the tabs' lamps, the caps
+// of a choice lit when on, a toggle's lever thrown; figures on seven-segment
+// displays, the channels on LED bars; the main button lit green, Stop lit red while
+// it can stop, Panic an emergency stop (.btn--panic, dressed here only), a safety
+// cover over what deletes, lifted under the pointer; the key and the warning label
+// in the sidebar; toasts as alarm windows; the red light of the alert pulsing. The
+// words it adds are the desk's, in French in every language. Every rule sits under
+// [data-skin="control"]; the pages' controls are named by family (../_families.scss).
+
+// a plate screwed to the face: its four screws, its bevel, its shadow
+@mixin plate($inset: 6px) {
+    background:
+        var(--ctl-screw) #{$inset} #{$inset} / 12px 12px no-repeat,
+        var(--ctl-screw) calc(100% - #{$inset}) #{$inset} / 12px 12px no-repeat,
+        var(--ctl-screw) #{$inset} calc(100% - #{$inset}) / 12px 12px no-repeat,
+        var(--ctl-screw) calc(100% - #{$inset}) calc(100% - #{$inset}) / 12px 12px no-repeat,
+        var(--panel);
+    box-shadow:
+        inset 1px 1px 0 var(--ctl-plate-hi),
+        inset -1px -1px 0 var(--ctl-plate-lo),
+        var(--shadow-panel);
+}
+
+// a label engraved through black plastic
+@mixin engraved {
+    padding: 0.15rem 0.55rem;
+    border: 1px solid #000;
+    border-radius: 2px;
+    background: var(--ctl-label-bg);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 1px 0 var(--ctl-plate-hi);
+    color: var(--ctl-label-ink);
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+// a lamp: unlit, or lit in a colour with its glow
+@mixin lamp($size: 8px) {
+    content: "";
+    width: $size;
+    height: $size;
+    border: 1px solid #000;
+    border-radius: 50%;
+    background: var(--ctl-lamp-off);
+    box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.5);
+}
+
+@mixin lit($color, $rgb) {
+    background: radial-gradient(circle at 40% 35%, #fff 0 12%, #{$color} 45%);
+    box-shadow: 0 0 6px 1px rgb(#{$rgb} / 0.7);
+}
+
+// a figure on a seven-segment display
+@mixin digits {
+    color: var(--ctl-digit);
+    font-family: DSEG7, var(--font-mono);
+    font-weight: 700;
+    text-shadow: 0 0 6px rgb(var(--ctl-digit-rgb) / 0.6);
+}
+
+[data-skin="control"] {
+    ::selection {
+        background: rgb(var(--ctl-amber-rgb) / 0.35);
+        color: var(--text-strong);
+    }
+
+    // --- the case: its aluminium rim, the foam it sits in (a desktop's window) ------------------------------------
+    @media (min-width: 1001px) {
+        .app-shell {
+            height: calc(100dvh - 28px);
+            margin: 14px;
+            border: 7px solid transparent;
+            border-radius: 12px;
+            // a colour may only close a list of layers: the face is a flat gradient
+            background: linear-gradient(var(--bg), var(--bg)) padding-box, var(--ctl-rim) border-box;
+            box-shadow: 0 0 0 1px #000, 0 10px 30px rgb(0 0 0 / 0.6), inset 0 0 0 1px #000;
+        }
+
+        .sidebar,
+        .app-main {
+            height: auto;
+        }
+
+        .sidebar {
+            border-radius: 5px 0 0 5px;
+        }
+    }
+
+    body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        background: var(--ctl-alarm);
+        pointer-events: none;
+        animation: ctl-alarm 2.4s ease-in-out infinite;
+    }
+
+    .app-main {
+        background: radial-gradient(900px 500px at 70% 0%, rgb(255 255 255 / 0.04), transparent 60%), var(--bg);
+    }
+
+    // --- the head: the title's engraved plate, the hazard band under it -----------------------------------------
+    .screen-head {
+        padding-bottom: calc(0.9rem + 6px);
+    }
+
+    .screen-head::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 6px;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+        background: var(--ctl-hazard);
+    }
+
+    .screen-head.is-scrolled {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .view-head__title {
+        @include engraved;
+
+        padding: 0.4rem 1.7rem;
+        border-radius: 3px;
+        background:
+            var(--ctl-screw) 7px center / 11px 11px no-repeat,
+            var(--ctl-screw) calc(100% - 7px) center / 11px 11px no-repeat,
+            var(--ctl-label-bg);
+        font-size: var(--fs-xl);
+    }
+
+    .edit-chooser .view-head__title {
+        padding: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+        color: var(--text-strong);
+    }
+
+    .brand__app {
+        letter-spacing: 0.08em;
+    }
+
+    // the club's wordmark is drawn black: turned white on a dark face
+    .brand__label {
+        filter: var(--ctl-wordmark);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 1px solid #000;
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- plates: the sidebar, the panels; their names engraved -----------------------------------------------------
+    .sidebar {
+        @include plate(8px);
+
+        border-right: 1px solid #000;
+    }
+
+    #{$panels} {
+        @include plate;
+
+        border: 1px solid #000;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    // a list's groups sit inside a plate already: no screws of their own over their names
+    .env-lib__group {
+        background: var(--panel);
+        box-shadow: inset 0 1px 0 var(--ctl-plate-hi);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid #000;
+        background: none;
+        box-shadow: 0 1px 0 var(--ctl-plate-hi);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .player-panel__title,
+    .editor-section__title,
+    .coil-card__title,
+    .sidebar-section__title {
+        @include engraved;
+
+        display: inline-flex;
+        width: fit-content;
+        font-size: var(--fs-xs);
+    }
+
+    .player-panel__title .icon {
+        color: var(--ctl-amber);
+    }
+
+    .player-hint {
+        border: 1px solid #000;
+        background: var(--ctl-glass);
+        color: var(--ctl-amber);
+        font-family: var(--font-mono);
+    }
+
+    .empty-stub::after {
+        @include engraved;
+
+        content: "Aucun signal";
+        font-size: var(--fs-xs);
+    }
+
+    // --- the menu: a lamp beside each page, lit on the open one ----------------------------------------------------
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 2px;
+        font-family: var(--font-display);
+        font-size: var(--fs-md);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .nav-item:hover {
+        background: rgb(var(--hi-rgb) / 0.05);
+        color: var(--text-strong);
+    }
+
+    .nav-item::before,
+    .nav-item.router-link-active::before {
+        @include lamp(9px);
+
+        position: absolute;
+        top: 50%;
+        left: auto;
+        right: 10px;
+        bottom: auto;
+        margin-top: -5px;
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .nav-item.router-link-active {
+        background: rgb(var(--hi-rgb) / 0.07);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active::before {
+        @include lit(var(--ctl-lamp), var(--ctl-lamp-rgb));
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--ctl-lamp);
+    }
+
+    .nav-item.is-disabled::before {
+        display: none;
+    }
+
+    // --- the sidebar's foot: the key, the warning label ------------------------------------------------------------
+    .sidebar__spacer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.6rem;
+        min-height: 0;
+        overflow: hidden;
+        padding: 0 0.6rem 0.8rem;
+    }
+
+    .sidebar__spacer::before,
+    .sidebar__spacer::after {
+        content: "";
+        flex: 0 0 auto;
+        width: 200px;
+        max-width: 100%;
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center;
+    }
+
+    .sidebar__spacer::before {
+        height: 64px;
+        background-image: var(--ctl-key);
+    }
+
+    @media (max-height: 959px) {
+        .sidebar__spacer::before {
+            display: none;
+        }
+    }
+
+    .sidebar__spacer::after {
+        height: 56px;
+        background-image: var(--ctl-warning);
+    }
+
+    .sidebar--compact .sidebar__spacer::before,
+    .sidebar--compact .sidebar__spacer::after {
+        display: none;
+    }
+
+    // --- caps: pressed in under the finger; the main one lit green, Stop red while it can stop -------------------------
+    .btn,
+    .icon-btn {
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        filter: brightness(1.12);
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled) {
+        transform: translateY(2px);
+        box-shadow: inset 0 2px 3px rgb(0 0 0 / 0.5);
+    }
+
+    .btn--volt:disabled {
+        background: var(--ctl-green-dark);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), 0 2px 0 #000;
+        color: rgb(var(--ctl-lamp-rgb) / 0.5);
+        opacity: 1;
+    }
+
+    .btn--stop {
+        background: var(--ctl-red-dark);
+        color: rgb(var(--ctl-red-rgb) / 0.6);
+    }
+
+    .btn--stop:not(:disabled) {
+        background: var(--ctl-red-lit);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 2px 0 #000, 0 0 14px rgb(var(--ctl-red-rgb) / 0.45);
+        color: #2a0503;
+    }
+
+    .btn--stop:not(:disabled) .icon {
+        color: inherit;
+    }
+
+    .btn--stop:disabled {
+        opacity: 1;
+    }
+
+    // Panic: the emergency stop, a red mushroom on its yellow plate
+    .btn--panic {
+        border-color: #000;
+        background: #f5c400;
+        color: #111;
+    }
+
+    .btn--panic .icon {
+        width: 1.35rem;
+        height: 1.35rem;
+        border: 2px solid #111;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 30%, #ff9a90, #e0201a 45%, #8a0d09);
+        box-shadow: 0 2px 0 #5a0806;
+    }
+
+    .btn--panic .icon i {
+        display: none;
+    }
+
+    .btn--panic:disabled .icon {
+        background: radial-gradient(circle at 35% 30%, #a05a55, #6a1a16 50%, #3a0a08);
+    }
+
+    // what deletes sits under a red safety cover, lifted by the pointer or the keyboard
+    .btn--danger,
+    .btn--danger-ghost {
+        position: relative;
+
+        &::after {
+            content: "";
+            position: absolute;
+            inset: -3px;
+            border: 1px solid #5a0806;
+            border-radius: 4px;
+            background: repeating-linear-gradient(-45deg, rgb(230 40 30 / 0.55) 0 6px, rgb(170 20 15 / 0.6) 6px 12px);
+            box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+            transform-origin: top;
+            transition: transform 0.25s ease;
+            pointer-events: none;
+        }
+
+        &:hover::after,
+        &:focus-visible::after {
+            transform: perspective(160px) rotateX(-78deg);
+        }
+
+        &:disabled::after {
+            transform: none;
+        }
+    }
+
+    #{$push-buttons} {
+        border: 1px solid #000;
+        border-radius: 3px;
+        background: var(--ctl-cap);
+        box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18), 0 2px 0 #000;
+        color: var(--ctl-cap-ink);
+
+        &:hover:not(:disabled) {
+            filter: brightness(1.15);
+        }
+    }
+
+    #{$pushed-on} {
+        background: var(--ctl-amber-lit);
+        box-shadow: 0 2px 0 #000, 0 0 10px rgb(var(--ctl-amber-rgb) / 0.45);
+        color: #2a1a00;
+    }
+
+    .chan-cell {
+        border: 1px solid #000;
+        border-radius: 2px;
+        background: var(--ctl-cap);
+        color: var(--ctl-cap-ink);
+        font-family: var(--font-mono);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--volt));
+        box-shadow: 0 0 8px var(--cell, var(--volt));
+        color: #000;
+        font-weight: 700;
+    }
+
+    // --- choices: caps in a black bezel, the one on lit amber; tabs: a lamp each ---------------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        gap: 3px;
+        padding: 3px;
+
+        button {
+            border: 1px solid #000;
+            background: var(--ctl-cap);
+            box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.15);
+            color: var(--ctl-cap-ink);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        button.is-active,
+        button.is-on {
+            background: var(--ctl-amber-lit);
+            box-shadow: 0 0 10px rgb(var(--ctl-amber-rgb) / 0.5);
+            color: #2a1a00;
+        }
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    .segmented--tabs button {
+        gap: 0.45rem;
+        color: var(--text-dim);
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+
+        &::before {
+            @include lamp(7px);
+
+            flex: 0 0 auto;
+        }
+    }
+
+    .segmented--tabs button.is-active {
+        color: var(--text-strong);
+
+        &::before {
+            @include lit(var(--ctl-lamp), var(--ctl-lamp-rgb));
+        }
+    }
+
+    // a toggle: its lever thrown left for off, right for on
+    .switch {
+        gap: 0.7rem;
+    }
+
+    .switch__track,
+    .switch input:checked + .switch__track {
+        width: 44px;
+        height: 24px;
+        border: 0;
+        border-radius: 0;
+        background: var(--ctl-toggle-off) center / 44px 24px no-repeat;
+        box-shadow: none;
+    }
+
+    .switch input:checked + .switch__track {
+        background-image: var(--ctl-toggle-on);
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        display: none;
+    }
+
+    .switch input:focus-visible + .switch__track {
+        outline: 2px solid var(--ctl-amber);
+        outline-offset: 2px;
+    }
+
+    // --- displays: figures in seven segments behind their glass; the channels' LED bars ----------------------------------
+    #{$number-boxes} {
+        border: 1px solid #000;
+        background: var(--ctl-glass);
+        box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.8);
+    }
+
+    .readout__field input {
+        @include digits;
+
+        font-size: 1rem;
+        text-align: right;
+    }
+
+    // the browser's up-down arrows, drawn light: darkened to sit on the glass
+    .readout__field input::-webkit-inner-spin-button {
+        filter: invert(0.85);
+    }
+
+    .power-head__val,
+    .player-progress__time {
+        @include digits;
+    }
+
+    .player-progress__time {
+        padding: 0.1rem 0.4rem;
+        border: 1px solid #000;
+        border-radius: 2px;
+        background: var(--ctl-glass);
+        font-size: 0.7rem;
+    }
+
+    .power-head__val {
+        padding: 0.05rem 0.45rem;
+        border: 1px solid #000;
+        border-radius: 2px;
+        background: var(--ctl-glass);
+    }
+
+    .text-field,
+    .combo {
+        box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.8);
+    }
+
+    .text-field::placeholder,
+    .combo__input::placeholder {
+        color: rgb(var(--ctl-digit-rgb) / 0.35);
+    }
+
+    .vu-track {
+        border: 1px solid #000;
+        border-radius: 1px;
+        background:
+            repeating-linear-gradient(to top, var(--ctl-led-off) 0 4px, transparent 4px 6px) bottom / 100% 100%,
+            #050505;
+    }
+
+    .vu-fill {
+        -webkit-mask: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 6px) bottom / 100% 100%;
+        mask: repeating-linear-gradient(to top, #000 0 4px, transparent 4px 6px) bottom / 100% 100%;
+        filter: brightness(1.2) saturate(1.3);
+    }
+
+    .vu-num {
+        color: var(--text-mute);
+    }
+
+    .player-progress__bar {
+        height: 8px;
+        border: 1px solid #000;
+        border-radius: 1px;
+        background: #050505;
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: var(--ctl-amber);
+        box-shadow: 0 0 8px rgb(var(--ctl-amber-rgb) / 0.6);
+    }
+
+    // --- menus, dialogs, toasts --------------------------------------------------------------------------------------
+    #{$menus} {
+        @include plate(5px);
+
+        border: 1px solid #000;
+        box-shadow: inset 1px 1px 0 var(--ctl-plate-hi), var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+
+        &:hover,
+        &:focus-visible {
+            background: rgb(var(--ctl-amber-rgb) / 0.14);
+            color: var(--text-strong);
+        }
+    }
+
+    .combo__option.is-active {
+        background: rgb(var(--ctl-amber-rgb) / 0.2);
+    }
+
+    .modal-overlay {
+        background: rgb(0 0 0 / 0.55);
+    }
+
+    .modal-card {
+        @include plate(8px);
+
+        border: 1px solid #000;
+        box-shadow: inset 1px 1px 0 var(--ctl-plate-hi), var(--shadow-modal);
+    }
+
+    .modal-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 8px;
+        border-bottom: 1px solid #000;
+        background: var(--ctl-hazard);
+    }
+
+    .modal-card__title {
+        @include engraved;
+
+        font-size: var(--fs-md);
+    }
+
+    // a toast: an alarm window, lit green once acknowledged, red and blinking for an alarm
+    .toast {
+        flex-wrap: wrap;
+        border: 2px solid #000;
+        box-shadow: inset 0 0 0 1px #333, var(--shadow-float);
+        font-family: var(--font-display);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--success {
+        background: var(--ctl-green-lit);
+        color: #042010;
+    }
+
+    .toast--error {
+        background: var(--ctl-red-lit);
+        color: #2a0503;
+        animation: ctl-blink 1s steps(2, jump-none) 3;
+    }
+
+    .toast--success::after,
+    .toast--error::after {
+        order: -1;
+        padding: 0 0.4rem;
+        border: 1px solid currentColor;
+        font-size: var(--fs-xs);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+    }
+
+    .toast--success::after {
+        content: "Acquitt\E9";
+    }
+
+    .toast--error::after {
+        content: "Alarme";
+    }
+
+    // --- scroll bars, sliders ------------------------------------------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--bg-2);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 2px solid var(--bg-2);
+        border-radius: 2px;
+        background: var(--ctl-cap);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: #050505;
+        --range-track-h: 5px;
+        --range-track-radius: 1px;
+        --range-track-shadow: inset 0 1px 2px #000;
+        --range-thumb: linear-gradient(90deg, #1b1b1b 0 40%, #f2f2f2 40% 60%, #1b1b1b 60%);
+        --range-thumb-hover: linear-gradient(90deg, #2a2a2a 0 40%, #ffffff 40% 60%, #2a2a2a 60%);
+        --range-thumb-w: 13px;
+        --range-thumb-h: 24px;
+        --range-thumb-border: 1px solid #000;
+        --range-thumb-radius: 2px;
+        --range-thumb-shadow: 0 2px 0 #000, 0 3px 6px rgb(0 0 0 / 0.6);
+        --range-focus: 2px solid var(--ctl-amber);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 8px;
+
+        @include drawn-range($track: false);
+    }
+}
+
+@keyframes ctl-alarm {
+    50% {
+        opacity: 0.35;
+    }
+}
+
+@keyframes ctl-blink {
+    50% {
+        filter: brightness(0.55);
+    }
+}
+
+// the lights hold still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="control"] {
+        body::after,
+        .toast--error {
+            animation: none;
+        }
+
+        .btn--danger::after,
+        .btn--danger-ghost::after {
+            transition: none;
+        }
+    }
+}

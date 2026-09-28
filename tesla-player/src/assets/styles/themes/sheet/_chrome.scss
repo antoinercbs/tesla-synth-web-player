@@ -1,0 +1,553 @@
+// ===========================================================================
+//  SPREADSHEET LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $sheet map (sheet/_skin.scss), its colours the workbook
+// picked among sheet/_palettes.scss. Here, the window (desktop only: on a phone the
+// menu bar takes the bottom): the menu bar and the toolbar above, the sheet tabs and
+// the status bar below, the deck's tabs down the right edge; the page's head as the
+// formula bar, its title the input line after the name box, fx, sum and =; the
+// column letters hung under the head, the row numbers and the grid drawn on the
+// scrolled area (the head, opaque, covers its first rows: a sheet scrolled a
+// little); panels as ranges under a header row with its filter button, their rows
+// banded; the black cell cursor and its handle on what is picked, the blue of what
+// is highlighted; Err:502 and #N/D. The words it adds are the suite's, in French in
+// every language. Every rule sits under [data-skin="sheet"]; the pages' controls
+// are named by family (../_families.scss).
+
+$sheet-top: 52px;
+$sheet-bottom: 24px;
+$sheet-deck: 28px;
+$sheet-row-head: 30px;
+
+// what is picked: the cell cursor, its handle at the bottom right
+@mixin cursor {
+    position: relative;
+    outline: 2px solid var(--sheet-cursor);
+    outline-offset: -2px;
+
+    &::after {
+        content: "";
+        position: absolute;
+        right: -3px;
+        bottom: -3px;
+        z-index: 1;
+        width: 6px;
+        height: 6px;
+        border: 1px solid var(--bg);
+        background: var(--sheet-cursor);
+    }
+}
+
+// what the pointer or the choice highlights: the system's blue, framed
+@mixin highlight {
+    background: var(--sheet-hi);
+    box-shadow: inset 0 0 0 1px var(--sheet-hi-line);
+}
+
+[data-skin="sheet"] {
+    ::selection {
+        background: var(--sheet-hi);
+        color: var(--text-strong);
+    }
+
+    // --- the window: the bars above and below, the deck's tabs on the right -----------------------------------
+    @media (min-width: 1001px) {
+        .app-shell {
+            height: calc(100dvh - #{$sheet-top} - #{$sheet-bottom});
+            margin-top: $sheet-top;
+        }
+
+        .sidebar,
+        .app-main {
+            height: auto;
+        }
+
+        .app-shell::after {
+            content: "";
+            flex: 0 0 $sheet-deck;
+            border-left: 1px solid var(--sheet-bar-line);
+            background: var(--sheet-deck) 0 0 / #{$sheet-deck} 184px no-repeat, var(--sheet-bar);
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            left: 0;
+            right: 0;
+            z-index: 50;
+        }
+
+        body::before {
+            top: 0;
+            height: $sheet-top;
+            border-bottom: 1px solid var(--sheet-bar-line);
+            background:
+                var(--sheet-bars) 0 0 / 760px #{$sheet-top} no-repeat,
+                linear-gradient(var(--sheet-bar-line), var(--sheet-bar-line)) 0 22px / 100% 1px no-repeat,
+                var(--sheet-bar);
+        }
+
+        body::after {
+            content: "Feuille 1 sur 1    \2502    Par d\E9 faut    \2502    Fran\E7 ais (France)";
+            bottom: 0;
+            height: $sheet-bottom;
+            padding-left: 172px;
+            border-top: 1px solid var(--sheet-bar-line);
+            background:
+                var(--sheet-tabs) 4px 0 / 156px 24px no-repeat,
+                var(--sheet-status) right 0.8rem center / 380px 24px no-repeat,
+                var(--sheet-bar);
+            color: var(--text-dim);
+            font-size: 11px;
+            line-height: $sheet-bottom;
+            white-space: pre;
+        }
+
+        .toaster {
+            bottom: calc(1.4rem + #{$sheet-bottom});
+        }
+    }
+
+    // --- the sheet: row numbers down the left, the grid, all scrolling with the page ------------------------------
+    .app-main {
+        background:
+            var(--sheet-rows) 0 0 / #{$sheet-row-head} 1200px repeat-y local,
+            linear-gradient(var(--sheet-head-line), var(--sheet-head-line)) #{$sheet-row-head - 1px} 0 / 1px 100% no-repeat local,
+            linear-gradient(var(--sheet-head), var(--sheet-head)) 0 0 / #{$sheet-row-head} 100% no-repeat local,
+            repeating-linear-gradient(90deg, transparent 0 63px, var(--sheet-grid) 63px 64px) #{$sheet-row-head} 0 / 100% 100% local,
+            repeating-linear-gradient(transparent 0 19px, var(--sheet-grid) 19px 20px) 0 0 / 100% 100% local,
+            var(--bg);
+    }
+
+    .screen {
+        padding-left: $sheet-row-head;
+    }
+
+    // --- the page's head: the formula bar, the column letters under it ----------------------------------------------
+    .screen-head,
+    .screen-head.is-scrolled {
+        margin-left: -$sheet-row-head;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+        padding-left: calc(1rem + #{$sheet-row-head});
+        border-bottom: 1px solid var(--sheet-bar-line);
+        background: var(--sheet-bar);
+        box-shadow: none;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        height: 20px;
+        border-bottom: 1px solid var(--sheet-head-line);
+        background:
+            var(--sheet-cols) #{$sheet-row-head} 0 / 1664px 20px no-repeat,
+            repeating-linear-gradient(90deg, transparent 0 63px, var(--sheet-head-line) 63px 64px) #{$sheet-row-head} 0 / 100% 100% no-repeat,
+            linear-gradient(var(--sheet-head-line), var(--sheet-head-line)) #{$sheet-row-head - 1px} 0 / 1px 100% no-repeat,
+            var(--sheet-head);
+        pointer-events: none;
+    }
+
+    // the title is the input line, after the name box, fx, sum and =: as tall as the
+    // name box, in a cell's plain type, the page's tour a small bare button at its end
+    .view-head__title {
+        flex: 1 1 auto;
+        gap: 0;
+        height: 24px;
+        min-width: 18rem;
+        max-width: 42rem;
+        margin-right: 1.5rem;
+        padding: 0 2px 0 0;
+        background:
+            linear-gradient(var(--sheet-head-line), var(--sheet-head-line)) 186px 0 / calc(100% - 186px) 1px no-repeat,
+            linear-gradient(var(--sheet-head-line), var(--sheet-head-line)) 186px 100% / calc(100% - 186px) 1px no-repeat,
+            linear-gradient(var(--sheet-head-line), var(--sheet-head-line)) 186px 0 / 1px 100% no-repeat,
+            linear-gradient(var(--sheet-head-line), var(--sheet-head-line)) 100% 0 / 1px 100% no-repeat,
+            linear-gradient(var(--bg-2), var(--bg-2)) 186px 0 / calc(100% - 186px) 100% no-repeat;
+        color: var(--text);
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .view-head__title::before {
+        content: "";
+        flex: 0 0 172px;
+        height: 24px;
+        margin-right: 20px;
+        background: var(--sheet-namebox) 0 center / 172px 24px no-repeat;
+    }
+
+    .view-head__title .page-tour {
+        width: 20px;
+        height: 20px;
+        margin-left: auto;
+        border-color: transparent;
+        background: none;
+        color: var(--text-mute);
+        font-size: 12px;
+    }
+
+    // the envelopes' head keeps its one row: its hint gives way to its buttons
+    .env-head {
+        flex-wrap: nowrap;
+    }
+
+    .env-head__title {
+        flex: 1 1 auto;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .env-head__sub {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .edit-chooser .view-head__title {
+        min-width: 0;
+        padding: 0;
+        background: none;
+    }
+
+    .edit-chooser .view-head__title::before {
+        display: none;
+    }
+
+    // the head's modes: the toolbar's toggles, the one on pressed in
+    .mode-switch {
+        gap: 2px;
+        border: 0;
+        background: none;
+
+        button {
+            padding: 0.25rem 0.6rem;
+            border-radius: 2px;
+            font-size: var(--fs-sm);
+        }
+
+        button:hover:not(:disabled),
+        button.is-active {
+            @include highlight;
+
+            color: var(--text-strong);
+        }
+    }
+
+    .brand__app {
+        color: var(--text-strong);
+        letter-spacing: 0.04em;
+    }
+
+    // the club's wordmark is drawn black: kept so on white cells, turned white at night
+    .brand__label {
+        filter: var(--sheet-wordmark);
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 1px solid var(--sheet-bar-line);
+        background: var(--sheet-bar);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- panels: ranges of cells under a header row, its filter button at the end -----------------------------------
+    #{$panels} {
+        border: 1px solid var(--sheet-head-line);
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid var(--sheet-head-line);
+        background: var(--sheet-head);
+        color: var(--text-strong);
+        font-weight: 700;
+
+        &::after {
+            content: "";
+            flex: 0 0 auto;
+            width: 15px;
+            height: 15px;
+            margin-left: 0.4rem;
+            border: 1px solid var(--sheet-head-line);
+            border-radius: 2px;
+            background:
+                linear-gradient(45deg, transparent 50%, var(--text-dim) 50%) 4px 5px / 3.5px 3.5px no-repeat,
+                linear-gradient(-45deg, transparent 50%, var(--text-dim) 50%) 7.5px 5px / 3.5px 3.5px no-repeat,
+                var(--sheet-bar);
+        }
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .play-row {
+        border-bottom: 1px solid var(--sheet-grid);
+        border-radius: 0;
+    }
+
+    .play-row:nth-child(even) {
+        background: var(--sheet-band);
+    }
+
+    .play-row:hover {
+        background: var(--sheet-hi);
+    }
+
+    .play-row.is-current {
+        @include cursor;
+
+        background: var(--sheet-hi);
+    }
+
+    // a cell's comment: the small red square in its corner
+    .player-hint {
+        border: 1px solid var(--sheet-head-line);
+        border-radius: 0;
+        background:
+            linear-gradient(var(--danger), var(--danger)) right 1px top 1px / 5px 5px no-repeat,
+            var(--panel);
+    }
+
+    .empty-stub::after {
+        content: "#N/D";
+        color: var(--danger-text);
+        font-weight: 700;
+    }
+
+    // --- fields: cells, the one being typed in under the cell cursor ------------------------------------------------
+    .text-field:focus,
+    .select-field select:focus,
+    .select-field__button:focus-visible,
+    .select-field__button[aria-expanded="true"],
+    .combo:focus-within,
+    .readout__field:focus-within {
+        outline: 2px solid var(--sheet-cursor);
+        outline-offset: -2px;
+        box-shadow: none;
+    }
+
+    // figures sit on the right of their cell
+    .readout__field input,
+    input[type="number"] {
+        text-align: right;
+    }
+
+    // --- choices: the toolbar's toggles; tabs: the sheet tabs -------------------------------------------------------
+    #{$value-choices} {
+        button.is-active {
+            @include highlight;
+        }
+    }
+
+    .segmented--tabs button {
+        color: var(--text-dim);
+    }
+
+    .segmented--tabs button.is-active {
+        color: var(--text-strong);
+        font-weight: 700;
+    }
+
+    // --- the menu: the navigator, the open page under the cell cursor ---------------------------------------------------
+    .sidebar {
+        border-right: 1px solid var(--sheet-bar-line);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+        font-family: var(--font-body);
+        font-weight: 400;
+        letter-spacing: 0;
+    }
+
+    .nav-item:hover {
+        @include highlight;
+
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active {
+        @include cursor;
+
+        background: var(--bg);
+        color: var(--text-strong);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: var(--volt);
+    }
+
+    .sidebar-section__title {
+        color: var(--text-strong);
+    }
+
+    // --- buttons: the system's, highlighted under the pointer ---------------------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled) {
+        @include highlight;
+
+        filter: none;
+    }
+
+    .btn--volt,
+    .btn--volt:hover {
+        border-color: var(--sheet-hi-line);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        filter: brightness(0.97);
+        background: linear-gradient(var(--sheet-hi), var(--sheet-hi)), linear-gradient(var(--sheet-hi), var(--sheet-hi)), var(--panel);
+    }
+
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+    }
+
+    #{$push-buttons} {
+        border: 1px solid var(--sheet-head-line);
+        border-radius: 2px;
+        background: var(--panel);
+        color: var(--text-dim);
+
+        &:hover:not(:disabled) {
+            @include highlight;
+
+            color: var(--text-strong);
+        }
+    }
+
+    #{$pushed-on} {
+        @include highlight;
+
+        color: var(--text-strong);
+    }
+
+    .chan-cell {
+        border-radius: 0;
+    }
+
+    // --- menus, dialogs, toasts -------------------------------------------------------------------------------------
+    #{$menus} {
+        border: 1px solid var(--sheet-head-line);
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include highlight;
+
+            color: var(--text-strong);
+        }
+    }
+
+    .combo__option.is-active {
+        background: var(--sheet-hi);
+    }
+
+    .modal-overlay {
+        background: rgb(0 0 0 / 0.25);
+    }
+
+    .modal-card__head {
+        border-bottom: 1px solid var(--sheet-head-line);
+    }
+
+    .modal-card__title {
+        font-weight: 400;
+    }
+
+    .toast::before {
+        display: none;
+    }
+
+    .toast--error::after {
+        content: "Err:502";
+        order: -1;
+        color: var(--danger-text);
+        font-weight: 700;
+    }
+
+    // --- scroll bars, the song's progress, sliders -------------------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 14px;
+        height: 14px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--sheet-bar);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 3px solid transparent;
+        border-radius: 0;
+        background: var(--sheet-head-line) padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-mute) padding-box;
+    }
+
+    .player-progress__bar {
+        border-radius: 0;
+        background: var(--sheet-grid);
+    }
+
+    .player-progress__fill {
+        border-radius: 0;
+        background: var(--volt);
+    }
+
+    #{$sliders},
+    .power-range {
+        --range-track: var(--sheet-head-line);
+        --range-track-h: 2px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: var(--sheet-bar);
+        --range-thumb-hover: var(--sheet-hi);
+        --range-thumb-w: 9px;
+        --range-thumb-h: 17px;
+        --range-thumb-border: 1px solid var(--text-mute);
+        --range-thumb-radius: 1px;
+        --range-thumb-shadow: none;
+        --range-focus: 1px dotted var(--sheet-cursor);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        --range-track-h: 6px;
+
+        @include drawn-range($track: false);
+    }
+}

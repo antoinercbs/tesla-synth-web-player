@@ -269,7 +269,7 @@ $cork-circled: 255px 15px 225px 15px / 15px 225px 15px 255px;
 
     // --- fields: index cards, their red margin and blue line -------------------------------------------
     .text-field,
-    .select-field select,
+    #{$selects},
     .combo,
     #{$number-boxes} {
         border: 0;

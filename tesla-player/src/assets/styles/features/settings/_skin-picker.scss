@@ -1,0 +1,72 @@
+// ===========================================================================
+//  SKIN PICKER
+// ===========================================================================
+// components/settings/SkinPicker.vue: its button is a list field (.select-field__button,
+// components/_field.scss); its menu and submenu are popovers, in the top layer, placed
+// by the component in viewport coordinates (the UA's centring undone here).
+
+.skin-menu {
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    min-width: 10rem;
+    padding: 0.3rem;
+    overflow: visible;
+    background: var(--menu-bg, var(--panel-2));
+    border: var(--border-w) solid var(--menu-border, var(--line-strong));
+    border-radius: var(--menu-radius, var(--radius-md));
+    box-shadow: var(--menu-shadow, var(--shadow-pop));
+    color: var(--text);
+    font-family: var(--font-body);
+}
+
+.skin-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.45rem 0.6rem 0.45rem 0.45rem;
+    border: 0;
+    border-radius: var(--menu-item-radius, var(--radius-sm));
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    text-align: left;
+    white-space: nowrap;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+// the group whose submenu is shown stays lit while the pointer is in it
+.skin-menu__item:hover,
+.skin-menu__item:focus-visible,
+.skin-menu__item.is-open {
+    outline: none;
+    color: var(--text);
+    background: var(--line-006);
+}
+
+// the look in use, and the group holding it
+.skin-menu__item.is-current {
+    color: var(--volt);
+    font-weight: 600;
+}
+
+.skin-menu__check {
+    flex: 0 0 0.85rem;
+    font-size: 0.7rem;
+    text-align: center;
+}
+
+.skin-menu__chevron {
+    margin-left: auto;
+    padding-left: 1.2rem;
+    color: var(--text-mute);
+    font-size: 0.6rem;
+}
+
+.skin-menu__sep {
+    height: 1px;
+    margin: 0.3rem 0.25rem;
+    background: var(--line);
+}

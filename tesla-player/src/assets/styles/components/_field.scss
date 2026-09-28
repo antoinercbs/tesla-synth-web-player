@@ -51,7 +51,9 @@
     position: relative;
 }
 
-.select-field select {
+// a list to pick from: the native one, or the button that opens a menu in its place
+.select-field select,
+.select-field__button {
     appearance: none;
     -webkit-appearance: none;
     width: 100%;
@@ -67,9 +69,20 @@
     transition: var(--dur-fast);
 }
 
-.select-field select:focus {
+.select-field select:focus,
+.select-field__button:focus-visible,
+.select-field__button[aria-expanded="true"] {
     border-color: var(--field-focus-border, var(--volt));
     box-shadow: var(--field-focus-ring, var(--focus-ring));
+}
+
+// the button shows the pick on one line, like a closed list
+.select-field__button {
+    display: block;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .select-field::after {

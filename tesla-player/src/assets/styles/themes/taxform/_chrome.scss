@@ -224,7 +224,7 @@ $tax-blocks: ".coil-card, .me-card, .env-card, .env-lib__group, .sy-card, .cam-c
     }
 
     .text-field,
-    .select-field select,
+    #{$selects},
     .combo,
     #{$number-boxes} {
         border-top-color: transparent;

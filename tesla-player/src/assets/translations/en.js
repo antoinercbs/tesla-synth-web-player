@@ -423,6 +423,12 @@ export default {
     bluepaper: "Admin blue",
     salmon: "Salmon",
     carbon: "Carbon copy",
+    plain: "Office grey",
+    vintage: "Vintage blue",
+    night: "Night mode",
+    case: "Hard case",
+    desk: "Control room",
+    alert: "Red alert",
   },
   skin: {
     title: "Look",
@@ -441,6 +447,14 @@ export default {
     pcb: "Circuit board",
     cork: "Cork board",
     taxform: "Tax return",
+    sheet: "Spreadsheet",
+    control: "Control desk",
+  },
+  skinGroup: {
+    computers: "Vintage computers",
+    workshop: "Lab and workshop",
+    office: "At the office",
+    fun: "Fun and games",
   },
   welcome: {
     title: "Welcome to Tesla Player",

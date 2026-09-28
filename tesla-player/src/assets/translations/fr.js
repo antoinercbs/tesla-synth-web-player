@@ -426,6 +426,12 @@ export default {
     bluepaper: "Bleu administratif",
     salmon: "Rose saumon",
     carbon: "Papier carbone",
+    plain: "Gris bureau",
+    vintage: "Bleu d'antan",
+    night: "Mode nuit",
+    case: "Mallette",
+    desk: "Salle de contrôle",
+    alert: "Alerte rouge",
   },
   skin: {
     title: "Apparence",
@@ -444,6 +450,14 @@ export default {
     pcb: "Circuit imprimé",
     cork: "Tableau de liège",
     taxform: "Déclaration d'impôts",
+    sheet: "Tableur",
+    control: "Pupitre de commande",
+  },
+  skinGroup: {
+    computers: "Ordinateurs d'antan",
+    workshop: "Labo et atelier",
+    office: "Au bureau",
+    fun: "Fêtes et jeux",
   },
   welcome: {
     title: "Bienvenue sur Tesla Player",

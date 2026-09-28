@@ -1,0 +1,96 @@
+@use "sass:map";
+
+// ===========================================================================
+//  CONTROL DESK LOOK: its structure
+// ===========================================================================
+// A control desk: B612, the face drawn for cockpit displays, for every word, its
+// monospaced cut for what is typed; square caps barely eased, pressed in under the
+// finger; plates lifted off the face by their own shadow. The lab's map merged with
+// what the desk changes; its colours are its desks (control/_palettes.scss), what
+// tokens cannot say (the case and its foam, the screws, the engraved labels, the
+// lamps and their glow, the toggles, the seven-segment digits, the LED bars, the
+// safety covers, the emergency stop, the key, the warning label, the alarms)
+// control/_chrome.scss.
+$control: map.merge(
+    $lab,
+    (
+        font-display: 'B612, "Arial Narrow", Arial, sans-serif',
+        font-body: 'B612, "Arial Narrow", Arial, sans-serif',
+        font-mono: '"B612 Mono", ui-monospace, monospace',
+        fs-xs: 0.68rem,
+        fs-sm: 0.74rem,
+        fs-md: 0.8rem,
+        fs-lg: 0.88rem,
+        fs-xl: 1.05rem,
+        fs-2xl: 1.25rem,
+        radius-2xs: 1px,
+        radius-xs: 2px,
+        radius-sm: 2px,
+        radius-md: 3px,
+        radius: 3px,
+        radius-xl: 4px,
+        radius-lg: 4px,
+        shadow-pop: "0 3px 0 rgb(0 0 0 / 0.5), 0 8px 20px rgb(0 0 0 / 0.5)",
+        shadow-float: "0 4px 0 rgb(0 0 0 / 0.5), 0 12px 26px rgb(0 0 0 / 0.55)",
+        shadow-modal: "0 6px 0 rgb(0 0 0 / 0.55), 0 18px 44px rgb(0 0 0 / 0.6)",
+        shadow-panel: "0 2px 0 rgb(0 0 0 / 0.45), 0 6px 14px rgb(0 0 0 / 0.35)",
+        focus-ring: "0 0 0 2px var(--ctl-amber)",
+        focus-ring-strong: "0 0 0 3px var(--ctl-amber)",
+        head-gap: 1rem,
+        backdrop: var(--ctl-foam),
+        micro-arc: linear-gradient(#000, #000),
+        micro-arc-v: linear-gradient(#000, #000),
+        // the shared pieces (their tokens: components/*.scss): push-button caps
+        btn-radius: 3px,
+        btn-bg: var(--ctl-cap),
+        btn-border: #000,
+        btn-color: var(--ctl-cap-ink),
+        btn-weight: 700,
+        btn-font: var(--font-display),
+        btn-pad: 0.35rem 0.9rem,
+        btn-shadow: "inset 0 1px 0 rgb(255 255 255 / 0.2), inset 0 -3px 0 rgb(0 0 0 / 0.3), 0 2px 0 #000",
+        btn-hover-border: #000,
+        btn-hover-color: var(--text-strong),
+        btn-primary-bg: var(--ctl-green-lit),
+        btn-primary-color: #06260f,
+        btn-primary-shadow: "inset 0 1px 0 rgb(255 255 255 / 0.5), inset 0 -3px 0 rgb(0 0 0 / 0.2), 0 2px 0 #000, 0 0 14px rgb(var(--ctl-lamp-rgb) / 0.45)",
+        btn-danger-bg: var(--ctl-cap),
+        btn-danger-color: var(--danger-text),
+        icon-btn-radius: 3px,
+        icon-btn-bg: var(--ctl-cap),
+        icon-btn-border: #000,
+        icon-btn-color: var(--ctl-cap-ink),
+        field-bg: var(--ctl-glass),
+        field-color: var(--ctl-digit),
+        field-font: var(--font-mono),
+        field-border: #000,
+        field-radius: 2px,
+        field-focus-border: var(--ctl-amber),
+        field-focus-ring: "0 0 0 1px var(--ctl-amber)",
+        field-label-color: var(--text-dim),
+        field-btn-bg: var(--ctl-cap),
+        field-btn-border: #000,
+        field-btn-color: var(--ctl-cap-ink),
+        seg-bg: #0b0b0c,
+        seg-border: #000,
+        seg-radius: 3px,
+        seg-item-radius: 2px,
+        seg-color: var(--ctl-cap-ink),
+        seg-active-bg: var(--ctl-amber-lit),
+        seg-active-color: #2a1a00,
+        tab-active-color: var(--text-strong),
+        modal-bg: var(--panel),
+        modal-border: #000,
+        modal-radius: 4px,
+        modal-title-color: var(--ctl-label-ink),
+        menu-bg: var(--panel),
+        menu-border: #000,
+        menu-radius: 3px,
+        menu-item-radius: 2px,
+        toast-bg: #0b0c0d,
+        toast-color: var(--text),
+        toast-border: #000,
+        toast-radius: 3px,
+        sidebar-bg: var(--panel),
+    )
+);

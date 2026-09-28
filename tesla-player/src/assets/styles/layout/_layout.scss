@@ -542,7 +542,8 @@
 }
 
 // the look's list: as tall as the language switch beside it
-.sidebar-menu__row .select-field select {
+.sidebar-menu__row .select-field select,
+.sidebar-menu__row .select-field__button {
     padding: 0.25rem 1.8rem 0.25rem 0.6rem;
     font-size: var(--fs-sm);
 }
