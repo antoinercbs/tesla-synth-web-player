@@ -1,0 +1,175 @@
+@use "sass:map";
+
+// ===========================================================================
+//  WEB 1.0 LOOK: its palettes, three personal home pages of 1998
+// ===========================================================================
+// A page on a free host: a tiled background, the web-safe colours at full blast,
+// the grey form controls of the browser on top. Each palette is written out
+// whole, as the custom properties it sets on [data-theme="<id>"]: the shared ones
+// every palette keeps (the controls' greys, the rainbow), then its own, including
+// the chrome web1/_chrome.scss and the $web1 map read (--web1-frame, --web1-link…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec
+// checks both).
+
+// what the three keep: the named colours for the signals and the coils, the
+// browser's grey controls, the rainbow of every rule and title
+$web1-shared: (
+    danger: #ff0000,
+    danger-rgb: "255 0 0",
+    danger-text: #ff3333,
+    danger-text-hover: #ffffff,
+    ok: #00ff00,
+    ok-rgb: "0 255 0",
+    amber: #ffff00,
+    amber-rgb: "255 255 0",
+    caution: #ffff00,
+    caution-rgb: "255 255 0",
+    caution-text: #ffff00,
+    warn: #ffff00,
+    conflict: #ffff00,
+    duplicate: #ff00ff,
+    duplicate-rgb: "255 0 255",
+    worse: #ff0000,
+    // red, yellow, lime, aqua, fuchsia, orange: HTML's own names
+    coil-0: #ff0000,
+    coil-1: #ffff00,
+    coil-2: #00ff00,
+    coil-3: #00ffff,
+    coil-4: #ff00ff,
+    coil-5: #ff8000,
+    plasma: #ff00ff,
+    hi-rgb: "255 255 255",
+    // the piano's keys: flat, no light on them
+    key-white: linear-gradient(#ffffff, #ffffff),
+    key-white-hover: linear-gradient(#ffffcc, #ffffcc),
+    key-black: linear-gradient(#000000, #000000),
+    key-black-hover: linear-gradient(#333333, #333333),
+    key-glow-rgb: "255 255 0",
+    key-ink-rgb: "0 0 0",
+    knob: #c0c0c0,
+    // the browser's controls: the grey face, its two lights, its two shadows
+    web1-face: #c0c0c0,
+    web1-face-light: #ffffff,
+    web1-face-hilite: #dfdfdf,
+    web1-face-shadow: #808080,
+    web1-face-dark: #0a0a0a,
+    web1-face-text: #000000,
+    web1-face-mute: #808080,
+    // a pop-up window's title bar, a menu's selection
+    web1-title: "linear-gradient(90deg, #000080, #1084d0)",
+    web1-title-text: #ffffff,
+    web1-select: #000080,
+    web1-select-text: #ffffff,
+    web1-field: #ffffff,
+    web1-field-text: #000000,
+    web1-rainbow: "linear-gradient(90deg, #ff0000, #ff8000, #ffff00, #00ff00, #00ffff, #0000ff, #ff00ff)",
+    // the site is being built, forever
+    web1-works: "repeating-linear-gradient(-45deg, #ffcc00 0 10px, #000000 10px 20px)",
+    web1-counter: #000000,
+    web1-counter-text: #00ff00,
+);
+
+// the order is the picker's, the first the look's default
+$web1-palettes: (
+    // a night sky tiled behind navy tables, yellow headings, aqua links
+    stars: (
+        bg: #000018,
+        bg-2: #000030,
+        panel: #000040,
+        panel-2: #000058,
+        bg-rgb: "0 0 24",
+        line-rgb: "192 192 192",
+        text: #ffffff,
+        text-rgb: "255 255 255",
+        text-dim: #c0c0c0,
+        text-mute: #9090b8,
+        text-strong: #ffff00,
+        text-bright: #ffff00,
+        ink: #000000,
+        volt: #00ffff,
+        volt-rgb: "0 255 255",
+        grad: "linear-gradient(90deg, #ff0000, #ffff00, #00ff00, #00ffff, #ff00ff)",
+        on-grad: #000000,
+        arc-core: #ffff00,
+        arc-mid: #00ffff,
+        arc-deep: #ff00ff,
+        arc-glow-rgb: "0 255 255",
+        web1-backdrop: "radial-gradient(1.4px 1.4px at 23px 31px, #fff 45%, transparent) 0 0 / 190px 190px, radial-gradient(1.1px 1.1px at 131px 87px, #ffffaa 45%, transparent) 0 0 / 190px 190px, radial-gradient(1.8px 1.8px at 67px 152px, #fff 45%, transparent) 0 0 / 190px 190px, radial-gradient(1.2px 1.2px at 172px 171px, #aaccff 45%, transparent) 0 0 / 190px 190px, radial-gradient(2.2px 2.2px at 94px 44px, #fff 45%, transparent) 0 0 / 190px 190px, radial-gradient(1.1px 1.1px at 12px 118px, #fff 45%, transparent) 0 0 / 190px 190px, radial-gradient(1.3px 1.3px at 151px 13px, #fff 45%, transparent) 0 0 / 190px 190px, radial-gradient(1.2px 1.2px at 41px 77px, #fff 45%, transparent) 0 0 / 137px 137px, radial-gradient(1.6px 1.6px at 108px 19px, #ffddaa 45%, transparent) 0 0 / 137px 137px, radial-gradient(1.1px 1.1px at 88px 121px, #fff 45%, transparent) 0 0 / 137px 137px, radial-gradient(1px 1px at 15px 55px, #aaccff 45%, transparent) 0 0 / 137px 137px, #000018",
+        web1-frame: #c0c0c0,
+        web1-link: #00ffff,
+        web1-link-hover: #ff0000,
+        web1-scroll-face: #000080,
+        web1-scroll-track: #000030,
+        swatch: "radial-gradient(1.5px 1.5px at 30% 30%, #fff, transparent), radial-gradient(1.5px 1.5px at 70% 60%, #ffff00, transparent), radial-gradient(1px 1px at 45% 80%, #fff, transparent), #000030",
+    ),
+    // flames licking up from the bottom of a black page, gold on dark red
+    flames: (
+        bg: #000000,
+        bg-2: #1a0000,
+        panel: #200000,
+        panel-2: #330000,
+        bg-rgb: "0 0 0",
+        line-rgb: "255 102 0",
+        text: #ffcc00,
+        text-rgb: "255 204 0",
+        text-dim: #ff9933,
+        text-mute: #cc6633,
+        text-strong: #ffff66,
+        text-bright: #ffffff,
+        ink: #000000,
+        volt: #ff6600,
+        volt-rgb: "255 102 0",
+        grad: "linear-gradient(0deg, #ff0000, #ff6600, #ffcc00)",
+        on-grad: #000000,
+        arc-core: #ffff66,
+        arc-mid: #ff9900,
+        arc-deep: #ff3300,
+        arc-glow-rgb: "255 102 0",
+        web1-backdrop: "radial-gradient(22px 70px at 50% 100%, #ffee66, transparent 70%) 0 100% / 48px 120px repeat-x, radial-gradient(34px 130px at 50% 100%, #ff6600, transparent 72%) 24px 100% / 70px 190px repeat-x, linear-gradient(0deg, #cc2200 0, #660000 14%, #1a0000 34%, #000000 55%) fixed, #000000",
+        web1-frame: #cc3300,
+        web1-link: #ff9900,
+        web1-link-hover: #ffff00,
+        web1-scroll-face: #990000,
+        web1-scroll-track: #1a0000,
+        swatch: "linear-gradient(0deg, #ff6600, #cc0000 40%, #000000 80%)",
+    ),
+    // a black page, a neon grid, green text, fuchsia everything else
+    neon: (
+        bg: #07000f,
+        bg-2: #12001f,
+        panel: #0a0014,
+        panel-2: #1a0030,
+        bg-rgb: "7 0 15",
+        line-rgb: "255 0 255",
+        text: #39ff14,
+        text-rgb: "57 255 20",
+        text-dim: #2ad10e,
+        text-mute: #22a00c,
+        text-strong: #ff00ff,
+        text-bright: #ffffff,
+        ink: #000000,
+        volt: #ff00ff,
+        volt-rgb: "255 0 255",
+        grad: "linear-gradient(90deg, #ff00ff, #00ffff)",
+        on-grad: #000000,
+        arc-core: #ffffff,
+        arc-mid: #ff00ff,
+        arc-deep: #00ffff,
+        arc-glow-rgb: "255 0 255",
+        web1-backdrop: "linear-gradient(0deg, rgb(255 0 255 / 0.35), transparent 30%) fixed, linear-gradient(rgb(255 0 255 / 0.22) 1px, transparent 1px) 0 0 / 40px 40px, linear-gradient(90deg, rgb(0 255 255 / 0.18) 1px, transparent 1px) 0 0 / 40px 40px, #07000f",
+        web1-frame: #ff00ff,
+        web1-link: #00ffff,
+        web1-link-hover: #ffff00,
+        web1-scroll-face: #ff00ff,
+        web1-scroll-track: #12001f,
+        swatch: "linear-gradient(135deg, #07000f 45%, #ff00ff 45% 60%, #39ff14 60%)",
+    ),
+);
+
+@each $id, $p in $web1-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($web1-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

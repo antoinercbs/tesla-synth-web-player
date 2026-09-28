@@ -15,10 +15,12 @@
 @import "xp/palettes";
 @import "scope/palettes";
 @import "term/palettes";
+@import "web1/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
 @import "term/skin";
+@import "web1/skin";
 
 $default-skin: lab;
 
@@ -27,6 +29,7 @@ $skins: (
     xp: $xp,
     scope: $scope,
     term: $term,
+    web1: $web1,
 );
 
 @mixin -skin($s) {

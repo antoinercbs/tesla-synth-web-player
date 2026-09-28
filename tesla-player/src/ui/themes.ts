@@ -16,6 +16,7 @@ export const THEMES = {
   xp: ['luna', 'olive', 'silver'],
   scope: ['p1', 'p3', 'p4'],
   term: ['norton', 'turbo', 'mono'],
+  web1: ['stars', 'flames', 'neon'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

@@ -382,6 +382,9 @@ export default {
     norton: "Norton",
     turbo: "Turbo",
     mono: "Monochrome",
+    stars: "Étoiles",
+    flames: "Flammes",
+    neon: "Néon",
   },
   skin: {
     title: "Apparence",
@@ -389,6 +392,7 @@ export default {
     xp: "XP",
     scope: "Oscilloscope",
     term: "Terminal",
+    web1: "Web 1.0",
   },
   welcome: {
     title: "Bienvenue sur Tesla Player",

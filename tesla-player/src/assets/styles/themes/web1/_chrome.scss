@@ -1,0 +1,618 @@
+// ===========================================================================
+//  WEB 1.0 LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $web1 map (web1/_skin.scss), its colours the palette
+// picked among web1/_palettes.scss. Here, the home page's furniture: rainbow titles
+// with a blinking NEW!, tables with a border, the sidebar as a frame with its
+// visitor counter, the hints as marquees, empty panels under construction, the
+// browser's grey controls and pop-up windows, the colour-scrollbars of the time.
+// Every rule sits under [data-skin="web1"]; the pages' controls are named by family
+// (../_families.scss). The text it adds (NEW!, the counter…) is the period's
+// English, the same in every language.
+
+// Windows 95's bevels (the same as $web1-raised / $web1-sunken in the map)
+@mixin raised {
+    background: var(--web1-face);
+    border: 0;
+    border-radius: 0;
+    color: var(--web1-face-text);
+    box-shadow:
+        inset -1px -1px var(--web1-face-dark),
+        inset 1px 1px var(--web1-face-light),
+        inset -2px -2px var(--web1-face-shadow),
+        inset 2px 2px var(--web1-face-hilite);
+}
+
+@mixin pressed {
+    background: var(--web1-face-hilite);
+    box-shadow:
+        inset 1px 1px var(--web1-face-dark),
+        inset -1px -1px var(--web1-face-light),
+        inset 2px 2px var(--web1-face-shadow),
+        inset -2px -2px var(--web1-face-hilite);
+}
+
+@mixin sunken {
+    background: var(--web1-field);
+    border: 0;
+    border-radius: 0;
+    color: var(--web1-field-text);
+    box-shadow:
+        inset 1px 1px var(--web1-face-shadow),
+        inset -1px -1px var(--web1-face-light),
+        inset 2px 2px var(--web1-face-dark),
+        inset -2px -2px var(--web1-face-hilite);
+}
+
+// greyed as the browser greys: engraved
+@mixin greyed {
+    opacity: 1;
+    color: var(--web1-face-mute);
+    text-shadow: 1px 1px var(--web1-face-light);
+    cursor: var(--cursor-default, default);
+}
+
+// a text in the rainbow (its own colour gone, the gradient through its letters)
+@mixin rainbow {
+    background: var(--web1-rainbow);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+@keyframes web1-blink {
+    50% {
+        visibility: hidden;
+    }
+}
+
+@keyframes web1-marquee {
+    from {
+        text-indent: 100%;
+    }
+
+    to {
+        text-indent: -100%;
+    }
+}
+
+[data-skin="web1"] {
+    color-scheme: dark;
+
+    // --- links: blue-ish, underlined, red under the pointer ---------------------------
+    a {
+        color: var(--web1-link);
+        text-decoration: underline;
+    }
+
+    a:hover {
+        color: var(--web1-link-hover);
+    }
+
+    // --- titles: Times, in the rainbow, NEW! beside them ------------------------------
+    .view-head__title {
+        @include rainbow;
+
+        font-weight: 700;
+        font-style: italic;
+    }
+
+    .view-head__title::after {
+        content: "NEW!";
+        margin-left: 0.4em;
+        color: #ff0000;
+        -webkit-text-fill-color: #ff0000;
+        font-family: var(--font-body);
+        font-size: 0.5em;
+        font-style: normal;
+        vertical-align: super;
+        animation: web1-blink 1s steps(1) infinite;
+    }
+
+    .brand__app {
+        @include rainbow;
+
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: 0.04em;
+    }
+
+    // a head's own screen: opaque, no frosted glass (the browser had none)
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg-2);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        border-top: 3px ridge var(--web1-frame);
+    }
+
+    // --- tables with border="3": the panels, their heads over a rainbow rule ---------
+    #{$panels} {
+        border: 3px ridge var(--web1-frame);
+        border-radius: 0;
+        box-shadow: none;
+        background: var(--panel);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 3px solid;
+        border-image: var(--web1-rainbow) 1;
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--text-strong);
+    }
+
+    .coil-card__title,
+    .editor-section__title,
+    .sidebar-section__title {
+        font-family: var(--font-display);
+        font-weight: 700;
+        color: var(--text-strong);
+        text-decoration: underline;
+    }
+
+    .nav__sep,
+    #{$menu-seps} {
+        height: 3px;
+        background: var(--web1-rainbow);
+    }
+
+    // the real tables: each cell framed too
+    .hist-table,
+    .sy-tbl,
+    .tune-table {
+        border-collapse: separate;
+        border-spacing: 2px;
+        border: 2px outset var(--web1-frame);
+    }
+
+    .hist-table th,
+    .hist-table td,
+    .sy-tbl th,
+    .sy-tbl td,
+    .tune-table th,
+    .tune-table td {
+        border: 1px inset var(--web1-frame);
+    }
+
+    // --- the sidebar: a frame of the frameset, its counter at the bottom ----------------
+    .sidebar {
+        border-right: 6px ridge var(--web1-frame);
+    }
+
+    .nav-item,
+    .nav-item.router-link-active {
+        border-radius: 0;
+        background: none;
+        color: var(--web1-link);
+        text-decoration: underline;
+    }
+
+    .nav-item:hover {
+        background: none;
+        color: var(--web1-link-hover);
+    }
+
+    .nav-item.router-link-active {
+        color: var(--text-strong);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item .icon {
+        color: inherit;
+    }
+
+    // "you are visitor 000042", and the browser the page wants
+    .sidebar__spacer {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.35rem;
+        min-height: 0;
+        overflow: hidden;
+        padding-bottom: 0.6rem;
+    }
+
+    .sidebar__spacer::before {
+        content: "000042";
+        padding: 0.1rem 0.4rem;
+        background: var(--web1-counter);
+        color: var(--web1-counter-text);
+        font-family: var(--font-mono);
+        font-size: var(--fs-md);
+        font-weight: 700;
+        letter-spacing: 0.25em;
+        box-shadow:
+            inset 1px 1px var(--web1-face-shadow),
+            inset -1px -1px var(--web1-face-light);
+    }
+
+    .sidebar__spacer::after {
+        content: "visitors since 1998\A Best viewed with Netscape Navigator 4.0 at 800\D7 600";
+        white-space: pre-line;
+        text-align: center;
+        color: var(--text-dim);
+        font-size: var(--fs-xs);
+    }
+
+    .sidebar--compact .sidebar__spacer::before,
+    .sidebar--compact .sidebar__spacer::after {
+        display: none;
+    }
+
+    // --- a hint scrolls by, a <marquee> -----------------------------------------------
+    .player-hint {
+        display: block;
+        overflow: hidden;
+        white-space: nowrap;
+        border-radius: 0;
+        animation: web1-marquee 12s linear infinite;
+    }
+
+    .player-hint .icon {
+        margin-right: 0.4rem;
+        vertical-align: middle;
+    }
+
+    // --- an empty panel: under construction ----------------------------------------------
+    .empty-stub {
+        margin: 1rem;
+        border: 8px solid;
+        border-image: var(--web1-works) 8;
+    }
+
+    .empty-stub::after {
+        content: "UNDER CONSTRUCTION";
+        color: var(--amber);
+        font-family: var(--font-display);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        animation: web1-blink 1.4s steps(1) infinite;
+    }
+
+    .theme-swatch {
+        border-radius: 0;
+        box-shadow:
+            inset 1px 1px var(--web1-face-shadow),
+            inset -1px -1px var(--web1-face-light);
+    }
+
+    // --- the browser's buttons ---------------------------------------------------------
+    .btn:hover:not(:disabled) {
+        filter: none;
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled),
+    .field-btn:active:not(:disabled) {
+        @include pressed;
+    }
+
+    .btn:disabled {
+        @include greyed;
+
+        box-shadow: var(--btn-shadow);
+    }
+
+    // a page of the time had no ghost button: a grey one like the rest
+    .btn--ghost,
+    .btn--danger-ghost {
+        @include raised;
+    }
+
+    .btn--danger-ghost,
+    .btn--danger-ghost:hover {
+        color: var(--btn-danger-color);
+    }
+
+    // a wizard's step numbers: white boxes sunk in its grey buttons
+    .stepper__num {
+        @include sunken;
+
+        border-radius: 0;
+    }
+
+    .stepper__item.is-current .stepper__num {
+        background: var(--volt);
+        color: var(--ink);
+    }
+
+    .stepper__item.is-done .stepper__num {
+        background: var(--ok);
+        color: var(--ink);
+    }
+
+    .icon-btn,
+    .field-btn,
+    #{$push-buttons} {
+        @include raised;
+
+        &:hover:not(:disabled) {
+            color: var(--web1-face-text);
+        }
+
+        &:active:not(:disabled) {
+            @include pressed;
+        }
+
+        &:disabled {
+            @include greyed;
+        }
+    }
+
+    #{$pushed-on} {
+        @include pressed;
+    }
+
+    // a toolbar's buttons: flat until the pointer raises them
+    #{$flat-buttons} {
+        border-radius: 0;
+        color: inherit;
+
+        &:hover:not(:disabled) {
+            @include raised;
+        }
+    }
+
+    .chan-cell {
+        @include raised;
+    }
+
+    .chan-cell.is-on {
+        @include pressed;
+
+        background: var(--cell, var(--volt));
+        color: var(--ink);
+        font-weight: 700;
+    }
+
+    .chan-cell:disabled,
+    .chan-cell.is-unavail {
+        @include greyed;
+    }
+
+    // --- choices: a row of buttons, the chosen one pushed in -------------------------------
+    #{$value-choices},
+    #{$tool-choices} {
+        gap: 2px;
+        padding: 0;
+        border: 0;
+        background: none;
+
+        button {
+            @include raised;
+        }
+
+        button:hover:not(:disabled) {
+            color: var(--web1-face-text);
+        }
+
+        button.is-active,
+        button.is-on {
+            @include pressed;
+
+            font-weight: 700;
+        }
+
+        button:disabled {
+            @include greyed;
+        }
+    }
+
+    // tabs: links, the open one in bold
+    .segmented--tabs button {
+        color: var(--web1-link);
+        text-decoration: underline;
+    }
+
+    .segmented--tabs button.is-active {
+        color: var(--text-strong);
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // the switch is a check box
+    .switch__track,
+    .switch input:checked + .switch__track {
+        @include sunken;
+
+        display: inline-grid;
+        place-items: center;
+        width: 13px;
+        height: 13px;
+    }
+
+    .switch__track::after,
+    .switch input:checked + .switch__track::after {
+        content: "";
+        position: static;
+        width: auto;
+        height: auto;
+        background: none;
+        transform: none;
+        color: var(--web1-field-text);
+        font-size: 11px;
+        line-height: 1;
+    }
+
+    .switch input:checked + .switch__track::after {
+        content: "\2714";
+    }
+
+    .switch input:focus-visible + .switch__track {
+        outline: 1px dotted var(--text);
+        outline-offset: 2px;
+    }
+
+    // --- fields: white, sunk in ----------------------------------------------------------
+    .text-field,
+    .select-field select,
+    .combo,
+    #{$number-boxes} {
+        @include sunken;
+    }
+
+    .combo__input,
+    .readout__field input {
+        color: var(--web1-field-text);
+    }
+
+    // a list's drop-down button: a small grey button at the field's right end
+    .select-field::after {
+        content: "\25BC";
+        top: 2px;
+        right: 2px;
+        bottom: 2px;
+        width: 16px;
+        display: grid;
+        place-items: center;
+        transform: none;
+        font-size: 8px;
+        background: var(--web1-face);
+        color: var(--web1-face-text);
+        box-shadow:
+            inset -1px -1px var(--web1-face-dark),
+            inset 1px 1px var(--web1-face-light),
+            inset -2px -2px var(--web1-face-shadow),
+            inset 2px 2px var(--web1-face-hilite);
+    }
+
+    .combo__chevron,
+    .combo__icon,
+    .combo__clear,
+    .readout__field i {
+        color: var(--web1-field-text);
+    }
+
+    // --- menus: the browser's grey menu, the navy selection ---------------------------------
+    #{$menus} {
+        --text: var(--web1-face-text);
+        --text-dim: var(--web1-face-text);
+        --text-mute: var(--web1-face-mute);
+        --text-strong: var(--web1-face-text);
+
+        @include raised;
+
+        box-shadow:
+            inset -1px -1px var(--web1-face-dark),
+            inset 1px 1px var(--web1-face-light),
+            inset -2px -2px var(--web1-face-shadow),
+            inset 2px 2px var(--web1-face-hilite),
+            var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        border-radius: 0;
+        color: var(--web1-face-text);
+
+        &:hover,
+        &:focus-visible {
+            background: var(--web1-select);
+            color: var(--web1-select-text);
+        }
+
+        &:hover .icon,
+        &:focus-visible .icon {
+            color: inherit;
+        }
+    }
+
+    .combo__option.is-active {
+        background: var(--web1-select);
+        color: var(--web1-select-text);
+    }
+
+    // --- a pop-up window: grey, its title bar, its × -------------------------------------
+    .modal-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: rgb(0 0 0 / 0.35);
+    }
+
+    .modal-card {
+        --text: var(--web1-face-text);
+        --text-dim: var(--web1-face-text);
+        --text-mute: var(--web1-face-mute);
+        --text-strong: var(--web1-face-text);
+        --text-bright: var(--web1-face-text);
+
+        @include raised;
+
+        box-shadow:
+            inset -1px -1px var(--web1-face-dark),
+            inset 1px 1px var(--web1-face-light),
+            inset -2px -2px var(--web1-face-shadow),
+            inset 2px 2px var(--web1-face-hilite),
+            var(--shadow-modal);
+    }
+
+    .modal-card__head {
+        margin: -1.4rem -1.5rem 1.1rem;
+        padding: 0.2rem 0.25rem 0.2rem 0.5rem;
+        background: var(--web1-title);
+        border: 3px solid var(--web1-face);
+        border-bottom: 0;
+    }
+
+    .modal-card__title {
+        color: var(--web1-title-text);
+        font-family: var(--font-body);
+        font-size: var(--fs-lg);
+        font-weight: 700;
+    }
+
+    .modal-card__title .icon {
+        color: var(--web1-title-text);
+    }
+
+    .modal-card__head .icon-btn {
+        --icon-btn-size: 1.3rem;
+
+        font-size: var(--fs-sm);
+    }
+
+    // --- the colour scroll bars of Internet Explorer 5.5 -----------------------------------
+    ::-webkit-scrollbar {
+        width: 16px;
+        height: 16px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--web1-scroll-track);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 0;
+        border-radius: 0;
+        background: var(--web1-scroll-face);
+        box-shadow:
+            inset -1px -1px var(--web1-face-dark),
+            inset 1px 1px var(--web1-face-light);
+    }
+}
+
+// the NEW!, the marquee and the construction sign hold still for who asks
+@media (prefers-reduced-motion: reduce) {
+    [data-skin="web1"] .view-head__title::after,
+    [data-skin="web1"] .player-hint,
+    [data-skin="web1"] .empty-stub::after {
+        animation: none;
+    }
+}
