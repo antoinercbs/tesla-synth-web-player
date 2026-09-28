@@ -1,0 +1,125 @@
+// ===========================================================================
+//  PIANO ROLL
+// ===========================================================================
+// components/midi-editor/PianoRoll.vue
+
+.roll {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.roll__area {
+    flex: 1 1 auto;
+    min-height: 0;
+    position: relative;
+}
+
+.roll__canvas,
+.roll__vel canvas {
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.roll__scroller {
+    position: absolute;
+    inset: 0;
+    overflow: auto;
+    outline: none;
+    touch-action: none;
+}
+
+.roll__scroller::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
+.roll__spacer {
+    pointer-events: none;
+}
+
+.roll__vel {
+    flex: none;
+    height: 66px;
+    position: relative;
+    border-top: 1px solid var(--line);
+    cursor: ns-resize;
+}
+
+.roll__vel canvas {
+    touch-action: none;
+}
+
+.roll-chip {
+    position: absolute;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    border: 1px dashed var(--line-strong);
+    background: var(--scrim-90);
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.roll-chip:hover {
+    border-color: var(--volt-30);
+    color: var(--text);
+}
+
+.roll-chip b {
+    color: var(--volt);
+}
+
+.roll-range {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 4px 4px 4px 10px;
+    background: var(--panel-2);
+    border: 1px solid var(--volt-30);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-pop);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.roll-range > i {
+    color: var(--volt);
+}
+
+.roll-range b {
+    font-family: var(--font-mono);
+    font-weight: 500;
+    margin-right: 0.2rem;
+}
+
+.roll-range .btn {
+    padding: 3px 9px;
+    font-size: var(--fs-xs);
+}
+
+.roll-range__x {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-mute);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.roll-range__x:hover {
+    background: var(--volt-08);
+    color: var(--text);
+}

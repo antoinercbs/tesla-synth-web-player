@@ -1,0 +1,135 @@
+// ===========================================================================
+//  SONG EDITOR
+// ===========================================================================
+// components/editor/SongEditor.vue
+
+.editor-meta__editor {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.editor-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-height: 2.35rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 1rem;
+    padding: 0.3rem 0.3rem 0.3rem 0.3rem;
+    width: 100%;
+    outline: none;
+    transition: 0.15s;
+}
+
+.editor-tags__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.editor-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    padding: 0.15rem 0.2rem 0.15rem 0.6rem;
+    border-radius: var(--radius-xs);
+    color: var(--tag-c);
+    background-color: color-mix(in srgb, var(--tag-c) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tag-c) 30%, transparent);
+}
+
+.tag-rm {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    padding: 0.2rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    transition: 0.15s;
+}
+
+.tag-rm:hover {
+    opacity: 1;
+}
+
+.editor-tags__add {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    border-radius: var(--radius-xs);
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: 0.15s;
+    font-size: var(--fs-xs);
+    padding: 0.15rem 0.2rem 0.15rem 0.2rem;
+}
+
+.editor-tags__add:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+    background: color-mix(in srgb, var(--volt) 10%, transparent);
+}
+
+.editor-tags__empty {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    font-style: italic;
+}
+
+.tag-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag-dropdown-name {
+    white-space: nowrap;
+}
+
+.editor-tags .midi-lib__dropdown-menu {
+    right: auto;
+    left: 0;
+
+    max-width: 250px;
+}
+
+.editor-tags .midi-lib__dropdown-menu::before {
+    left: 0;
+    right: 0;
+}
+
+@media (max-width: 600px) {
+    .midi-field {
+        flex-wrap: wrap;
+    }
+
+    .midi-field .combo,
+    .midi-field > *:first-child {
+        flex: 1 1 calc(100% - 6.5rem);
+        min-width: 160px;
+    }
+
+    .midi-field > *:last-child {
+        display: none;
+    }
+
+    .field-btn {
+        flex: 0 0 auto;
+    }
+}

@@ -1,0 +1,131 @@
+// ===========================================================================
+//  SEGMENTED CONTROLS
+// ===========================================================================
+// A choice between a few options, and the content tabs (ui/SegmentedControl.vue).
+// A skin restyles them through these tokens (unset, the lab look below):
+//   --seg-bg --seg-border --seg-radius --seg-item-radius
+//   --seg-color --seg-active-bg --seg-active-color --tab-active-color
+
+// segmented control (coil count)
+.segmented {
+    display: inline-flex;
+    background: var(--seg-bg, var(--bg-2));
+    border: var(--border-w) solid var(--seg-border, var(--line));
+    border-radius: var(--seg-radius, var(--radius-sm));
+    padding: 3px;
+    gap: 3px;
+}
+
+.segmented button {
+    border: 0;
+    background: transparent;
+    color: var(--seg-color, var(--text-dim));
+    cursor: pointer;
+    font-family: var(--font-body);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--seg-item-radius, var(--radius-sm));
+    transition: 0.13s;
+    min-width: fit-content;
+}
+
+.segmented button:hover {
+    color: var(--text);
+}
+
+// tinted, not filled: the one solid accent on a screen is its primary button
+.segmented button.is-active {
+    color: var(--seg-active-color, var(--text-strong));
+    background: var(--seg-active-bg, var(--volt-16));
+    font-weight: 600;
+}
+
+.segmented button:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+}
+
+.segmented--fill {
+    display: flex;
+    width: 100%;
+}
+
+.segmented--fill button {
+    flex: 1;
+}
+
+// content tabs (switch what is shown, not a mode or a value): underlined, and
+// the active one carries the micro-arc in the logo's gradient
+.segmented.segmented--tabs {
+    position: relative;
+    background: none;
+    border: 0;
+    border-bottom: var(--border-w) solid var(--line);
+    border-radius: 0;
+    padding: 0;
+    gap: 1.25rem;
+}
+
+.segmented--tabs button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.1rem 0.7rem;
+    border-radius: 0;
+    background: none;
+}
+
+.segmented--tabs button .icon {
+    width: auto;
+    height: auto;
+    font-size: var(--fs-sm);
+}
+
+.segmented--tabs button.is-active {
+    background: none;
+    color: var(--tab-active-color, var(--text-strong));
+}
+
+// the active tab's micro-arc: a single element sliding between tabs (SegmentedControl places it)
+.segmented__arc {
+    position: absolute;
+    left: 0;
+    bottom: -4px;
+    height: 7px;
+    margin-left: -2px;
+    padding: 0 2px;
+    box-sizing: content-box;
+    background: linear-gradient(90deg, var(--arc-mid), var(--arc-core) 50%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc) center / 100% 100% no-repeat;
+    mask: var(--micro-arc) center / 100% 100% no-repeat;
+    pointer-events: none;
+}
+
+.segmented__arc.is-ready {
+    transition:
+        transform 0.18s ease,
+        width 0.18s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .segmented__arc.is-ready {
+        transition: none;
+    }
+}
+
+// play-screen mode switch (Playback / Live / Fixed) — icon + label segments
+.mode-switch button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-md);
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.mode-switch button .icon {
+    font-size: var(--fs-md);
+}

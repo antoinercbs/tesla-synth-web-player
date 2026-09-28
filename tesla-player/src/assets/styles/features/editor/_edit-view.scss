@@ -1,0 +1,165 @@
+// ===========================================================================
+//  EDIT VIEW
+// ===========================================================================
+// The song editor beside its docked player.
+
+// align-items:flex-start so the editor column height is NOT coupled to the dock
+// (a tall dock must not inflate the editor and float the footer mid-pane).
+// flex: 1 0 auto → grows to fill when the editor is short (footer stays pinned),
+// but takes its content height when tall, giving the sticky dock a real range so
+// the player stays put while the editor scrolls.
+// no top padding here: the dock's natural top then sits at/above its sticky
+// threshold, so it stays clamped (no downward jump at the very top of scroll).
+.edit-body {
+    display: flex;
+    flex: 1 0 auto;
+    align-items: flex-start;
+    padding: 0 2rem 0;
+}
+
+// the editor column explicitly stretches to full height; right edge = divider
+.edit-body__editor {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+
+.edit-body__editor .editor {
+    flex: 1;
+    min-height: 0;
+}
+
+// the embedded player is a visually distinct, sticky "bench" docked to the side
+.edit-body__dock {
+    // width is set inline (drag-resizable via the divider); these are fallbacks.
+    flex: 0 0 400px;
+    width: 400px;
+    align-self: flex-start;
+    position: sticky;
+    top: 5rem;
+    // fill the viewport beside the (scrolling) editor; leave a small bottom gap so
+    // the player bottom lines up with the sticky save button.
+    height: calc(100vh - 5rem - 1.4rem);
+    display: flex;
+    flex-direction: column;
+}
+
+// the draggable divider rides with the sticky dock (stays fixed while the editor scrolls)
+.edit-body__split {
+    position: sticky;
+    top: 5rem;
+    height: calc(100vh - 5rem - 1.4rem);
+    align-self: flex-start;
+}
+
+.edit-body__dock .player-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+// the docked player is narrow (360px): trim the top legend + transport a touch
+.edit-body__dock .player-transport {
+    gap: 0.4rem;
+    padding: 0.4rem 0.8rem 0.8rem;
+}
+
+.edit-body__dock .player-transport .btn {
+    padding: 0.45rem 0.7rem;
+    font-size: var(--fs-sm);
+    min-width: 3.4rem;
+}
+
+.edit-body__dock .player-coils {
+    gap: 0.35rem;
+}
+
+.edit-body__dock .player-coil {
+    padding: 0.22rem 0.45rem;
+    gap: 0.35rem;
+}
+
+.edit-body__dock .player-coil__chip {
+    font-size: 0.72rem;
+}
+
+.edit-body__dock .player-coil__readout {
+    font-size: var(--fs-xs);
+}
+
+.edit-body__dock .player-coil__readout i {
+    font-size: 0.62rem;
+}
+
+// sticky action bar pinned to the bottom of the viewport while editing
+.editor-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    display: flex;
+    gap: 0.7rem;
+    align-items: center;
+    justify-content: flex-end;
+    margin-top: -1.4rem;
+    padding: 1.4rem 0;
+    background: var(--scrim-72);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+// delete left, save stays right
+.editor-footer__delete {
+    margin-right: auto;
+}
+
+// Below this width the side dock would crush the editor: stack it underneath.
+@media (max-width: 1100px) {
+    // Switch to standard block layout to break the flex collapsing chain
+    .edit-body {
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 1.4rem;
+    }
+
+    // Normal flow block naturally wraps its content height
+    .edit-body__editor {
+        display: block;
+        padding-right: 0;
+        height: auto;
+        overflow-y: visible;
+    }
+
+    .edit-body__dock {
+        position: static;
+        display: block;
+        width: 100% !important;
+        height: auto;
+        padding-left: 0;
+        margin-top: 0;
+    }
+
+    .edit-body__split {
+        display: none !important;
+    }
+
+    .editor-footer {
+        bottom: -1px;
+        padding: 1rem 0;
+        background: var(--scrim-72);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+    }
+
+    .editor-meta {
+        grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 1000px) {
+    .edit-body {
+        padding: 0 0.5rem 0.5rem;
+    }
+}

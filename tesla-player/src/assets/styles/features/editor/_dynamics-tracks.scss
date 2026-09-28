@@ -1,0 +1,133 @@
+// ===========================================================================
+//  DYNAMICS TRACKS
+// ===========================================================================
+// components/editor/DynamicsTracks.vue
+
+.dyn-tracks {
+    display: flex;
+    border-radius: var(--radius);
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    overflow: hidden;
+}
+
+.dyn-tracks__rail {
+    flex: 0 0 6.5rem;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+}
+
+.dyn-tracks__rail-notes {
+    display: grid;
+    place-items: center;
+    color: var(--text-mute);
+    font-size: 0.8rem;
+    padding-top: 18px;
+}
+
+.dyn-tracks__rail-lane {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 0.6rem;
+    border-top: 1px solid var(--line);
+    border-left: 3px solid var(--c);
+}
+
+.dyn-tracks__rail-label {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--c);
+}
+
+.dyn-tracks__rail-sub {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.dyn-tracks__scroll {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.dyn-tracks__svg {
+    display: block;
+    user-select: none;
+    touch-action: none;
+    cursor: copy;
+}
+
+.dyn-tracks__svg text {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+}
+
+.dyn-tracks__grid {
+    stroke: var(--line-005);
+}
+
+.dyn-tracks__grid.is-bar {
+    stroke: var(--line-018);
+}
+
+.dyn-tracks__ruler {
+    fill: var(--panel);
+    cursor: pointer;
+}
+
+.dyn-tracks__ruler-label {
+    fill: var(--text-mute);
+    pointer-events: none;
+}
+
+.dyn-tracks__note {
+    fill: var(--text-dim);
+    opacity: 0.3;
+}
+
+.dyn-tracks__lane-sep {
+    stroke: var(--line);
+}
+
+.dyn-tracks__nominal {
+    stroke: var(--amber);
+    stroke-dasharray: 4 4;
+    stroke-opacity: 0.45;
+}
+
+.dyn-tracks__area {
+    fill-opacity: 0.1;
+    pointer-events: none;
+}
+
+.dyn-tracks__line {
+    fill: none;
+    stroke-width: 2;
+    pointer-events: none;
+}
+
+.dyn-tracks__point {
+    cursor: grab;
+}
+
+.dyn-tracks__point circle:first-child {
+    fill: var(--panel);
+    stroke-width: 2;
+}
+
+.dyn-tracks__point.is-selected circle:first-child {
+    stroke-width: 3;
+}
+
+.dyn-tracks__hit {
+    fill: transparent;
+}
+
+.dyn-tracks__cursor {
+    stroke: var(--danger);
+    stroke-width: 1.5;
+    opacity: 0.8;
+    pointer-events: none;
+}

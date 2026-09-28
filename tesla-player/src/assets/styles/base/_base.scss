@@ -14,7 +14,7 @@ body {
         ),
         radial-gradient(
             900px 520px at -10% 115%,
-            rgba(177, 92, 255, 0.09),
+            rgb(var(--backdrop-glow-rgb) / 0.09),
             transparent 55%
         ),
         var(--bg);
@@ -36,7 +36,7 @@ body {
 }
 ::-webkit-scrollbar-thumb {
     background: var(--line-022);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     border: 2px solid transparent;
     background-clip: padding-box;
 }

@@ -1,0 +1,63 @@
+// ===========================================================================
+//  SWITCH
+// ===========================================================================
+// An on/off toggle: a hidden checkbox and its track. A skin restyles it through
+// these tokens (unset, the lab look below):
+//   --switch-bg --switch-border --switch-knob --switch-on-bg --switch-on-knob
+
+.switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.switch input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.switch__track {
+    position: relative;
+    flex: 0 0 auto;
+    width: 2.2rem;
+    height: 1.2rem;
+    border-radius: var(--radius-pill);
+    background: var(--switch-bg, var(--bg-2));
+    border: var(--border-w) solid var(--switch-border, var(--line-strong));
+    transition: var(--dur-fast);
+}
+
+.switch__track::after {
+    content: "";
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    width: calc(1.2rem - 4px);
+    height: calc(1.2rem - 4px);
+    border-radius: 50%;
+    background: var(--switch-knob, var(--text-mute));
+    transition: var(--dur-fast);
+}
+
+.switch input:checked + .switch__track {
+    background: var(--switch-on-bg, var(--grad));
+    border-color: transparent;
+}
+
+.switch input:checked + .switch__track::after {
+    transform: translateX(1rem);
+    background: var(--switch-on-knob, var(--on-grad));
+}
+
+.switch input:focus-visible + .switch__track {
+    box-shadow: var(--focus-ring-strong);
+}
+
+.switch__text {
+    font-size: var(--fs-md);
+    color: var(--text-dim);
+}

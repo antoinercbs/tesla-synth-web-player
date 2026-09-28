@@ -1,0 +1,116 @@
+// ===========================================================================
+//  GENERAL CONFIG MODAL
+// ===========================================================================
+// components/settings/GeneralConfigModal.vue
+
+.cfg-modal__body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.3rem;
+    overflow-y: auto;
+}
+
+.cfg-field {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+}
+
+.cfg-modal .field-label {
+    align-self: flex-start;
+    text-align: left;
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+.cfg-names {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cfg-name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+// coil identity = a short vertical bar (its VU column), as in the sidebar
+// the row's only: the song editor's tag menu writes the class too, unstyled
+.cfg-name-row .cfg-name-dot {
+    width: 4px;
+    height: 12px;
+    border-radius: var(--radius-2xs);
+    flex: 0 0 auto;
+    background: var(--c);
+}
+
+.cfg-name-idx {
+    font-family: var(--font-mono);
+    color: var(--text-mute);
+    width: 1rem;
+    text-align: center;
+    flex: 0 0 auto;
+}
+
+.cfg-name-row .text-field {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.cfg-empty-tags {
+    font-size: var(--fs-md);
+    color: var(--text-mute);
+    font-style: italic;
+    padding: 0.2rem 0;
+}
+
+.cfg-add-tag {
+    align-self: flex-start;
+    margin-top: 0.2rem;
+    margin-bottom: 1px;
+    font-size: var(--fs-sm);
+    padding: 0.4rem 0.6rem;
+}
+
+.cfg-tag-del {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: var(--radius-xs);
+    transition: 0.15s;
+    font-size: var(--fs-lg);
+}
+
+.cfg-tag-del:hover {
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.12);
+}
+
+.cfg-tag-color {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    flex: 0 0 auto;
+}
+
+.cfg-tag-color::-webkit-color-swatch-wrapper {
+    padding: 0;
+}
+
+.cfg-tag-color::-webkit-color-swatch {
+    border: none;
+    border-radius: 50%;
+    box-shadow: var(--ring-inset) rgb(var(--hi-rgb) / 0.2);
+}

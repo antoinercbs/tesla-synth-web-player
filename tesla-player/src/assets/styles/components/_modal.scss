@@ -1,0 +1,98 @@
+// ===========================================================================
+//  MODALS
+// ===========================================================================
+// The shared modal shell markup lives in components/ui/BaseModal.vue, Teleported
+// to <body>; the card variants (its card-class) set their widths here. A skin
+// restyles them through these tokens (unset, the lab look below):
+//   --modal-scrim --modal-bg --modal-border --modal-radius --modal-shadow
+//   --modal-title-font --modal-title-color
+
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: grid;
+    place-items: center;
+    padding: 2rem;
+    background: var(--modal-scrim, var(--scrim-72));
+    backdrop-filter: blur(4px);
+}
+
+.modal-card {
+    width: 100%;
+    max-width: 560px;
+    max-height: 80vh;
+    background: var(--modal-bg, var(--panel-2));
+    border: var(--border-w) solid var(--modal-border, var(--line-strong));
+    border-radius: var(--modal-radius, var(--radius-lg));
+    padding: 1.4rem 1.5rem;
+    box-shadow: var(--modal-shadow, var(--shadow-modal));
+}
+
+.modal-card__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.1rem;
+}
+
+.modal-card__title {
+    font-family: var(--modal-title-font, var(--font-display));
+    font-weight: 700;
+    font-size: var(--fs-xl);
+    color: var(--modal-title-color, inherit);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.modal-card__title .icon {
+    color: var(--volt);
+}
+
+.modal-card__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+}
+
+// the card variants
+.modal-card--confirm {
+    max-width: 440px;
+}
+
+.modal-card--confirm .modal-card__title .icon {
+    color: var(--danger);
+}
+
+.confirm-modal__msg {
+    color: var(--text-dim);
+    margin: 0 0 1.4rem;
+    line-height: 1.5;
+}
+
+.srv-modal {
+    max-width: 460px;
+    width: 100%;
+}
+
+.cfg-modal {
+    max-width: 460px;
+    width: 100%;
+}
+
+.dl-modal {
+    max-width: 440px;
+    width: 100%;
+}
+
+.welcome-modal {
+    max-width: 440px;
+    width: 100%;
+}
+
+.sync-modal {
+    max-width: 640px;
+    width: 100%;
+}

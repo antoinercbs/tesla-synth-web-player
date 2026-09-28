@@ -1,0 +1,171 @@
+// ===========================================================================
+//  SELECTION BAR
+// ===========================================================================
+// components/midi-editor/SelectionBar.vue
+
+.me-selbar {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.6rem;
+    padding: 0.45rem 0.6rem 0.45rem 0.9rem;
+    background: var(--volt-08);
+}
+
+.me-selbar .btn {
+    padding: 0.3rem 0.7rem;
+    font-size: var(--fs-sm);
+}
+
+.me-selbar__count {
+    font-weight: 600;
+    font-size: var(--fs-md);
+    white-space: nowrap;
+}
+
+.me-selbar__count small {
+    margin-left: 0.4rem;
+    color: var(--text-mute);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+}
+
+.me-sep {
+    width: 1px;
+    height: 22px;
+    background: var(--line-strong);
+}
+
+.me-selbar__field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+.me-selbar__field select {
+    font-size: var(--fs-sm);
+    padding: 0.3rem 1.8rem 0.3rem 0.55rem;
+    max-width: 12rem;
+}
+
+.me-stepper {
+    display: inline-flex;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 2px;
+    gap: 2px;
+}
+
+.me-stepper button {
+    border: 0;
+    background: transparent;
+    padding: 0.2rem 0.5rem;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+}
+
+.me-stepper button:hover {
+    background: var(--panel-2);
+    color: var(--text-bright);
+}
+
+.me-selbar__vel {
+    position: relative;
+}
+
+.me-velpop {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    z-index: 20;
+    width: 18rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-pop);
+    padding: 0.65rem 0.75rem 0.4rem;
+}
+
+.me-velpop__line {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.45rem;
+    padding: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+.me-velpop__line > span {
+    width: 4rem;
+}
+
+.me-velpop .btn {
+    padding: 0.2rem 0.6rem;
+    font-size: var(--fs-xs);
+}
+
+.me-velpop__hint {
+    margin: 0.2rem 0 0.2rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    line-height: 1.45;
+}
+
+.me-selbar__spacer {
+    flex: 1;
+}
+
+.me-ibtn {
+    height: 29px;
+    min-width: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line-strong);
+    background: var(--panel-2);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: inline-grid;
+    place-items: center;
+}
+
+.me-ibtn:hover:not(:disabled) {
+    color: var(--text-bright);
+}
+
+.me-ibtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.me-ibtn--danger:hover:not(:disabled) {
+    color: var(--danger-text);
+    background: rgb(var(--danger-rgb) / 0.1);
+    border-color: rgb(var(--danger-rgb) / 0.35);
+}
+
+.me-x {
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-mute);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+}
+
+.me-x:hover {
+    background: var(--panel-2);
+    color: var(--text);
+}

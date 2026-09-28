@@ -115,7 +115,7 @@ onBeforeUnmount(() => {
   </div>
 
   <!-- editor -->
-  <div v-else class="screen">
+  <div v-else class="screen pl-screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}<page-tour-button id="playlists" /></h1>
       <RouterLink class="icon-btn" :to="{ name: 'playlists', params: {} }" :title="$t('label.closeEditor')"
@@ -128,16 +128,3 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-@media (max-width: 1000px) {
-
-  .screen,
-  .screen-body--fill {
-    height: auto;
-    flex: none;
-    overflow: visible;
-    padding-bottom: 0;
-  }
-}
-</style>

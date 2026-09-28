@@ -153,9 +153,11 @@ function draw(now: number): void {
   }
   const ctx = c.getContext('2d')!;
   ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const css = getComputedStyle(c);
+  const zone = css.getPropertyValue('--zone-rgb').trim(), danger = css.getPropertyValue('--danger').trim();
   if (view.step === 'intro') {
     // the camera is not started yet
-    ctx.fillStyle = '#000';
+    ctx.fillStyle = css.getPropertyValue('--cam-bg');
     ctx.fillRect(0, 0, c.width, c.height);
     return;
   }
@@ -178,7 +180,7 @@ function draw(now: number): void {
     arcs.forEach((a) => line(ctx, a));
     ctx.shadowBlur = 0;
     // what the meter keeps, in the page's green
-    ctx.strokeStyle = 'rgba(70, 255, 120, 0.8)';
+    ctx.strokeStyle = `rgb(${css.getPropertyValue('--mask-rgb')} / 0.8)`;
     ctx.lineWidth = 1.6 * px;
     arcs.forEach((a) => line(ctx, a));
   } else arcs = [];
@@ -187,7 +189,7 @@ function draw(now: number): void {
   const { radius: R, dirDeg, floorBelow } = view.zone;
   const dir = (dirDeg * Math.PI) / 180;
   const floor = B.y + floorBelow;
-  ctx.strokeStyle = 'rgba(255, 190, 60, 0.9)';
+  ctx.strokeStyle = `rgb(${zone} / 0.9)`;
   ctx.lineWidth = 1.2 * px;
   ctx.beginPath();
   ctx.arc(B.x, B.y, R, dir - Math.PI / 2, dir + Math.PI / 2);
@@ -199,16 +201,16 @@ function draw(now: number): void {
   ctx.lineTo(B.x + R, floor);
   ctx.stroke();
   ctx.setLineDash([]);
-  ctx.fillStyle = 'rgba(255, 190, 60, 0.15)';
+  ctx.fillStyle = `rgb(${zone} / 0.15)`;
   ctx.fillRect(B.x - R, floor, 2 * R, Math.max(0, B.y + R - floor));
-  ctx.fillStyle = '#ff4d62';
+  ctx.fillStyle = danger;
   ctx.beginPath();
   ctx.arc(B.x, B.y, 3.5 * px, 0, Math.PI * 2);
   ctx.fill();
   const reach = (p: Pt): number => Math.hypot(p.x - B.x, p.y - B.y);
   const tip = arcs.flat().reduce<Pt | null>((far, p) => (!far || reach(p) > reach(far) ? p : far), null);
   if (tip) {
-    ctx.strokeStyle = '#ff4d62';
+    ctx.strokeStyle = danger;
     ctx.lineWidth = 1.5 * px;
     line(ctx, [B, tip]);
   }
@@ -357,428 +359,3 @@ onBeforeUnmount(() => {
     </div>
   </aside>
 </template>
-
-<style scoped>
-/* sized to the screen; everything inside scales with it (em on a width-based font) */
-.fphone {
-  position: fixed;
-  width: min(20rem, 22vw, calc((100vh - 4rem) * 0.55));
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  visibility: hidden;
-  container-type: inline-size;
-  cursor: grab;
-  touch-action: none;
-  user-select: none;
-}
-
-.fphone.is-placed {
-  visibility: visible;
-}
-
-.fphone.is-dragging {
-  cursor: grabbing;
-}
-
-@media (max-width: 1100px), (max-height: 560px) {
-  .fphone {
-    display: none;
-  }
-}
-
-.fphone button {
-  cursor: pointer;
-}
-
-.fphone__caption {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-size: var(--fs-xs);
-  color: var(--text-dim);
-}
-
-.fphone__grip {
-  margin-left: auto;
-  opacity: 0.7;
-}
-
-.fphone__device {
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border: 0.45em solid #1c212b;
-  border-radius: 2.2em;
-  background: var(--bg);
-  box-shadow: 0 0 0 1px #3a414d, 0 1.5em 3.5em rgb(0 0 0 / 0.6);
-  font-size: 4.2cqw;
-  color: var(--text);
-}
-
-.fphone__head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5em;
-  padding: 0.9em 1em 0.5em;
-  background: #000;
-  font-family: var(--font-display);
-  font-size: 0.85em;
-  color: var(--text-dim);
-}
-
-.fphone__title {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45em;
-  white-space: nowrap;
-}
-
-.fphone__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  color: #3ddc97;
-}
-
-.fphone__link::before {
-  content: "";
-  width: 0.55em;
-  height: 0.55em;
-  border-radius: 50%;
-  background: #3ddc97;
-}
-
-.fphone__stage {
-  position: relative;
-  background: #000;
-}
-
-.fphone__canvas {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-}
-
-/* the breakout, where a finger taps the picture */
-.fphone__spot {
-  position: absolute;
-  width: 2.4em;
-  height: 2.4em;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  transform: translate(-50%, -50%);
-}
-
-.fphone__tapme {
-  position: absolute;
-  left: 50%;
-  bottom: 0.6em;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45em;
-  width: max-content;
-  max-width: calc(100% - 1.5em);
-  padding: 0.35em 0.8em;
-  border: 1px solid var(--volt);
-  border-radius: 999px;
-  background: rgb(8 17 26 / 0.86);
-  font-size: 0.85em;
-  pointer-events: none;
-}
-
-.fphone__gate {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8em;
-  padding: 1em;
-  background: rgb(0 0 0 / 0.75);
-  text-align: center;
-  font-size: 0.85em;
-}
-
-.fphone__gate p {
-  margin: 0;
-}
-
-.fphone__panel {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6em;
-  padding: 0.8em;
-  border-top: 1px solid rgb(var(--line-rgb) / 0.15);
-}
-
-.fphone__hint {
-  margin: 0;
-  color: var(--text-dim);
-  font-size: 0.9em;
-}
-
-.fphone__stepline {
-  display: flex;
-  gap: 0.6em;
-  margin: 0;
-  font-size: 0.85em;
-  line-height: 1.35;
-}
-
-.fphone__stepn {
-  flex: none;
-  display: grid;
-  place-items: center;
-  width: 1.6em;
-  height: 1.6em;
-  border-radius: 50%;
-  background: var(--volt);
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.fphone__sliders {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45em;
-}
-
-.fphone__sliders.is-idle {
-  opacity: 0.45;
-}
-
-.fphone__slider {
-  display: grid;
-  grid-template-columns: 8.2em 1fr 3em;
-  align-items: center;
-  gap: 0.6em;
-  font-size: 0.85em;
-}
-
-.fphone__slider-label {
-  color: var(--text-dim);
-}
-
-.fphone__track {
-  position: relative;
-  height: 0.3em;
-  border-radius: 999px;
-  background: rgb(var(--line-rgb) / 0.25);
-}
-
-.fphone__thumb {
-  position: absolute;
-  top: 50%;
-  width: 1.1em;
-  height: 1.1em;
-  border-radius: 50%;
-  background: var(--volt);
-  transform: translate(-50%, -50%);
-}
-
-/* where the demo's finger slides the thumb to */
-.fphone__hit {
-  position: absolute;
-  top: 50%;
-  width: 1.6em;
-  height: 1.6em;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  transform: translate(-50%, -50%);
-}
-
-.fphone__slider-val {
-  font-family: var(--font-mono);
-  font-weight: 500;
-  text-align: right;
-}
-
-.fphone__trial {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4em;
-  padding: 0.6em 0.7em;
-  border: 1px solid rgb(var(--line-rgb) / 0.18);
-  border-radius: 0.8em;
-  background: #0c111a;
-}
-
-.fphone__trial.is-best {
-  border-color: #3ddc97;
-}
-
-.fphone__trial-head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.6em;
-}
-
-.fphone__trial-n {
-  font-family: var(--font-display);
-  color: var(--text-dim);
-}
-
-.fphone__trial-tap {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.25em;
-  color: var(--volt);
-}
-
-.fphone__bg {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45em;
-  color: var(--text-dim);
-  font-size: 0.85em;
-}
-
-.fphone__notes {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25em;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.fphone__note {
-  display: grid;
-  grid-template-columns: 3em 1fr;
-  align-items: center;
-  gap: 0.5em;
-}
-
-.fphone__note-name {
-  font-family: var(--font-mono);
-  font-weight: 600;
-  color: var(--text-dim);
-}
-
-.fphone__note.is-measuring .fphone__note-name {
-  color: var(--volt);
-}
-
-.fphone__note.is-done .fphone__note-name {
-  color: var(--text);
-}
-
-.fphone__bar {
-  display: block;
-  height: 0.5em;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgb(var(--volt-rgb) / 0.15);
-}
-
-.fphone__bar i {
-  display: block;
-  height: 100%;
-  background: var(--volt);
-  transition: width 0.25s linear;
-}
-
-.fphone__note-val {
-  font-family: var(--font-mono);
-}
-
-.fphone__note-val.is-dim {
-  color: var(--text-dim);
-}
-
-.fphone__result {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5em;
-}
-
-.fphone__result b {
-  font-family: var(--font-display);
-  font-size: 1.45em;
-}
-
-.fphone__tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  color: var(--text-dim);
-}
-
-.fphone__tag.is-best,
-.fphone__tag.is-up {
-  color: #3ddc97;
-}
-
-.fphone__tag.is-down {
-  color: #ff4d62;
-}
-
-.fphone__readout {
-  display: flex;
-  align-items: baseline;
-  gap: 0.4em;
-  padding: 0.4em 0.7em;
-  border: 1px solid rgb(var(--line-rgb) / 0.15);
-  border-radius: 0.8em;
-}
-
-.fphone__readout.is-measuring {
-  border-color: var(--volt);
-}
-
-.fphone__value {
-  font-family: var(--font-display);
-  font-size: 2.3em;
-  line-height: 1;
-  color: var(--volt);
-  font-variant-numeric: tabular-nums;
-}
-
-.fphone__unit {
-  color: var(--text-dim);
-}
-
-.fphone__state {
-  margin-left: auto;
-  color: var(--text-dim);
-}
-
-.fphone__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5em;
-  padding: 0.7em;
-  border: 0;
-  border-radius: 0.8em;
-  font: inherit;
-  font-family: var(--font-display);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
-.fphone__btn:disabled {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.fphone__btn--volt {
-  background: var(--grad);
-  color: var(--on-grad);
-}
-
-.fphone__btn--danger {
-  background: #ff4d62;
-  color: #fff;
-  font-size: 1.2em;
-}
-</style>

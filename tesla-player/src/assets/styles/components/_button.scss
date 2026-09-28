@@ -1,0 +1,116 @@
+// ===========================================================================
+//  BUTTONS
+// ===========================================================================
+// .btn and its variants, and the round .icon-btn. A skin restyles them through
+// these tokens (unset, the lab look in the var() fallbacks below):
+//   --btn-font --btn-size --btn-weight --btn-radius --btn-pad
+//   --btn-bg --btn-color --btn-border --btn-shadow
+//   --btn-hover-color --btn-hover-border
+//   --btn-primary-bg --btn-primary-color --btn-primary-shadow
+//   --btn-danger-bg --btn-danger-color
+//   --icon-btn-size --icon-btn-radius --icon-btn-bg --icon-btn-color --icon-btn-border
+
+.icon-btn {
+    width: var(--icon-btn-size, 2.4rem);
+    height: var(--icon-btn-size, 2.4rem);
+    border-radius: var(--icon-btn-radius, 50%);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    background: var(--icon-btn-bg, rgb(var(--hi-rgb) / 0.03));
+    border: var(--border-w) solid var(--icon-btn-border, var(--line-strong));
+    color: var(--icon-btn-color, var(--text-dim));
+    transition: var(--dur-fast);
+    flex-shrink: 0;
+}
+
+.icon-btn:hover {
+    color: var(--text-bright);
+    border-color: var(--danger);
+}
+
+// the compact one, in dense rows
+.icon-btn--sm {
+    --icon-btn-size: 1.8rem;
+    font-size: var(--fs-xs);
+}
+
+.btn {
+    font-family: var(--btn-font, var(--font-body));
+    font-size: var(--btn-size, var(--fs-md));
+    font-weight: var(--btn-weight, 600);
+    border-radius: var(--btn-radius, var(--radius));
+    padding: var(--btn-pad, 0.6rem 1.1rem);
+    border: var(--border-w) solid var(--btn-border, var(--line-strong));
+    background: var(--btn-bg, var(--panel-2));
+    color: var(--btn-color, var(--text));
+    box-shadow: var(--btn-shadow, none);
+    cursor: pointer;
+    transition: var(--dur-fast);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn:hover {
+    border-color: var(--btn-hover-border, var(--text-dim));
+    color: var(--btn-hover-color, var(--text-bright));
+}
+
+.btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn--volt {
+    background: var(--btn-primary-bg, var(--grad));
+    border-color: transparent;
+    color: var(--btn-primary-color, var(--on-grad));
+    box-shadow: var(--btn-primary-shadow, none);
+}
+
+.btn--volt:hover {
+    color: var(--btn-primary-color, var(--on-grad));
+    border-color: transparent;
+    filter: brightness(1.12);
+}
+
+.btn--ghost {
+    background: transparent;
+}
+
+// the compact one, in table rows and cards
+.btn--xs {
+    --btn-pad: 0.2rem 0.6rem;
+    --btn-size: var(--fs-xs);
+}
+
+.btn--danger {
+    background: var(--btn-danger-bg, var(--danger));
+    border-color: var(--btn-danger-bg, var(--danger));
+    color: var(--btn-danger-color, var(--text-bright));
+}
+
+.btn--danger:hover {
+    color: var(--btn-danger-color, var(--text-bright));
+    filter: brightness(1.04);
+}
+
+// destructive but secondary (delete, reboot): red text, no fill. The fill stays
+// for a screen's main action and for confirmation dialogs.
+.btn--danger-ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--danger-text);
+}
+
+.btn--danger-ghost:hover {
+    color: var(--danger-text-hover);
+    background: rgb(var(--danger-rgb) / 0.1);
+    border-color: rgb(var(--danger-rgb) / 0.35);
+}
+
+// transport Stop is a neutral button: the red lives on its icon
+.btn--stop:not(:disabled) .icon {
+    color: var(--danger-text);
+}

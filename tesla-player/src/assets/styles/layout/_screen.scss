@@ -1,0 +1,79 @@
+// ===========================================================================
+//  SCREENS
+// ===========================================================================
+// The scaffold of every page: a full-bleed sticky header over a padded body.
+
+// fills app-main; a full-bleed, transparent, sticky header + a padded body.
+.screen {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.screen-head {
+    position: sticky;
+    top: 0;
+    z-index: 11;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0;
+    padding: 0.9rem 2rem;
+    background-color: transparent;
+    transition: all ease 300ms;
+    pointer-events: none; // transparent zone lets clicks reach content
+    min-height: 5rem;
+}
+
+.screen-head > * {
+    pointer-events: auto;
+}
+
+// slightly opaque + blurred once the content scrolls beneath it (set by EditView)
+.screen-head.is-scrolled {
+    background-color: var(--scrim-45);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.screen-body {
+    padding: 0rem 2rem 1.4rem;
+}
+
+// variant: body fills the remaining viewport height so columns can stretch and
+// scroll internally (used by the Play screen so the player fills its column).
+.screen-body--fill {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+
+@media (max-width: 1000px) {
+    .app-main {
+        -ms-overflow-style: none !important;
+        scrollbar-width: none !important;
+    }
+
+    .app-main::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .screen-head {
+        padding: 0.8rem 1rem;
+        min-height: 4.6rem;
+    }
+
+    .screen-body {
+        padding: 0 0.5rem 0.5rem;
+    }
+
+    .screen,
+    .screen-body--fill {
+        height: auto;
+        flex: none;
+        overflow: visible;
+    }
+}

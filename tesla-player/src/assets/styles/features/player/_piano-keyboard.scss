@@ -1,0 +1,241 @@
+// ===========================================================================
+//  PIANO KEYBOARD
+// ===========================================================================
+// components/player/PianoKeyboard.vue
+
+.piano {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.piano__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem 1rem;
+    flex-wrap: wrap;
+}
+
+.piano__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: auto;
+}
+
+.piano__oct {
+    position: relative;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: var(--radius-sm);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    background: rgb(var(--hi-rgb) / 0.03);
+    border: 1px solid var(--line-strong);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    transition: 0.13s;
+}
+
+.piano__oct:hover:not(:disabled) {
+    color: var(--volt);
+    border-color: var(--volt);
+}
+
+.piano__oct:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.piano__oct:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+}
+
+// "n notes held beyond this edge" badge
+.piano__off {
+    position: absolute;
+    top: -0.45rem;
+    right: -0.45rem;
+    min-width: 1.05rem;
+    height: 1.05rem;
+    padding: 0 0.25rem;
+    border-radius: var(--radius-pill);
+    display: grid;
+    place-items: center;
+    background: var(--volt);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 700;
+}
+
+.piano__range {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    min-width: 5.6rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.piano__body {
+    position: relative;
+}
+
+// the keybed: a dark chassis with the keys inset
+.piano__keys {
+    position: relative;
+    display: flex;
+    height: clamp(130px, 24vh, 210px);
+    padding: 0 0 5px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: linear-gradient(180deg, var(--bg), var(--bg-2));
+    border: 1px solid var(--line-strong);
+    box-shadow: var(--shadow-well);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.piano__keys.is-interactive {
+    touch-action: none;
+}
+
+.pkey {
+    position: relative;
+    box-sizing: border-box;
+    transition:
+        background 0.06s ease-out,
+        box-shadow 0.12s ease-out;
+}
+
+// light grey, not white: the keybed mustn't be the brightest thing on screen
+.pkey--white {
+    flex: 1 1 0;
+    min-width: 0;
+    background: var(--key-white);
+    border-right: 1px solid rgb(var(--ink-rgb) / 0.7);
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+    box-shadow: var(--shadow-key);
+}
+
+.pkey--white:last-child {
+    border-right: 0;
+}
+
+// the interface's night blue
+.pkey--black {
+    position: absolute;
+    top: 0;
+    height: 62%;
+    z-index: 2;
+    background: var(--key-black);
+    border: 1px solid rgb(var(--ink-rgb) / 0.95);
+    border-top: 0;
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+    box-shadow: var(--shadow-key-black);
+}
+
+// lit = a wash of the coil colour(s) driving the note, the full colour as a rim at the foot.
+
+// --k may be a stripe gradient (several coils), hence layers rather than color-mix().
+.pkey.is-on {
+    background:
+        linear-gradient(
+            180deg,
+            rgb(var(--key-glow-rgb) / 0.45),
+            rgb(var(--key-glow-rgb) / 0.15)
+        ),
+        var(--k, var(--volt));
+    box-shadow: none;
+}
+
+.pkey--black.is-on {
+    background:
+        linear-gradient(180deg, rgb(var(--bg-rgb) / 0.3), rgb(var(--bg-rgb) / 0.1)),
+        var(--k, var(--volt));
+    box-shadow: var(--shadow-key-down);
+}
+
+.pkey.is-on::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 5px;
+    border-radius: 0 0 var(--radius-xs) var(--radius-xs);
+    background: var(--k, var(--volt));
+}
+
+// only a playable keyboard invites the hand
+.piano__keys.is-interactive .pkey {
+    cursor: pointer;
+}
+
+@media (hover: hover) {
+    .piano__keys.is-interactive .pkey--white:not(.is-on):hover {
+        background: var(--key-white-hover);
+    }
+
+    .piano__keys.is-interactive .pkey--black:not(.is-on):hover {
+        background: var(--key-black-hover);
+    }
+}
+
+// C labels at the foot of the white keys
+.pkey__name {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.45rem;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    color: rgb(var(--ink-rgb) / 0.36);
+    pointer-events: none;
+}
+
+.pkey.is-on .pkey__name {
+    color: var(--ink);
+}
+
+// computer-keyboard key caps
+.pkey__kb {
+    position: absolute;
+    left: 50%;
+    bottom: 1.45rem;
+    transform: translateX(-50%);
+    padding: 0 0.24rem;
+    border-radius: var(--radius-xs);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: rgb(var(--ink-rgb) / 0.5);
+    border: 1px solid rgb(var(--ink-rgb) / 0.28);
+    pointer-events: none;
+}
+
+.pkey--black .pkey__kb {
+    bottom: 0.45rem;
+    color: rgb(var(--text-rgb) / 0.6);
+    border-color: rgb(var(--text-rgb) / 0.28);
+}
+
+.pkey.is-on .pkey__kb {
+    color: var(--ink);
+    border-color: rgb(var(--ink-rgb) / 0.4);
+}
+
+// narrow keys: drop the key caps, then the C names
+.piano__keys.is-dense .pkey__kb {
+    display: none;
+}
+
+.piano__keys.is-tiny .pkey__name {
+    display: none;
+}

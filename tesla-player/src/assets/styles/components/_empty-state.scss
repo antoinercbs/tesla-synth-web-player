@@ -1,0 +1,41 @@
+// ===========================================================================
+//  EMPTY STATES
+// ===========================================================================
+// ui/EmptyState.vue: the inline hint strip (also written by hand where a hint
+// sits in a bar) and the centred stub filling an empty panel. A skin restyles
+// them through these tokens (unset, the lab look below):
+//   --hint-bg --hint-color --hint-radius --empty-color --empty-icon-color
+
+.player-hint {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.5rem 1rem 0.7rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--hint-radius, var(--radius-md));
+    background: var(--hint-bg, var(--volt-08));
+    color: var(--hint-color, var(--text-dim));
+    font-size: var(--fs-sm);
+}
+
+.player-hint .icon {
+    color: var(--volt);
+}
+
+.empty-stub {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    color: var(--empty-color, var(--text-mute));
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-stub__icon {
+    font-size: 2rem;
+    color: var(--empty-icon-color, var(--volt));
+    opacity: 0.5;
+}

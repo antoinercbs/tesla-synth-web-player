@@ -61,7 +61,7 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
     <div class="hist-toolbar">
       <segmented-control v-model="coilFilter" pressed :options="coilOptions" :aria-label="t('tune.coil')" />
       <input class="text-field hist-search" type="search" v-model="search" :placeholder="t('tune.hist.search')" />
-      <span class="dim mono">{{ t('tune.hist.count', { n: filtered.length }) }}</span>
+      <span class="hist-dim mono">{{ t('tune.hist.count', { n: filtered.length }) }}</span>
       <span v-if="loading" class="arc-loader" role="status" :aria-label="t('label.loading')"></span>
     </div>
 
@@ -84,9 +84,9 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
           <template v-for="it in filtered" :key="it.id">
             <tr class="hist-row" :class="{ 'is-open': openId === it.id }" @click="toggle(it)">
               <td class="mono nowrap">{{ date(it.createdAt) }}</td>
-              <td class="nowrap"><span class="coil-dot" :style="{ '--c': coilColor(it.coilIndex) }"></span>{{ coilLabel(it) }}</td>
+              <td class="nowrap"><span class="hist-coil-dot" :style="{ '--c': coilColor(it.coilIndex) }"></span>{{ coilLabel(it) }}</td>
               <td class="hist-place">{{ it.location || (it.lat != null ? `${it.lat.toFixed(4)}, ${it.lon?.toFixed(4)}` : '—') }}</td>
-              <td class="num mono strong">{{ formatTurns(it.tapTurns, it.tapStep ?? 0.125) }} tr</td>
+              <td class="num mono hist-strong">{{ formatTurns(it.tapTurns, it.tapStep ?? 0.125) }} tr</td>
               <td class="num mono">{{ it.bestPx != null ? it.bestPx.toFixed(0) + ' px' : '—' }}</td>
               <td class="mono">
                 <div class="hist-cond">
@@ -111,10 +111,10 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
                   <section class="hist-detail__block">
                     <h4>{{ t('tune.hist.place') }}</h4>
                     <location-map v-if="it.lat != null && it.lon != null" :lat="it.lat" :lon="it.lon" :interactive="false" height="200px" :zoom="14" />
-                    <p v-else class="dim">{{ t('tune.form.noPosition') }}</p>
+                    <p v-else class="hist-dim">{{ t('tune.form.noPosition') }}</p>
                     <p v-if="it.comment" class="hist-comment">{{ it.comment }}</p>
-                    <p class="dim small">{{ t('tune.hist.tone') }} · {{ toneText(it) }}<template v-if="it.tone?.fiberIndex != null"> · {{ t('tune.fiber') }} {{ it.tone.fiberIndex }}</template></p>
-                    <p v-if="it.editorName" class="dim small">{{ it.editorName }}</p>
+                    <p class="hist-dim hist-small">{{ t('tune.hist.tone') }} · {{ toneText(it) }}<template v-if="it.tone?.fiberIndex != null"> · {{ t('tune.fiber') }} {{ it.tone.fiberIndex }}</template></p>
+                    <p v-if="it.editorName" class="hist-dim hist-small">{{ it.editorName }}</p>
                   </section>
                   <section class="hist-detail__block hist-detail__chart">
                     <h4>{{ t('tune.hist.trials', { n: trialsOf(it).length }) }}</h4>
@@ -122,14 +122,14 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
                       :min="it.tapMin ?? Math.max(0, it.tapTurns - 2)" :max="it.tapMax ?? it.tapTurns + 2" :step="it.tapStep ?? 0.125" :turns="it.primaryTurns ?? it.tapTurns"
                       :best="bestTrial(trialsOf(it))?.tapTurns ?? null"
                       :labels="{ score: t('tune.score'), empty: t('tune.chartEmpty'), tap: t('tune.tap'), length: t('tune.length'), best: t('tune.best'), previous: t('tune.previousHere'), suggested: t('tune.suggested'), turnsCaption: t('tune.turnsCaption', { n: it.primaryTurns ?? '?' }) }" />
-                    <p v-else class="dim">{{ t('tune.hist.noTrials') }}</p>
+                    <p v-else class="hist-dim">{{ t('tune.hist.noTrials') }}</p>
                   </section>
                   <section class="hist-detail__block">
                     <h4>{{ t('tune.heat.title') }}</h4>
                     <div class="hist-heats">
                       <arc-heatmap v-for="tr in trialsOf(it).filter((x) => x.heat).slice(0, 6)" :key="tr.id" :heat="tr.heat ?? null" :width="120"
                         :title="`${formatTurns(tr.tapTurns, it.tapStep ?? 0.125)} tr · ${tr.score.toFixed(0)} px`" :overlay="false" />
-                      <p v-if="!trialsOf(it).some((x) => x.heat)" class="dim">—</p>
+                      <p v-if="!trialsOf(it).some((x) => x.heat)" class="hist-dim">—</p>
                     </div>
                   </section>
                 </div>
@@ -141,38 +141,3 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
     </div>
   </div>
 </template>
-
-<style scoped>
-.hist-view { display: flex; flex-direction: column; gap: 1rem; }
-.hist-toolbar { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap; }
-.hist-search { max-width: 20rem; }
-.hist-empty { color: var(--text-dim); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem; }
-.hist-table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); }
-.hist-table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
-.hist-table th, .hist-table td { padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: middle; }
-.hist-table thead th { font-family: var(--font-body); font-size: var(--fs-sm);color: var(--text-mute); font-weight: 500; white-space: nowrap; }
-.hist-table .num { text-align: right; }
-.hist-row { cursor: pointer; transition: background 0.12s; }
-.hist-row:hover td { background: var(--volt-05); }
-.hist-row.is-open td { background: var(--volt-06); border-bottom-color: transparent; }
-.nowrap { white-space: nowrap; }
-.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.strong { color: var(--volt); font-weight: 600; }
-.dim { color: var(--text-dim); margin: 0; }
-.small { font-size: var(--fs-sm); }
-.coil-dot { display: inline-block; width: 4px; height: 12px; border-radius: 2px; background: var(--c); margin-right: 0.45rem; vertical-align: middle; }
-.hist-place { max-width: 22rem; }
-.hist-cond { display: flex; gap: 0.7rem; align-items: center; color: var(--text-dim); font-size: var(--fs-sm); white-space: nowrap; }
-.hist-actions { text-align: right; white-space: nowrap; }
-.hist-actions__inner { display: inline-flex; align-items: center; gap: 0.5rem; }
-.hist-chevron { color: var(--text-mute); margin-left: 0.3rem; font-size: var(--fs-xs); }
-.btn--xs { padding: 0.25rem 0.6rem; font-size: var(--fs-xs); }
-.icon-btn--sm { width: 1.9rem; height: 1.9rem; font-size: var(--fs-xs); }
-.hist-detail td { background: var(--bg-2); padding: 1rem 1.1rem 1.2rem; }
-.hist-detail__grid { display: grid; grid-template-columns: minmax(16rem, 22rem) minmax(0, 1fr) minmax(14rem, 20rem); gap: 1.2rem; align-items: start; }
-@media (max-width: 1200px) { .hist-detail__grid { grid-template-columns: minmax(0, 1fr); } }
-.hist-detail__block { display: flex; flex-direction: column; gap: 0.5rem; min-width: 0; }
-.hist-detail__block h4 { margin: 0; font-family: var(--font-display); font-size: var(--fs-xs);color: var(--text-mute); font-weight: 600; }
-.hist-comment { margin: 0; white-space: pre-wrap; font-size: var(--fs-lg); }
-.hist-heats { display: flex; flex-wrap: wrap; gap: 0.6rem; }
-</style>

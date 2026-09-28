@@ -1,0 +1,77 @@
+// ===========================================================================
+//  TOASTS
+// ===========================================================================
+// ui/AppToaster.vue, Teleported to <body>. A skin restyles them through these
+// tokens (unset, the lab look below):
+//   --toast-bg --toast-color --toast-border --toast-radius --toast-shadow
+
+.toaster {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 1.4rem;
+    z-index: 200;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    pointer-events: none;
+}
+
+.toast {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 1rem 0.6rem 1.15rem;
+    border-radius: var(--toast-radius, var(--radius));
+    background: var(--toast-bg, var(--panel-2));
+    border: var(--border-w) solid var(--toast-border, var(--line-strong));
+    box-shadow: var(--toast-shadow, var(--shadow-float));
+    font-size: var(--fs-md);
+    color: var(--toast-color, var(--text));
+    max-width: 90vw;
+    overflow: hidden;
+}
+
+// the micro-arc on the left edge, like the active nav item; an error keeps the shape in red
+.toast::before {
+    content: "";
+    position: absolute;
+    left: 1px;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+    mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+}
+
+.toast--success .icon {
+    color: var(--volt);
+}
+
+.toast--error::before {
+    background: var(--danger);
+}
+
+.toast--error .icon {
+    color: var(--danger);
+}
+
+.toast--info .icon {
+    color: var(--text-dim);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+    transition:
+        opacity 0.22s ease,
+        transform 0.22s ease;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+    opacity: 0;
+    transform: translateY(10px);
+}

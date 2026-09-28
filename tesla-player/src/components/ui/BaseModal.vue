@@ -63,13 +63,3 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
     </div>
   </Teleport>
 </template>
-
-<style scoped>
-/* The actions footer was duplicated as 6 identical local classes; it lives here now. */
-.modal-card__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-  margin-top: 1.2rem;
-}
-</style>

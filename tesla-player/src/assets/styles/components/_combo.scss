@@ -1,0 +1,124 @@
+// ===========================================================================
+//  COMBO (searchable select)
+// ===========================================================================
+// ui/SearchableSelect.vue: a field you type in to filter, and its option list.
+// The control follows the field tokens (_field.scss); the list the menu tokens
+// (unset, the lab look below):
+//   --menu-bg --menu-border --menu-radius --menu-shadow --menu-item-radius
+
+.combo {
+    position: relative;
+    width: 100%;
+}
+
+.combo__control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--field-bg, var(--bg-2));
+    border: var(--border-w) solid var(--field-border, var(--line));
+    border-radius: var(--field-radius, var(--radius-md));
+    padding: 0 0.6rem;
+    transition: var(--dur-fast);
+}
+
+.combo.is-open .combo__control,
+.combo__control:focus-within {
+    border-color: var(--field-focus-border, var(--volt));
+    box-shadow: var(--field-focus-ring, var(--focus-ring-strong));
+}
+
+.combo__icon {
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+    pointer-events: none;
+}
+
+.combo__input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--field-color, var(--text));
+    font-family: var(--field-font, var(--font-body));
+    font-size: var(--fs-lg);
+    padding: 0.55rem 0;
+}
+
+.combo__input::placeholder {
+    color: var(--text-mute);
+}
+
+.combo__clear {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    color: var(--text-mute);
+    padding: 0.2rem;
+}
+
+.combo__clear:hover {
+    color: var(--danger);
+}
+
+.combo__chevron {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    transition: transform var(--dur-fast);
+    pointer-events: none;
+}
+
+.combo.is-open .combo__chevron {
+    transform: rotate(180deg);
+    color: var(--volt);
+}
+
+.combo__panel {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 5px);
+    left: 0;
+    right: 0;
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 0.3rem;
+    margin: 0;
+    list-style: none;
+    background: var(--menu-bg, var(--panel-2));
+    border: var(--border-w) solid var(--menu-border, var(--line-strong));
+    border-radius: var(--menu-radius, var(--radius-md));
+    box-shadow: var(--menu-shadow, var(--shadow-pop));
+}
+
+.combo__option {
+    padding: 0.5rem 0.65rem;
+    border-radius: var(--menu-item-radius, var(--radius-sm));
+    cursor: pointer;
+    color: var(--text);
+    font-size: var(--fs-lg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.combo__option.is-active {
+    background: rgb(var(--volt-rgb) / 0.2);
+}
+
+.combo__option.is-selected {
+    color: var(--volt);
+    background: var(--volt-08);
+}
+
+.combo__option--muted {
+    color: var(--text-mute);
+    font-style: italic;
+}
+
+.combo__empty {
+    padding: 0.6rem 0.65rem;
+    color: var(--text-mute);
+    font-family: var(--font-body);
+    list-style: none;
+}

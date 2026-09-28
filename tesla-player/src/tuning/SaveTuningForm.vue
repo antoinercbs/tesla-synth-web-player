@@ -114,7 +114,7 @@ defineExpose({ submit });
         <form-field v-model="bestPx" :label="t('tune.form.bestPx')" type="number" :hint="t('tune.form.bestPxHint')" />
       </div>
       <label class="form-field">
-        <span class="tf-label">{{ t('tune.form.location') }}</span>
+        <span class="save-label">{{ t('tune.form.location') }}</span>
         <div class="save-inline">
           <input class="text-field" type="text" v-model="f.location" :placeholder="t('tune.form.locationPlaceholder')" />
           <button class="btn btn--ghost" type="button" :disabled="!hasPos || busyName" :title="t('tune.form.nameFromMap')" @click="fetchName"><i class="fas" :class="busyName ? 'fa-spinner fa-spin' : 'fa-signature'"></i></button>
@@ -127,7 +127,7 @@ defineExpose({ submit });
 
     <section class="save-col">
       <div class="save-field">
-        <span class="tf-label">{{ t('tune.form.setting') }}</span>
+        <span class="save-label">{{ t('tune.form.setting') }}</span>
         <segmented-control v-model="setting" pressed fill :options="[
           { value: 'outdoor', label: t('tune.form.outdoor'), icon: 'fa-tree' },
           { value: 'indoor', label: t('tune.form.indoor'), icon: 'fa-warehouse' },
@@ -147,7 +147,7 @@ defineExpose({ submit });
         <span v-if="weatherMsg" class="form-field__hint">{{ weatherMsg }}</span>
       </div>
       <div class="save-field">
-        <span class="tf-label">{{ t('tune.form.ground') }}</span>
+        <span class="save-label">{{ t('tune.form.ground') }}</span>
         <segmented-control v-model="ground" pressed fill :options="[
           { value: 'dry', label: t('tune.form.dry'), icon: 'fa-sun' },
           { value: 'wet', label: t('tune.form.wet'), icon: 'fa-droplet' },
@@ -155,7 +155,7 @@ defineExpose({ submit });
         ]" />
       </div>
       <label class="form-field">
-        <span class="tf-label">{{ t('tune.form.comment') }}</span>
+        <span class="save-label">{{ t('tune.form.comment') }}</span>
         <textarea class="text-field save-comment" rows="5" v-model="f.comment" :placeholder="t('tune.form.commentPlaceholder')"></textarea>
       </label>
       <div v-if="!hideActions" class="save-actions">
@@ -167,23 +167,3 @@ defineExpose({ submit });
     </section>
   </div>
 </template>
-
-<style scoped>
-.save-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.4rem; }
-.save-col { display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; }
-.save-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; align-items: start; }
-.save-row.three { grid-template-columns: repeat(3, 1fr); align-items: end; }
-.save-row :deep(.form-field) { min-width: 0; }
-.save-row :deep(.field-label) { display: block; text-align: left; padding: 0; line-height: 1.3; }
-.save-inline { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.3rem; }
-.save-inline.wrap { flex-wrap: wrap; }
-.save-inline .text-field { flex: 1; min-width: 0; }
-.save-field { display: flex; flex-direction: column; gap: 0.35rem; }
-.tf-label { display: block; width: 100%; padding: 0; margin: 0; text-align: left; font-family: var(--font-body); font-size: var(--fs-sm);color: var(--text-mute); line-height: 1.3; }
-label.form-field, label.form-field:hover { display: block; padding: 0; margin: 0; }
-.form-field .text-field { width: 100%; margin-top: 0.3rem; }
-.form-field__hint { display: block; margin-top: 0.3rem; font-size: var(--fs-xs); color: var(--text-mute); }
-.save-comment { resize: vertical; font-family: var(--font-body); }
-.weather-chip { display: inline-flex; align-items: center; gap: 0.4rem; font-size: var(--fs-sm); color: var(--text-dim); }
-.save-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: auto; padding-top: 0.4rem; }
-</style>

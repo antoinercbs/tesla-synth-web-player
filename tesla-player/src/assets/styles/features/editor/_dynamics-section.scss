@@ -1,0 +1,148 @@
+// ===========================================================================
+//  DYNAMICS SECTION
+// ===========================================================================
+// components/editor/DynamicsSection.vue
+
+.dyn__head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.dyn__head .editor-section__title {
+    margin: 0;
+}
+
+.dyn__intro {
+    margin: 0.4rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+    line-height: 1.5;
+    max-width: 50rem;
+}
+
+.dyn__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin: 0.9rem 0 0.5rem;
+}
+
+.dyn__btn {
+    padding: 0.35rem 0.8rem;
+    font-size: var(--fs-sm);
+}
+
+.dyn__spacer {
+    flex: 1;
+}
+
+.dyn__bar .segmented button {
+    padding: 0.25rem 0.7rem;
+    font-size: var(--fs-sm);
+}
+
+.dyn__hint {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0.4rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.dyn__empty {
+    margin: 0.7rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+.dyn__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-top: 0.8rem;
+}
+
+.dyn-row {
+    display: grid;
+    grid-template-columns: 5.2rem 12rem 5.5rem minmax(10rem, 17rem) 1.6rem;
+    justify-content: start;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-2);
+    font-size: var(--fs-sm);
+    cursor: pointer;
+}
+
+.dyn-row.is-selected {
+    border-color: var(--volt-30);
+    background: var(--volt-08);
+}
+
+.dyn-row .text-field {
+    padding: 0.25rem 0.45rem;
+    font-size: var(--fs-sm);
+    font-family: var(--font-mono);
+}
+
+.dyn-row select {
+    padding: 0.25rem 1.7rem 0.25rem 0.5rem;
+    font-size: var(--fs-sm);
+}
+
+.dyn-row__target {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+.dyn-row__dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--c);
+    flex: none;
+}
+
+.dyn-row__param select {
+    padding-right: 1.5rem;
+}
+
+.dyn-row__value {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-mute);
+}
+
+.dyn-row__remove {
+    border: 0;
+    background: transparent;
+    color: var(--text-mute);
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    height: 1.6rem;
+}
+
+.dyn-row__remove:hover {
+    color: var(--danger-text);
+    background: rgb(var(--danger-rgb) / 0.1);
+}
+
+@media (max-width: 700px) {
+    .dyn-row {
+        grid-template-columns: 5.2rem 1fr 5.5rem 1.6rem;
+    }
+
+    .dyn-row__ramp {
+        grid-column: 1 / -2;
+    }
+}

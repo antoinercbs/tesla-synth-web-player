@@ -33,39 +33,3 @@ const emblemStyle = { '--emblem-src': `url("${logoSrc}")` };
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.welcome {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.welcome__logo.brand__emblem {
-  align-self: center;
-  width: 86px;
-  height: 84px;
-  margin: 0.2rem 0 0.1rem;
-}
-
-.welcome__intro {
-  margin: 0;
-  text-align: center;
-  color: var(--text-dim);
-  line-height: 1.5;
-}
-
-.welcome__lang {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: var(--fs-sm);
-  color: var(--text-dim);
-}
-
-.welcome__later {
-  margin: 0;
-  font-size: var(--fs-sm);
-  color: var(--text-mute);
-}
-</style>

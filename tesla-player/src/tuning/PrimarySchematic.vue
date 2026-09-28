@@ -194,9 +194,9 @@ function onKey(e: KeyboardEvent): void {
     </g>
 
     <!-- marks on the spire -->
-    <g v-if="prevPt" class="mark mark--previous"><circle :cx="prevPt.x" :cy="prevPt.y" r="8" /><title>{{ labels.previous }} · {{ formatTurns(previous!, step) }}</title></g>
-    <g v-if="sugPt" class="mark mark--suggested"><circle :cx="sugPt.x" :cy="sugPt.y" r="11" /><title>{{ labels.suggested }} · {{ formatTurns(suggested!, step) }}</title></g>
-    <g v-if="bestPt" class="mark mark--best"><circle :cx="bestPt.x" :cy="bestPt.y" r="6" /><title>{{ labels.best }} · {{ formatTurns(best!, step) }}</title></g>
+    <g v-if="prevPt" class="coil-mark coil-mark--previous"><circle :cx="prevPt.x" :cy="prevPt.y" r="8" /><title>{{ labels.previous }} · {{ formatTurns(previous!, step) }}</title></g>
+    <g v-if="sugPt" class="coil-mark coil-mark--suggested"><circle :cx="sugPt.x" :cy="sugPt.y" r="11" /><title>{{ labels.suggested }} · {{ formatTurns(suggested!, step) }}</title></g>
+    <g v-if="bestPt" class="coil-mark coil-mark--best"><circle :cx="bestPt.x" :cy="bestPt.y" r="6" /><title>{{ labels.best }} · {{ formatTurns(best!, step) }}</title></g>
 
     <!-- the tap clip -->
     <template v-if="showTap">
@@ -213,32 +213,3 @@ function onKey(e: KeyboardEvent): void {
     </template>
   </svg>
 </template>
-
-<style scoped>
-.coil { width: 100%; height: auto; display: block; touch-action: none; user-select: none; cursor: grab; outline: none; border-radius: var(--radius); font-family: var(--font-mono); }
-.coil:focus-visible { box-shadow: 0 0 0 2px var(--volt-30); }
-.coil.is-dragging { cursor: grabbing; }
-.coil.is-disabled { cursor: not-allowed; opacity: 0.75; }
-.coil.is-static { cursor: default; }
-.secondary { stroke: rgb(var(--line-rgb) / 0.35); stroke-width: 1; }
-.secondary-core { fill: none; stroke: rgb(var(--line-rgb) / 0.18); stroke-width: 1; }
-.secondary-label { font-size: 8.5px;fill: var(--text-mute); }
-.spire-out { stroke: #8d4a1f; stroke-width: 5.5; opacity: 0.32; }
-.spire-in { stroke: url(#coil-copper); stroke-width: 6; }
-.spire-in-light { stroke: #ffd9b8; stroke-width: 1.4; opacity: 0.55; }
-.bead { fill: #08111a; stroke: #f2b784; stroke-width: 0.9; opacity: 0.9; }
-.caliper { stroke: rgba(205, 217, 230, 0.35); stroke-width: 1; stroke-dasharray: 2 3; }
-.caliper-tick { stroke: var(--text-mute); stroke-width: 1.2; }
-.caliper-tick.in-range { stroke: var(--text); }
-.caliper-num { font-size: 11px; fill: var(--text-mute); font-weight: 500; }
-.caliper-num.in-range { fill: var(--text); font-weight: 700; }
-.mark--previous circle { fill: none; stroke: var(--amber); stroke-width: 1.8; stroke-dasharray: 3 2; }
-.mark--suggested circle { fill: none; stroke: var(--volt); stroke-width: 1.5; stroke-dasharray: 3 3; }
-.mark--best circle { fill: var(--ok); stroke: var(--bg); stroke-width: 1.5; }
-.clip-halo { fill: var(--volt); opacity: 0.14; }
-.clip-body { fill: var(--volt); stroke: #06090f; stroke-width: 1.2; }
-.clip-slot { fill: #06090f; opacity: 0.55; }
-.clip-lead { stroke: var(--volt); stroke-width: 1; opacity: 0.7; }
-.pill rect { fill: var(--panel-2); stroke: var(--volt-30); stroke-width: 1; }
-.pill text { font-size: 12px; font-weight: 600; fill: var(--text); }
-</style>

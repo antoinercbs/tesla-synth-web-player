@@ -1,0 +1,37 @@
+// ===========================================================================
+//  PAGE TOUR BUTTON
+// ===========================================================================
+// components/tour/PageTourButton.vue
+
+.page-tour {
+    font-size: var(--fs-md);
+    flex-shrink: 0;
+}
+
+.page-tour:hover {
+    color: var(--volt);
+    border-color: var(--volt);
+}
+
+.page-tour.is-fresh {
+    color: var(--volt);
+    border-color: var(--volt-50);
+    animation: page-tour-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes page-tour-pulse {
+    0%,
+    100% {
+        box-shadow: var(--pulse-rest);
+    }
+
+    50% {
+        box-shadow: var(--pulse-out);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-tour.is-fresh {
+        animation: none;
+    }
+}

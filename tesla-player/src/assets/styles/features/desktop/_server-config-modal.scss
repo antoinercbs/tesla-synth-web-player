@@ -1,0 +1,54 @@
+// ===========================================================================
+//  SERVER CONFIG MODAL
+// ===========================================================================
+// components/desktop/ServerConfigModal.vue
+
+.srv-modal__hint {
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+    margin: 0 0 1.1rem;
+}
+
+.srv-modal__body {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.srv-modal__error {
+    color: var(--danger);
+    font-size: var(--fs-md);
+    margin: 0 0 0.8rem;
+}
+
+.srv-auth {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--line-005);
+}
+
+.srv-auth__who {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--volt);
+    font-size: var(--fs-md);
+}
+
+.srv-auth__req {
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+    flex: 1;
+}
+
+.srv-auth__note {
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+    margin: 0;
+}

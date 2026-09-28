@@ -1,0 +1,181 @@
+// ===========================================================================
+//  COIL CARDS
+// ===========================================================================
+
+// --- coil cards ------------------------------------------------------------
+// At most 3 coils per row so the layout mirrors the typical coil counts.
+.coils-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+    gap: 1.1rem;
+}
+
+@media (max-width: 680px) {
+    .mode-switch {
+        display: none;
+    }
+}
+
+.coil-card {
+    position: relative;
+    overflow: hidden;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.05rem 1.15rem 1.25rem;
+    animation: rise 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@for $i from 1 through 6 {
+    .coil-card:nth-child(#{$i}) {
+        animation-delay: #{$i * 0.05}s;
+    }
+}
+
+@keyframes rise {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+}
+
+.coil-card__head {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.85rem;
+}
+
+// the coil's colour as an edge bar (its column in the VU); the number stays in the title
+.coil-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--coil, var(--volt));
+}
+
+.coil-card__no,
+.coil-card__icon {
+    color: var(--coil, var(--volt));
+}
+
+.coil-card__title {
+    font-weight: 600;
+    font-size: var(--fs-lg);
+    color: var(--text-strong);
+}
+
+.coil-card__count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+// channel toggle grid
+.chan-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 5px;
+}
+
+.chan-cell {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    background: rgb(var(--hi-rgb) / 0.02);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 0.36rem 0;
+    cursor: pointer;
+    transition: 0.12s;
+    text-align: center;
+}
+
+.chan-cell:hover {
+    border-color: var(--line-strong);
+    color: var(--text);
+}
+
+.chan-cell.is-on {
+    color: var(--cell, var(--volt));
+    font-weight: 600;
+    background: color-mix(in srgb, var(--cell, var(--volt)) 15%, transparent);
+    border-color: color-mix(in srgb, var(--cell, var(--volt)) 50%, transparent);
+}
+
+// channel absent from the MIDI → not selectable
+.chan-cell:disabled,
+.chan-cell.is-unavail {
+    opacity: 0.25;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.chan-cell.is-unavail:hover {
+    border-color: var(--line);
+    color: var(--text-dim);
+}
+
+// numeric readouts (ontime / duty)
+.readout-label {
+    display: block;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    margin: 0 0 0.5rem;
+}
+
+.readout-row {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: 0.95rem;
+}
+
+.readout {
+    flex: 1;
+}
+
+.readout__key {
+    display: block;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    margin-bottom: 0.32rem;
+}
+
+.readout__field {
+    display: flex;
+    align-items: center;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    padding: 0 0.65rem;
+    transition: 0.15s;
+}
+
+.readout__field input {
+    width: 100%;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    outline: none;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xl);
+    padding: 0.45rem 0;
+}
+
+.readout__field i {
+    font-style: normal;
+    color: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    padding-left: 0.3rem;
+}
+
+.readout__field:focus-within {
+    border-color: var(--coil, var(--volt));
+    box-shadow: var(--ring-thin) var(--coil, var(--volt));
+}

@@ -1,0 +1,62 @@
+// ===========================================================================
+//  CAMERA JOIN
+// ===========================================================================
+// tuning/CameraJoin.vue
+
+.cam-join {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.cam-join__qr {
+    border-radius: var(--radius-md);
+    flex: 0 0 auto;
+    max-width: 100%;
+    height: auto;
+}
+
+.cam-join__side {
+    flex: 1 1 14rem;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.cam-url {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    word-break: break-all;
+    color: var(--text-dim);
+    background: var(--bg-2);
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--line);
+}
+
+.cam-join__btns {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.cam-join__dim {
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+    margin: 0;
+}
+
+.cam-join__small {
+    font-size: var(--fs-xs);
+}
+
+.cam-join__warn {
+    color: var(--danger);
+    font-size: var(--fs-sm);
+    display: inline-flex;
+    gap: 0.4rem;
+    align-items: center;
+    margin: 0;
+}

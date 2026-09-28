@@ -1,6 +1,6 @@
 /**
  * A coil's identity colour, as the CSS variable the active theme tones
- * (assets/styles/_themes.scss): red, yellow, green, cyan, violet, orange.
+ * (assets/styles/themes/_palettes.scss): red, yellow, green, cyan, violet, orange.
  * A var(), not a hex, so every use (styles, SVG fills, gradients) follows the
  * theme; don't do colour maths on it.
  */

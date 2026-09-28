@@ -124,22 +124,3 @@ function nudge(e: KeyboardEvent, i: number): void {
     </svg>
   </div>
 </template>
-
-<style scoped>
-.stage { position: relative; height: 158px; border-radius: var(--radius); background: var(--bg-2); border: 1px solid var(--line); overflow: hidden; }
-.stage svg { position: absolute; inset: 0; display: block; user-select: none; touch-action: none; }
-.stage text { font-family: var(--font-body); font-size: 11px; }
-.stage__label { fill: var(--text-mute); }
-.stage__dots-track { stroke: var(--line-022); stroke-width: 6; stroke-linecap: round; }
-.stage__dot { fill: var(--text); opacity: 0.5; }
-.stage__axis { stroke: var(--line-040); }
-.stage__band { fill-opacity: 0.15; stroke-opacity: 0.5; }
-.stage__handle { cursor: ew-resize; }
-.stage__handle path { fill: var(--panel); stroke-width: 2; stroke-linejoin: round; }
-.stage__hit { fill: transparent; stroke: none; }
-.stage__marker { cursor: grab; outline: none; }
-.stage__marker circle { fill: var(--panel); stroke-width: 2.4; }
-.stage__marker:focus-visible circle { stroke-width: 3.5; }
-.stage .stage__num { font-family: var(--font-mono); font-size: 12px; }
-.stage .stage__pct { font-family: var(--font-mono); font-size: 10px; fill: var(--text-mute); }
-</style>

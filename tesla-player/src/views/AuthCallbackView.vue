@@ -33,17 +33,3 @@ function retry(): void {
     </template>
   </div>
 </template>
-
-<style scoped>
-.auth-cb {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.8rem;
-  min-height: 100%;
-  color: var(--text-mute);
-}
-.auth-cb .icon { font-size: 1.6rem; }
-.auth-cb__error { color: var(--danger, #ff6b6b); }
-</style>

@@ -1,10 +1,15 @@
-// One colour per MIDI channel, drawn on a canvas (so plain values, not CSS
-// variables), distinct from each other on every theme's dark background.
-const CHANNEL_COLORS = [
-  '#7aa7ff', '#3ddc97', '#c49bff', '#e0a93b', '#ff7eb6', '#4fd1e8', '#ff9f5a', '#b8e05a',
-  '#9aa8ff', '#ff6b6b', '#5ee0c1', '#f2d15c', '#d38cff', '#6fb1ff', '#ffa3c4', '#8fd46b',
-];
+// One colour per MIDI channel: the --chan-0…15 tokens (assets/styles/tokens), distinct
+// from each other on every theme's dark background.
+const CHANNELS = 16;
+const index = (channel: number): number => ((channel % CHANNELS) + CHANNELS) % CHANNELS;
 
+/** For a style: a var(), so it follows the theme. */
 export function channelColor(channel: number): string {
-  return CHANNEL_COLORS[((channel % 16) + 16) % 16];
+  return `var(--chan-${index(channel)})`;
+}
+
+/** For a canvas, which can't read a var(): the sixteen values as `el` sees them. */
+export function channelColors(el: Element): string[] {
+  const s = getComputedStyle(el);
+  return Array.from({ length: CHANNELS }, (_, i) => s.getPropertyValue(`--chan-${i}`).trim());
 }

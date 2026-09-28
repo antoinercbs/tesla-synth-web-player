@@ -25,8 +25,3 @@ const path = computed(() => {
 <template>
   <svg class="env-thumb" :viewBox="`0 0 ${W} ${H}`" aria-hidden="true"><path :d="path" /></svg>
 </template>
-
-<style scoped>
-.env-thumb { width: 54px; height: 22px; flex: none; }
-.env-thumb path { fill: none; stroke: var(--volt); stroke-width: 1.5; }
-</style>

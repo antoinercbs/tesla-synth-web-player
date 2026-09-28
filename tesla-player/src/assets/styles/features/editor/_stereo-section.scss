@@ -1,0 +1,144 @@
+// ===========================================================================
+//  STEREO SECTION
+// ===========================================================================
+// components/editor/StereoSection.vue
+
+.stereo__head {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.stereo__head .editor-section__title {
+    margin: 0;
+}
+
+.stereo__intro {
+    margin: 0.4rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+    line-height: 1.5;
+    max-width: 50rem;
+}
+
+.stereo__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin: 0.9rem 0 0.5rem;
+    font-size: var(--fs-sm);
+}
+
+.stereo__bar-label {
+    color: var(--text-mute);
+}
+
+.stereo__spacer {
+    flex: 1;
+}
+
+.stereo__spread {
+    padding: 0.35rem 0.8rem;
+    font-size: var(--fs-sm);
+}
+
+.stereo__bar .segmented button {
+    padding: 0.25rem 0.75rem;
+    font-size: var(--fs-sm);
+}
+
+.stereo__none {
+    margin: 0.8rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+.stereo__channels {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 0.8rem;
+}
+
+// name and source on one line, the source's settings below (the editor column is narrow beside the player)
+.stereo-ch {
+    display: grid;
+    grid-template-columns: minmax(8rem, 11rem) auto;
+    justify-content: start;
+    align-items: center;
+    gap: 0.45rem 0.9rem;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg-2);
+}
+
+.stereo-ch__opts {
+    grid-column: 1 / -1;
+}
+
+.stereo-ch__name {
+    font-size: var(--fs-md);
+}
+
+.stereo-ch__meta {
+    display: block;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.stereo-ch .segmented button {
+    padding: 0.25rem 0.7rem;
+    font-size: var(--fs-sm);
+}
+
+.stereo-ch .segmented .icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.stereo-ch__opts {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem 0.55rem;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    min-width: 0;
+}
+
+.stereo-ch__opts select {
+    padding: 0.3rem 1.8rem 0.3rem 0.6rem;
+    font-size: var(--fs-sm);
+}
+
+.stereo-ch__note {
+    width: 4.2rem;
+    padding: 0.3rem 0.5rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+}
+
+.stereo-ch__hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.stereo-ch__warn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-xs);
+    color: var(--amber);
+}
+
+@media (max-width: 600px) {
+    .stereo-ch {
+        grid-template-columns: 1fr;
+    }
+}

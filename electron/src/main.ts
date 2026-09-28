@@ -32,7 +32,7 @@ registerAppSchemes();
 
 // Tesla Player glyph (same artwork as electron/build-assets/icon.svg, detailed
 // drawing), painted with the default theme's arc: core, mid, deep. These three
-// constants are written by `npm run icons` (from the app's _themes.scss).
+// constants are written by `npm run icons` (from the app's themes/_palettes.scss).
 const EMBLEM_STOPS = ['#eaf2ff', '#5b8cff', '#6a3dff'];
 const EMBLEM_VIEWBOX = '55.9 62.1 400.3 387.8';
 const EMBLEM_PATH =

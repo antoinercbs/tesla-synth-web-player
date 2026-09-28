@@ -111,7 +111,7 @@
 // "TESLA PLAYER" — also a link home; keeps the brand font, no underline
 .brand__app {
     line-height: 1;
-    color: #eef3ff;
+    color: var(--text-strong);
     text-decoration: none;
     text-transform: uppercase;
     letter-spacing: 0.11em;
@@ -185,7 +185,7 @@
 
 // the arc is the item's left edge: full height, and the tint starts square on it
 .nav-item.router-link-active {
-    color: #eef3ff;
+    color: var(--text-strong);
     background: var(--volt-08);
     border-radius: 0 var(--radius) var(--radius) 0;
 }
@@ -263,7 +263,7 @@
 .sidebar-menu .segmented button.is-active {
     color: var(--volt);
     background: var(--volt-10);
-    box-shadow: inset 0 0 0 1px var(--volt-30);
+    box-shadow: var(--ring-inset) var(--volt-30);
 }
 
 .sidebar-select {
@@ -383,7 +383,7 @@
 .sidebar-coil__dot {
     width: 4px;
     height: 12px;
-    border-radius: 2px;
+    border-radius: var(--radius-2xs);
     flex: 0 0 auto;
     background: var(--c);
 }
@@ -515,7 +515,7 @@
     background: var(--panel-2);
     border: 1px solid var(--line-strong);
     border-radius: var(--radius);
-    box-shadow: 0 16px 40px -12px rgb(0 0 0 / 0.7);
+    box-shadow: var(--shadow-pop);
     font-family: var(--font-body);
 }
 
@@ -550,7 +550,7 @@
     width: 100%;
     padding: 0.5rem 0.6rem;
     border: 0;
-    border-radius: 7px;
+    border-radius: var(--radius-sm);
     background: none;
     color: var(--text-dim);
     font: inherit;

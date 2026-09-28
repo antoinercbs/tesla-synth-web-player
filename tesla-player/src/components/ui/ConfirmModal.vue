@@ -21,11 +21,3 @@ const emit = defineEmits<{ (e: 'confirm'): void; (e: 'close'): void }>();
     </template>
   </BaseModal>
 </template>
-
-<style scoped>
-.confirm-modal__msg {
-  color: var(--text-dim);
-  margin: 0 0 1.4rem;
-  line-height: 1.5;
-}
-</style>

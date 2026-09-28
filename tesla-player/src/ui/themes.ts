@@ -1,7 +1,7 @@
 import { ref } from 'vue';
 
 /**
- * Colour themes. Their colours live only in assets/styles/_themes.scss: this
+ * Colour themes. Their colours live only in assets/styles/themes/_palettes.scss: this
  * module lists the ids (for the picker) and applies the chosen one, a
  * `data-theme` attribute on <html>. The choice is per device, like the language.
  */

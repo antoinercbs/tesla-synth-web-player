@@ -9,7 +9,7 @@
 //
 // Three drawings, picked by size: fine turns (≥ 64 px), coarse turns (sidebar,
 // 32–48 px), plain (16–24 px). PNGs are rendered by Electron (scripts/icons/render.cjs).
-// The colours are the default theme's arc, read from the app's _themes.scss.
+// The colours are the default theme's arc, read from the app's themes/_palettes.scss.
 // They are not optimised: run them through a PNG optimiser if size matters.
 import { spawnSync } from 'node:child_process';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -31,12 +31,12 @@ const write = (rel, data) => {
 const crlf = (s) => s.replace(/\r?\n/g, '\r\n'); // the working copy's line endings
 
 // the default theme's arc (core, mid, deep); the halo is its mid colour, like --arc-glow-rgb
-const themesScss = readFileSync(join(repo, 'tesla-player', 'src', 'assets', 'styles', '_themes.scss'), 'utf8');
+const themesScss = readFileSync(join(repo, 'tesla-player', 'src', 'assets', 'styles', 'themes', '_palettes.scss'), 'utf8');
 const defaultTheme = themesScss.match(/^\$default-theme: ([\w-]+);/m)?.[1];
 const themeBlock = defaultTheme
   && themesScss.match(new RegExp(`^ {4}${defaultTheme}: \\(([\\s\\S]*?)^ {4}\\),`, 'm'))?.[1];
 const arc = themeBlock?.match(/arc: \((#[0-9a-f]{6}), (#[0-9a-f]{6}), (#[0-9a-f]{6})\)/i);
-if (!arc) throw new Error('_themes.scss: the default theme\'s arc was not found');
+if (!arc) throw new Error('_palettes.scss: the default theme\'s arc was not found');
 const [, C1, C2, C3] = arc;
 const GLOW = C2;
 

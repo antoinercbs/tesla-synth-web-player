@@ -1,0 +1,25 @@
+// ===========================================================================
+//  COIL CONFIG CARD
+// ===========================================================================
+// components/editor/CoilConfigCard.vue
+
+.coil-card__name {
+    color: var(--text-mute);
+    font-weight: 400;
+}
+
+.coil-env__label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+}
+
+.coil-env__label .icon {
+    color: var(--coil, var(--volt));
+    font-size: var(--fs-sm);
+}
+
+.coil-env {
+    margin-top: 0.4rem;
+}

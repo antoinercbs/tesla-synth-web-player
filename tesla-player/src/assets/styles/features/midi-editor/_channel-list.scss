@@ -1,0 +1,151 @@
+// ===========================================================================
+//  CHANNEL LIST
+// ===========================================================================
+// components/midi-editor/ChannelList.vue
+
+.me-chans {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.me-chans__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.75rem 0.9rem 0.5rem;
+}
+
+.me-chans__title {
+    font-weight: 600;
+    font-size: var(--fs-lg);
+}
+
+.me-chans__hint {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.me-chans__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0 0.5rem 0.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.me-chans__empty {
+    margin: 0.3rem 0.4rem;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+.me-chans__free {
+    padding: 0.55rem 0.9rem 0.75rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    border-top: 1px solid var(--line);
+    line-height: 1.5;
+}
+
+.me-chan {
+    display: grid;
+    grid-template-columns: 4px minmax(0, 1fr) auto;
+    grid-template-areas: "sw name tools" "sw prog prog";
+    column-gap: 0.55rem;
+    row-gap: 0.3rem;
+    padding: 0.45rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+}
+
+.me-chan:hover {
+    background: var(--volt-08);
+}
+
+.me-chan.is-changed {
+    border-color: var(--volt-30);
+}
+
+.me-chan__sw {
+    grid-area: sw;
+    border-radius: var(--radius-2xs);
+}
+
+.me-chan__name {
+    grid-area: name;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    color: var(--text);
+    font: inherit;
+    font-weight: 600;
+    font-size: var(--fs-md);
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.me-chan__name:hover {
+    color: var(--text-bright);
+}
+
+.me-chan__count {
+    margin-left: 0.3rem;
+    color: var(--text-mute);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+}
+
+.me-chan__tools {
+    grid-area: tools;
+    display: flex;
+    gap: 1px;
+}
+
+.me-chan__prog {
+    grid-area: prog;
+    min-width: 0;
+}
+
+.me-chan__prog select {
+    font-size: var(--fs-sm);
+    padding: 0.35rem 1.8rem 0.35rem 0.55rem;
+}
+
+.me-chan.is-hidden .me-chan__name,
+.me-chan.is-hidden .me-chan__prog {
+    opacity: 0.45;
+}
+
+.me-ico {
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-mute);
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    font-size: 0.76rem;
+}
+
+.me-ico:hover {
+    background: var(--panel-2);
+    color: var(--text);
+}
+
+.me-ico.is-on {
+    color: var(--amber);
+}
+
+.me-ico--danger:hover {
+    color: var(--danger-text);
+    background: rgb(var(--danger-rgb) / 0.1);
+}

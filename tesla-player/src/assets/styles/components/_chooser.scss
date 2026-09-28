@@ -1,0 +1,55 @@
+// ===========================================================================
+//  CHOOSER
+// ===========================================================================
+// A page with nothing picked yet (Edit, Playlists): pick one or create one.
+
+.edit-chooser {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    max-width: 100%;
+}
+
+// "fondu" — no card/box, content blends into the background
+.edit-chooser__card {
+    width: 100%;
+    max-width: min(600px, 100%);
+    padding: 0 1.5rem;
+    text-align: center;
+}
+
+.edit-chooser .view-head__title {
+    justify-content: center;
+}
+
+.edit-chooser__hint {
+    color: var(--text-dim);
+    margin: 0.6rem 0 1.7rem;
+}
+
+.edit-chooser__actions {
+    display: flex;
+    align-items: stretch;
+    gap: 1rem;
+}
+
+.edit-chooser__pick {
+    flex: 1;
+}
+
+.edit-chooser__or {
+    align-self: center;
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+}
+
+.edit-chooser__actions .btn {
+    white-space: nowrap;
+}
+
+
+@media (max-width: 1000px) {
+    .edit-chooser__actions {
+        flex-direction: column-reverse;
+    }
+}

@@ -41,27 +41,15 @@ function openHere(): void { window.open(props.url, '_blank', 'noopener'); }
   <div class="cam-join">
     <canvas v-if="showQr" ref="canvas" width="200" height="200" class="cam-join__qr"></canvas>
     <div class="cam-join__side">
-      <p v-if="scanHint" class="dim">{{ labels.scan }}</p>
+      <p v-if="scanHint" class="cam-join__dim">{{ labels.scan }}</p>
       <code class="cam-url">{{ url }}</code>
       <div class="cam-join__btns">
         <button class="btn btn--ghost" type="button" @click="copy"><span class="icon"><i class="fas fa-copy"></i></span>{{ labels.copy }}</button>
         <button class="btn btn--ghost" type="button" @click="openHere"><span class="icon"><i class="fas fa-laptop"></i></span>{{ labels.openHere }}</button>
         <button v-if="canToggleQr" class="btn btn--ghost" type="button" :aria-pressed="showQr" @click="emit('toggle-qr')"><span class="icon"><i class="fas fa-qrcode"></i></span>{{ labels.showQr }}</button>
       </div>
-      <p v-if="altUrls && altUrls.length" class="dim mono small">{{ altUrls.join(' · ') }}</p>
-      <p v-if="linkError" class="cam-warn"><i class="fas fa-triangle-exclamation"></i>{{ linkError === 'session-gone' || linkError === 'session-token' ? labels.sessionGone : labels.linkLost }}</p>
+      <p v-if="altUrls && altUrls.length" class="cam-join__dim mono cam-join__small">{{ altUrls.join(' · ') }}</p>
+      <p v-if="linkError" class="cam-join__warn"><i class="fas fa-triangle-exclamation"></i>{{ linkError === 'session-gone' || linkError === 'session-token' ? labels.sessionGone : labels.linkLost }}</p>
     </div>
   </div>
 </template>
-
-<style scoped>
-.cam-join { display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-start; }
-.cam-join__qr { border-radius: 8px; flex: 0 0 auto; max-width: 100%; height: auto; }
-.cam-join__side { flex: 1 1 14rem; min-width: 0; display: flex; flex-direction: column; gap: 0.5rem; }
-.cam-url { font-family: var(--font-mono); font-size: var(--fs-xs); word-break: break-all; color: var(--text-dim); background: var(--bg-2); padding: 0.35rem 0.5rem; border-radius: 6px; border: 1px solid var(--line); }
-.cam-join__btns { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-.dim { color: var(--text-dim); font-size: var(--fs-md); margin: 0; }
-.small { font-size: var(--fs-xs); }
-.mono { font-family: var(--font-mono); }
-.cam-warn { color: var(--danger); font-size: var(--fs-sm); display: inline-flex; gap: 0.4rem; align-items: center; margin: 0; }
-</style>

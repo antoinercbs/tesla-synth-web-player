@@ -71,17 +71,3 @@ onBeforeUnmount(() => { map?.remove(); map = null; marker = null; });
 <template>
   <div ref="el" class="location-map" :style="{ height }"></div>
 </template>
-
-<style>
-/* global: Leaflet injects the marker outside this component's scope */
-.tune-marker {
-  width: 18px; height: 18px; border-radius: 50%;
-  background: var(--volt); border: 3px solid var(--bg);
-  box-shadow: 0 0 0 2px var(--volt);
-}
-.location-map { width: 100%; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); background: var(--panel-2); z-index: 0; }
-.location-map .leaflet-container { background: var(--panel-2); font-family: var(--font-body); }
-.location-map .leaflet-control-attribution { background: rgba(0, 0, 0, 0.55); color: var(--text-dim); font-size: 10px; }
-.location-map .leaflet-control-attribution a { color: var(--volt); }
-.location-map .leaflet-bar a { background: var(--panel); color: var(--text); border-color: var(--line-strong); }
-</style>

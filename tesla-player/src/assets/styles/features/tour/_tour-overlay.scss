@@ -1,0 +1,431 @@
+// ===========================================================================
+//  TOUR OVERLAY
+// ===========================================================================
+// components/tour/TourOverlay.vue
+
+.tour {
+    position: fixed;
+    inset: 0;
+    z-index: 300;
+}
+
+.tour__block {
+    position: absolute;
+    inset: 0;
+}
+
+.tour__block.is-dim {
+    background: rgb(var(--bg-rgb) / 0.72);
+}
+
+// the dimming is the hole's own shadow, so it follows the hole as it moves; above
+
+// the fake phone, which then stands out only when the step points into it
+.tour__hole {
+    position: fixed;
+    z-index: 1;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--spotlight);
+    outline: 2px solid var(--volt);
+    outline-offset: 0;
+    pointer-events: none;
+    transition:
+        left 0.25s ease,
+        top 0.25s ease,
+        width 0.25s ease,
+        height 0.25s ease;
+}
+
+// the demo pointer; its tip sits on (x, y)
+.tour__cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 2;
+    pointer-events: none;
+    opacity: 0;
+    transition:
+        transform 0.6s cubic-bezier(0.3, 0.7, 0.2, 1),
+        opacity 0.2s ease;
+}
+
+.tour__cursor.is-shown {
+    opacity: 1;
+}
+
+.tour__cursor i {
+    position: absolute;
+    left: -3px;
+    top: -2px;
+    font-size: 1.5rem;
+    color: var(--text-bright);
+    filter: drop-shadow(0 2px 3px rgb(var(--lo-rgb) / 0.7));
+    transition: transform 0.12s ease;
+}
+
+.tour__cursor.is-pressing i {
+    transform: scale(0.86);
+}
+
+.tour__ripple {
+    position: absolute;
+    left: -16px;
+    top: -16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid var(--volt);
+    opacity: 0;
+}
+
+.tour__cursor.is-pressing .tour__ripple {
+    animation: tour-ripple 0.45s ease-out;
+}
+
+@keyframes tour-ripple {
+    from {
+        opacity: 0.9;
+        transform: scale(0.4);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.5);
+    }
+}
+
+.tour-phone-enter-active,
+.tour-phone-leave-active {
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+}
+
+.tour-phone-enter-from,
+.tour-phone-leave-to {
+    opacity: 0;
+    transform: translateY(1rem);
+}
+
+.tour__card {
+    position: fixed;
+    z-index: 1;
+    width: min(360px, calc(100vw - 24px));
+    max-height: calc(100vh - 24px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float);
+    transition:
+        left 0.25s ease,
+        top 0.25s ease;
+}
+
+// no target (or a phone): centred; on a phone, docked above the bottom bar
+.tour__card.is-pending {
+    opacity: 0;
+}
+
+.tour__card.is-free {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@media (max-width: 639px) {
+    .tour__card.is-free {
+        top: auto;
+        bottom: 5.4rem;
+        transform: translateX(-50%);
+    }
+
+    .tour__card {
+        max-height: 60vh;
+    }
+}
+
+// the band: which tour, how far, the step's title
+.tour__band {
+    position: relative;
+    flex: none;
+    padding: 0.75rem 0.9rem 0.85rem 1rem;
+    background:
+        linear-gradient(
+            135deg,
+            rgb(var(--volt-rgb) / 0.3),
+            rgb(var(--volt-rgb) / 0.1)
+        ),
+        var(--panel-2);
+    border-bottom: 1px solid var(--line-strong);
+}
+
+.tour__band-top {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tour__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--text);
+    opacity: 0.85;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tour__count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text);
+    opacity: 0.75;
+    white-space: nowrap;
+}
+
+.tour__x {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text);
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.tour__x:hover {
+    opacity: 1;
+    background: rgb(var(--hi-rgb) / 0.08);
+}
+
+.tour__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0.45rem 0 0;
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    line-height: 1.2;
+    color: var(--text-bright);
+}
+
+.tour__title i {
+    font-size: 1rem;
+    flex: none;
+}
+
+.tour__progress {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 3px;
+    background: rgb(var(--hi-rgb) / 0.06);
+}
+
+.tour__progress span {
+    display: block;
+    height: 100%;
+    background: var(--grad);
+    transition: width 0.25s ease;
+}
+
+// the body: a lead, the points, a boxed line
+.tour__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0.8rem 1rem 0.2rem;
+}
+
+.tour__lead {
+    margin: 0;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: var(--text);
+}
+
+.tour__points {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.tour__points li {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: start;
+    font-size: var(--fs-md);
+    line-height: 1.45;
+    color: var(--text-dim);
+}
+
+.tour__points li > i {
+    width: 22px;
+    height: 22px;
+    margin-top: 1px;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    color: var(--volt);
+    font-size: 0.66rem;
+}
+
+// short labels (the welcome's path): a grid of tiles
+.tour__points.is-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.tour__points.is-tiles li {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.45rem 0.3rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    font-size: var(--fs-xs);
+    text-align: center;
+    line-height: 1.3;
+}
+
+.tour__points.is-tiles li > i {
+    border: 0;
+    background: none;
+    font-size: 0.85rem;
+}
+
+.tour__body b {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+.tour__card kbd {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    padding: 0 5px;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--bg-2);
+    color: var(--text);
+    white-space: nowrap;
+}
+
+.tour__note {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0.5rem 0.65rem;
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--text);
+}
+
+.tour__note > i {
+    margin-top: 2px;
+    flex: none;
+}
+
+.tour__note.is-warn {
+    background: rgb(var(--amber-rgb) / 0.09);
+    border: 1px solid rgb(var(--amber-rgb) / 0.3);
+}
+
+.tour__note.is-warn > i {
+    color: var(--amber);
+}
+
+.tour__note.is-tip {
+    background: var(--volt-08);
+    border: 1px solid var(--volt-30);
+}
+
+.tour__note.is-tip > i {
+    color: var(--volt);
+}
+
+.tour__foot {
+    flex: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.6rem;
+    padding: 0.6rem 1rem 0.8rem;
+    border-top: 1px solid var(--line);
+}
+
+.tour__skip {
+    padding: 0.3rem 0;
+    border: 0;
+    background: none;
+    color: var(--text-mute);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+}
+
+.tour__skip:hover {
+    color: var(--text);
+}
+
+.tour__keys {
+    display: inline-flex;
+    gap: 3px;
+    margin-left: auto;
+}
+
+.tour__nav {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tour__nav .btn {
+    padding: 0.5rem 0.9rem;
+}
+
+@media (max-width: 639px) {
+    .tour__keys {
+        display: none;
+    }
+
+    .tour__nav {
+        margin-left: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .tour__hole,
+    .tour__card,
+    .tour__progress span {
+        transition: none;
+    }
+}

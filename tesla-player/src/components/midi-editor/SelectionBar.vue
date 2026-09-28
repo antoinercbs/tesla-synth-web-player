@@ -91,13 +91,13 @@ defineExpose({ close: () => { velOpen.value = false; }, isOpen: () => velOpen.va
     </label>
     <button class="btn" type="button" @click="move">{{ $t('midiEditor.move') }}</button>
     <span class="me-sep" aria-hidden="true"></span>
-    <span class="me-seg" role="group" :aria-label="$t('midiEditor.transpose')" :title="$t('midiEditor.transposeHint')">
+    <span class="me-stepper" role="group" :aria-label="$t('midiEditor.transpose')" :title="$t('midiEditor.transposeHint')">
       <button type="button" @click="ed.transpose(-12)">−12</button>
       <button type="button" @click="ed.transpose(-1)">−1</button>
       <button type="button" @click="ed.transpose(1)">+1</button>
       <button type="button" @click="ed.transpose(12)">+12</button>
     </span>
-    <span class="me-seg" role="group" :aria-label="$t('midiEditor.shift')" :title="$t('midiEditor.shiftHint')">
+    <span class="me-stepper" role="group" :aria-label="$t('midiEditor.shift')" :title="$t('midiEditor.shiftHint')">
       <button type="button" :aria-label="$t('midiEditor.shiftEarlier')" @click="shift(-1)"><i class="fas fa-arrow-left"></i></button>
       <button type="button" :aria-label="$t('midiEditor.shiftLater')" @click="shift(1)"><i class="fas fa-arrow-right"></i></button>
     </span>
@@ -132,52 +132,3 @@ defineExpose({ close: () => { velOpen.value = false; }, isOpen: () => velOpen.va
       @click="ed.clearSelection()"><i class="fas fa-xmark"></i></button>
   </div>
 </template>
-
-<style scoped>
-.me-selbar {
-  flex: 1; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.6rem;
-  padding: 0.45rem 0.6rem 0.45rem 0.9rem; background: var(--volt-08);
-}
-.me-selbar .btn { padding: 0.3rem 0.7rem; font-size: var(--fs-sm); }
-.me-selbar__count { font-weight: 600; font-size: var(--fs-md); white-space: nowrap; }
-.me-selbar__count small { margin-left: 0.4rem; color: var(--text-mute); font-weight: 400; font-size: var(--fs-xs); }
-.me-sep { width: 1px; height: 22px; background: var(--line-strong); }
-.me-selbar__field { display: inline-flex; align-items: center; gap: 0.45rem; margin: 0; padding: 0; font-size: var(--fs-sm); color: var(--text-dim); }
-.me-selbar__field select { font-size: var(--fs-sm); padding: 0.3rem 1.8rem 0.3rem 0.55rem; max-width: 12rem; }
-.me-seg { display: inline-flex; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 2px; gap: 2px; }
-.me-seg button {
-  border: 0; background: transparent; padding: 0.2rem 0.5rem; border-radius: 5px; cursor: pointer; color: var(--text-dim);
-  font-family: var(--font-mono); font-size: var(--fs-sm);
-}
-.me-seg button:hover { background: var(--panel-2); color: #fff; }
-.me-caret { font-size: 0.6rem; margin-left: 0.1rem; }
-.me-selbar__vel { position: relative; }
-.me-velpop {
-  position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 20; width: 18rem;
-  background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--radius);
-  box-shadow: 0 14px 34px rgb(0 0 0 / 0.5); padding: 0.65rem 0.75rem 0.4rem;
-}
-.me-velpop__line { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.45rem; padding: 0; font-size: var(--fs-sm); color: var(--text-dim); }
-.me-velpop__line > span { width: 4rem; }
-.me-velpop .btn { padding: 0.2rem 0.6rem; font-size: var(--fs-xs); }
-.me-velpop__hint { margin: 0.2rem 0 0.2rem; font-size: var(--fs-xs); color: var(--text-mute); line-height: 1.45; }
-.me-num {
-  width: 3.6rem; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  color: var(--text); font-family: var(--font-mono); font-size: var(--fs-sm); padding: 0.2rem 0.4rem; appearance: textfield;
-}
-.me-num::-webkit-inner-spin-button { -webkit-appearance: none; }
-.me-num:focus { outline: none; border-color: var(--volt); }
-.me-selbar__spacer { flex: 1; }
-.me-ibtn {
-  height: 29px; min-width: 32px; border-radius: var(--radius-sm); border: 1px solid var(--line-strong); background: var(--panel-2);
-  color: var(--text-dim); cursor: pointer; display: inline-grid; place-items: center;
-}
-.me-ibtn:hover:not(:disabled) { color: #fff; }
-.me-ibtn:disabled { opacity: 0.4; cursor: not-allowed; }
-.me-ibtn--danger:hover:not(:disabled) { color: #ff8a96; background: rgb(255 84 104 / 0.1); border-color: rgb(255 84 104 / 0.35); }
-.me-x {
-  width: 26px; height: 26px; border: 0; border-radius: 6px; background: transparent; color: var(--text-mute);
-  cursor: pointer; display: grid; place-items: center;
-}
-.me-x:hover { background: var(--panel-2); color: var(--text); }
-</style>

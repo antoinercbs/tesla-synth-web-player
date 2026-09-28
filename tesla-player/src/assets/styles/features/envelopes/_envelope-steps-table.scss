@@ -1,0 +1,300 @@
+// ===========================================================================
+//  ENVELOPE STEPS TABLE
+// ===========================================================================
+// envelopes/EnvelopeStepsTable.vue
+
+.env-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.env-steps__end {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.8rem;
+    font-size: var(--fs-sm);
+}
+
+.env-steps__end-label {
+    color: var(--text-mute);
+}
+
+// a compact switch: Bulma's .icon box (1.5rem) would set the height otherwise
+.env-steps__end .segmented {
+    padding: 2px;
+    gap: 2px;
+}
+
+.env-steps__end .segmented button {
+    padding: 0.2rem 0.65rem;
+    font-size: var(--fs-sm);
+    line-height: 1.4;
+}
+
+.env-steps__end .segmented .icon {
+    width: 1rem;
+    height: 1rem;
+    margin-right: 0.15rem;
+}
+
+.env-steps__from {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+.env-steps__from select {
+    padding: 0.3rem 1.8rem 0.3rem 0.6rem;
+    font-size: var(--fs-sm);
+}
+
+// separate borders: collapsed cells ignore border-radius, and the hover column is rounded
+.env-steps__table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    table-layout: fixed;
+    font-size: var(--fs-sm);
+}
+
+.env-steps__label-col {
+    width: 6.2rem;
+}
+
+.env-steps__add-col {
+    width: 8rem;
+}
+
+.env-steps__table th,
+.env-steps__table td {
+    padding: 3px 4px;
+}
+
+// under the table: Bulma's `table th:not([align])` would win over a class and an element
+.env-steps__table .env-steps__head th {
+    font-weight: 500;
+    text-align: left;
+    padding-bottom: 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    vertical-align: bottom;
+}
+
+// the number lines up with the values below, the × goes to the column's right edge
+.env-steps__col-head {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.env-steps__n {
+    flex: none;
+    padding-left: 7px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.env-steps__table .env-steps__row-label {
+    text-align: left;
+    font-weight: 500;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    cursor: help;
+}
+
+.env-steps__row-label i {
+    margin-left: 4px;
+    opacity: 0.7;
+}
+
+// hovering a column (or its point on the graph) lights it as one rounded strip
+.env-steps__table .is-hover {
+    background: var(--volt-08);
+}
+
+.env-steps__table .is-hover .env-steps__n {
+    color: var(--volt);
+}
+
+.env-steps__head th.is-hover {
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
+.env-steps__table tbody tr:last-child td.is-hover {
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+
+.env-steps__table .is-release {
+    border-left: 1px dashed var(--line-strong);
+    padding-left: 0.6rem;
+}
+
+// on the tag's line: a second line would leave the other headers floating over a gap
+.env-steps__sub {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.env-steps__cell {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.env-steps__unit {
+    width: 1rem;
+    flex: none;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.env-steps input {
+    width: 100%;
+    min-width: 0;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 4px 6px;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    outline: none;
+}
+
+// no spinners: the cells are too narrow for them (arrow keys still step)
+.env-steps input {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+.env-steps input::-webkit-inner-spin-button,
+.env-steps input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.env-steps input:focus {
+    border-color: var(--volt);
+    box-shadow: var(--focus-ring);
+}
+
+.env-steps input {
+    transition: border-color 0.12s;
+}
+
+.env-steps input:disabled {
+    opacity: 0.6;
+}
+
+.env-steps__role {
+    display: inline-block;
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+    padding: 0 7px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--line-strong);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+}
+
+.env-steps__role.is-attack {
+    color: var(--volt);
+    border-color: var(--volt-30);
+}
+
+.env-steps__role.is-sustain {
+    color: var(--ok);
+    border-color: rgb(var(--ok-rgb) / 0.35);
+}
+
+.env-steps__role.is-loop {
+    color: var(--coil-4);
+    border-color: color-mix(in srgb, var(--coil-4) 45%, transparent);
+}
+
+.env-steps__role.is-release {
+    color: var(--danger);
+    border-color: rgb(var(--danger-rgb) / 0.35);
+}
+
+.env-steps__remove {
+    flex: none;
+    margin-left: auto;
+    display: grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    border: 0;
+    background: transparent;
+    color: var(--text-mute);
+    cursor: pointer;
+    padding: 0;
+    border-radius: var(--radius-xs);
+    font-size: 0.8rem;
+}
+
+.env-steps__remove:hover {
+    color: var(--danger-text);
+    background: rgb(var(--danger-rgb) / 0.1);
+}
+
+// the add button spans the whole height of the step rows
+.env-steps__add-cell {
+    position: relative;
+}
+
+.env-steps__add {
+    position: absolute;
+    inset: 3px 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: pointer;
+    text-align: center;
+    padding: 0.4rem;
+}
+
+.env-steps__add:hover {
+    border-color: var(--volt-30);
+    color: var(--volt);
+    background: var(--volt-08);
+}
+
+.env-steps__add-hint {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    line-height: 1.3;
+}
+
+@media (max-width: 1400px) {
+    .env-steps__role {
+        padding: 0 5px;
+    }
+}

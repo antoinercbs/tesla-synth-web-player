@@ -5,7 +5,7 @@ import { notify } from '@/utils/toast';
 import { noteName } from '@/ui/piano-layout';
 import { docBeatsPerBar, type EdNote } from '@/midi/edit/doc';
 import type { MidiEditor } from '@/midi/edit/editor';
-import { channelColor } from '@/midi/edit/colors';
+import { channelColors } from '@/midi/edit/colors';
 
 /**
  * The editor's piano roll: the notes on a canvas (a file can hold tens of
@@ -77,19 +77,26 @@ function barLabel(tick: number): string {
 }
 
 /* --------------------------------- drawing --------------------------------- */
-interface Theme { bg: string; side: string; line: (a: number) => string; text: string; mute: string; volt: (a: number) => string }
+type Tint = (a: number) => string;
+interface Theme { bg: string; side: string; text: string; mute: string; bright: string; mono: string; line: Tint; volt: Tint; hi: Tint; lo: Tint; chan: string[] }
+// the tokens, read once per frame: a canvas can't take a var()
 function theme(): Theme {
-  const s = getComputedStyle(area.value as Element);
-  const v = (name: string, fallback: string): string => s.getPropertyValue(name).trim() || fallback;
-  const lineRgb = v('--line-rgb', '110 140 235');
-  const voltRgb = v('--volt-rgb', '122 167 255');
+  const el = area.value as Element;
+  const s = getComputedStyle(el);
+  const v = (name: string): string => s.getPropertyValue(name).trim();
+  const tint = (name: string): Tint => { const rgb = v(name); return (a) => `rgb(${rgb} / ${a})`; };
   return {
-    bg: v('--bg-2', '#080d1c'),
-    side: v('--panel', '#0c1328'),
-    line: (a) => `rgb(${lineRgb} / ${a})`,
-    text: v('--text-dim', '#93a3b8'),
-    mute: v('--text-mute', '#74859b'),
-    volt: (a) => `rgb(${voltRgb} / ${a})`,
+    bg: v('--bg-2'),
+    side: v('--panel'),
+    text: v('--text-dim'),
+    mute: v('--text-mute'),
+    bright: v('--text-bright'),
+    mono: v('--font-mono'),
+    line: tint('--line-rgb'),
+    volt: tint('--volt-rgb'),
+    hi: tint('--hi-rgb'),
+    lo: tint('--lo-rgb'),
+    chan: channelColors(el),
   };
 }
 function fit(cv: HTMLCanvasElement, w: number, h: number): CanvasRenderingContext2D {
@@ -118,7 +125,7 @@ function drawRoll(th: Theme): void {
   const pHi = pitchAt(RULER_H), pLo = pitchAt(H);
   for (let p = pLo; p <= pHi; p++) {
     const y = yOf(p);
-    if (isBlack(p)) { c.fillStyle = 'rgb(0 0 0 / 0.22)'; c.fillRect(KB_W, y, W - KB_W, KEY_H); }
+    if (isBlack(p)) { c.fillStyle = th.lo(0.22); c.fillRect(KB_W, y, W - KB_W, KEY_H); }
     if (p === hoverPitch) { c.fillStyle = th.volt(0.06); c.fillRect(KB_W, y, W - KB_W, KEY_H); }
     if (p % 12 === 0) { c.fillStyle = th.line(0.16); c.fillRect(KB_W, y + KEY_H - 1, W - KB_W, 1); }
   }
@@ -155,11 +162,11 @@ function drawRoll(th: Theme): void {
     if (y + KEY_H < RULER_H || y > H) return;
     // the fill says how loud: on the Syntherrupter the velocity is the note's power
     c.globalAlpha = (ed.muted.has(n.channel) ? 0.3 : 1) * (0.42 + (0.58 * n.velocity) / 127);
-    c.fillStyle = channelColor(n.channel);
+    c.fillStyle = th.chan[n.channel];
     c.beginPath(); c.roundRect(x + 0.5, y + 1, Math.max(1, w - 1), KEY_H - 2, 2); c.fill();
     c.globalAlpha = 1;
     if (isSel) {
-      c.strokeStyle = '#ffffff';
+      c.strokeStyle = th.bright;
       c.lineWidth = 1.5;
       c.beginPath(); c.roundRect(x + 0.5, y + 1, Math.max(1, w - 1), KEY_H - 2, 2); c.stroke();
     }
@@ -177,14 +184,14 @@ function drawRoll(th: Theme): void {
     c.strokeRect(xa + 0.5, ya + 0.5, xb - xa, yb - ya);
   }
   const xp = Math.round(xOf(ed.playhead)) + 0.5;
-  c.strokeStyle = 'rgb(255 255 255 / 0.75)';
+  c.strokeStyle = th.hi(0.75);
   c.beginPath(); c.moveTo(xp, RULER_H); c.lineTo(xp, H); c.stroke();
   c.restore();
 
   // keyboard
   c.fillStyle = th.side;
   c.fillRect(0, RULER_H, KB_W, H - RULER_H);
-  c.font = '9px "IBM Plex Mono", monospace';
+  c.font = `9px ${th.mono}`;
   c.textAlign = 'right';
   c.textBaseline = 'middle';
   for (let p = pLo; p <= pHi; p++) {
@@ -204,7 +211,7 @@ function drawRoll(th: Theme): void {
   if (r) { c.fillStyle = th.volt(0.28); c.fillRect(xOf(r.a), 3, xOf(r.b) - xOf(r.a), RULER_H - 6); }
   const barPx = bar * pxPerTick();
   const every = barPx < 34 ? 4 : barPx < 60 ? 2 : 1;
-  c.font = '10px "IBM Plex Mono", monospace';
+  c.font = `10px ${th.mono}`;
   c.textAlign = 'left';
   for (let b = Math.floor(t0 / bar); b * bar <= t1; b++) {
     const x = Math.round(xOf(b * bar)) + 0.5;
@@ -212,7 +219,7 @@ function drawRoll(th: Theme): void {
     c.beginPath(); c.moveTo(x, RULER_H - 8); c.lineTo(x, RULER_H); c.stroke();
     if (b % every === 0) { c.fillStyle = th.text; c.fillText(String(b + 1), x + 4, RULER_H / 2); }
   }
-  c.fillStyle = '#ffffff';
+  c.fillStyle = th.bright;
   c.beginPath(); c.moveTo(xp - 5, RULER_H - 7); c.lineTo(xp + 5, RULER_H - 7); c.lineTo(xp, RULER_H); c.fill();
   c.restore();
   c.fillStyle = th.line(0.16);
@@ -232,7 +239,7 @@ function drawVel(th: Theme): void {
   c.fillStyle = th.side;
   c.fillRect(0, 0, KB_W, h);
   c.fillStyle = th.mute;
-  c.font = '9px "IBM Plex Mono", monospace';
+  c.font = `9px ${th.mono}`;
   c.textAlign = 'center';
   c.textBaseline = 'middle';
   c.fillText(t('midiEditor.velShort'), KB_W / 2, h / 2);
@@ -251,14 +258,14 @@ function drawVel(th: Theme): void {
       if (x < KB_W - 4 || x > W) continue;
       const bh = ((h - 8) * n.velocity) / 127;
       c.globalAlpha = pass ? 1 : any ? 0.25 : 0.6;
-      c.fillStyle = channelColor(n.channel);
+      c.fillStyle = th.chan[n.channel];
       c.fillRect(x, h - 4 - bh, 3, bh);
-      if (pass) { c.fillStyle = '#ffffff'; c.fillRect(x - 1, h - 5 - bh, 5, 2); }
+      if (pass) { c.fillStyle = th.bright; c.fillRect(x - 1, h - 5 - bh, 5, 2); }
     }
   }
   c.globalAlpha = 1;
   const xp = Math.round(xOf(ed.playhead)) + 0.5;
-  c.strokeStyle = 'rgb(255 255 255 / 0.5)';
+  c.strokeStyle = th.hi(0.5);
   c.beginPath(); c.moveTo(xp, 0); c.lineTo(xp, h); c.stroke();
   c.restore();
 }
@@ -616,38 +623,3 @@ onBeforeUnmount(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.roll { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-.roll__area { flex: 1 1 auto; min-height: 0; position: relative; }
-.roll__canvas, .roll__vel canvas { position: absolute; left: 0; top: 0; }
-.roll__scroller { position: absolute; inset: 0; overflow: auto; outline: none; touch-action: none; }
-.roll__scroller::-webkit-scrollbar-corner { background: transparent; }
-.roll__spacer { pointer-events: none; }
-.roll__vel { flex: none; height: 66px; position: relative; border-top: 1px solid var(--line); cursor: ns-resize; }
-.roll__vel canvas { touch-action: none; }
-
-.roll-chip {
-  position: absolute; z-index: 3; display: inline-flex; align-items: center; gap: 0.45rem;
-  padding: 4px 11px; border-radius: 999px; border: 1px dashed var(--line-strong);
-  background: var(--scrim-90); color: var(--text-dim); font: inherit; font-size: var(--fs-xs);
-  cursor: pointer; white-space: nowrap;
-}
-.roll-chip:hover { border-color: var(--volt-30); color: var(--text); }
-.roll-chip b { color: var(--volt); }
-
-.roll-range {
-  position: absolute; z-index: 3; display: flex; align-items: center; gap: 0.4rem;
-  padding: 4px 4px 4px 10px; background: var(--panel-2); border: 1px solid var(--volt-30);
-  border-radius: var(--radius); box-shadow: 0 10px 26px rgb(0 0 0 / 0.45);
-  font-size: var(--fs-sm); white-space: nowrap;
-}
-.roll-range > i { color: var(--volt); }
-.roll-range b { font-family: var(--font-mono); font-weight: 500; margin-right: 0.2rem; }
-.roll-range .btn { padding: 3px 9px; font-size: var(--fs-xs); }
-.roll-range__x {
-  width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent;
-  color: var(--text-mute); cursor: pointer; display: grid; place-items: center;
-}
-.roll-range__x:hover { background: var(--volt-08); color: var(--text); }
-</style>

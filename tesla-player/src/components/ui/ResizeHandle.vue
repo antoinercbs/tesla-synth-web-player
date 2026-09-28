@@ -50,28 +50,3 @@ function onPointerUp(e: PointerEvent): void {
     <span class="resize-handle__grip"></span>
   </div>
 </template>
-
-<style scoped>
-.resize-handle {
-  width: 2rem;
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: col-resize;
-  touch-action: none;
-}
-
-.resize-handle__grip {
-  width: 2px;
-  height: 100%;
-  border-radius: 2px;
-  background: var(--line-strong);
-  transition: background 0.12s ease, box-shadow 0.12s ease;
-}
-
-.resize-handle:hover .resize-handle__grip,
-.resize-handle.is-active .resize-handle__grip {
-  background: var(--volt);
-}
-</style>

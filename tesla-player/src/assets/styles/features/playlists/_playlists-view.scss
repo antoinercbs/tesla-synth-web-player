@@ -1,0 +1,14 @@
+// ===========================================================================
+//  PLAYLISTS VIEW
+// ===========================================================================
+// views/PlaylistsView.vue
+
+@media (max-width: 1000px) {
+    .pl-screen,
+    .pl-screen .screen-body--fill {
+        height: auto;
+        flex: none;
+        overflow: visible;
+        padding-bottom: 0;
+    }
+}

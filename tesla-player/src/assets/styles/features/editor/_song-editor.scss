@@ -1,0 +1,111 @@
+// ===========================================================================
+//  SONG EDITOR
+// ===========================================================================
+// no padding-bottom: any space below the sticky footer makes it "release" a few
+// px above the viewport bottom at the end of the scroll.
+.editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    position: relative;
+}
+
+// editing is blocked while the embedded player is playing
+// dim overlay over the (tall) editor. No backdrop-filter: it would create a
+// containing block and break the fixed-centred message below.
+.editor-lock {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: var(--scrim-62);
+    border-radius: var(--radius);
+}
+
+// fixed → always centred in the viewport, whatever the scroll position
+.editor-lock__msg {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 21;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    padding: 1.6rem 2.2rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-float);
+}
+
+.editor-lock__msg .icon {
+    font-size: 1.8rem;
+    color: var(--volt);
+    animation: lock-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes lock-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.55;
+    }
+}
+
+.editor-lock__msg .icon {
+    color: var(--volt);
+}
+
+.editor-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem 1.4rem;
+    align-items: end;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+}
+
+
+// section blocks inside the editor
+.editor-section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+}
+
+.editor-section__title {
+    font-weight: 600;
+    font-size: var(--fs-lg);
+    color: var(--text);
+    margin-bottom: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.editor-section__title .icon {
+    color: var(--volt);
+}
+
+
+// MIDI file field: combobox + a button to open the library/upload modal
+.midi-field {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+}
+
+.midi-field .combo {
+    flex: 1;
+}

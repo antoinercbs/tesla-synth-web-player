@@ -21,24 +21,3 @@ withDefaults(
     </div>
   </div>
 </template>
-
-<style scoped>
-/* .player-hint is global (styles/_player.scss); the stub carries its own style. */
-.empty-stub {
-  flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  color: var(--text-mute);
-  text-align: center;
-  padding: 2rem;
-}
-
-.empty-stub__icon {
-  font-size: 2rem;
-  color: var(--volt);
-  opacity: 0.5;
-}
-</style>

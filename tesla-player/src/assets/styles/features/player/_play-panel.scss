@@ -1,0 +1,13 @@
+// ===========================================================================
+//  PLAY PANEL
+// ===========================================================================
+// The card the play screen's source and queue panels share
+// (components/player/SongPlaylistPicker.vue, QueuePanel.vue).
+
+.play-panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-panel);
+}

@@ -1,0 +1,31 @@
+// ===========================================================================
+//  MIDI EDITOR CONTROLS
+// ===========================================================================
+// The number field and menu caret the selection bar and the select menu share
+// (components/midi-editor/SelectionBar.vue, SelectMenu.vue).
+
+.me-caret {
+    font-size: 0.6rem;
+    margin-left: 0.1rem;
+}
+
+.me-num {
+    width: 3.6rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    padding: 0.2rem 0.4rem;
+    appearance: textfield;
+}
+
+.me-num::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.me-num:focus {
+    outline: none;
+    border-color: var(--volt);
+}

@@ -152,29 +152,3 @@ defineExpose({ close: () => { open.value = false; }, isOpen: () => open.value })
     </div>
   </div>
 </template>
-
-<style scoped>
-.me-pop-wrap { position: relative; display: inline-flex; }
-.me-caret { font-size: 0.6rem; margin-left: 0.1rem; }
-.me-pop {
-  position: absolute; top: calc(100% + 6px); left: 0; z-index: 20; width: 22rem;
-  background: var(--panel-2); border: 1px solid var(--line-strong); border-radius: var(--radius);
-  box-shadow: 0 14px 34px rgb(0 0 0 / 0.5); padding: 0.7rem 0.8rem 0.5rem;
-}
-.me-pop .btn { padding: 0.25rem 0.6rem; font-size: var(--fs-xs); }
-.me-pop__row { display: flex; gap: 0.4rem; margin-bottom: 0.65rem; }
-.me-field { display: flex; align-items: center; gap: 0.5rem; margin: 0 0 0.4rem; padding: 0; font-size: var(--fs-sm); color: var(--text-dim); }
-.me-field .select-field { flex: 1; min-width: 0; }
-.me-field select, .me-rule__dir select { font-size: var(--fs-sm); padding: 0.3rem 1.8rem 0.3rem 0.55rem; }
-.me-pop__range { margin: 0 0 0.4rem; font-size: var(--fs-xs); color: var(--volt); }
-.me-rule { display: flex; align-items: center; gap: 0.5rem; padding: 0.18rem 0; font-size: var(--fs-sm); }
-.me-rule__txt { flex: 1; display: flex; align-items: center; gap: 0.3rem; min-width: 0; }
-.me-num {
-  width: 3.6rem; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  color: var(--text); font-family: var(--font-mono); font-size: var(--fs-sm); padding: 0.2rem 0.4rem; appearance: textfield;
-}
-.me-num::-webkit-inner-spin-button { -webkit-appearance: none; }
-.me-num:focus { outline: none; border-color: var(--volt); }
-.me-num--note { width: 3.2rem; }
-.me-pop__hint { margin: 0.45rem 0 0.1rem; font-size: var(--fs-xs); color: var(--text-mute); }
-</style>

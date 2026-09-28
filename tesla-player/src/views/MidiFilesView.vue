@@ -24,14 +24,3 @@ import PageTourButton from '@/components/tour/PageTourButton.vue';
 
   </div>
 </template>
-
-<style scoped>
-/* Full-width table; the manager fills the page so a file can be dropped anywhere on it. */
-.midi-files { display: flex; min-height: 0; height: 100%; }
-.midi-files__panel {
-  width: 100%; min-height: 0;
-  display: flex; flex-direction: column;
-}
-.midi-files__panel :deep(.midi-lib) { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
-.midi-files__panel :deep(.midi-lib__list) { flex: 1 1 auto; min-height: 0; }
-</style>

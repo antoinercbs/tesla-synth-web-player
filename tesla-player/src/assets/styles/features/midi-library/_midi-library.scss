@@ -1,0 +1,549 @@
+// ===========================================================================
+//  MIDI LIBRARY
+// ===========================================================================
+// The editor modal and the MIDI files page (components/editor/MidiLibraryPanel.vue).
+
+// MIDI library (editor modal + MIDI files page)
+.midi-lib {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    container-type: inline-size; // the channels column drops out when narrow
+}
+
+.midi-lib__bar {
+    display: flex;
+    gap: var(--sp-2);
+}
+
+.midi-lib__bar .btn {
+    flex: 0 0 auto;
+}
+
+.midi-lib__search {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.midi-lib__search .text-field {
+    width: 100%;
+    height: 100%;
+    padding-left: 2.2rem;
+}
+
+.midi-lib__search-icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-mute);
+    pointer-events: none;
+    font-size: var(--fs-md);
+}
+
+.midi-lib__hint {
+    margin: var(--sp-2) 0 var(--sp-3);
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+.midi-lib__drop {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border: 1.5px dashed var(--volt);
+    border-radius: var(--radius-lg);
+    background: rgb(var(--bg-rgb) / 0.85);
+    color: var(--text);
+    font-size: var(--fs-lg);
+    pointer-events: none;
+}
+
+.midi-lib__drop-icon {
+    font-size: var(--fs-2xl);
+    color: var(--volt);
+}
+
+// hugs its rows; only scrolls once they outgrow the space
+.midi-lib__table {
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    overflow: hidden;
+}
+
+.midi-lib__list {
+    --midi-cols: minmax(0, 1fr) 4.2rem 4.2rem minmax(0, 10rem) 7.5rem 4.6rem;
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: 42vh;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.midi-files__panel .midi-lib__list {
+    max-height: none;
+}
+
+.midi-lib__head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: var(--midi-cols);
+    gap: var(--sp-3);
+    align-items: center;
+    padding: 0.55rem var(--sp-3);
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-mute);
+}
+
+.midi-lib__head .is-num {
+    text-align: right;
+}
+
+@container (max-width: 540px) {
+    .midi-lib__list {
+        --midi-cols: minmax(0, 1fr) 3.4rem 6rem 4.6rem;
+    }
+
+    .midi-lib__col-ch,
+    .midi-lib__col-prog {
+        display: none;
+    }
+}
+
+.midi-lib__dl {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    display: grid;
+    place-items: center;
+}
+
+.midi-lib__dl:hover {
+    color: var(--volt);
+}
+
+.midi-lib__msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-md);
+    margin-bottom: var(--sp-3);
+}
+
+.midi-lib__msg.success {
+    color: var(--ok);
+    background: rgb(var(--ok-rgb) / 0.12);
+}
+
+.midi-lib__msg.error {
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.12);
+}
+
+.midi-lib__msg.confirm {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    background: rgb(var(--danger-rgb) / 0.12);
+    color: var(--text);
+}
+
+.midi-lib__confirm-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--danger);
+}
+
+.midi-lib__confirm-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.midi-lib__msg .btn {
+    padding: 0.4rem 0.85rem;
+    font-size: var(--fs-md);
+}
+
+
+.midi-lib__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-3) var(--sp-5);
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+    text-align: center;
+}
+
+.midi-lib__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--midi-cols);
+    gap: var(--sp-3);
+    align-items: center;
+    min-height: 2.9rem;
+    padding: 0.3rem var(--sp-3);
+    border-bottom: 1px solid var(--line);
+    transition: background 0.13s;
+}
+
+.midi-lib__item:hover {
+    background: var(--line-005);
+}
+
+.midi-lib__item-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+
+.midi-lib__action {
+    background: none;
+    border: 0;
+    cursor: pointer;
+    padding: 0.4rem 0.4rem 0.4rem 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    display: grid;
+    place-items: center;
+    transition: 0.15s ease;
+    font-size: var(--fs-xl);
+}
+
+.midi-lib__action:hover {
+    color: var(--volt);
+}
+
+.midi-lib__dropdown {
+    position: relative;
+}
+
+.midi-lib__dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.3rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    padding: 0.3rem;
+    display: none;
+    flex-direction: column;
+    width: 160px;
+    box-shadow: var(--shadow-pop);
+    z-index: 100;
+
+    opacity: 0;
+    visibility: hidden;
+    animation: dropdownFadeDown 0.15s ease forwards;
+    transition:
+        opacity 0.2s,
+        transform 0.2s,
+        visibility 0.2s;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 0.4rem;
+        bottom: 100%;
+    }
+}
+
+.midi-lib__dropdown:hover .midi-lib__dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    display: flex;
+}
+
+.midi-lib__dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 0.5rem 0.6rem;
+    border-radius: var(--radius-xs);
+    cursor: pointer;
+    text-align: left;
+    font-size: var(--fs-md);
+    transition: 0.15s;
+
+    span {
+        padding-bottom: 2px;
+    }
+}
+
+.midi-lib__dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+.midi-lib__dropdown-item:hover {
+    background: var(--line-strong);
+    color: var(--text);
+
+    .midi-lib__usage-title {
+        text-decoration: underline;
+    }
+}
+
+.midi-lib__dropdown-item.is-danger:hover {
+    background: rgb(var(--danger-rgb) / 0.12);
+    color: var(--danger);
+}
+
+.midi-lib__dropdown-divider {
+    height: 1px;
+    background: var(--line-strong);
+    margin: 0.3rem 0;
+}
+
+/* the song's file: same micro-arc edge as the song on air */
+.midi-lib__item.is-current {
+    background: var(--volt-08);
+}
+
+.midi-lib__item.is-current::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+    mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+}
+
+.midi-lib__item-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+.midi-lib__item-name-edit {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.midi-lib__item-name-edit input {
+    width: 100%;
+    background: var(--bg-2);
+    color: var(--text);
+    border: 1px solid var(--text-mute);
+    border-radius: var(--radius-sm);
+    padding: 0.15rem 0.4rem;
+    font-family: inherit;
+    font-size: inherit;
+    outline: none;
+}
+
+.midi-lib__edit-icon {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    padding: 0.3rem;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-xs);
+    transition: 0.15s;
+    font-size: var(--fs-lg);
+}
+
+.midi-lib__edit-icon:hover {
+    color: var(--ok);
+    background: rgb(var(--ok-rgb) / 0.12);
+}
+
+.midi-lib__edit-icon.is-cancel:hover {
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.12);
+}
+
+.midi-lib__item-dur,
+.midi-lib__item-ch {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+.midi-lib__item-prog {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+.midi-lib__usages-text {
+    display: block;
+    padding: 0.3rem 0;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    white-space: nowrap;
+    cursor: default;
+    transition: color 0.15s;
+}
+
+.midi-lib__usages-text.is-none {
+    color: var(--text-mute);
+}
+
+.midi-lib__usages:hover .midi-lib__usages-text:not(.is-none) {
+    color: var(--volt);
+}
+
+/* opens leftwards, over the number columns: the table clips anything past its right edge */
+.midi-lib__dropdown-menu.is-usages {
+    min-width: 200px;
+    width: auto;
+    max-width: 300px;
+}
+
+/* phones: two-line rows (name, then duration · used by) instead of starving the name column */
+@container (max-width: 420px) {
+    .midi-lib__head {
+        display: none;
+    }
+
+    .midi-lib__item {
+        grid-template-columns: auto auto minmax(0, 1fr) auto;
+        grid-template-areas:
+            "name name name acts"
+            "dur uses . acts";
+        row-gap: 0;
+        padding-block: 0.45rem;
+    }
+
+    .midi-lib__item-name,
+    .midi-lib__item-name-edit {
+        grid-area: name;
+    }
+
+    .midi-lib__item-dur {
+        grid-area: dur;
+        text-align: left;
+    }
+
+    .midi-lib__usages {
+        grid-area: uses;
+    }
+
+    .midi-lib__item-actions {
+        grid-area: acts;
+    }
+}
+
+.midi-lib__dropdown-header {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.5px;
+    color: var(--text-mute);
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 0.2rem;
+}
+
+.midi-lib__dropdown-menu.is-usages .midi-lib__dropdown-item {
+    justify-content: space-between;
+}
+
+.midi-lib__usage-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.midi-lib__usage-coils {
+    color: var(--text-mute);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-mono, monospace);
+    padding-top: 2px;
+}
+
+.midi-lib__usage-coils i {
+    color: var(--volt);
+}
+
+.midi-lib__dropdown-menu.is-dropup {
+    top: auto;
+    bottom: 100%;
+    margin-top: 0;
+    margin-bottom: 0.3rem;
+    animation: dropdownFadeUp 0.15s ease forwards;
+
+    &::before {
+        bottom: auto;
+        top: 100%;
+    }
+}
+
+@keyframes dropdownFadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes dropdownFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.midi-lib__dropdown:hover .midi-lib__dropdown-menu.is-dropup {
+    transform: translateY(0);
+}

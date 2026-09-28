@@ -1,0 +1,214 @@
+// ===========================================================================
+//  MIDI PREVIEW
+// ===========================================================================
+// components/player/MidiPreview.vue
+
+.preview {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 0.4rem;
+}
+
+.preview__frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: rgb(var(--hi-rgb) / 0.02);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.preview__param {
+    display: flex;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: rgb(var(--lo-rgb) / 0.18);
+    padding: 4px;
+    gap: 4px;
+    flex: 0 0 auto;
+}
+
+// .segmented too: level with `.segmented button.is-active`, which comes first
+.segmented.preview__param button {
+    flex: 1 1 0;
+    padding: 0.35rem;
+    font-size: var(--fs-xs);
+}
+
+.preview__body {
+    flex: 1 1 auto;
+    min-height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.preview__scroll {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.preview__svg {
+    display: block;
+}
+
+.preview__inner {
+    display: flex;
+    width: 100%;
+}
+
+.preview__rail {
+    flex: 0 0 auto;
+    border-right: 1px solid var(--line);
+    background: rgb(var(--lo-rgb) / 0.18);
+}
+
+.preview__rail-head {
+    border-bottom: 1px solid var(--line);
+}
+
+.preview__rail-roll {
+    display: grid;
+    place-items: center;
+    color: var(--text-mute);
+    border-bottom: 1px solid var(--line);
+}
+
+.preview__rail-lane {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    padding: 0 0.5rem;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--line);
+}
+
+.preview__rail-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--c);
+}
+
+.preview__rail-id {
+    font-size: var(--fs-sm);
+    color: var(--text-strong);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview__rail-name {
+    color: var(--text-dim);
+    font-weight: 400;
+}
+
+.preview__rail-sub {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+    white-space: nowrap;
+}
+
+// compact rail: narrow column, number on top + ontime/duty written vertically
+.preview__rail.is-compact .preview__rail-lane {
+    align-items: center;
+    padding: 0.2rem 0;
+    gap: 2px;
+}
+
+.preview__rail-cnum {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text);
+    flex: 0 0 auto;
+}
+
+.preview__rail-csub {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    color: var(--text-mute);
+    white-space: nowrap;
+    overflow: hidden;
+    min-height: 0;
+    flex: 0 1 auto;
+}
+
+.preview__grid {
+    stroke: var(--line);
+    stroke-width: 1;
+    opacity: 0.6;
+}
+
+.preview__divider {
+    stroke: var(--line-strong, var(--line));
+    stroke-width: 1.5;
+    opacity: 0.9;
+}
+
+.preview__tick {
+    stroke: var(--line);
+    stroke-width: 1;
+    opacity: 0.3;
+}
+
+.preview__tick.is-major {
+    opacity: 0.55;
+}
+
+.preview__ticklabel {
+    fill: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: 0.5625rem;
+}
+
+// the arc's white-blue core, shared by score / lanes / combined
+.preview__playhead {
+    stroke: var(--arc-core);
+    stroke-width: 1.5;
+}
+
+.preview__empty {
+    height: 100%;
+    min-height: 120px;
+    display: grid;
+    place-items: center;
+    color: var(--text-mute);
+    font-family: var(--font-body);
+    font-size: var(--fs-md);
+}
+
+.auto-base {
+    stroke-width: 1;
+    stroke-dasharray: 3 4;
+    opacity: 0.4;
+}
+
+// the rim carries the level over notes; this thin line only shows it across the gaps
+.auto-line {
+    fill: none;
+    stroke-width: 1;
+    opacity: 0.45;
+}
+
+.lane-rim {
+    fill: none;
+    stroke-width: 2;
+}

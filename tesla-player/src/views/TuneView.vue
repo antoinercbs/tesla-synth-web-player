@@ -425,7 +425,7 @@ onBeforeUnmount(() => { void endSession(); });
 <template>
   <div class="screen tune">
     <header class="screen-head">
-      <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="live-dot"></span>{{ phaseLabel }}</span></h1>
+      <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="tune-live-dot"></span>{{ phaseLabel }}</span></h1>
       <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="modeOptions" />
     </header>
 
@@ -463,7 +463,7 @@ onBeforeUnmount(() => { void endSession(); });
                 <div class="select-field"><select v-model.number="setup.fiberIndex" :disabled="running || settingsLocked"><option v-for="o in fiberOptions" :key="o.value" :value="o.value">{{ o.label }}</option></select></div>
               </label>
             </div>
-            <p class="dim small">{{ t('tune.fiberHint') }}</p>
+            <p class="tune-dim tune-small">{{ t('tune.fiberHint') }}</p>
             <div class="tune-grid2">
               <label class="tune-field"><span class="tf-label">{{ t('label.ontime') }} <span class="unit">(µs)</span></span><input class="text-field" type="number" min="0" v-model.number="setup.ontimeUs" :disabled="running || settingsLocked" /></label>
               <label class="tune-field"><span class="tf-label">{{ t('label.duty') }} (%)</span><input class="text-field" type="number" min="0" max="100" step="0.1" v-model.number="dutyPct" :disabled="running || settingsLocked" /></label>
@@ -490,7 +490,7 @@ onBeforeUnmount(() => { void endSession(); });
               <label class="tune-field"><span class="tf-label">{{ t('tune.hold') }} (s)</span><input class="text-field" type="number" min="1" max="30" step="0.5" :value="setup.holdMs / 1000" :disabled="running || settingsLocked" @input="setup.holdMs = Math.round(Number(($event.target as HTMLInputElement).value) * 1000)" /></label>
               <label class="tune-field"><span class="tf-label">{{ t('tune.gap') }} (s)</span><input class="text-field" type="number" min="0" max="10" step="0.5" :value="setup.gapMs / 1000" :disabled="running || settingsLocked" @input="setup.gapMs = Math.round(Number(($event.target as HTMLInputElement).value) * 1000)" /></label>
             </div>
-            <p class="dim small">{{ t('tune.toneTotal', { s: toneSeconds }) }}</p>
+            <p class="tune-dim tune-small">{{ t('tune.toneTotal', { s: toneSeconds }) }}</p>
             <button class="btn btn--ghost" type="button" :disabled="!canTestTone" @click="testTone">
               <span class="icon"><i class="fas fa-volume-high"></i></span>{{ t('tune.testTone') }}
             </button>
@@ -516,7 +516,7 @@ onBeforeUnmount(() => { void endSession(); });
           </article>
         </div>
         <footer class="wiz-foot">
-          <span class="dim">{{ settingsOk ? t('tune.settingsHint') : t('tune.rangeInvalid') }}</span>
+          <span class="tune-dim">{{ settingsOk ? t('tune.settingsHint') : t('tune.rangeInvalid') }}</span>
           <button class="btn btn--volt wiz-next" type="button" :disabled="!canGo('camera')" @click="goTo('camera')">
             {{ t('tune.nextCamera') }}<span class="icon"><i class="fas fa-arrow-right"></i></span>
           </button>
@@ -532,7 +532,7 @@ onBeforeUnmount(() => { void endSession(); });
           @connect="connectCamera" @stop="stopAll('user')" @end="endSession" />
         <footer class="wiz-foot">
           <button class="btn btn--ghost" type="button" :disabled="running" @click="goTo('settings')"><span class="icon"><i class="fas fa-arrow-left"></i></span>{{ t('tune.back') }}</button>
-          <span class="dim">{{ cameraReady ? t('tune.cam.ready') : !session ? t('tune.needsCamera') : !cam.online ? t('tune.cam.offlineHint') : t('tune.cam.notReadyHint') }}</span>
+          <span class="tune-dim">{{ cameraReady ? t('tune.cam.ready') : !session ? t('tune.needsCamera') : !cam.online ? t('tune.cam.offlineHint') : t('tune.cam.notReadyHint') }}</span>
           <button class="btn btn--volt wiz-next" type="button" :disabled="!canGo('trials')" @click="goTo('trials')">
             {{ t('tune.nextTrials') }}<span class="icon"><i class="fas fa-arrow-right"></i></span>
           </button>
@@ -545,7 +545,7 @@ onBeforeUnmount(() => { void endSession(); });
           <div class="tune-col">
             <!-- what is under test, in one strip -->
             <div class="tune-facts">
-              <span class="fact"><span class="coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span><b>{{ coilLabel }}</b></span>
+              <span class="fact"><span class="tune-coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span><b>{{ coilLabel }}</b></span>
               <span class="fact" :title="t('tune.fiberHint')"><span class="fact__k">{{ t('tune.fiber') }}</span><b class="mono">{{ setup.fiberIndex }}</b></span>
               <span class="fact"><span class="fact__k">{{ t('label.ontime') }}</span><b class="mono">{{ setup.ontimeUs }} µs</b></span>
               <span class="fact"><span class="fact__k">{{ t('label.duty') }}</span><b class="mono">{{ dutyPct }} %</b></span>
@@ -560,26 +560,26 @@ onBeforeUnmount(() => { void endSession(); });
             </article>
 
             <article class="tune-panel">
-              <h2 class="tune-panel__title"><span class="icon"><i class="fas fa-list-ol"></i></span>{{ t('tune.trials') }} <span class="dim">({{ trials.length }})</span></h2>
+              <h2 class="tune-panel__title"><span class="icon"><i class="fas fa-list-ol"></i></span>{{ t('tune.trials') }} <span class="tune-dim">({{ trials.length }})</span></h2>
               <div v-if="trials.length" class="tune-table-wrap">
                 <table class="tune-table">
-                  <thead><tr><th></th><th>{{ t('tune.tap') }}</th><th class="num">{{ t('tune.score') }}</th><th v-for="n in setup.notes" :key="n" class="num" :title="noteHzLabel(n)">{{ noteName(n) }} <span class="dim">{{ noteHzLabel(n) }}</span></th><th class="num">σ</th><th></th></tr></thead>
+                  <thead><tr><th></th><th>{{ t('tune.tap') }}</th><th class="num">{{ t('tune.score') }}</th><th v-for="n in setup.notes" :key="n" class="num" :title="noteHzLabel(n)">{{ noteName(n) }} <span class="tune-dim">{{ noteHzLabel(n) }}</span></th><th class="num">σ</th><th></th></tr></thead>
                   <tbody>
                     <tr v-for="tr in sortedTrials" :key="tr.id" :class="{ 'is-best': best && tr.id === best.id }">
                       <td class="tune-thumb"><arc-heatmap :heat="tr.heat ?? null" :width="64" :overlay="false" /></td>
                       <td class="mono">{{ formatTurns(tr.tapTurns, setup.tapStep) }}</td>
                       <td class="num mono"><strong>{{ tr.score.toFixed(0) }}</strong></td>
                       <td v-for="(_, i) in setup.notes" :key="i" class="num mono">
-                        <template v-if="tr.notes[i]">{{ tr.notes[i].p90.toFixed(0) }} <span class="dim">· {{ Math.round(tr.notes[i].hitRate * 100) }} %</span></template>
-                        <span v-else class="dim">–</span>
+                        <template v-if="tr.notes[i]">{{ tr.notes[i].p90.toFixed(0) }} <span class="tune-dim">· {{ Math.round(tr.notes[i].hitRate * 100) }} %</span></template>
+                        <span v-else class="tune-dim">–</span>
                       </td>
-                      <td class="num mono dim">{{ tr.sigmaMedian != null ? tr.sigmaMedian.toFixed(1) : '–' }}</td>
+                      <td class="num mono tune-dim">{{ tr.sigmaMedian != null ? tr.sigmaMedian.toFixed(1) : '–' }}</td>
                       <td><button class="icon-btn icon-btn--sm" type="button" :title="t('label.delete')" :disabled="running" @click="removeTrial(tr.id)"><i class="fas fa-xmark"></i></button></td>
                     </tr>
                   </tbody>
                 </table>
               </div>
-              <p v-else class="dim">{{ t('tune.trialsEmpty') }}</p>
+              <p v-else class="tune-dim">{{ t('tune.trialsEmpty') }}</p>
             </article>
           </div>
 
@@ -627,7 +627,7 @@ onBeforeUnmount(() => { void endSession(); });
               </p>
               <p v-else-if="suggestion && best" class="tune-sug is-done"><i class="fas fa-flag-checkered"></i><span>{{ t('tune.suggestion.done', { tap: formatTurns(best.tapTurns, setup.tapStep) }) }}</span></p>
               <p v-if="lastHere" class="tune-note-line"><i class="fas fa-location-dot"></i><span>{{ t('tune.lastHere', { tap: formatTurns(lastHere.tapTurns, lastHere.tapStep ?? setup.tapStep), date: fmtDate(lastHere.createdAt) }) }}</span></p>
-              <p v-if="running" class="tune-phase"><span class="live-dot"></span>{{ phaseLabel }}</p>
+              <p v-if="running" class="tune-phase"><span class="tune-live-dot"></span>{{ phaseLabel }}</p>
               <p v-else-if="!canRun" class="tune-note-line is-hint">
                 <i class="fas fa-circle-info"></i>
                 <span>{{ !midiStore.midiOutput ? t('label.selectOutputHint') : !cameraReady ? t('tune.cam.offlineHint') : t('tune.rangeInvalid') }}</span>
@@ -648,7 +648,7 @@ onBeforeUnmount(() => { void endSession(); });
           <button class="btn btn--ghost" type="button" :disabled="running" @click="trials.length ? (confirmAbandon = true) : goTo('camera')">
             <span class="icon"><i class="fas" :class="trials.length ? 'fa-trash-can' : 'fa-arrow-left'"></i></span>{{ trials.length ? t('tune.abandon') : t('tune.back') }}
           </button>
-          <span class="dim">{{ trials.length ? t('tune.trialsSoFar', { n: trials.length, tap: best ? formatTurns(best.tapTurns, setup.tapStep) : '–', px: best ? best.score.toFixed(0) : '–' }) : t('tune.needTrials') }}</span>
+          <span class="tune-dim">{{ trials.length ? t('tune.trialsSoFar', { n: trials.length, tap: best ? formatTurns(best.tapTurns, setup.tapStep) : '–', px: best ? best.score.toFixed(0) : '–' }) : t('tune.needTrials') }}</span>
           <button class="btn btn--volt wiz-next" type="button" :disabled="!canGo('save')" @click="goTo('save')">
             {{ t('tune.finish') }}<span class="icon"><i class="fas fa-arrow-right"></i></span>
           </button>
@@ -662,8 +662,8 @@ onBeforeUnmount(() => { void endSession(); });
           <div class="tune-recap__grid">
             <arc-heatmap :heat="best?.heat ?? null" :width="220" :title="t('tune.heat.best')" />
             <dl class="tune-recap__facts mono">
-              <div><dt>{{ t('tune.coilName') }}</dt><dd><span class="coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span>{{ coilLabel }}</dd></div>
-              <div><dt>{{ t('tune.best') }}</dt><dd class="strong">{{ best ? formatTurns(best.tapTurns, setup.tapStep) : '–' }} tr · {{ best ? best.score.toFixed(0) : '–' }} px</dd></div>
+              <div><dt>{{ t('tune.coilName') }}</dt><dd><span class="tune-coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span>{{ coilLabel }}</dd></div>
+              <div><dt>{{ t('tune.best') }}</dt><dd class="tune-strong">{{ best ? formatTurns(best.tapTurns, setup.tapStep) : '–' }} tr · {{ best ? best.score.toFixed(0) : '–' }} px</dd></div>
               <div><dt>{{ t('tune.trials') }}</dt><dd>{{ trials.length }}</dd></div>
               <div><dt>{{ t('tune.tone') }}</dt><dd>{{ setup.notes.map((n) => noteName(n)).join(' ') }} · {{ (setup.holdMs / 1000).toFixed(0) }} s · {{ setup.ontimeUs }} µs / {{ dutyPct }} %</dd></div>
               <div><dt>{{ t('tune.primary') }}</dt><dd>{{ t('tune.primarySummary', { turns: setup.primaryTurns, min: formatTurns(setup.tapMin, setup.tapStep), max: formatTurns(setup.tapMax, setup.tapStep), step: stepLabel }) }}</dd></div>
@@ -676,7 +676,7 @@ onBeforeUnmount(() => { void endSession(); });
         </article>
         <footer class="wiz-foot">
           <button class="btn btn--ghost" type="button" :disabled="saving" @click="goTo('trials')"><span class="icon"><i class="fas fa-arrow-left"></i></span>{{ t('tune.backToTrials') }}</button>
-          <span class="dim">{{ t('tune.saveHint') }}</span>
+          <span class="tune-dim">{{ t('tune.saveHint') }}</span>
           <button class="btn btn--volt wiz-next" type="button" :disabled="saving" @click="saveForm?.submit()">
             <span class="icon"><i class="fas" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-disk'"></i></span>{{ t('tune.saveNow') }}
           </button>
@@ -722,147 +722,3 @@ onBeforeUnmount(() => { void endSession(); });
     <confirm-modal :open="!!toDelete" :title="t('label.delete')" :message="t('tune.confirmDelete')" :confirm-label="t('label.delete')" :cancel-label="t('label.cancel')" @confirm="confirmDelete" @close="toDelete = null" />
   </div>
 </template>
-
-<style scoped>
-.tune-body { display: flex; flex-direction: column; gap: 1.1rem; }
-/* stepper */
-.stepper { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
-.stepper__btn { width: 100%; display: flex; align-items: center; gap: 0.7rem; padding: 0.6rem 0.9rem; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--panel); color: var(--text-dim); cursor: pointer; text-align: left; transition: 0.15s; font-family: var(--font-body); }
-.stepper__btn:disabled { cursor: default; }
-.stepper__btn:not(:disabled):hover { border-color: var(--volt); color: var(--text); }
-.stepper__num { width: 1.7rem; height: 1.7rem; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--fs-sm); background: var(--bg-2); border: 1px solid var(--line-strong); flex-shrink: 0; }
-.stepper__label { font-family: var(--font-display);font-size: var(--fs-sm); display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; }
-.stepper__item.is-current .stepper__btn { border-color: var(--volt); color: var(--text); background: var(--volt-06); }
-.stepper__item.is-current .stepper__num { background: var(--volt); color: var(--ink); border-color: var(--volt); font-weight: 700; }
-.stepper__item.is-done .stepper__num { background: rgb(61 220 151 / 0.12); color: var(--ok); border-color: var(--ok); }
-.stepper__item.is-done .stepper__btn { color: var(--text); }
-@media (max-width: 800px) { .stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-
-/* wizard sections */
-.wiz { display: flex; flex-direction: column; gap: 1rem; }
-/* a narrow step narrows its content, never its action bar (same bar on all four steps) */
-.wiz--narrow > :not(.wiz-foot) { max-width: 62rem; width: 100%; margin-inline: auto; }
-.wiz-grid { display: grid; gap: 1.1rem; align-items: start; }
-/* the three settings panels read as one row: same height whatever they hold */
-.wiz-grid.three { grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); align-items: stretch; }
-.wiz-grid.trials { grid-template-columns: minmax(0, 1fr) minmax(22rem, 30rem); }
-@media (max-width: 1100px) { .wiz-grid.trials { grid-template-columns: minmax(0, 1fr); } }
-
-/* trials: what is under test, one strip */
-.tune-facts { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 1.1rem; padding: 0.55rem 0.95rem; border-radius: var(--radius-sm); background: var(--panel); border: 1px solid var(--line); font-size: var(--fs-sm); }
-.tune-facts .fact { display: inline-flex; align-items: center; gap: 0.45rem; color: var(--text); }
-.tune-facts .fact + .fact { border-left: 1px solid var(--line); padding-left: 1.1rem; }
-.tune-facts .fact b { font-weight: 600; }
-.tune-facts .fact__k { font-family: var(--font-body); font-size: var(--fs-sm);color: var(--text-mute); }
-.tune-facts .coil-dot { margin-right: 0; }
-
-/* the primary panel holds everything you act on and stays in view. Its height is
-   the viewport minus what is fixed around it (title, stepper, action bar), so it
-   never runs past the bottom; the spiral takes whatever is left. */
-.tune-side { position: sticky; top: 0.75rem; height: calc(100vh - 15.5rem); min-height: 20rem; display: flex; flex-direction: column; gap: 0.6rem; }
-.tune-side__switch { flex: 0 0 auto; }
-.tune-side__card { flex: 1 1 auto; min-height: 0; overflow: auto; }
-.tune-coil--fill { flex: 1 1 auto; min-height: 0; align-items: center; justify-content: center; }
-.tune-coil--fill :deep(svg.coil) { display: block; width: 100%; height: auto; max-width: 100%; max-height: 100%; margin: 0 auto; }
-.tune-run__controls { flex: 0 0 auto; display: flex; flex-direction: column; gap: 0.45rem; padding-top: 0.6rem; border-top: 1px solid var(--line); }
-.tune-side .tune-tap__value { font-size: 1.9rem; }
-@media (max-width: 1100px) {
-  .tune-side { position: static; height: auto; min-height: 0; }
-  .tune-side__card { overflow: visible; }
-  .tune-coil--fill :deep(svg.coil) { max-width: 420px; }
-}
-/* The step's action bar: full width, flush against the bottom of the screen at
-   every step. The negative margins cancel the padding .screen-body puts around
-   the view, so the bar is full-bleed and `bottom: 0` really reaches the edge. */
-.wiz-foot { position: sticky; bottom: 0; z-index: 3; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin: 0.4rem -0.5rem -0.5rem; padding: 0.7rem 0.5rem 0.8rem; border-top: 1px solid var(--line); background: rgb(8 11 17 / 0.92); backdrop-filter: blur(6px); }
-.wiz-foot > .dim { flex: 1 1 12rem; font-size: var(--fs-md); }
-.wiz-foot .wiz-next { margin-left: auto; font-size: 1rem; padding: 0.7rem 1.3rem; }
-.wiz-foot .wiz-next .icon { margin-left: 0.5rem; }
-
-.tune-col { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
-.tune-panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.8rem; }
-.tune-panel__head { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
-.tune-panel__title { margin: 0; font-family: var(--font-body); font-weight: 600;font-size: var(--fs-lg); display: inline-flex; align-items: center; gap: 0.5rem; }
-.tune-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem; align-items: end; }
-.tune-coil-row { display: grid; grid-template-columns: minmax(0, 1fr) 6rem; gap: 0.6rem; align-items: end; }
-.tune-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; align-items: end; }
-.tune-field { display: flex; flex-direction: column; align-items: stretch; gap: 0.3rem; min-width: 0; }
-.tune-field .text-field, .tune-field .select-field { width: 100%; }
-/* own label class: the global .field-label / label rules right-align and pad */
-.tf-label { display: block; width: 100%; padding: 0; margin: 0; text-align: left; font-family: var(--font-body); font-size: var(--fs-sm);color: var(--text-mute); line-height: 1.3; }
-.tf-label .unit { text-transform: none; }
-label.tune-field, label.tune-field:hover { padding: 0; margin: 0; }
-.tune-notes { display: flex; flex-direction: column; gap: 0.35rem; }
-.tune-note { display: grid; grid-template-columns: 2.6rem 4.3rem 1fr; align-items: center; gap: 0.5rem; }
-.tune-note__name { font-weight: 600; color: var(--volt); }
-.tune-note__hz { font-size: var(--fs-sm); color: var(--text-dim); font-variant-numeric: tabular-nums; }
-.tune-note input[type="range"] { width: 100%; accent-color: var(--volt); }
-.tune-warn { color: var(--danger); font-size: var(--fs-sm); display: inline-flex; gap: 0.4rem; align-items: center; margin: 0; }
-.dim { color: var(--text-dim); }
-.small { font-size: var(--fs-sm); margin: 0; }
-.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-.strong { color: var(--volt); font-weight: 600; }
-.coil-dot { display: inline-block; width: 4px; height: 12px; border-radius: 2px; background: var(--c); margin-right: 0.45rem; vertical-align: middle; }
-.tune-summary { display: inline-flex; align-items: center; gap: 0.6rem; background: var(--bg-2); border: 1px solid var(--line-strong); color: var(--text-dim); border-radius: 999px; padding: 0.3rem 0.5rem 0.3rem 0.8rem; font-size: var(--fs-sm); cursor: pointer; transition: 0.15s; }
-.tune-summary:hover { color: var(--text); border-color: var(--volt); }
-.tune-summary:disabled { opacity: 0.6; cursor: not-allowed; }
-.tune-primary-form { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 0.6rem; min-width: min(28rem, 80vw); }
-.tune-coil { display: flex; flex-direction: column; gap: 0.5rem; }
-.tune-coil--preview { max-width: 260px; margin: 0 auto; opacity: 0.9; }
-.tune-coil__legend { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; font-size: var(--fs-xs); color: var(--text-dim); }
-.tune-coil__legend span { display: inline-flex; align-items: center; gap: 0.4rem; }
-.tune-coil__legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
-.tune-coil__legend .dot--tap { background: var(--volt); }
-.tune-coil__legend .dot--best { background: var(--ok); }
-.tune-coil__legend .dot--suggested { border: 1.5px dashed var(--volt); }
-.tune-coil__legend .dot--previous { border: 1.5px dashed var(--amber); }
-.tune-tap { display: flex; flex-direction: column; gap: 0.3rem; align-items: stretch; }
-.tune-tap .tf-label { text-align: center; }
-.tune-tap__row { display: flex; align-items: center; justify-content: center; gap: 0.6rem; }
-.tune-tap__value { font-family: var(--font-display); font-size: 2.3rem; font-weight: 700; line-height: 1; min-width: 6.5rem; text-align: center; font-variant-numeric: tabular-nums; }
-.tune-tap__value small { font-size: var(--fs-lg); color: var(--text-dim); font-weight: 500; }
-.tune-note-line { margin: 0; display: flex; align-items: flex-start; gap: 0.5rem; font-size: var(--fs-md); color: var(--text-dim); }
-.tune-note-line i { margin-top: 0.2rem; }
-.tune-note-line.is-lock { color: var(--amber); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 0.6rem 0.9rem; }
-.tune-sug { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; font-size: var(--fs-md); color: var(--volt); }
-.tune-sug.is-done { color: var(--ok); }
-.btn--xs { padding: 0.2rem 0.6rem; font-size: var(--fs-xs); }
-.tune-run__actions { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-.tune-run__go { font-size: 1rem; padding-inline: 1.3rem; flex: 1 1 auto; justify-content: center; }
-.tune-phase, .tune-running { display: inline-flex; align-items: center; gap: 0.5rem; font-family: var(--font-display);font-size: var(--fs-sm); color: var(--volt); margin: 0; }
-.view-head__title .tune-running { margin-left: 1rem; font-weight: 500; }
-.live-dot { width: 0.7rem; height: 0.7rem; border-radius: 50%; background: var(--volt); animation: pulse 1.2s ease-in-out infinite alternate; }
-@keyframes pulse { from { opacity: 0.5; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .live-dot { animation: none; } }
-.tune-table-wrap { overflow-x: auto; }
-.tune-table { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
-.tune-table th, .tune-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
-.tune-table th { font-family: var(--font-body); font-size: var(--fs-sm);color: var(--text-mute); font-weight: 500; }
-.tune-table .num { text-align: right; }
-.tune-table tr.is-best td { background: var(--volt-06); }
-.tune-table tr.is-best td:first-child { box-shadow: inset 3px 0 0 var(--ok); }
-.icon-btn--sm { width: 1.8rem; height: 1.8rem; font-size: var(--fs-xs); }
-.tune-thumb { width: 64px; padding-block: 0.25rem; }
-.tune-thumb :deep(.arc-heat__cap) { display: none; }
-
-/* recap / done */
-.tune-recap__grid { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 1.2rem; align-items: start; }
-@media (max-width: 700px) { .tune-recap__grid { grid-template-columns: minmax(0, 1fr); } }
-.tune-recap__facts { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.7rem 1.2rem; font-size: var(--fs-md); }
-.tune-recap__facts div { display: flex; flex-direction: column; gap: 0.15rem; }
-.tune-recap__facts dt { font-size: var(--fs-sm);color: var(--text-mute); }
-.tune-recap__facts dd { margin: 0; color: var(--text); }
-.tune-done { align-items: center; text-align: center; padding: 2rem 1.2rem; gap: 1rem; }
-.tune-done__icon { width: 3.4rem; height: 3.4rem; border-radius: 50%; display: grid; place-items: center; background: rgb(61 220 151 / 0.12); color: var(--ok); border: 1px solid var(--ok); font-size: 1.4rem; }
-.tune-done h2 { margin: 0; font-family: var(--font-display); font-size: 1.4rem; }
-.tune-done__text { margin: 0; color: var(--text-dim); max-width: 46ch; }
-.tune-done__actions { display: flex; gap: 0.7rem; flex-wrap: wrap; justify-content: center; }
-/* on desktop the view fills the window so the action bar sits at the very bottom
-   even when a step is short (below 1000px the app scaffold scrolls naturally) */
-@media (min-width: 1001px) {
-  .tune { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-  .tune-body { flex: 1 1 auto; }
-  .wiz { flex: 1 1 auto; }
-  .wiz-foot { margin: auto -2rem -1.4rem; padding-inline: 2rem; }
-}
-</style>

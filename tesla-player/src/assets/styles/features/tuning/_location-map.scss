@@ -1,0 +1,44 @@
+// ===========================================================================
+//  LOCATION MAP
+// ===========================================================================
+// tuning/LocationMap.vue
+
+// .tune-marker: Leaflet builds the marker itself, it is in no template
+.tune-marker {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--volt);
+    border: 3px solid var(--bg);
+    box-shadow: var(--focus-ring-strong);
+}
+
+.location-map {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    z-index: 0;
+}
+
+.location-map .leaflet-container {
+    background: var(--panel-2);
+    font-family: var(--font-body);
+}
+
+.location-map .leaflet-control-attribution {
+    background: rgb(var(--lo-rgb) / 0.55);
+    color: var(--text-dim);
+    font-size: 0.625rem;
+}
+
+.location-map .leaflet-control-attribution a {
+    color: var(--volt);
+}
+
+.location-map .leaflet-bar a {
+    background: var(--panel);
+    color: var(--text);
+    border-color: var(--line-strong);
+}

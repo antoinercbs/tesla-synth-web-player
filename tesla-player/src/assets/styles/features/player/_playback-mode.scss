@@ -1,0 +1,58 @@
+// ===========================================================================
+//  PLAYBACK MODE
+// ===========================================================================
+// components/player/PlaybackMode.vue
+
+// full-height two-column layout: left = source + queue, right = player.
+// A draggable ResizeHandle sits between them; widths come from inline styles.
+.playback {
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+}
+
+.playback-left {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    min-height: 0;
+}
+
+.playback-right {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.playback-right .player-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+// narrow screens: stack and drop the divider (override the inline flex)
+@media (max-width: 1000px) {
+    .playback {
+        flex-direction: column;
+        gap: 1rem;
+        height: auto;
+        flex: none;
+    }
+
+    .playback-left,
+    .playback-right {
+        flex: none !important;
+        height: auto !important;
+        width: 100% !important;
+        overflow: visible;
+    }
+
+    .playback-right .player-panel {
+        height: auto;
+        flex: none;
+    }
+
+    .playback__split {
+        display: none;
+    }
+}
