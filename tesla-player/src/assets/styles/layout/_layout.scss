@@ -17,7 +17,7 @@
     display: flex;
     flex-direction: column;
     padding: 1.4rem 1rem;
-    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    background: var(--sidebar-bg, linear-gradient(180deg, var(--panel-2), var(--panel)));
     border-right: 1px solid var(--line);
     // still scrollable, but no visible bar (it stole horizontal width + jittered the layout)
     scrollbar-width: none;
@@ -493,6 +493,7 @@
     transition:
         color 0.15s,
         background 0.15s;
+    padding: 0;
 }
 
 .sidebar-more:hover,
@@ -519,7 +520,7 @@
     font-family: var(--font-body);
 }
 
-.sidebar-menu__lang {
+.sidebar-menu__row {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -529,7 +530,7 @@
     color: var(--text-dim);
 }
 
-.sidebar-menu__lang .segmented button {
+.sidebar-menu__row .segmented button {
     padding: 0.25rem 0.55rem;
 }
 

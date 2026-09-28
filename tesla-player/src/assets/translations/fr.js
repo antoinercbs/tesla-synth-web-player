@@ -373,6 +373,14 @@ export default {
     candy: "Guimauve",
     steel: "Acier",
     noir: "Noir",
+    luna: "Bleu",
+    olive: "Vert olive",
+    silver: "Argent",
+  },
+  skin: {
+    title: "Apparence",
+    lab: "Labo",
+    xp: "XP",
   },
   welcome: {
     title: "Bienvenue sur Tesla Player",

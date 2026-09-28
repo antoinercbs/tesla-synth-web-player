@@ -17,9 +17,10 @@ import '@/assets/main.scss'
 // of <i> elements fights Vue's reactive re-renders and makes icons disappear.
 import '@fortawesome/fontawesome-free/css/all.css'
 
-// before anything paints, so the app never flashes the default theme or skin
-applyTheme(storedTheme())
-applySkin(storedSkin())
+// before anything paints, so the app never flashes the default look or palette
+const skin = storedSkin()
+applySkin(skin)
+applyTheme(storedTheme(skin))
 
 axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 

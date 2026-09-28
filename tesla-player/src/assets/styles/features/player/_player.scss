@@ -223,6 +223,7 @@
     color: var(--text-dim);
     font-size: var(--fs-xs);
     transition: 0.13s;
+    padding: 0;
 }
 
 .power-head__reset:hover:not(:disabled) {

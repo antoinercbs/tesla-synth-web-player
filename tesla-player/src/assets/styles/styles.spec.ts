@@ -48,9 +48,10 @@ describe('styles', () => {
   it('use only tokens that exist', () => {
     const scss = files(STYLES, '.scss').map((f) => readFileSync(new URL(f, STYLES), 'utf8').replace(/\/\/.*$/gm, '')).join('\n');
     const defined = new Set([...scss.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
-    // the skins' entries become custom properties of the same name
-    const lab = scss.match(/\$lab: \(([\s\S]*?)\n\);/)?.[1] ?? '';
-    for (const m of lab.matchAll(/^\s*([a-z][\w-]*):/gm)) defined.add('--' + m[1]);
+    // the looks' maps (skins, palettes) become custom properties of the same names
+    for (const f of files(STYLES, '.scss').filter((p) => p.startsWith('themes/'))) {
+      for (const m of readFileSync(new URL(f, STYLES), 'utf8').matchAll(/^\s+([a-z][\w-]*): /gm)) defined.add('--' + m[1]);
+    }
     // the ones a component sets at run time: :style="{ '--c': … }", style.setProperty('--x', …)
     for (const f of [...files(SRC, '.vue'), ...files(SRC, '.ts')]) {
       const text = readFileSync(new URL(f, SRC), 'utf8');
@@ -58,7 +59,7 @@ describe('styles', () => {
     }
     // a var() with a fallback may be unset (a component token); a bare one may not
     const missing = [...new Set([...scss.matchAll(/var\((--[\w-]+)\)/g)].map((m) => m[1]))]
-      // --coil-0…5 come out of a loop in _palettes.scss
+      // --coil-0…5 come out of a loop in lab/_palettes.scss
       .filter((t) => !defined.has(t) && !/^--coil-\d$/.test(t));
     expect(missing).toEqual([]);
   });

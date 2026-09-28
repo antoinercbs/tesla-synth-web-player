@@ -4,9 +4,10 @@
 @use "sass:math";
 
 // ===========================================================================
-//  COLOUR THEMES: the only place their colours are defined
+//  LAB LOOK: its colour palettes
 // ===========================================================================
-// Every theme gives the same entries; the block below turns them into custom
+// The lab look's colours, for its dark surfaces (another look has its own:
+// xp/_palettes.scss). Every palette gives the same entries; the block below turns them into custom
 // properties, and the rest of the styles only ever use those properties.
 //   surfaces  bg · bg-2 · panel · panel-2
 //   line      tint of the hairlines and borders
@@ -16,8 +17,8 @@
 //   arc       core · mid · deep of the arc: the logo, the micro-arc
 //   coils     optional tone of the coil colours (see $coil-base below)
 // The order here is the picker's order (roughly round the colour wheel). The user
-// picks a theme in the sidebar menu; ui/themes.ts lists the ids (its spec checks
-// they match this map). The default theme also colours the app icons and the
+// picks one in the sidebar menu while the lab look is on; ui/themes.ts lists the
+// ids (its spec checks they match this map). The default theme also colours the app icons and the
 // Electron splash (`npm run icons` in electron/ reads this file).
 $default-theme: electric;
 

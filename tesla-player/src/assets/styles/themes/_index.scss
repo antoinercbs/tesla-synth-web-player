@@ -1,0 +1,40 @@
+@use "sass:map";
+
+// ===========================================================================
+//  THE LOOKS: each whole in its folder, and which one is on
+// ===========================================================================
+// A look (a skin) is a folder: <look>/_palettes.scss its colours (the user picks
+// one of them), <look>/_skin.scss its structure (a map every look gives the same
+// entries of), <look>/_chrome.scss what tokens cannot say (../_chrome.scss imports
+// it last). This file brings their palettes and maps in and turns each map into
+// custom properties under [data-skin="<id>"]. ui/skins.ts lists the ids (its spec
+// checks they match $skins) and applies the chosen one, a data-skin attribute on
+// <html>; ui/themes.ts does the same for a look's palettes.
+@import "lab/palettes";
+@import "xp/palettes";
+@import "lab/skin";
+@import "xp/skin";
+
+$default-skin: lab;
+
+$skins: (
+    lab: $lab,
+    xp: $xp,
+);
+
+@mixin -skin($s) {
+    @each $key, $value in $s {
+        --#{$key}: #{$value};
+    }
+}
+
+// the default first, on :root, so a page without data-skin still has every token
+:root {
+    @include -skin(map.get($skins, $default-skin));
+}
+
+@each $name, $s in $skins {
+    [data-skin="#{$name}"] {
+        @include -skin($s);
+    }
+}

@@ -4,6 +4,7 @@
 // A label over its control: text fields, selects, and the button beside a field.
 // A skin restyles them through these tokens (unset, the lab look below):
 //   --field-bg --field-color --field-border --field-radius --field-font
+//   --field-size --field-pad-y --field-pad-x
 //   --field-focus-border --field-focus-ring --field-label-color
 //   --field-btn-bg --field-btn-color --field-btn-border
 
@@ -36,8 +37,8 @@
     border-radius: var(--field-radius, var(--radius-sm));
     color: var(--field-color, var(--text));
     font-family: var(--field-font, var(--font-body));
-    font-size: var(--fs-input);
-    padding: 0.55rem 0.75rem;
+    font-size: var(--field-size, var(--fs-input));
+    padding: var(--field-pad-y, 0.55rem) var(--field-pad-x, 0.75rem);
     width: 100%;
     outline: none;
     transition: var(--dur-fast);
@@ -61,8 +62,8 @@
     border-radius: var(--field-radius, var(--radius-sm));
     color: var(--field-color, var(--text));
     font-family: var(--field-font, var(--font-body));
-    font-size: var(--fs-lg);
-    padding: 0.55rem 2rem 0.55rem 0.75rem;
+    font-size: var(--field-size, var(--fs-lg));
+    padding: var(--field-pad-y, 0.55rem) 2rem var(--field-pad-y, 0.55rem) var(--field-pad-x, 0.75rem);
     outline: none;
     cursor: pointer;
     transition: var(--dur-fast);
@@ -98,6 +99,7 @@ input[type="number"]::-webkit-inner-spin-button {
     border: var(--border-w) solid var(--field-btn-border, var(--line-strong));
     color: var(--field-btn-color, var(--text-dim));
     transition: var(--dur-fast);
+    padding: 0;
 }
 
 .field-btn:hover:not(:disabled) {

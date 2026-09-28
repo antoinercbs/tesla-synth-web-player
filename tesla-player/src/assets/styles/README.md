@@ -1,13 +1,18 @@
 # Styles
 
 Everything the app looks like lives here: the components carry no `<style>`
-(`styles.spec.ts` checks it). A theme has two axes, both chosen per device and
-set on `<html>`:
+(`styles.spec.ts` checks it). The user picks a **look** (a skin: `data-skin`,
+`ui/skins.ts`), then one of that look's **palettes** (`data-theme`,
+`ui/themes.ts`); both are remembered per device, the palette per look. A look is:
 
-- the **palette** (`themes/_palettes.scss`, `data-theme`, `ui/themes.ts`): the colours;
-- the **skin** (`themes/_skins.scss`, `data-skin`, `ui/skins.ts`): type, sizes,
-  spacing, radii, borders, shadows, motion, the active marker, and whatever a
-  skin restyles beyond tokens (`themes/skins/_<id>.scss`).
+- its palettes, `themes/<look>/_palettes.scss`: the colours, and none elsewhere
+  (the lab's fourteen for dark surfaces, XP's three schemes: blue, olive, silver);
+- its structure, `themes/<look>/_skin.scss`: a map of type, sizes, spacing, radii,
+  borders, shadows, motion, the active marker, the shared pieces' tokens;
+- what tokens cannot say, `themes/<look>/_chrome.scss` (XP's title bars, bevels).
+
+`themes/_index.scss` lists the looks and turns their maps into custom properties;
+`themes/_chrome.scss` imports their chromes, last.
 
 ## Layers
 
@@ -17,7 +22,7 @@ set on `<html>`:
 |---|---|
 | `vendors/` | Bulma, its settings and overrides (to be removed) |
 | `tokens/` | the colours every palette shares, and the tints derived from the palette |
-| `themes/` | the palettes, then the skins (a skin setting colours wins over the palette) |
+| `themes/` | one folder per look (palettes, structure, chrome), `_index.scss` listing them; the chromes come last (`_chrome.scss`) |
 | `base/` | elements, typography, scrollbars |
 | `layout/` | the app shell, the sidebar, the screens |
 | `components/` | shared pieces, one partial each: buttons, fields, cards, modals, menus… (`_index.scss` lists them) |
@@ -28,8 +33,8 @@ set on `<html>`:
 - Outside `tokens/`, `themes/` and `vendors/`, values come from tokens: no colour,
   radius, shadow, font or font size written out, and no token used that is not
   defined (`styles.spec.ts` checks both). A value a
-  skin should be able to change becomes a token in `_skins.scss`, in `$lab`, so
-  every skin has it.
+  look should be able to change becomes a token in `$lab` (`themes/lab/_skin.scss`),
+  so every look has it.
 - A shared component also answers to tokens of its own, read with the lab value
   as fallback: `background: var(--btn-bg, var(--panel-2))`. A skin sets only the
   ones it changes (`--btn-radius: 0`); unset, the fallback applies, so `$lab` does
@@ -42,10 +47,29 @@ set on `<html>`:
 - A canvas reads its colours and fonts from the tokens (`getComputedStyle`), never
   from constants of its own (the tour phone's painted scene is a picture, not the UI).
 
-## A new skin
+## A new look
 
-1. In `themes/_skins.scss`: `$xp: map.merge($lab, (font-body: …, radius: …));`,
-   add it to `$skins`, and its id to `SKINS` in `ui/skins.ts`.
-2. What tokens cannot say goes in `themes/skins/_xp.scss`, every rule under
-   `[data-skin="xp"]`, imported after `features/` so it wins.
-3. A skin may set colours too: the skins come after the palettes.
+`xp` (Windows XP) is the worked example.
+
+1. A folder, `themes/<look>/`. Its structure, `_skin.scss`: `$xp: map.merge($lab,
+   (font-body: …, radius: …, btn-bg: …));`, imported and added to `$skins` in
+   `themes/_index.scss`; its id in `SKINS` (`ui/skins.ts`)
+   and its name under `skin.` in the translations. No colour in the map
+   (`skins.spec.ts` checks it): its tokens read the palette's (`btn-border:
+   var(--xp-button-border)`).
+2. Its palettes, `_palettes.scss` (imported in `themes/_index.scss`), each set on
+   `[data-theme="<id>"]` with every colour the look needs, its chrome's included
+   (`--xp-title`, `--xp-frame`…) and a `--swatch` for the picker; their ids under
+   the look in `THEMES` (`ui/themes.ts`, the first is the default; `themes.spec.ts`
+   checks the lists) and their names under `theme.` in the translations. An id
+   names one palette in all the looks.
+3. What tokens cannot say, `_chrome.scss`, every rule under `[data-skin="<id>"]`,
+   imported in `themes/_chrome.scss` (last in `../main.scss`). Setting tokens on an
+   element restyles all it holds: XP's title bars turn the text tokens the bar's
+   (`.screen-head { --text: var(--xp-title-text); … }`), the controls in them keep
+   their own.
+4. Some tokens mean one thing on a dark face and another on a light one; they are
+   split so a light look can tell them apart: `--text-bright` (the most emphasised,
+   black on XP) and `--on-fill` (on a coloured fill, white everywhere), `--ink` (on
+   the accent) and the materials (`--key-ink-rgb`, `--clip`, `--cam-bg`), `--hi-rgb`
+   (a faint fill: white on the lab's dark, black on XP's beige).

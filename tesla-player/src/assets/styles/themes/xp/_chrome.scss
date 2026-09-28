@@ -1,0 +1,834 @@
+// ===========================================================================
+//  XP LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type, shape and depth are the $xp map (xp/_skin.scss), its colours the
+// scheme picked among xp/_palettes.scss (every colour here reads one, --xp-…).
+// Here: title bars and caption buttons, the task pane, group boxes, push and
+// toggle buttons with their hover glow, radio buttons and check boxes, menus,
+// scroll bars. Every rule sits under [data-skin="xp"] and this file comes last.
+
+$face: "linear-gradient(180deg, #fff 0%, #ecebe6 86%, #d6d0c5 100%)";
+$pressed: linear-gradient(180deg, #cdcac3 0%, #e3e3db 8%, #e5e5de 94%, #f2f2f1 100%);
+// the orange hover glow, the same in every scheme
+$glow:
+    inset -1px 1px #fff0cf,
+    inset 1px 2px #fdd889,
+    inset -2px 2px #fbc761,
+    inset 2px -2px #e5a01a;
+$sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
+
+// a push button: the face, the scheme's border, 3px corners
+@mixin push {
+    background: #{$face};
+    border: 1px solid var(--xp-button-border);
+    border-radius: 3px;
+    color: #000;
+}
+
+@mixin push-states {
+    &:hover:not(:disabled) {
+        box-shadow: $glow;
+    }
+
+    &:active:not(:disabled) {
+        background: $pressed;
+        box-shadow: none;
+    }
+}
+
+// greyed, not faded: XP's disabled button
+@mixin disabled {
+    opacity: 1;
+    background: #f5f4ea;
+    border-color: #cac8bb;
+    color: #aca899;
+    box-shadow: none;
+    cursor: default;
+}
+
+// a toolbar button: flat, raised under the pointer
+@mixin flat {
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: #000;
+
+    &:hover:not(:disabled) {
+        background: #{$face};
+        box-shadow: inset 0 0 0 1px var(--xp-button-border);
+        color: #000;
+    }
+
+    &:active:not(:disabled) {
+        background: $pressed;
+    }
+}
+
+[data-skin="xp"] {
+    color-scheme: light;
+
+    // the dotted focus rectangle, inside the control
+    :where(button, a, summary, [role="button"], [tabindex]):focus-visible {
+        outline: 1px dotted #000;
+        outline-offset: -4px;
+        box-shadow: none;
+    }
+
+    // --- the window title bar: each screen's head, each modal's -------------------
+    .screen-head,
+    .screen-head.is-scrolled {
+        min-height: 3.2rem;
+        padding-top: 0.45rem;
+        padding-bottom: 0.45rem;
+        background: var(--xp-title);
+        border-bottom: 1px solid var(--xp-frame);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // on the bar, the text tokens take the bar's (the controls in it keep theirs)
+    .screen-head {
+        --text: var(--xp-title-text);
+        --text-dim: var(--xp-title-dim);
+        --text-mute: var(--xp-title-dim);
+        --text-strong: var(--xp-title-text);
+        --text-bright: var(--xp-title-text);
+        --volt: var(--xp-title-text);
+    }
+
+    .view-head__title,
+    .modal-card__title {
+        font-weight: 700;
+        text-shadow: 1px 1px 0 var(--xp-title-shadow);
+    }
+
+    .view-head__title {
+        font-size: var(--fs-xl);
+    }
+
+    // the caption buttons: help and the like, and the one that closes, red
+    .screen-head .icon-btn,
+    .modal-card__head .icon-btn {
+        --icon-btn-size: 1.45rem;
+        border: 1px solid #fff;
+        border-radius: 3px;
+        background: var(--xp-caption);
+        color: var(--xp-caption-text);
+        font-size: var(--fs-sm);
+        box-shadow: none;
+        animation: none;
+    }
+
+    .screen-head .icon-btn:has(.fa-xmark),
+    .modal-card__head .icon-btn {
+        background: var(--xp-caption-close);
+        color: #fff;
+    }
+
+    .screen-head .icon-btn:hover:not(:disabled),
+    .modal-card__head .icon-btn:hover:not(:disabled) {
+        border-color: #fff;
+        color: inherit;
+        box-shadow: none;
+        filter: brightness(1.15);
+    }
+
+    .screen-head .btn--ghost:not(:hover) {
+        color: var(--xp-title-text);
+    }
+
+    // a modal is a window: its frame, its bar across the top
+    .modal-overlay {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        background: transparent;
+    }
+
+    .modal-card {
+        border-width: 3px;
+        border-top-width: 0;
+    }
+
+    .modal-card__head {
+        margin: -1.4rem -1.5rem 1.1rem;
+        padding: 0.3rem 0.35rem 0.3rem 0.7rem;
+        background: var(--xp-title);
+        border-radius: 7px 7px 0 0;
+    }
+
+    .modal-card__title {
+        font-size: var(--fs-lg);
+    }
+
+    .modal-card__title .icon {
+        color: var(--xp-title-text);
+    }
+
+    // --- the sidebar: the explorer's task pane ------------------------------------
+    // the pane's own text on it, its boxes (the nav, each section) with theirs
+    .sidebar {
+        --text: var(--xp-pane-ink);
+        --text-dim: var(--xp-pane-ink-dim);
+        --text-mute: var(--xp-pane-ink-dim);
+        --text-strong: var(--xp-pane-ink);
+    }
+
+    .brand__app {
+        text-shadow: 1px 1px 0 var(--xp-pane-shadow);
+    }
+
+    // the club's name is a dark picture: turned white on a dark pane only
+    .brand__label {
+        filter: var(--xp-pane-logo);
+        opacity: 0.85;
+    }
+
+    .nav,
+    .sidebar-section {
+        --text: var(--xp-pane-text);
+        --text-dim: var(--xp-pane-text);
+        --text-mute: var(--xp-pane-text);
+        --text-strong: var(--xp-pane-text);
+        padding: 0.4rem;
+        border: 1px solid #fff;
+        border-radius: 3px;
+        background: var(--xp-pane-box);
+    }
+
+    .nav-item:hover {
+        background: none;
+        color: var(--xp-pane-hover);
+        text-decoration: underline;
+    }
+
+    .nav-item.router-link-active {
+        background: #fff;
+        font-weight: 700;
+    }
+
+    .sidebar-section__title {
+        margin: -0.4rem -0.4rem 0.5rem;
+        padding: 0.35rem 0.6rem;
+        border-radius: 2px 2px 0 0;
+        background: var(--xp-pane-head);
+        font-weight: 700;
+    }
+
+    .sidebar-foot {
+        border-top-color: rgb(255 255 255 / 0.5);
+    }
+
+    .brand__toggle,
+    .sidebar-more {
+        @include flat;
+
+        color: inherit;
+    }
+
+    // --- panels: the task boxes' heads; the cards: group boxes --------------------
+    .player-panel__head,
+    .play-panel__head,
+    .queue-head,
+    .pl-pane__head {
+        background: var(--xp-pane-head);
+        color: var(--xp-pane-text);
+        font-weight: 700;
+    }
+
+    .player-panel__head .icon,
+    .pl-pane__head .icon {
+        color: var(--xp-pane-text);
+    }
+
+    // a group box: a thin frame, its caption on the frame's top edge
+    .coil-card {
+        overflow: visible;
+        margin-top: 0.6rem;
+        padding-top: 0.95rem;
+        background: transparent;
+        border: 1px solid var(--xp-group-border);
+        border-radius: 3px;
+        animation: none;
+    }
+
+    .coil-card::before {
+        display: none;
+    }
+
+    .coil-card__head {
+        margin: -1.55rem -0.35rem 0.55rem;
+    }
+
+    .coil-card__title,
+    .coil-card__count {
+        padding: 0 0.3rem;
+        background: var(--bg);
+    }
+
+    .coil-card__title {
+        font-weight: 400;
+        color: var(--xp-group-text);
+    }
+
+    .editor-section {
+        background: transparent;
+        border: 1px solid var(--xp-group-border);
+        border-radius: 3px;
+    }
+
+    .editor-section__title {
+        color: var(--xp-group-text);
+        font-weight: 400;
+    }
+
+    // --- buttons ------------------------------------------------------------------
+    // XP's size: 23px high, the text's size for an icon, no easing
+    .btn {
+        min-height: 23px;
+        padding: 0.15rem 0.75rem;
+        gap: 0.35rem;
+        line-height: 1.25;
+        transition: none;
+    }
+
+    .btn .icon {
+        width: auto;
+        height: auto;
+        font-size: 0.95em;
+    }
+
+    // the bars that pad their buttons taller
+    .player-transport .btn,
+    .edit-body__dock .player-transport .btn,
+    .me-toolbar .btn,
+    .me-selbar .btn,
+    .me-pop .btn,
+    .midi-lib__bar .btn,
+    .tour__nav .btn {
+        padding-top: 0.15rem;
+        padding-bottom: 0.15rem;
+    }
+
+    .btn,
+    .icon-btn,
+    .field-btn {
+        @include push-states;
+    }
+
+    .icon-btn,
+    .field-btn,
+    .chan-cell,
+    .segmented button {
+        transition: none;
+    }
+
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled) {
+        border-color: var(--xp-button-border);
+        color: #000;
+    }
+
+    .btn:disabled,
+    .icon-btn:disabled,
+    .field-btn:disabled {
+        @include disabled;
+    }
+
+    // the main action is the dialog's default button: its frame, and its inner ring
+    .btn--volt {
+        border-color: var(--xp-button-border);
+    }
+
+    .btn--volt:not(:disabled) {
+        box-shadow: var(--xp-ring);
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        border-color: var(--xp-button-border);
+        color: #000;
+        filter: none;
+    }
+
+    .btn--volt:disabled {
+        border-color: #cac8bb;
+    }
+
+    // a bar along a window's foot: the face, no frosted glass
+    .editor-footer {
+        background: var(--bg);
+        border-top: 1px solid var(--xp-group-border);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- drop-down lists: the arrow button at the field's right end ----------------
+    .select-field::after {
+        content: "▼";
+        top: 1px;
+        right: 1px;
+        bottom: 1px;
+        width: 17px;
+        display: grid;
+        place-items: center;
+        transform: none;
+        border-radius: 2px;
+        background: var(--xp-scroll);
+        box-shadow: inset 0 0 0 1px var(--xp-scroll-edge);
+        color: #4d6185;
+        font-size: 7px;
+    }
+
+    .combo__chevron,
+    .combo.is-open .combo__chevron {
+        align-self: stretch;
+        width: 17px;
+        margin: 1px calc(1px - 0.6rem) 1px 0;
+        display: grid;
+        place-items: center;
+        transform: none;
+        border-radius: 2px;
+        background: var(--xp-scroll);
+        box-shadow: inset 0 0 0 1px var(--xp-scroll-edge);
+        color: #4d6185;
+        font-size: 0.55rem;
+    }
+
+    // XP's arrow is a filled triangle (Font Awesome's caret-down), not a chevron
+    .combo__chevron::before {
+        content: "\f0d7";
+    }
+
+    .btn--danger {
+        border-color: var(--xp-button-border);
+    }
+
+    // a toolbar button: flat until the pointer is on it
+    .btn--ghost:not(:hover),
+    .btn--danger-ghost:not(:hover) {
+        background: transparent;
+        border-color: transparent;
+        box-shadow: none;
+    }
+
+    // the pages' own buttons, as push buttons
+    .row-btn,
+    .queue-btn,
+    .pl-icon-btn,
+    .me-ibtn,
+    .power-head__reset,
+    .coil-filter-toggle,
+    .coil-toggle,
+    .piano__oct,
+    .stepper__btn,
+    .env-lib__new {
+        @include push;
+        @include push-states;
+    }
+
+    .row-btn:disabled,
+    .queue-btn:disabled,
+    .pl-icon-btn:disabled,
+    .me-ibtn:disabled,
+    .power-head__reset:disabled {
+        @include disabled;
+    }
+
+    // a toggle that is on stays pressed in
+    .queue-btn.is-active,
+    .coil-filter-toggle.is-active,
+    .coil-toggle.is-on,
+    .stepper__btn.is-active {
+        background: $pressed;
+        box-shadow: $sunken;
+        color: #000;
+    }
+
+    // and the toolbar ones, flat
+    .me-ico,
+    .me-x,
+    .dyn-row__remove,
+    .midi-lib__action,
+    .midi-lib__edit-icon,
+    .combo__clear,
+    .roll-range__x,
+    .env-steps__remove,
+    .cfg-tag-del,
+    .tour__x {
+        @include flat;
+    }
+
+    .midi-lib__action {
+        padding: 0.35rem;
+    }
+
+    // --- MIDI channels: toggle buttons, a channel on pressed in its coil's colour -
+    .chan-cell {
+        @include push;
+        @include push-states;
+
+        color: #000;
+    }
+
+    .chan-cell.is-on {
+        background: $pressed;
+        box-shadow: $sunken;
+        border-color: var(--xp-button-border);
+        color: var(--cell, var(--volt));
+        font-weight: 700;
+    }
+
+    .chan-cell:disabled,
+    .chan-cell.is-unavail {
+        @include disabled;
+    }
+
+    // the live output channel: the chosen one pressed in; a playing one lit its coil's colour
+    .live-chan {
+        @include push;
+        @include push-states;
+    }
+
+    .live-chan.is-selected {
+        background: $pressed;
+        box-shadow: $sunken;
+        border-color: var(--xp-button-border);
+        color: #000;
+        font-weight: 700;
+    }
+
+    .live-chan.is-lit {
+        background: var(--c, var(--volt));
+        color: var(--ink);
+    }
+
+    // --- choices ------------------------------------------------------------------
+    // a tool or a view (the MIDI editor's groups, a screen's mode switch): joined
+    // toggle buttons, the chosen one pressed in
+    .mode-switch,
+    .me-seg,
+    .me-stepper {
+        gap: 0;
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+
+    .mode-switch button,
+    .me-seg button,
+    .me-stepper button {
+        @include push;
+
+        margin-left: -1px;
+        border-radius: 0;
+        font-weight: 400;
+    }
+
+    .mode-switch button:first-child,
+    .me-seg button:first-child,
+    .me-stepper button:first-child {
+        margin-left: 0;
+        border-radius: 3px 0 0 3px;
+    }
+
+    .mode-switch button:last-of-type,
+    .me-seg button:last-of-type,
+    .me-stepper button:last-of-type {
+        border-radius: 0 3px 3px 0;
+    }
+
+    .mode-switch button:hover:not(:disabled),
+    .me-seg button:hover:not(:disabled),
+    .me-stepper button:hover:not(:disabled) {
+        position: relative;
+        z-index: 1;
+        background: #{$face};
+        box-shadow: $glow;
+        color: #000;
+    }
+
+    .mode-switch button.is-active,
+    .me-seg button.is-on,
+    .me-seg button.is-on:hover:not(:disabled) {
+        background: $pressed;
+        box-shadow: $sunken;
+        color: #000;
+        font-weight: 700;
+    }
+
+    .mode-switch button:disabled,
+    .me-seg button:disabled,
+    .me-stepper button:disabled {
+        @include disabled;
+    }
+
+    // a value among a few: radio buttons (XP had no segmented control)
+    .segmented:not(.segmented--tabs, .mode-switch) {
+        flex-wrap: wrap;
+        gap: 0.35rem 0.9rem;
+        padding: 0.15rem 0;
+        border: 0;
+        background: none;
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button,
+    .segmented:not(.segmented--tabs, .mode-switch) button.is-active,
+    .segmented:not(.segmented--tabs, .mode-switch) button:hover:not(:disabled) {
+        position: relative;
+        flex: 0 0 auto;
+        min-width: 0;
+        margin: 0;
+        padding: 0.1rem 0 0.1rem 18px;
+        border: 0;
+        border-radius: 0;
+        background: none;
+        box-shadow: none;
+        color: #000;
+        font-weight: 400;
+        text-align: left;
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 13px;
+        height: 13px;
+        margin-top: -7px;
+        border: 1px solid #1c5180;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #dcdcd7 0%, #fff 100%);
+        box-sizing: border-box;
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button:hover:not(:disabled)::before {
+        box-shadow:
+            inset 1px 1px #fdd889,
+            inset -1px -1px #f8b636;
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button.is-active::after {
+        content: "";
+        position: absolute;
+        left: 4px;
+        top: 50%;
+        width: 5px;
+        height: 5px;
+        margin-top: -3px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 35% 35%, #8ae08a 0%, #1c9a28 100%);
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button:disabled {
+        opacity: 1;
+        color: #aca899;
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button:disabled::before {
+        border-color: #cac8bb;
+        background: #f5f4ea;
+    }
+
+    .segmented:not(.segmented--tabs, .mode-switch) button:disabled::after {
+        background: #aca899;
+    }
+
+    // --- text fields: XP's edit box, 21px, Tahoma, the scheme's frame --------------
+    .readout__field {
+        padding: 0 0 0 0.3rem;
+        background: #fff;
+    }
+
+    .readout__field input {
+        padding: 0.125rem 0;
+        font-family: var(--font-body);
+        font-size: var(--fs-md);
+    }
+
+    .env-steps input,
+    .env-steps input:focus {
+        border-color: var(--xp-field-border);
+        border-radius: 0;
+    }
+
+    // a number's up-down control: drawn where the browser's own sits, which is
+    // kept (invisible) to take the clicks
+    input[type="number"]:not(.me-num, .env-steps input) {
+        padding-right: 0;
+        background:
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 10'%3E%3Cpath d='M4.5 6.5h6l-3-3z' fill='%234d6185'/%3E%3C/svg%3E") right top / 15px 50% no-repeat,
+            url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 15 10'%3E%3Cpath d='M4.5 3.5h6l-3 3z' fill='%234d6185'/%3E%3C/svg%3E") right bottom / 15px 50% no-repeat,
+            linear-gradient(#fff, #fff) right center / 15px 1px no-repeat,
+            var(--xp-scroll) right top / 15px 100% no-repeat,
+            #fff;
+    }
+
+    input[type="number"]:not(.me-num, .env-steps input)::-webkit-inner-spin-button {
+        width: 15px;
+        margin: 0;
+        opacity: 0;
+        cursor: default;
+    }
+
+    // a check box and a radio button glow orange under the pointer
+    .switch:hover .switch__track {
+        box-shadow:
+            inset 1px 1px #fdd889,
+            inset -1px -1px #f8b636;
+    }
+
+    // a number field: XP's white box, square, in the scheme's field border
+    .readout__field,
+    .me-num {
+        border-color: var(--xp-field-border);
+        border-radius: 0;
+        background: #fff;
+    }
+
+    // --- tabs: raised, the selected one on top with its orange edge ---------------
+    .segmented--tabs {
+        gap: 2px;
+        border-bottom-color: #919b9c;
+    }
+
+    .segmented--tabs button {
+        padding: 0.4rem 0.8rem 0.35rem;
+        border: 1px solid #919b9c;
+        border-bottom: 0;
+        border-radius: 3px 3px 0 0;
+        background: linear-gradient(180deg, #fff 0%, #ecebe6 100%);
+    }
+
+    .segmented--tabs button.is-active {
+        background: #fcfcfe;
+        box-shadow:
+            inset 0 2px #e68b2c,
+            inset 0 3px #ffc83c;
+    }
+
+    .segmented__arc {
+        display: none;
+    }
+
+    // --- the switch is a check box ----------------------------------------------
+    .switch__track {
+        width: 13px;
+        height: 13px;
+        border-radius: 0;
+        border: 1px solid #1c5180;
+        background: linear-gradient(135deg, #dcdcd7 0%, #fff 100%);
+    }
+
+    .switch__track::after {
+        display: none;
+    }
+
+    .switch input:checked + .switch__track {
+        border-color: #1c5180;
+        background: linear-gradient(135deg, #dcdcd7 0%, #fff 100%);
+    }
+
+    .switch input:checked + .switch__track::after {
+        display: block;
+        top: 1px;
+        left: 3px;
+        width: 4px;
+        height: 7px;
+        border-radius: 0;
+        border: solid #21a121;
+        border-width: 0 2px 2px 0;
+        background: none;
+        transform: rotate(40deg);
+    }
+
+    // --- menus: white, square, the selection colour under the pointer -------------
+    .sidebar-menu,
+    .me-pop,
+    .me-velpop,
+    .midi-lib__dropdown-menu,
+    .env-coil__menu {
+        background: #fff;
+        border: 1px solid var(--xp-menu-border);
+        border-radius: 0;
+        box-shadow: var(--shadow-pop);
+    }
+
+    .sidebar-menu {
+        padding: 2px;
+    }
+
+    .sidebar-menu__item,
+    .midi-lib__dropdown-item {
+        border-radius: 0;
+        padding: 0.3rem 1.4rem 0.3rem 0.5rem;
+        color: #000;
+    }
+
+    .sidebar-menu__item:hover,
+    .sidebar-menu__item:focus-visible,
+    .midi-lib__dropdown-item:hover,
+    .combo__option.is-active {
+        background: var(--volt);
+        color: var(--ink);
+    }
+
+    .sidebar-menu__item:hover .icon,
+    .sidebar-menu__item:focus-visible .icon,
+    .midi-lib__dropdown-item:hover .icon {
+        color: inherit;
+    }
+
+    .sidebar-menu__sep,
+    .midi-lib__dropdown-divider {
+        margin: 3px 1px;
+        background: var(--xp-menu-border);
+    }
+
+    .sidebar-menu__row {
+        color: #000;
+    }
+
+    // the colour schemes: small squares, the chosen one outlined
+    .theme-swatch {
+        border: 1px solid #7f9db9;
+        border-radius: 0;
+    }
+
+    .theme-swatch:hover {
+        transform: none;
+    }
+
+    .theme-swatch.is-active {
+        outline: 1px dotted #000;
+        outline-offset: 2px;
+    }
+
+    // --- scroll bars ---------------------------------------------------------------
+    ::-webkit-scrollbar {
+        width: 16px;
+        height: 16px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f3f1ec;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border: 1px solid #fff;
+        border-radius: 3px;
+        background: var(--xp-scroll);
+        box-shadow: inset 0 0 0 1px var(--xp-scroll-edge);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        filter: brightness(1.05);
+    }
+}
+
+// fields at Tahoma's size where there is a mouse (a phone zooms on a field under 16px)
+@media (pointer: fine) {
+    [data-skin="xp"] {
+        --fs-input: 0.75rem;
+    }
+}

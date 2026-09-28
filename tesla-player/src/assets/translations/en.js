@@ -370,6 +370,14 @@ export default {
     candy: "Marshmallow",
     steel: "Steel",
     noir: "Noir",
+    luna: "Blue",
+    olive: "Olive green",
+    silver: "Silver",
+  },
+  skin: {
+    title: "Look",
+    lab: "Lab",
+    xp: "XP",
   },
   welcome: {
     title: "Welcome to Tesla Player",

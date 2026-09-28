@@ -1,0 +1,176 @@
+@use "sass:map";
+
+// ===========================================================================
+//  XP LOOK: its colour schemes, Windows XP's own three
+// ===========================================================================
+// A look's colours are its own: the lab's palettes are made for dark surfaces,
+// these for XP's light window face. Each scheme is written out whole, as the
+// custom properties it sets on [data-theme="<id>"] (the page, or a picker's
+// swatch): the shared ones every scheme keeps, then the scheme's, including the
+// chrome that xp/_chrome.scss and the $xp map (xp/_skin.scss) read (title bar, frame, task
+// pane, button and field borders). ui/themes.ts lists the ids for the XP look,
+// the first is its default (its spec checks both).
+
+// what the three schemes share: black text on the face, the green Start button,
+// the orange of a selected tab, coil colours deep enough for a light face
+$xp-shared: (
+    text: #000,
+    text-rgb: "0 0 0",
+    text-dim: #3a3a3a,
+    text-mute: #616161,
+    text-strong: #000,
+    text-bright: #000,
+    // on a light face a faint fill darkens
+    hi-rgb: "0 0 0",
+    line-rgb: "26 24 10",
+    bg-2: #fff,
+    panel-2: #fff,
+    grad: "linear-gradient(180deg, #43a843 0%, #2e8b2e 55%, #227a22 100%)",
+    on-grad: #fff,
+    arc-core: #fff3cf,
+    arc-mid: #f8b330,
+    arc-deep: #e0701b,
+    arc-glow-rgb: "248 179 48",
+    danger: #d9302f,
+    danger-rgb: "217 48 47",
+    danger-text: #b3261e,
+    danger-text-hover: #7f1510,
+    ok: #238636,
+    ok-rgb: "35 134 54",
+    amber: #b87400,
+    amber-rgb: "184 116 0",
+    caution: #d4a000,
+    caution-rgb: "212 160 0",
+    caution-text: #6b4e00,
+    warn: #b36b00,
+    conflict: #a85a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #d6203e,
+    coil-1: #b98a00,
+    coil-2: #1f9d5c,
+    coil-3: #1689b8,
+    coil-4: #7d3cc9,
+    coil-5: #d9661a,
+    plasma: #7d3cc9,
+    xp-caption-close: "linear-gradient(180deg, #e6875f 0%, #d5562a 45%, #c23c10 100%)",
+);
+
+// the order is the picker's, the first the look's default; quoted, as olive and
+// silver are CSS colour names too
+$xp-palettes: (
+    // Luna blue, the default
+    "luna": (
+        bg: #ece9d8,
+        panel: #fbfbf8,
+        bg-rgb: "236 233 216",
+        volt: #316ac5,
+        volt-rgb: "49 106 197",
+        ink: #fff,
+        xp-title: "linear-gradient(180deg, #3a8cff 0%, #0058e6 10%, #0055ea 60%, #0663f5 88%, #0045d0 100%)",
+        xp-title-text: #fff,
+        xp-title-shadow: #0f1089,
+        xp-title-dim: #e4ecff,
+        xp-frame: #0831d9,
+        xp-caption: "linear-gradient(180deg, #5b9bff 0%, #2769ef 50%, #1850d8 100%)",
+        xp-caption-text: #fff,
+        xp-pane: "linear-gradient(180deg, #7ba2e7 0%, #6375d6 100%)",
+        xp-pane-box: #d6dff7,
+        xp-pane-head: "linear-gradient(90deg, #fff 0%, #c6d3f7 100%)",
+        xp-pane-text: #215dc6,
+        xp-pane-hover: #428eff,
+        xp-pane-shadow: #1c3f9e,
+        xp-pane-ink: #fff,
+        xp-pane-ink-dim: #e6ecfb,
+        xp-pane-logo: invert(1),
+        xp-button-border: #003c74,
+        xp-ring: "inset -1px 1px #cee7ff, inset 1px 2px #98b8ea, inset -2px 2px #bcd4f6, inset 1px -1px #89ade4, inset 2px -2px #89ade4",
+        xp-field-border: #7f9db9,
+        xp-menu-border: #aca899,
+        xp-group-border: #d0d0bf,
+        xp-group-text: #0046d5,
+        xp-scroll: "linear-gradient(90deg, #c8d6fb 0%, #bccffb 100%)",
+        xp-scroll-edge: #9eb6ee,
+    ),
+    // olive green
+    "olive": (
+        bg: #ece9d8,
+        panel: #fbfbf6,
+        bg-rgb: "236 233 216",
+        volt: #7f9148,
+        volt-rgb: "127 145 72",
+        ink: #fff,
+        xp-title: "linear-gradient(180deg, #d0dca8 0%, #a5b97c 10%, #8fa75f 60%, #97ad6a 88%, #758b47 100%)",
+        xp-title-text: #fff,
+        xp-title-shadow: #4a5a26,
+        xp-title-dim: #eef3dd,
+        xp-frame: #8ba169,
+        xp-caption: "linear-gradient(180deg, #c3d09a 0%, #9eb36e 50%, #859b52 100%)",
+        xp-caption-text: #fff,
+        xp-pane: "linear-gradient(180deg, #ccd5ac 0%, #a8b686 100%)",
+        xp-pane-box: #f4f5e6,
+        xp-pane-head: "linear-gradient(90deg, #fff 0%, #e1e8c2 100%)",
+        xp-pane-text: #56662d,
+        xp-pane-hover: #7b9340,
+        xp-pane-shadow: transparent,
+        xp-pane-ink: #33410f,
+        xp-pane-ink-dim: #4e5e24,
+        xp-pane-logo: none,
+        xp-button-border: #37622a,
+        xp-ring: "inset -1px 1px #e5ecd0, inset 1px 2px #bccb95, inset -2px 2px #d2dcb5, inset 1px -1px #a9ba80, inset 2px -2px #a9ba80",
+        xp-field-border: #a4b97f,
+        xp-menu-border: #aca899,
+        xp-group-border: #d0d0bf,
+        xp-group-text: #5a7a28,
+        xp-scroll: "linear-gradient(90deg, #dfe6c4 0%, #d0dab0 100%)",
+        xp-scroll-edge: #b4c296,
+    ),
+    // silver: a metallic bar, dark title
+    "silver": (
+        bg: #e0dfe3,
+        panel: #fbfbfc,
+        bg-rgb: "224 223 227",
+        volt: #5d6694,
+        volt-rgb: "93 102 148",
+        ink: #fff,
+        xp-title: "linear-gradient(180deg, #fff 0%, #e6e6ee 10%, #cbcbda 60%, #c2c2d3 88%, #a8a8bf 100%)",
+        xp-title-text: #1e1e3c,
+        xp-title-shadow: #fff,
+        xp-title-dim: #4a4a6a,
+        xp-frame: #a5a5b8,
+        xp-caption: "linear-gradient(180deg, #fff 0%, #e2e2ea 50%, #c6c6d4 100%)",
+        xp-caption-text: #2d2d4a,
+        xp-pane: "linear-gradient(180deg, #eeeef3 0%, #c9c8d6 100%)",
+        xp-pane-box: #f8f8fb,
+        xp-pane-head: "linear-gradient(90deg, #fff 0%, #dcdce6 100%)",
+        xp-pane-text: #33335a,
+        xp-pane-hover: #5a5a8c,
+        xp-pane-shadow: transparent,
+        xp-pane-ink: #2d2d4a,
+        xp-pane-ink-dim: #4a4a6a,
+        xp-pane-logo: none,
+        xp-button-border: #3d4a66,
+        xp-ring: "inset -1px 1px #eeeef4, inset 1px 2px #c5c5d6, inset -2px 2px #dcdce6, inset 1px -1px #b0b0c4, inset 2px -2px #b0b0c4",
+        xp-field-border: #a5acb5,
+        xp-menu-border: #a3a3b3,
+        xp-group-border: #d0d0d8,
+        xp-group-text: #3b3b73,
+        xp-scroll: "linear-gradient(90deg, #eeeef4 0%, #dcdce6 100%)",
+        xp-scroll-edge: #b9b9c8,
+    )
+);
+
+@mixin -xp-palette($p) {
+    @each $key, $value in map.merge($xp-shared, $p) {
+        --#{$key}: #{$value};
+    }
+    // the picker's swatch shows the scheme's title bar
+    --swatch: #{map.get($p, xp-title)};
+}
+
+@each $id, $p in $xp-palettes {
+    [data-theme="#{$id}"] {
+        @include -xp-palette($p);
+    }
+}

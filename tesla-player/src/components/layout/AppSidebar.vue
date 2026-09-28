@@ -189,9 +189,13 @@
   <!-- Teleported: the sidebar scrolls, so an in-flow popover would be clipped. -->
   <Teleport to="body">
     <div v-if="menuOpen" ref="menu" class="sidebar-menu" :style="menuStyle" role="menu">
-      <div class="sidebar-menu__lang">
+      <div class="sidebar-menu__row">
         <span>{{ $t('label.language') }}</span>
         <locale-picker />
+      </div>
+      <div class="sidebar-menu__row">
+        <span>{{ $t('skin.title') }}</span>
+        <skin-picker />
       </div>
       <theme-picker class="sidebar-menu__theme" />
       <div class="sidebar-menu__sep"></div>
@@ -251,6 +255,7 @@ import DownloadModal from '@/components/desktop/DownloadModal.vue'
 import CreditsModal from '@/components/layout/CreditsModal.vue'
 import LocalePicker from '@/components/settings/LocalePicker.vue'
 import ThemePicker from '@/components/settings/ThemePicker.vue'
+import SkinPicker from '@/components/settings/SkinPicker.vue'
 
 /**
  * The application sidebar: brand, navigation, the collapse/compact toggle, MIDI
@@ -262,7 +267,7 @@ import ThemePicker from '@/components/settings/ThemePicker.vue'
 export default {
   name: 'AppSidebar',
   components: {
-    SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal, LocalePicker, ThemePicker,
+    SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal, LocalePicker, ThemePicker, SkinPicker,
   },
   data() {
     return {

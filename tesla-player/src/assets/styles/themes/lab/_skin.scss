@@ -1,20 +1,10 @@
-@use "sass:map";
-
 // ===========================================================================
-//  SKINS: the structure of the interface: type, shape, depth, motion
+//  LAB LOOK: its structure (type, shape, depth, motion, the active marker)
 // ===========================================================================
-// A palette (_palettes.scss) gives the colours; a skin everything else a theme
-// can change. Every skin gives the same entries (they become custom properties
-// of the same name), and the rest of the styles only ever use those properties.
-// A skin is written as the lab skin merged with what it changes, so it only
-// lists its differences. Its looks that tokens cannot say (a window's title bar,
-// bevelled buttons) go in skins/_<id>.scss, under [data-skin="<id>"]. A skin may
-// also set colours: it comes after the palettes, so they give way to it.
-// ui/skins.ts lists the ids (its spec checks they match this map) and applies the
-// chosen one, a data-skin attribute on <html>.
-$default-skin: lab;
-
-// the app's own look, the "high-voltage lab"
+// The app's own look, the "high-voltage lab". Its colours are its palettes
+// (lab/_palettes.scss). Every look gives these entries (the others are this map
+// merged with what they change); ../_index.scss turns them into custom properties
+// of the same names, which the rest of the styles only ever use.
 $lab: (
     // type: display for titles, body for text, mono for numbers. Scale in px at
     // the 16px root: 11.5 · 12.5 · 13.5 · 15 · 18 · 28. Form inputs stay at 1rem
@@ -58,10 +48,12 @@ $lab: (
     shadow-panel: 'inset 0 1px 0 rgb(var(--hi-rgb) / 0.03), 0 12px 30px -18px rgb(var(--lo-rgb) / 0.7)',
     shadow-knob: '0 1px 4px rgb(var(--lo-rgb) / 0.5)',
     shadow-well: 'inset 0 8px 16px -10px rgb(var(--lo-rgb) / 0.95), inset 0 -1px 0 rgb(var(--hi-rgb) / 0.04)',
-    shadow-key: 'inset 0 -6px 0 rgb(var(--ink-rgb) / 0.12)',
+    shadow-key: 'inset 0 -6px 0 rgb(var(--key-ink-rgb) / 0.12)',
     shadow-key-black: '0 3px 6px rgb(var(--lo-rgb) / 0.55), inset 0 -4px 0 rgb(var(--hi-rgb) / 0.04)',
     shadow-key-down: '0 3px 6px rgb(var(--lo-rgb) / 0.55)',
     shadow-phone: '0 0 0 1px var(--phone-edge), 0 1.5em 3.5em rgb(var(--lo-rgb) / 0.6)',
+    // the page behind everything: the accent's glow up right, the speakers' violet down left
+    backdrop: 'radial-gradient(1200px 620px at 78% -12%, var(--volt-10), transparent 60%), radial-gradient(900px 520px at -10% 115%, rgb(var(--backdrop-glow-rgb) / 0.09), transparent 55%), var(--bg)',
     // the tour's spotlight: everything around the hole dimmed
     spotlight: '0 0 0 200vmax var(--scrim-72)',
     // shapes a colour completes (box-shadow: var(--ring) var(--volt-30)): rings round
@@ -82,25 +74,3 @@ $lab: (
     micro-arc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'%3E%3Cpolyline points='0,3.5 7,2.3 12,4.7 19,2.1 26,4.4 32,2.5 39,4.9 46,2.3 53,4.3 60,2.2 67,4.7 74,2.4 81,4.5 88,2.2 94,4.2 100,3.5' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"),
     micro-arc-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 30' preserveAspectRatio='none'%3E%3Cpolyline points='3.5,0.5 2.2,3.5 4.8,6.5 2.3,10 4.7,13 2.1,16.5 4.9,19.5 2.4,23 4.5,26 3.5,29.5' fill='none' stroke='%23000' stroke-width='2' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E"),
 );
-
-// a new skin: map.merge($lab, ( … what it changes … ))
-$skins: (
-    lab: $lab,
-);
-
-@mixin -skin($s) {
-    @each $key, $value in $s {
-        --#{$key}: #{$value};
-    }
-}
-
-// the default first, on :root, so a page without data-skin still has every token
-:root {
-    @include -skin(map.get($skins, $default-skin));
-}
-
-@each $name, $s in $skins {
-    [data-skin="#{$name}"] {
-        @include -skin($s);
-    }
-}

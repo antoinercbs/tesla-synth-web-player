@@ -175,6 +175,9 @@
     background: var(--grad);
     color: var(--on-grad);
     cursor: pointer;
+    display: grid;
+    place-items: center;
+    padding: 0;
 }
 
 .me-pos {

@@ -1,0 +1,95 @@
+@use "sass:map";
+
+// ===========================================================================
+//  XP LOOK: its structure (type, shape, depth, the shared pieces' tokens)
+// ===========================================================================
+// Windows XP: window faces, title bars, bevelled buttons, square fields, Tahoma.
+// The lab's map merged with what XP changes. Its colours are its schemes
+// (xp/_palettes.scss), which the tokens below read (--xp-button-border…); the
+// chrome tokens cannot say is xp/_chrome.scss.
+$xp-button: "linear-gradient(180deg, #fff 0%, #ecebe6 86%, #d6d0c5 100%)";
+$xp: map.merge(
+    $lab,
+    (
+        font-display: '"Trebuchet MS", Tahoma, Verdana, sans-serif',
+        font-body: 'Tahoma, Verdana, "Segoe UI", sans-serif',
+        font-mono: '"Lucida Console", "Courier New", monospace',
+        // Tahoma sat at 11px; a little more, for today's screens
+        fs-xs: 0.69rem,
+        fs-sm: 0.72rem,
+        fs-md: 0.75rem,
+        fs-lg: 0.8rem,
+        fs-xl: 0.94rem,
+        fs-2xl: 1.25rem,
+        // square fields, menus and chips; 3px buttons and group boxes
+        radius-2xs: 0,
+        radius-xs: 0,
+        radius-sm: 0,
+        radius-md: 0,
+        radius: 3px,
+        radius-xl: 3px,
+        radius-lg: 3px,
+        radius-pill: 2px,
+        // flat inside a window, a hard shadow under what floats
+        shadow-pop: "2px 2px 3px rgb(0 0 0 / 0.35)",
+        shadow-float: "3px 3px 6px rgb(0 0 0 / 0.35)",
+        shadow-modal: "4px 4px 10px rgb(0 0 0 / 0.4)",
+        shadow-panel: none,
+        backdrop: var(--bg),
+        // the active marker: a plain bar (the orange of a selected tab)
+        micro-arc: linear-gradient(#000, #000),
+        micro-arc-v: linear-gradient(#000, #000),
+        // the shared pieces (their tokens: components/*.scss)
+        btn-bg: $xp-button,
+        btn-border: var(--xp-button-border),
+        btn-color: #000,
+        btn-weight: 400,
+        btn-pad: 0.2rem 0.75rem,
+        btn-hover-color: #000,
+        btn-hover-border: var(--xp-button-border),
+        btn-primary-bg: $xp-button,
+        btn-primary-color: #000,
+        btn-danger-bg: $xp-button,
+        btn-danger-color: var(--danger-text),
+        icon-btn-size: 1.6rem,
+        icon-btn-radius: 3px,
+        icon-btn-bg: $xp-button,
+        icon-btn-border: var(--xp-button-border),
+        icon-btn-color: #000,
+        field-bg: #fff,
+        field-color: #000,
+        field-border: var(--xp-field-border),
+        field-radius: 0,
+        // XP's edit box: 21px high, the interface's size
+        field-size: var(--fs-input),
+        field-pad-y: 0.125rem,
+        field-pad-x: 0.25rem,
+        field-focus-border: var(--xp-field-border),
+        field-focus-ring: none,
+        field-label-color: #000,
+        field-btn-bg: $xp-button,
+        field-btn-border: var(--xp-field-border),
+        field-btn-color: #000,
+        seg-bg: #fff,
+        seg-border: var(--xp-field-border),
+        seg-radius: 0,
+        seg-item-radius: 0,
+        seg-color: #000,
+        seg-active-bg: var(--volt),
+        seg-active-color: var(--ink),
+        tab-active-color: #000,
+        modal-bg: var(--bg),
+        modal-border: var(--xp-frame),
+        modal-radius: 8px 8px 0 0,
+        modal-title-color: var(--xp-title-text),
+        menu-bg: #fff,
+        menu-border: var(--xp-menu-border),
+        menu-radius: 0,
+        menu-item-radius: 0,
+        toast-bg: #ffffe1,
+        toast-border: #000,
+        toast-color: #000,
+        toast-radius: 6px,
+        sidebar-bg: var(--xp-pane),
+    )
+);

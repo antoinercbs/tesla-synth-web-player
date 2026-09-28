@@ -37,6 +37,7 @@
     color: var(--text-dim);
     font-size: var(--fs-xs);
     transition: 0.13s;
+    padding: 0;
 }
 
 .piano__oct:hover:not(:disabled) {
@@ -117,7 +118,7 @@
     flex: 1 1 0;
     min-width: 0;
     background: var(--key-white);
-    border-right: 1px solid rgb(var(--ink-rgb) / 0.7);
+    border-right: 1px solid rgb(var(--key-ink-rgb) / 0.7);
     border-radius: 0 0 var(--radius-xs) var(--radius-xs);
     box-shadow: var(--shadow-key);
 }
@@ -133,7 +134,7 @@
     height: 62%;
     z-index: 2;
     background: var(--key-black);
-    border: 1px solid rgb(var(--ink-rgb) / 0.95);
+    border: 1px solid rgb(var(--key-ink-rgb) / 0.95);
     border-top: 0;
     border-radius: 0 0 var(--radius-xs) var(--radius-xs);
     box-shadow: var(--shadow-key-black);
@@ -195,7 +196,7 @@
     text-align: center;
     font-family: var(--font-mono);
     font-size: 0.56rem;
-    color: rgb(var(--ink-rgb) / 0.36);
+    color: rgb(var(--key-ink-rgb) / 0.36);
     pointer-events: none;
 }
 
@@ -215,8 +216,8 @@
     font-size: 0.56rem;
     font-weight: 600;
     line-height: 1.35;
-    color: rgb(var(--ink-rgb) / 0.5);
-    border: 1px solid rgb(var(--ink-rgb) / 0.28);
+    color: rgb(var(--key-ink-rgb) / 0.5);
+    border: 1px solid rgb(var(--key-ink-rgb) / 0.28);
     pointer-events: none;
 }
 
@@ -228,7 +229,7 @@
 
 .pkey.is-on .pkey__kb {
     color: var(--ink);
-    border-color: rgb(var(--ink-rgb) / 0.4);
+    border-color: rgb(var(--key-ink-rgb) / 0.4);
 }
 
 // narrow keys: drop the key caps, then the C names

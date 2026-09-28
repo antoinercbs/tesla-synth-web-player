@@ -4,8 +4,8 @@
 // Colour tints are derived from rgb-channel triplets via `rgb(var(--x-rgb) / α)`
 // so each colour has a SINGLE source of truth and any opacity is one token away.
 // The surfaces, the accent (--volt), the primary gradient (--grad), the arc and
-// their triplets come from the selected palette (themes/_palettes.scss); the
-// fonts, sizes, radii, shadows and motion from the skin (themes/_skins.scss).
+// their triplets come from the selected palette (the look's palettes: themes/lab/_palettes.scss…); the
+// fonts, sizes, radii, shadows and motion from the look (themes/<look>/_skin.scss).
 :root {
     // the page backdrop's second glow: the speakers' violet, untoned
     --backdrop-glow-rgb: 177 92 255;
@@ -25,9 +25,9 @@
     --text-dim: #93a3b8; // 7:1 on --panel
     --text-mute: #74859b; // 4.9:1 on --panel: the floor for small text
     --text-strong: #eef3ff; // titles and active items, over a panel
-    --text-bright: #fff; // on a fill, and a control's text on hover
-    --ink: #06090f;
-    --ink-rgb: 6 9 15;
+    --text-bright: #fff; // the most emphasised: a control's text on hover, the active item
+    --on-fill: #fff; // on a coloured fill (a danger button), whatever the skin
+    --ink: #06090f; // on the accent or a coil colour
 
     // what lightens (faint fills, glare) and what darkens (shadows, masks)
     --hi-rgb: 255 255 255;
@@ -60,11 +60,13 @@
     --key-black: linear-gradient(180deg, #212b3b 0%, #1a2230 55%, #131a26 100%);
     --key-black-hover: linear-gradient(180deg, #2b3649 0%, #222c3d 55%, #19212f 100%);
     --key-glow-rgb: 236 240 247;
+    --key-ink-rgb: 6 9 15;
     --knob: #e8eef9;
     --copper-deep: #8d4a1f;
     --copper-glint: #ffd9b8;
     --bead: #08111a;
     --bead-rim: #f2b784;
+    --clip: #06090f;
 
     // the tuning page on the phone, and the tour's drawing of it: black, whatever the
     // palette (the phone films the arc)

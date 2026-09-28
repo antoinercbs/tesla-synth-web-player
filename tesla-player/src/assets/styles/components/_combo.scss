@@ -42,8 +42,8 @@
     outline: none;
     color: var(--field-color, var(--text));
     font-family: var(--field-font, var(--font-body));
-    font-size: var(--fs-lg);
-    padding: 0.55rem 0;
+    font-size: var(--field-size, var(--fs-lg));
+    padding: var(--field-pad-y, 0.55rem) 0;
 }
 
 .combo__input::placeholder {
@@ -56,6 +56,8 @@
     cursor: pointer;
     color: var(--text-mute);
     padding: 0.2rem;
+    display: grid;
+    place-items: center;
 }
 
 .combo__clear:hover {
