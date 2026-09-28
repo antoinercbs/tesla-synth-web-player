@@ -1,35 +1,34 @@
 // ===========================================================================
-//  MINECRAFT LOOK: the chrome its tokens cannot say
+//  BLOCKS LOOK: the chrome its tokens cannot say
 // ===========================================================================
-// Its type and shape are the $craft map (craft/_skin.scss), its colours the
-// dimension picked among craft/_palettes.scss. Here, the game's menus: the hard
+// Its type and shape are the $blocks map (blocks/_skin.scss), its colours the
+// wall picked among blocks/_palettes.scss. Here, a block-building game's menus: the hard
 // shadow under every letter, the logo in stone with its yellow splash, the hotbar's
 // frame round the open page, inventory slots, the inventory window for a dialog,
-// the experience bar for the song's progress, a toast as an advancement. Every
-// rule sits under [data-skin="craft"]; the pages' controls are named by family
-// (../_families.scss). The words it adds are the game's, in English in every
-// language.
+// the experience bar for the song's progress, a toast as an achievement. Every
+// rule sits under [data-skin="blocks"]; the pages' controls are named by family
+// (../_families.scss). The words it adds are in English in every language.
 
 // a stone button, and the blue-lit one under the pointer
 @mixin stone {
-    background: var(--craft-stone);
+    background: var(--blocks-stone);
     border: 2px solid #000;
     border-radius: 0;
-    color: var(--craft-button-text);
+    color: var(--blocks-button-text);
     box-shadow:
         inset 2px 2px 0 rgb(255 255 255 / 0.3),
         inset -2px -2px 0 rgb(0 0 0 / 0.4);
 }
 
 @mixin stone-hot {
-    background: var(--craft-stone-hover);
+    background: var(--blocks-stone-hover);
     border-color: #fff;
-    color: var(--craft-button-hot);
+    color: var(--blocks-button-hot);
 }
 
 @mixin stone-off {
     opacity: 1;
-    background: var(--craft-stone-off);
+    background: var(--blocks-stone-off);
     border-color: #000;
     color: #a0a0a0;
     box-shadow: none;
@@ -38,26 +37,26 @@
 
 // an inventory slot: grey, sunk in
 @mixin slot {
-    background: var(--craft-slot);
+    background: var(--blocks-slot);
     border: 0;
     border-radius: 0;
-    color: var(--craft-gui-text);
+    color: var(--blocks-gui-text);
     text-shadow: none;
     box-shadow:
         inset 2px 2px 0 #373737,
         inset -2px -2px 0 #fff;
 }
 
-@keyframes craft-splash {
+@keyframes blocks-splash {
     to {
         transform: rotate(-10deg) scale(1.08);
     }
 }
 
-[data-skin="craft"] {
+[data-skin="blocks"] {
     // every letter with its shadow, as the game draws them
     body {
-        text-shadow: var(--craft-shadow);
+        text-shadow: var(--blocks-shadow);
     }
 
     ::selection {
@@ -71,7 +70,7 @@
     }
 
     .brand__app {
-        background: var(--craft-stone);
+        background: var(--blocks-stone);
         -webkit-background-clip: text;
         background-clip: text;
         color: transparent;
@@ -94,7 +93,7 @@
         white-space: nowrap;
         pointer-events: none;
         transform: rotate(-10deg);
-        animation: craft-splash 0.45s ease-in-out infinite alternate;
+        animation: blocks-splash 0.45s ease-in-out infinite alternate;
     }
 
     .sidebar--compact .brand::after {
@@ -152,7 +151,7 @@
 
     .nav-item:hover {
         background: rgb(255 255 255 / 0.08);
-        color: var(--craft-button-hot);
+        color: var(--blocks-button-hot);
     }
 
     .nav-item.router-link-active {
@@ -254,7 +253,7 @@
     }
 
     .segmented--tabs button:hover {
-        color: var(--craft-button-hot);
+        color: var(--blocks-button-hot);
     }
 
     // the switch is the game's check box
@@ -296,7 +295,7 @@
 
     .player-progress__fill {
         border-radius: 0;
-        background: repeating-linear-gradient(90deg, var(--craft-xp) 0 18px, var(--craft-xp-notch) 18px 20px);
+        background: repeating-linear-gradient(90deg, var(--blocks-xp) 0 18px, var(--blocks-xp-notch) 18px 20px);
     }
 
     .player-progress__knob {
@@ -309,11 +308,11 @@
 
     // --- menus: the tooltip's purple frame --------------------------------------------------------
     #{$menus} {
-        background: var(--craft-tooltip);
+        background: var(--blocks-tooltip);
         border: 2px solid;
-        border-image: var(--craft-tooltip-edge) 1;
+        border-image: var(--blocks-tooltip-edge) 1;
         border-radius: 0;
-        box-shadow: 0 0 0 2px var(--craft-tooltip);
+        box-shadow: 0 0 0 2px var(--blocks-tooltip);
     }
 
     #{$menu-items} {
@@ -344,7 +343,7 @@
     }
 
     .modal-card {
-        --text: var(--craft-gui-text);
+        --text: var(--blocks-gui-text);
         --text-dim: #555;
         --text-mute: #707070;
         --text-strong: #202020;
@@ -361,10 +360,10 @@
 
     .modal-card .btn,
     .modal-card .icon-btn {
-        text-shadow: var(--craft-shadow);
+        text-shadow: var(--blocks-shadow);
     }
 
-    // --- a toast: an advancement ------------------------------------------------------------------
+    // --- a toast: an achievement ------------------------------------------------------------------
     .toast {
         flex-wrap: wrap;
         border: 2px solid #000;
@@ -386,11 +385,11 @@
     }
 
     .toast--success::after {
-        content: "Advancement Made!";
+        content: "Achievement unlocked!";
     }
 
     .toast--error::after {
-        content: "You Died!";
+        content: "Game over!";
         color: #ff5555;
     }
 
@@ -420,8 +419,8 @@
         --range-track-h: 8px;
         --range-track-radius: 0;
         --range-track-shadow: inset 0 0 0 1px #555;
-        --range-thumb: var(--craft-stone);
-        --range-thumb-hover: var(--craft-stone-hover);
+        --range-thumb: var(--blocks-stone);
+        --range-thumb-hover: var(--blocks-stone-hover);
         --range-thumb-w: 10px;
         --range-thumb-h: 20px;
         --range-thumb-border: 2px solid #000;
@@ -441,7 +440,7 @@
 
 // the splash holds still for who asks
 @media (prefers-reduced-motion: reduce) {
-    [data-skin="craft"] .brand::after {
+    [data-skin="blocks"] .brand::after {
         animation: none;
     }
 }

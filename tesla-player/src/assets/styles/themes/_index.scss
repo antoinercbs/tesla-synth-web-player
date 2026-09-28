@@ -19,7 +19,7 @@
 @import "web1/palettes";
 @import "steam/palettes";
 @import "blueprint/palettes";
-@import "craft/palettes";
+@import "blocks/palettes";
 @import "lab/skin";
 @import "xp/skin";
 @import "scope/skin";
@@ -27,7 +27,7 @@
 @import "web1/skin";
 @import "steam/skin";
 @import "blueprint/skin";
-@import "craft/skin";
+@import "blocks/skin";
 
 $default-skin: lab;
 
@@ -39,7 +39,7 @@ $skins: (
     web1: $web1,
     steam: $steam,
     blueprint: $blueprint,
-    craft: $craft,
+    blocks: $blocks,
 );
 
 @mixin -skin($s) {

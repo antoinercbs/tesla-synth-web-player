@@ -3,28 +3,27 @@
 @use "sass:string";
 
 // ===========================================================================
-//  MINECRAFT LOOK: its dimensions
+//  BLOCKS LOOK: its walls
 // ===========================================================================
-// The game's menus: a darkened block wall behind everything, stone buttons, the
-// chat's colours for the text (white, grey, yellow). Each palette is a dimension,
-// its wall and its accent. Written out whole, as the custom properties each sets
-// on [data-theme="<id>"], including the chrome craft/_chrome.scss and the $craft
-// map read (--craft-stone, --craft-wall…). The blocks are drawn here, not the
-// game's own textures: an 8×8 pattern in four shades of the material.
+// A block-building game's menus: a darkened wall of blocks behind everything,
+// stone buttons, white, grey and yellow text. Each palette is a wall and its accent. Written out whole, as the custom properties each sets
+// on [data-theme="<id>"], including the chrome blocks/_chrome.scss and the $blocks
+// map read (--blocks-stone, --blocks-wall…). The blocks are drawn here: an 8×8
+// pattern in four shades of the material.
 // ui/themes.ts lists the ids for the look, the first is its default (its spec
 // checks both).
 
 // where each shade goes on a block's face (0 is the base)
-$craft-noise: ("01201301", "20130210", "13020132", "02310201", "10230120", "31012023", "02103102", "20310210");
-$craft-shade: ("0": 1, "1": 2, "2": 3, "3": 4);
+$blocks-noise: ("01201301", "20130210", "13020132", "02310201", "10230120", "31012023", "02103102", "20310210");
+$blocks-shade: ("0": 1, "1": 2, "2": 3, "3": 4);
 
 // a block's face: $shades (base, and three more), each pixel $px on screen
-@function -craft-block($shades, $px) {
+@function -block-face($shades, $px) {
     $body: '<rect width="8" height="8" fill="#{list.nth($shades, 1)}"/>';
     @for $y from 1 through 8 {
-        $row: list.nth($craft-noise, $y);
+        $row: list.nth($blocks-noise, $y);
         @for $x from 1 through 8 {
-            $n: map.get($craft-shade, string.slice($row, $x, $x));
+            $n: map.get($blocks-shade, string.slice($row, $x, $x));
             @if $n > 1 {
                 $body: $body + '<rect x="#{$x - 1}" y="#{$y - 1}" width="1" height="1" fill="#{list.nth($shades, $n)}"/>';
             }
@@ -33,11 +32,11 @@ $craft-shade: ("0": 1, "1": 2, "2": 3, "3": 4);
     @return svg-url('<g shape-rendering="crispEdges">#{$body}</g>', 8 * $px, 8 * $px, "0 0 8 8");
 }
 
-$craft-stone: -craft-block((#7a7a7a, #6c6c6c, #878787, #5f5f5f), 2);
+$blocks-stone: -block-face((#7a7a7a, #6c6c6c, #878787, #5f5f5f), 2);
 
-// what the three keep: the chat's colours for the signals and the coils, the stone
+// what the three keep: full colours for the signals and the coils, the stone
 // buttons, the inventory's grey, the tooltip's purple
-$craft-shared: (
+$blocks-shared: (
     text: #ffffff,
     text-rgb: "255 255 255",
     text-dim: #aaaaaa,
@@ -77,25 +76,25 @@ $craft-shared: (
     key-glow-rgb: "255 255 160",
     key-ink-rgb: "0 0 0",
     knob: #c6c6c6,
-    craft-stone: $craft-stone,
-    craft-stone-hover: -craft-block((#8a92c8, #7e86bc, #979fd6, #7178ae), 2),
-    craft-stone-off: #2c2c2c,
-    craft-button-text: #e0e0e0,
-    craft-button-hot: #ffffa0,
-    craft-shadow: "2px 2px 0 rgb(0 0 0 / 0.75)",
-    craft-gui: #c6c6c6,
-    craft-gui-text: #404040,
-    craft-slot: #8b8b8b,
-    craft-tooltip: #100010,
-    craft-tooltip-edge: "linear-gradient(180deg, #5000ff, #28007f)",
-    craft-xp: #80ff20,
-    craft-xp-notch: #2f6a08,
+    blocks-stone: $blocks-stone,
+    blocks-stone-hover: -block-face((#8a92c8, #7e86bc, #979fd6, #7178ae), 2),
+    blocks-stone-off: #2c2c2c,
+    blocks-button-text: #e0e0e0,
+    blocks-button-hot: #ffffa0,
+    blocks-shadow: "2px 2px 0 rgb(0 0 0 / 0.75)",
+    blocks-gui: #c6c6c6,
+    blocks-gui-text: #404040,
+    blocks-slot: #8b8b8b,
+    blocks-tooltip: #100010,
+    blocks-tooltip-edge: "linear-gradient(180deg, #5000ff, #28007f)",
+    blocks-xp: #80ff20,
+    blocks-xp-notch: #2f6a08,
 );
 
 // the order is the picker's, the first the look's default
-$craft-palettes: (
-    // dirt, darkened as behind the game's menus; the experience bar's green
-    overworld: (
+$blocks-palettes: (
+    // dirt, darkened behind the menus; the experience bar's green
+    dirt: (
         bg: #241c14,
         bg-2: #1a140e,
         panel: #1d1711,
@@ -109,11 +108,11 @@ $craft-palettes: (
         arc-mid: #80ff20,
         arc-deep: #4c9d0c,
         arc-glow-rgb: "128 255 32",
-        craft-wall: "linear-gradient(rgb(0 0 0 / 0.64), rgb(0 0 0 / 0.64)), #{-craft-block((#866043, #79553a, #9b7653, #593d29), 4)}",
-        swatch: -craft-block((#866043, #79553a, #9b7653, #593d29), 3),
+        blocks-wall: "linear-gradient(rgb(0 0 0 / 0.64), rgb(0 0 0 / 0.64)), #{-block-face((#866043, #79553a, #9b7653, #593d29), 4)}",
+        swatch: -block-face((#866043, #79553a, #9b7653, #593d29), 3),
     ),
-    // netherrack, lava's gold
-    nether: (
+    // red rock, lava's gold
+    redrock: (
         bg: #2a1010,
         bg-2: #1d0b0b,
         panel: #200c0c,
@@ -127,11 +126,11 @@ $craft-palettes: (
         arc-mid: #ffaa00,
         arc-deep: #e25c10,
         arc-glow-rgb: "255 170 0",
-        craft-wall: "linear-gradient(rgb(0 0 0 / 0.58), rgb(0 0 0 / 0.58)), #{-craft-block((#723232, #5e2626, #854040, #4a1c1c), 4)}",
-        swatch: -craft-block((#723232, #5e2626, #854040, #4a1c1c), 3),
+        blocks-wall: "linear-gradient(rgb(0 0 0 / 0.58), rgb(0 0 0 / 0.58)), #{-block-face((#723232, #5e2626, #854040, #4a1c1c), 4)}",
+        swatch: -block-face((#723232, #5e2626, #854040, #4a1c1c), 3),
     ),
-    // obsidian, the ender's purple
-    end: (
+    // obsidian, a void's purple
+    obsidian: (
         bg: #0f0c16,
         bg-2: #0a0810,
         panel: #0d0a13,
@@ -145,14 +144,14 @@ $craft-palettes: (
         arc-mid: #cc66ff,
         arc-deep: #8a3fd1,
         arc-glow-rgb: "204 102 255",
-        craft-wall: "linear-gradient(rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.35)), #{-craft-block((#14121d, #1e1a2b, #3b2754, #0b0a10), 4)}",
-        swatch: -craft-block((#14121d, #1e1a2b, #3b2754, #0b0a10), 3),
+        blocks-wall: "linear-gradient(rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.35)), #{-block-face((#14121d, #1e1a2b, #3b2754, #0b0a10), 4)}",
+        swatch: -block-face((#14121d, #1e1a2b, #3b2754, #0b0a10), 3),
     ),
 );
 
-@each $id, $p in $craft-palettes {
+@each $id, $p in $blocks-palettes {
     [data-theme="#{$id}"] {
-        @each $key, $value in map.merge($craft-shared, $p) {
+        @each $key, $value in map.merge($blocks-shared, $p) {
             --#{$key}: #{$value};
         }
     }

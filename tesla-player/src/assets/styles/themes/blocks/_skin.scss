@@ -1,20 +1,19 @@
 @use "sass:map";
 
 // ===========================================================================
-//  MINECRAFT LOOK: its structure
+//  BLOCKS LOOK: its structure
 // ===========================================================================
-// The game's menus: a pixel face (Tiny5, a free one, not the game's own)
-// with its hard shadow, nothing rounded, stone buttons outlined in black. The
-// lab's map merged with what the game changes; its colours are its dimensions
-// (craft/_palettes.scss), what tokens cannot say (the stone logo and its splash,
-// the inventory, the experience bar, the advancement toast) craft/_chrome.scss.
-$craft-pixel: '"Tiny5", "VT323", "Courier New", monospace';
-$craft: map.merge(
+// A block-building game's menus: a pixel face (Tiny5) with its hard shadow, nothing rounded, stone buttons outlined in black. The
+// lab's map merged with what the game changes; its colours are its walls
+// (blocks/_palettes.scss), what tokens cannot say (the stone logo and its splash,
+// the inventory, the experience bar, the achievement toast) blocks/_chrome.scss.
+$blocks-pixel: '"Tiny5", "VT323", "Courier New", monospace';
+$blocks: map.merge(
     $lab,
     (
-        font-display: $craft-pixel,
-        font-body: $craft-pixel,
-        font-mono: $craft-pixel,
+        font-display: $blocks-pixel,
+        font-body: $blocks-pixel,
+        font-mono: $blocks-pixel,
         fs-xs: 0.78rem,
         fs-sm: 0.84rem,
         fs-md: 0.9rem,
@@ -41,28 +40,28 @@ $craft: map.merge(
         focus-ring: "0 0 0 2px #fff",
         focus-ring-strong: "0 0 0 3px #fff",
         dur-fast: 0s,
-        backdrop: var(--craft-wall),
+        backdrop: var(--blocks-wall),
         // the active mark: a bar of the experience's green, three pixels thick
         micro-arc: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 7' preserveAspectRatio='none'%3E%3Cpath d='M0 3.5H100' stroke='%23000' stroke-width='3'/%3E%3C/svg%3E"),
         micro-arc-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 7 30' preserveAspectRatio='none'%3E%3Cpath d='M3.5 0V30' stroke='%23000' stroke-width='3'/%3E%3C/svg%3E"),
         // the shared pieces (their tokens: components/*.scss): stone buttons
-        btn-bg: var(--craft-stone),
+        btn-bg: var(--blocks-stone),
         btn-border: #000,
-        btn-color: var(--craft-button-text),
+        btn-color: var(--blocks-button-text),
         btn-weight: 400,
         btn-pad: 0.3rem 1rem,
         btn-shadow: "inset 2px 2px 0 rgb(255 255 255 / 0.3), inset -2px -2px 0 rgb(0 0 0 / 0.4)",
         btn-hover-border: #fff,
-        btn-hover-color: var(--craft-button-hot),
-        btn-primary-bg: var(--craft-stone),
+        btn-hover-color: var(--blocks-button-hot),
+        btn-primary-bg: var(--blocks-stone),
         btn-primary-color: var(--text-bright),
         btn-primary-shadow: "inset 2px 2px 0 rgb(255 255 255 / 0.3), inset -2px -2px 0 rgb(0 0 0 / 0.4)",
-        btn-danger-bg: var(--craft-stone),
+        btn-danger-bg: var(--blocks-stone),
         btn-danger-color: var(--danger-text),
         icon-btn-radius: 0,
-        icon-btn-bg: var(--craft-stone),
+        icon-btn-bg: var(--blocks-stone),
         icon-btn-border: #000,
-        icon-btn-color: var(--craft-button-text),
+        icon-btn-color: var(--blocks-button-text),
         field-bg: #000,
         field-color: #fff,
         field-border: #a0a0a0,
@@ -70,22 +69,22 @@ $craft: map.merge(
         field-focus-border: #fff,
         field-focus-ring: none,
         field-label-color: var(--text-dim),
-        field-btn-bg: var(--craft-stone),
+        field-btn-bg: var(--blocks-stone),
         field-btn-border: #000,
-        field-btn-color: var(--craft-button-text),
+        field-btn-color: var(--blocks-button-text),
         seg-bg: transparent,
         seg-border: transparent,
         seg-radius: 0,
         seg-item-radius: 0,
-        seg-color: var(--craft-button-text),
-        seg-active-bg: var(--craft-stone-hover),
+        seg-color: var(--blocks-button-text),
+        seg-active-bg: var(--blocks-stone-hover),
         seg-active-color: var(--text-bright),
         tab-active-color: var(--text-bright),
-        modal-bg: var(--craft-gui),
+        modal-bg: var(--blocks-gui),
         modal-border: #000,
         modal-radius: 0,
-        modal-title-color: var(--craft-gui-text),
-        menu-bg: var(--craft-tooltip),
+        modal-title-color: var(--blocks-gui-text),
+        menu-bg: var(--blocks-tooltip),
         menu-border: #28007f,
         menu-radius: 0,
         menu-item-radius: 0,

@@ -7,13 +7,19 @@ Everything the app looks like lives here: the components carry no `<style>`
 
 - its palettes, `themes/<look>/_palettes.scss`: the colours, and none elsewhere
   (the lab's fourteen for dark surfaces, XP's three schemes, the oscilloscope's
-  three phosphors, the terminal's three text modes: Norton, Turbo, monochrome, the
-  Web 1.0 page's three backgrounds: stars, flames, neon);
+  three phosphors, the terminal's three text modes, the Web 1.0 page's three
+  backgrounds, steampunk's three cabinets, the blueprint's three sheets, the
+  blocks' three walls);
 - its structure, `themes/<look>/_skin.scss`: a map of type, sizes, spacing, radii,
   borders, shadows, motion, the active marker, the shared pieces' tokens;
 - what tokens cannot say, `themes/<look>/_chrome.scss` (XP's title bars and bevels,
   the scope's scan lines, the terminal's double frames and `[ OK ]`, the Web 1.0
-  page's rainbow titles, blinking NEW! and visitor counter).
+  page's rainbow titles, blinking NEW! and visitor counter, steampunk's rivets, the
+  blueprint's dimension lines, the blocks' stone buttons).
+
+The app is distributed publicly: a look or a palette is named for what it shows
+(`blocks`, `dirt`, `commander`), never for a product or a brand, in its id as in
+its label, and draws its own pieces instead of copying a product's.
 
 `themes/_index.scss` lists the looks and turns their maps into custom properties;
 `themes/_chrome.scss` imports their chromes, last.

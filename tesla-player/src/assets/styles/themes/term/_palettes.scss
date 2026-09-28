@@ -59,8 +59,8 @@ $term-shared: (
 
 // the order is the picker's, the first the look's default
 $term-palettes: (
-    // Norton Commander: blue panels framed in cyan, the cyan selection bar
-    norton: (
+    // a DOS file manager: blue panels framed in cyan, the cyan selection bar
+    commander: (
         bg: #0000aa,
         bg-2: #00007a,
         panel: #0000aa,
@@ -116,9 +116,9 @@ $term-palettes: (
         term-scroll-thumb: #55ffff,
         swatch: linear-gradient(135deg, #0000aa 55%, #00aaaa 55%),
     ),
-    // Turbo Vision (Turbo Pascal, Borland C++): a dotted desktop, yellow text in blue
+    // a DOS programming environment: a dotted desktop, yellow text in blue
     // windows, grey menus and dialogs, green buttons with their shadow
-    turbo: (
+    dosblue: (
         bg: #0000aa,
         bg-2: #00007a,
         panel: #0000aa,

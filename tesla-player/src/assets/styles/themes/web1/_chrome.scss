@@ -241,7 +241,7 @@
     }
 
     .sidebar__spacer::after {
-        content: "visitors since 1998\A Best viewed with Netscape Navigator 4.0 at 800\D7 600";
+        content: "visitors since 1998\A Best viewed at 800\D7 600";
         white-space: pre-line;
         text-align: center;
         color: var(--text-dim);
@@ -588,7 +588,7 @@
         font-size: var(--fs-sm);
     }
 
-    // --- the colour scroll bars of Internet Explorer 5.5 -----------------------------------
+    // --- the colour scroll bars of the time -----------------------------------
     ::-webkit-scrollbar {
         width: 16px;
         height: 16px;
