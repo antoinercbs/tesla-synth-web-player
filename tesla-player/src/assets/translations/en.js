@@ -514,6 +514,10 @@ export default {
     periwinkle: "Periwinkle",
     mauve: "Mauve",
     afterhours: "After hours",
+
+    original: "Original",
+    daylight: "Daylight",
+    blackout: "Blackout",
   },
   skin: {
     title: "Look",
@@ -557,6 +561,8 @@ export default {
     crossstitch: "Cross-stitch",
 
     portal: "Career portal",
+
+    v1: "Version 1 (2022)",
   },
   skinGroup: {
     computers: "Vintage computers",

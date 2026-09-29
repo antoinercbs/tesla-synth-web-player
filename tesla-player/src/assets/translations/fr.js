@@ -517,6 +517,10 @@ export default {
     periwinkle: "Pervenche",
     mauve: "Mauve",
     afterhours: "Après 20 h",
+
+    original: "D'origine",
+    daylight: "Plein jour",
+    blackout: "Nuit noire",
   },
   skin: {
     title: "Apparence",
@@ -560,6 +564,8 @@ export default {
     crossstitch: "Point de croix",
 
     portal: "Portail carrière",
+
+    v1: "Version 1 (2022)",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",

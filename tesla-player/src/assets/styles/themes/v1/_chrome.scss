@@ -1,0 +1,599 @@
+// ===========================================================================
+//  V1 LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $v1 map (v1/_skin.scss), its colours the palette picked
+// among v1/_palettes.scss (every colour here reads one, --v1-…). Here: the panels
+// and their heading bands, the rows split by a rule like the framework's panel
+// blocks, the buttons joined in groups, the channels as one strip of small buttons,
+// the tabs underlined, the menu's current item filled, the sliders yellow with a
+// round cap. Every rule sits under [data-skin="v1"] and this file comes last; the
+// pages' controls are named by family (../_families.scss).
+
+// a band of the panel's heading colour: the text tokens take its ink, the controls
+// in it their own (a token naming another resolves on <html>: set again here)
+@mixin heading-band {
+    --text: var(--v1-head-ink);
+    --text-dim: var(--v1-head-ink);
+    --text-mute: var(--v1-head-ink);
+    --text-strong: var(--v1-head-ink);
+    --text-bright: var(--v1-head-ink);
+    --volt: var(--v1-head-ink);
+    --seg-color: var(--v1-head-ink);
+    --tab-active-color: var(--v1-head-ink);
+    --v1-tab-line: var(--v1-head-ink);
+
+    background: var(--v1-head);
+    color: var(--v1-head-ink);
+    font-weight: 700;
+}
+
+[data-skin="v1"] {
+    color-scheme: dark;
+
+    ::selection {
+        background: var(--v1-amber);
+        color: var(--v1-amber-ink);
+    }
+
+    // the page was flat: nothing frosted over it
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        box-shadow: 0 1px 0 var(--v1-rule);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .view-head__title {
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+
+    .brand__emblem {
+        animation: none;
+        filter: none;
+    }
+
+    // --- panels: the box, its heading band, its blocks ----------------------------------
+    #{$panels} {
+        border: 0;
+        border-radius: 6px;
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    #{$panel-heads} {
+        @include heading-band;
+
+        border-bottom: 0;
+        border-radius: 6px 6px 0 0;
+
+        .switch__text {
+            font-weight: 400;
+        }
+
+        // a count: a dark tag
+        .pl-pane__count {
+            border: 0;
+            border-radius: 4px;
+            background: var(--v1-head-ink);
+            color: var(--v1-head);
+        }
+    }
+
+    .player-panel__head .icon,
+    .pl-pane__head .icon,
+    .queue-head__title .icon {
+        color: var(--v1-head-ink);
+    }
+
+    // in the band, a badge is outlined in its ink
+    .player-synth-badge {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px var(--v1-head-ink);
+    }
+
+    // a panel block: a row, a rule under it, the song on air marked on its left edge
+    .play-rows {
+        padding: 0;
+    }
+
+    .play-row {
+        border-bottom: 1px solid var(--v1-rule);
+        border-radius: 0;
+    }
+
+    .play-row:hover {
+        background: var(--line-006);
+    }
+
+    .play-row.is-current {
+        background: var(--line-006);
+        box-shadow: inset 3px 0 0 var(--v1-amber);
+    }
+
+    .play-row.is-current::before {
+        display: none;
+    }
+
+    .midi-lib__head {
+        @include heading-band;
+
+        border-bottom: 0;
+        font-size: var(--fs-md);
+    }
+
+    .midi-lib__item {
+        border-bottom-color: var(--v1-rule);
+    }
+
+    .pl-row {
+        border-top-color: var(--v1-rule);
+    }
+
+    .pl-row:last-child {
+        border-bottom: 1px solid var(--v1-rule);
+    }
+
+    .coil-card,
+    .editor-section {
+        border: 0;
+        border-radius: 6px;
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .coil-card {
+        animation: none;
+    }
+
+    // the editor's cards and sections head a band too; a coil's colour stays its edge
+    .coil-card > .coil-card__head:first-child,
+    .editor-section > .stereo__head:first-child,
+    .editor-section > .dyn__head:first-child {
+        @include heading-band;
+    }
+
+    .coil-card > .coil-card__head:first-child {
+        margin: -1rem -1.05rem 0.85rem -1.25rem;
+        padding: 0.55rem 1.05rem 0.55rem 1.25rem;
+    }
+
+    .editor-section > .stereo__head:first-child,
+    .editor-section > .dyn__head:first-child {
+        margin: -1.1rem -1.2rem 0.75rem;
+        padding: 0.45rem 1.2rem;
+        border-radius: 6px 6px 0 0;
+    }
+
+    .tune-panel > .tune-panel__title:first-child {
+        @include heading-band;
+
+        margin: -1rem -1.1rem 0.85rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 6px 6px 0 0;
+        font-size: var(--fs-lg);
+    }
+
+    .coil-card__head .coil-card__no,
+    .coil-card__head .coil-card__icon {
+        color: inherit;
+    }
+
+    .coil-card__head .coil-card__title,
+    .coil-card__head .coil-card__title *,
+    .stereo__head .editor-section__title,
+    .dyn__head .editor-section__title {
+        font-weight: 700;
+    }
+
+    .stereo__head .switch__text,
+    .dyn__head .switch__text {
+        font-weight: 400;
+    }
+
+    // --- the sidebar: a column of panels on the bare page ------------------------------
+    .sidebar {
+        border-right: 0;
+    }
+
+    .brand__sep {
+        background: var(--v1-rule);
+    }
+
+    .nav {
+        gap: 0;
+        overflow: hidden;
+        border-radius: 6px;
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .nav-item {
+        border-radius: 0;
+        border-bottom: 1px solid var(--v1-rule);
+        font-weight: 400;
+        letter-spacing: 0;
+        color: var(--text);
+    }
+
+    .nav-item:last-child {
+        border-bottom: 0;
+    }
+
+    .nav-item .icon {
+        color: var(--v1-btn-border);
+    }
+
+    .nav-item:hover {
+        background: var(--line-006);
+        color: var(--text);
+    }
+
+    // the current item filled like the framework's current page
+    .nav-item.router-link-active {
+        border-radius: 0;
+        background: var(--v1-current);
+        color: var(--v1-current-ink);
+        font-weight: 600;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .nav__sep {
+        height: 0;
+        margin: 0;
+        border-top: 2px solid var(--bg);
+        background: none;
+    }
+
+    .sidebar-section {
+        padding: 0 0.75rem 0.75rem;
+        overflow: hidden;
+        border-radius: 6px;
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .sidebar-section + .sidebar-section {
+        margin-top: 0.75rem;
+    }
+
+    .sidebar-section__title {
+        @include heading-band;
+
+        margin: 0 -0.75rem 0.75rem;
+        padding: 0.55em 0.75rem;
+        font-size: var(--fs-md);
+    }
+
+    .sidebar .segmented button.is-active,
+    .sidebar-menu .segmented button.is-active {
+        background: var(--v1-amber);
+        color: var(--v1-amber-ink);
+        box-shadow: none;
+    }
+
+    .sidebar--compact .nav,
+    .sidebar--compact .sidebar-section {
+        box-shadow: none;
+    }
+
+    // on a phone the nav is the bar at the foot: one panel across, not a box in it
+    @media (max-width: 1000px) {
+        .sidebar {
+            border-top: 1px solid var(--v1-rule);
+            background: var(--panel);
+        }
+
+        .nav {
+            overflow: visible;
+            border-radius: 0;
+            background: none;
+            box-shadow: none;
+        }
+
+        .nav-item {
+            border-bottom: 0;
+        }
+    }
+
+    // --- buttons: grey, squared, joined in groups -----------------------------------------
+    .btn {
+        justify-content: center;
+        line-height: 1.5;
+    }
+
+    .btn:hover:not(:disabled) {
+        filter: none;
+    }
+
+    .btn--volt:hover:not(:disabled) {
+        color: var(--v1-amber-ink);
+        filter: brightness(0.95);
+    }
+
+    .btn--danger:hover:not(:disabled) {
+        color: #ffffff;
+        filter: brightness(0.95);
+    }
+
+    .btn--ghost:not(:hover) {
+        border-color: transparent;
+    }
+
+    .btn:focus-visible,
+    .icon-btn:focus-visible,
+    .field-btn:focus-visible {
+        border-color: var(--v1-focus);
+        box-shadow: var(--focus-ring);
+    }
+
+    // a disabled button: its face the page's, at half; a coloured one keeps its colour
+    .btn:disabled,
+    .icon-btn:disabled,
+    .field-btn:disabled {
+        opacity: 0.5;
+        box-shadow: none;
+    }
+
+    .btn:disabled:not(.btn--volt, .btn--danger),
+    .icon-btn:disabled,
+    .field-btn:disabled {
+        background: var(--bg);
+    }
+
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled) {
+        border-color: var(--v1-btn-hover-border);
+        color: var(--v1-btn-hover);
+    }
+
+    // the transport as one group: inner corners square, the borders shared
+    .player-transport {
+        gap: 0;
+
+        > .btn {
+            border-radius: 0;
+        }
+
+        > .btn + .btn {
+            margin-left: -1px;
+        }
+
+        > .btn:first-child {
+            border-radius: 4px 0 0 4px;
+        }
+
+        > .btn:last-child {
+            border-radius: 0 4px 4px 0;
+        }
+
+        > .btn:hover,
+        > .btn:focus-visible {
+            position: relative;
+            z-index: 1;
+        }
+    }
+
+    #{$push-buttons} {
+        border: 1px solid var(--v1-btn-border);
+        border-radius: 4px;
+        background: var(--v1-btn);
+        color: var(--text);
+
+        &:hover:not(:disabled) {
+            border-color: var(--v1-btn-hover-border);
+            color: var(--v1-btn-hover);
+        }
+    }
+
+    #{$pushed-on} {
+        border-color: transparent;
+        background: var(--v1-amber);
+        color: var(--v1-amber-ink);
+    }
+
+    .play-row.is-current .row-btn--play {
+        border-color: transparent;
+        background: var(--v1-amber);
+        color: var(--v1-amber-ink);
+    }
+
+    #{$flat-buttons} {
+        border-radius: 4px;
+    }
+
+    // --- choices: joined buttons, the one picked yellow ------------------------------------
+    .segmented:not(.segmented--tabs) {
+        overflow: hidden;
+        padding: 0;
+        gap: 0;
+
+        > button {
+            border-radius: 0;
+            font-weight: 400;
+        }
+
+        > button + button {
+            border-left: 1px solid var(--seg-border);
+        }
+    }
+
+    // the channels, one strip of small buttons (the gaps show the border through);
+    // on, the colour of their coil
+    .chan-grid {
+        gap: 1px;
+        overflow: hidden;
+        border: 1px solid var(--v1-btn-border);
+        border-radius: 4px;
+        background: var(--v1-btn-border);
+    }
+
+    .chan-cell {
+        border: 0;
+        border-radius: 0;
+        background: var(--v1-btn);
+        color: var(--text);
+    }
+
+    .chan-cell:hover {
+        color: var(--v1-btn-hover);
+    }
+
+    .chan-cell.is-on {
+        background: var(--cell, var(--v1-amber));
+        color: var(--v1-amber-ink);
+        font-weight: 400;
+    }
+
+    // tabs: a rule under them, the open one underlined
+    .segmented.segmented--tabs {
+        border-bottom-color: var(--v1-rule);
+    }
+
+    .segmented--tabs button.is-active {
+        font-weight: 600;
+    }
+
+    .segmented__arc {
+        bottom: -1px;
+        height: 2px;
+        margin-left: 0;
+        padding: 0;
+        background: var(--v1-tab-line, var(--text-strong));
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    // --- fields: the framework's inset -----------------------------------------------------
+    .text-field,
+    .select-field select,
+    .select-field__button {
+        box-shadow: inset 0 0.0625em 0.125em rgb(10 10 10 / 0.05);
+    }
+
+    // its chevron: two sides of a square, turned
+    .select-field::after {
+        content: "";
+        width: 0.625em;
+        height: 0.625em;
+        margin-top: -0.2em;
+        border: 3px solid var(--text);
+        border-top: 0;
+        border-right: 0;
+        border-radius: 2px;
+        transform: translateY(-50%) rotate(-45deg);
+    }
+
+    // --- sliders: a yellow groove, a round white cap -------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: var(--v1-amber);
+        --range-track-h: 0.5rem;
+        --range-track-radius: 4px;
+        --range-track-shadow: none;
+        --range-thumb: var(--v1-thumb);
+        --range-thumb-hover: var(--v1-thumb);
+        --range-thumb-w: 1rem;
+        --range-thumb-h: 1rem;
+        --range-thumb-border: 1px solid var(--v1-thumb-border);
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: none;
+        --range-focus: 2px solid var(--v1-focus);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs ---------------------------------------------------------------------
+    #{$menus} {
+        box-shadow: var(--shadow-pop);
+    }
+
+    #{$menu-items} {
+        border-radius: 0;
+
+        &:hover,
+        &:focus-visible {
+            background: var(--v1-btn);
+            color: var(--text);
+        }
+    }
+
+    #{$menu-seps} {
+        background: var(--v1-rule);
+    }
+
+    .combo__option.is-active {
+        background: var(--v1-current);
+        color: var(--v1-current-ink);
+    }
+
+    // a dialog is a panel: its heading band across the top
+    .modal-card {
+        padding-top: 0;
+    }
+
+    .modal-card__head {
+        @include heading-band;
+
+        margin: 0 -1.5rem 1.1rem;
+        padding: 0.6rem 1rem 0.6rem 1.5rem;
+    }
+
+    .modal-card__title {
+        font-size: var(--fs-lg);
+    }
+
+    .modal-card__title .icon {
+        color: var(--v1-head-ink);
+    }
+
+    // the framework's round close button, a white cross on a shade of black
+    .modal-card__head .icon-btn {
+        --icon-btn-size: 1.5rem;
+
+        border: 0;
+        border-radius: 50%;
+        background: rgb(10 10 10 / 0.2);
+        color: #ffffff;
+        font-size: var(--fs-sm);
+    }
+
+    .modal-card__head .icon-btn:hover:not(:disabled) {
+        background: rgb(10 10 10 / 0.3);
+        color: #ffffff;
+    }
+}
+
+// the framework's defaults were a light page
+[data-skin="v1"][data-theme="daylight"] {
+    color-scheme: light;
+
+    .brand__label {
+        filter: none;
+    }
+}
