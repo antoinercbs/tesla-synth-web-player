@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import axios, { AxiosError } from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { notify } from '@/utils/toast';
+import { useBeforeUnload } from '@/utils/leave-guard';
 import {
   CUSTOM_PROGRAM_MAX,
   CUSTOM_PROGRAM_MIN,
@@ -131,6 +132,7 @@ function answerDiscard(ok: boolean): void {
 }
 onBeforeRouteUpdate(() => confirmDiscard());
 onBeforeRouteLeave(() => confirmDiscard());
+useBeforeUnload(() => dirty.value);
 
 async function newEnvelope(): Promise<void> {
   if (await confirmDiscard()) startNew(t('envelopes.newName'), starterSteps());

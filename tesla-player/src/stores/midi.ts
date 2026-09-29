@@ -5,6 +5,7 @@ import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
 import { SERIAL_OUTPUT_ID } from '@/serial/serial-midi';
 import type { DeviceLink } from '@/serial/device-link';
 import { setCustomEnvelopes } from '@/sysex/envelopes';
+import { encodeEnable, MODE_BYTE } from '@/sysex/syntherrupter';
 import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
@@ -36,6 +37,11 @@ interface MidiState {
   /** Link with read-back to the device, used by the config page: the serial
    *  link, or a Web MIDI output paired with the device's input. null = none. */
   deviceLink: DeviceLink | null;
+  /** Bumped by panic(): the player, Live and Fixed modes stop on it, whichever runs. */
+  panicRev: number;
+  /** Name of the coil output that went away (unplugged, link dropped) and was
+   *  replaced by the built-in synth; null once it is back or another is chosen. */
+  outputLost: string | null;
 }
 
 /** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
@@ -59,6 +65,8 @@ export const useMidiStore = defineStore('midi', {
     serialConnected: false,
     serialPortLabel: '',
     deviceLink: null,
+    panicRev: 0,
+    outputLost: null,
   }),
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
@@ -148,6 +156,30 @@ export const useMidiStore = defineStore('midi', {
     },
     sendSysex(payload: string | number[]) {
       if (this.midiOutput) helperSendSysex(this.midiOutput as SysexOutput, payload);
+    },
+    setOutputLost(name: string | null) {
+      this.outputLost = name;
+    },
+    /**
+     * Stop the coils now. Switching the device's modes off beats the notes already
+     * queued on a Web MIDI output, which MIDIOutput.clear() can't be relied on to
+     * drop; Play, Live and Fixed each switch their mode back on when they start.
+     */
+    silenceCoils(sink?: MidiSink | null) {
+      const out = sink === undefined ? this.midiOutput : sink;
+      if (!out) return;
+      try {
+        helperSendSysex(out as SysexOutput, encodeEnable(MODE_BYTE.midi, false));
+        helperSendSysex(out as SysexOutput, encodeEnable(MODE_BYTE.simple, false));
+        out.sendAllSoundOff();
+      } catch {
+        /* an output unplugged meanwhile: nothing left to silence */
+      }
+      if (out === this.midiOutput) this.midiOutput2?.sendAllSoundOff();
+    },
+    panic() {
+      this.panicRev += 1;
+      this.silenceCoils();
     },
   },
 });

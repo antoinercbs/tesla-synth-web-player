@@ -28,7 +28,8 @@ import { joinFakePhone } from './demo/fake-camera';
  * `enter` runs as the step opens (the fake phone joining); `until` holds Next
  * until that selector is on screen (a trial running to its end), then the target
  * is looked up again, as the page may have moved on. `phone` shows the fake
- * phone's screen beside the page, once it has joined.
+ * phone's screen beside the page, once it has joined. `wide`: about what the
+ * phone layout doesn't offer (ui/viewport.ts), skipped there.
  *
  * The selectors are the components' own classes, so the components carry no tour
  * code; keep these in step when one of those classes is renamed.
@@ -54,6 +55,7 @@ export interface TourStep {
   enter?: () => void;
   until?: string;
   phone?: boolean;
+  wide?: boolean;
 }
 
 const PLAY = { name: 'play' };
@@ -76,19 +78,19 @@ export const MAIN_STEPS: TourStep[] = [
   { id: 'nav', icon: 'fa-compass', points: ['fa-music', 'fa-microchip'], route: PLAY, target: '.nav', placement: 'right' },
   // the menu opens beside the sidebar; the next step closes it
   { id: 'settings', icon: 'fa-gear', points: ['fa-bolt', 'fa-tags', 'fa-palette'], route: PLAY, target: '.sidebar-menu', placement: 'right', click: '.sidebar-more:not(.is-open)' },
-  { id: 'output', icon: 'fa-plug', points: ['fa-wave-square', 'fa-diagram-project', 'fa-plug'], route: PLAY, target: '.sidebar-section:not(:has(.sidebar-coils))', placement: 'right', click: '.sidebar-more.is-open' },
-  { id: 'coils', icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
+  { id: 'output', wide: true, icon: 'fa-plug', points: ['fa-wave-square', 'fa-diagram-project', 'fa-plug'], route: PLAY, target: '.sidebar-section:not(:has(.sidebar-coils))', placement: 'right', click: '.sidebar-more.is-open' },
+  { id: 'coils', wide: true, icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
   // the path of a song, from the stage back to its file
   { id: 'pathPlay', icon: 'fa-play', points: ['fa-gauge-high', 'fa-keyboard'], route: PLAY, target: '.source-panel', placement: 'right' },
   { id: 'pathMidi', icon: 'fa-folder-open', points: ['fa-layer-group', 'fa-pen-to-square'], route: MIDI, target: '.midi-lib__table', placement: 'top' },
   { id: 'pathSong', icon: 'fa-pencil', points: ['fa-bolt', 'fa-left-right', 'fa-chart-area'], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'pathPlaylist', icon: 'fa-list-ul', route: DEMO_PLAYLIST, target: '.pl-panes', placement: 'top' },
   // the hardware
-  { id: 'pathTune', icon: 'fa-bullseye', route: TUNE, target: '.stepper', placement: 'bottom' },
+  { id: 'pathTune', wide: true, icon: 'fa-bullseye', route: TUNE, target: '.stepper', placement: 'bottom' },
   // the demo's device (demo/fake-device.ts) opens this page even with nothing plugged in
-  { id: 'pathSyntherrupter', icon: 'fa-microchip', note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
+  { id: 'pathSyntherrupter', wide: true, icon: 'fa-microchip', note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
   // advanced: in passing
-  { id: 'pathEnvelopes', icon: 'fa-chart-line', note: 'tip', route: DEMO_ENVELOPE, target: '.env-lib', placement: 'right' },
+  { id: 'pathEnvelopes', wide: true, icon: 'fa-chart-line', note: 'tip', route: DEMO_ENVELOPE, target: '.env-lib', placement: 'right' },
   { id: 'pageTours', icon: 'fa-circle-question', points: ['fa-wand-magic-sparkles', 'fa-play'], route: PLAY, target: '.page-tour', placement: 'bottom' },
   { id: 'done', icon: 'fa-flag-checkered', note: 'tip', route: PLAY },
 ];
@@ -97,8 +99,8 @@ export const MAIN_STEPS: TourStep[] = [
 // A song's ▶ in the list only loads it; Play, when it shows Play, starts it
 const PLAY_BUTTON = '.player-transport .btn--volt:not(:disabled):has(.fa-play)';
 const PLAY_STEPS: TourStep[] = [
-  { id: 'modes', icon: 'fa-sliders', points: ['fa-play', 'fa-keyboard', 'fa-wave-square'], route: PLAY, target: '.screen-head .mode-switch', placement: 'bottom', click: playMode(1) },
-  { id: 'live', icon: 'fa-tower-broadcast', points: ['fa-keyboard', 'fa-layer-group'], route: PLAY, target: '.live', placement: 'top', click: playMode(2) },
+  { id: 'modes', wide: true, icon: 'fa-sliders', points: ['fa-play', 'fa-keyboard', 'fa-wave-square'], route: PLAY, target: '.screen-head .mode-switch', placement: 'bottom', click: playMode(1) },
+  { id: 'live', wide: true, icon: 'fa-tower-broadcast', points: ['fa-keyboard', 'fa-layer-group'], route: PLAY, target: '.live', placement: 'top', click: playMode(2) },
   { id: 'songs', icon: 'fa-music', points: ['fa-play', 'fa-pencil', 'fa-list-ul'], route: PLAY, target: '.source-panel', placement: 'right', click: playMode(1) },
   { id: 'transport', icon: 'fa-circle-play', points: ['fa-play', 'fa-wrench'], note: 'warn', noteIcon: 'fa-bell-slash', route: PLAY, target: '.player-transport', placement: 'left', click: [playMode(1), '.play-row:not(.is-current) .row-btn--play', PLAY_BUTTON], plays: true, once: true },
   { id: 'vizVu', icon: 'fa-chart-simple', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(1) },
@@ -114,9 +116,9 @@ const EDIT_STEPS: TourStep[] = [
   { id: 'editor', icon: 'fa-pencil', points: ['fa-file-circle-plus', 'fa-tags'], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'editFile', icon: 'fa-file-audio', points: ['fa-pen-to-square', 'fa-folder-open'], note: 'warn', route: DEMO_SONG, target: '.midi-field', placement: 'bottom' },
   { id: 'coilCards', icon: 'fa-bolt', points: ['fa-layer-group', 'fa-gauge'], route: DEMO_SONG, target: '.coils-grid', placement: 'top' },
-  { id: 'stereo', icon: 'fa-left-right', points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top' },
-  { id: 'dynamics', icon: 'fa-chart-area', points: ['fa-circle-dot', 'fa-bolt'], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top' },
-  { id: 'editPlayer', icon: 'fa-play', route: DEMO_SONG, target: '.edit-body__dock', placement: 'left' },
+  { id: 'stereo', wide: true, icon: 'fa-left-right', points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top' },
+  { id: 'dynamics', wide: true, icon: 'fa-chart-area', points: ['fa-circle-dot', 'fa-bolt'], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top' },
+  { id: 'editPlayer', wide: true, icon: 'fa-play', route: DEMO_SONG, target: '.edit-body__dock', placement: 'left' },
   { id: 'editDone', icon: 'fa-floppy-disk', note: 'tip', route: DEMO_SONG, target: '.editor-footer', placement: 'top' },
 ];
 

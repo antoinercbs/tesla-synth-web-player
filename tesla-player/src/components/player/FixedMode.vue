@@ -2,10 +2,14 @@
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useMidiStore } from '@/stores/midi';
 import { compileSimpleConfig, compileSimpleStop } from '@/sysex/syntherrupter';
+import { sendSysex, type SysexOutput } from '@/utils/live-sysex-helper';
 import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { SimpleCoil } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import { useLeaveGuard } from '@/utils/leave-guard';
+import { tour } from '@/tour/tour';
 
 const midiStore = useMidiStore();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
@@ -95,6 +99,19 @@ function stop(): void {
   running.value = false;
 }
 function toggle(): void { if (running.value) stop(); else start(); }
+// the tones were armed on the output they started on: stop them there, not on the new one
+watch(() => midiStore.midiOutput, (out, prev) => {
+  if (!running.value) return;
+  if (prev && prev !== out) {
+    try {
+      for (const frame of compileSimpleStop(cfg.coils)) sendSysex(prev as SysexOutput, frame);
+    } catch { /* unplugged */ }
+    midiStore.silenceCoils(prev);
+  }
+  stop();
+});
+watch(() => midiStore.panicRev, () => { if (running.value) stop(); });
+const { pending: leavePending, answer: answerLeave } = useLeaveGuard(() => running.value && !tour.active);
 
 /* duty is stored as a fraction (0..1) but edited as a percentage */
 function dutyPct(d: number): number { return Math.round(d * 1e4) / 100; }
@@ -121,6 +138,10 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         @click="toggle">
         <span class="icon"><i class="fas" :class="running ? 'fa-stop' : 'fa-play'"></i></span>
         {{ running ? $t('label.stop') : $t('label.start') }}
+      </button>
+      <button class="btn btn--danger btn--panic" type="button" :disabled="!midiStore.midiOutput"
+        :title="$t('player.panicHint')" @click="midiStore.panic()">
+        <span class="icon"><i class="fas fa-bell-slash"></i></span>{{ $t('player.panic') }}
       </button>
       <p v-if="!midiStore.midiOutput" class="player-hint fixed-bar__hint">
         <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.selectOutputHint') }}
@@ -168,5 +189,8 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         </article>
       </div>
     </section>
+    <confirm-modal :open="leavePending" :title="$t('player.fixedLeaveTitle')"
+      :message="$t('player.fixedLeaveQuestion')" :confirm-label="$t('player.leaveConfirm')"
+      :cancel-label="$t('player.stay')" @confirm="answerLeave(true)" @close="answerLeave(false)" />
   </div>
 </template>

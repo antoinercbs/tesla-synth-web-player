@@ -12,6 +12,9 @@ import type { CoilConfig } from '@/types/domain';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import PianoKeyboard from '@/components/player/PianoKeyboard.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import { useLeaveGuard } from '@/utils/leave-guard';
+import { tour } from '@/tour/tour';
 
 const midiStore = useMidiStore();
 const { t } = useI18n();
@@ -192,6 +195,14 @@ function toggle(): void { if (running.value) stop(); else start(); }
 // if the output device disappears mid-session, tear the session down (keeps the
 // LIVE indicator/keyboard honest — mirrors the input-removed policy)
 watch(canRun, (ok) => { if (!ok && running.value) stop(); });
+// the session was configured on the output it started on: another one needs a Start
+watch(() => midiStore.midiOutput, (out, prev) => {
+  if (!running.value) return;
+  stop();
+  if (prev && prev !== out) midiStore.silenceCoils(prev);
+});
+watch(() => midiStore.panicRev, () => { if (running.value) stop(); });
+const { pending: leavePending, answer: answerLeave } = useLeaveGuard(() => running.value && !tour.active);
 
 /* ------------------------------ note state -------------------------------- */
 // per MIDI note: bitmask of the channels currently holding it (input + on-screen keys)
@@ -337,6 +348,10 @@ onBeforeUnmount(() => {
             <span class="icon"><i class="fas" :class="running ? 'fa-stop' : 'fa-play'"></i></span>
             {{ running ? $t('label.stop') : $t('label.start') }}
           </button>
+          <button class="btn btn--danger btn--panic" type="button" :disabled="!midiStore.midiOutput"
+            :title="$t('player.panicHint')" @click="midiStore.panic()">
+            <span class="icon"><i class="fas fa-bell-slash"></i></span>{{ $t('player.panic') }}
+          </button>
         </div>
       </header>
 
@@ -407,5 +422,8 @@ onBeforeUnmount(() => {
           :show-envelope="true" />
       </div>
     </section>
+    <confirm-modal :open="leavePending" :title="$t('player.liveLeaveTitle')" :message="$t('player.liveLeaveQuestion')"
+      :confirm-label="$t('player.leaveConfirm')" :cancel-label="$t('player.stay')" @confirm="answerLeave(true)"
+      @close="answerLeave(false)" />
   </div>
 </template>

@@ -5,8 +5,8 @@
 // page adds joins every look by being listed here. Only selectors: no output.
 
 // a page's own bordered button, and those of them that stay pressed while on
-$push-buttons: ".row-btn, .queue-btn, .pl-icon-btn, .me-ibtn, .power-head__reset, .coil-filter-toggle, .coil-toggle, .piano__oct, .stepper__btn, .env-lib__new";
-$pushed-on: ".queue-btn.is-active, .coil-filter-toggle.is-active, .coil-toggle.is-on, .stepper__btn.is-active";
+$push-buttons: ".row-btn, .queue-btn, .pl-icon-btn, .me-ibtn, .power-head__reset, .power-head__cap, .coil-filter-toggle, .coil-toggle, .piano__oct, .stepper__btn, .env-lib__new";
+$pushed-on: ".queue-btn.is-active, .power-head__cap.is-on, .coil-filter-toggle.is-active, .coil-toggle.is-on, .stepper__btn.is-active";
 
 // a page's own bare icon button (a toolbar's)
 $flat-buttons: ".me-ico, .me-x, .dyn-row__remove, .midi-lib__action, .midi-lib__edit-icon, .combo__clear, .roll-range__x, .env-steps__remove, .cfg-tag-del, .tour__x";

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, useId } from 'vue';
-import { SKIN_GROUPS, SKIN_TOP, currentSkin, setSkin, type SkinId } from '@/ui/skins';
+import { SKINS, SKIN_GROUPS, SKIN_TOP, currentSkin, setSkin, type SkinId } from '@/ui/skins';
+import { THEMES, type ThemeId } from '@/ui/themes';
+import { notify } from '@/utils/toast';
 
 /**
  * The look switch (sidebar menu, welcome dialog): the top looks, then a submenu per
- * group of looks. The menu and its submenu are manual popovers: in the top layer,
- * neither the sidebar's menu nor a dialog clips them, and staying in this
+ * group of looks, then one at random. The menu and its submenu are manual popovers: in
+ * the top layer, neither the sidebar's menu nor a dialog clips them, and staying in this
  * component's DOM, a click in them is still a click inside the sidebar's menu (which
  * closes on a click outside it).
  */
@@ -97,10 +99,20 @@ function toggle(): void {
   else openMenu();
 }
 
-function pick(id: SkinId): void {
+function pick(id: SkinId, theme?: ThemeId): void {
   // put on once its stylesheet is in; the menu closes now
-  void setSkin(id);
+  void setSkin(id, theme).then((ok) => {
+    if (!ok) notify('skin.unavailable', 'error');
+  });
   close(true);
+}
+
+// another look than the one on, in one of its palettes
+function surprise(): void {
+  const looks = SKINS.filter((id) => id !== currentSkin.value);
+  const id = looks[Math.floor(Math.random() * looks.length)];
+  const palettes = THEMES[id];
+  pick(id, palettes[Math.floor(Math.random() * palettes.length)]);
 }
 
 // --- pointer: a group opens on hover, after a moment once a submenu is shown, so a
@@ -231,6 +243,11 @@ function onSubKey(e: KeyboardEvent): void {
         <span class="skin-menu__check"></span>
         {{ $t(`skinGroup.${g.id}`) }}
         <i class="fas fa-chevron-right skin-menu__chevron"></i>
+      </button>
+      <div class="skin-menu__sep" role="separator"></div>
+      <button class="skin-menu__item" type="button" role="menuitem" @pointerenter="hover(null)" @click="surprise">
+        <span class="skin-menu__check"><i class="fas fa-shuffle"></i></span>
+        {{ $t('skin.surprise') }}
       </button>
     </div>
 

@@ -162,4 +162,10 @@
     .edit-body {
         padding: 0 0.5rem 0.5rem;
     }
+
+    // the phone layout plays from the Play page (ui/viewport.ts); the player stays
+    // mounted, so a resize back to a large screen finds it loaded
+    .edit-body__dock {
+        display: none;
+    }
 }

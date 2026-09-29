@@ -265,6 +265,10 @@
     flex: none;
 }
 
+.me-save__list li.is-warn > i {
+    color: var(--amber);
+}
+
 .me-save__none {
     margin: 0;
     font-size: var(--fs-sm);

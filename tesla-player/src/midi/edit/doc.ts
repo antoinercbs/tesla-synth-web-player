@@ -142,10 +142,12 @@ export function resolveOverlaps(notes: EdNote[]): EdNote[] {
   return out;
 }
 
-export function writeDoc(doc: MidiDoc): Uint8Array<ArrayBuffer> {
-  const notes = resolveOverlaps(doc.notes);
-  // a channel whose instrument was chosen here starts on it, and keeps it: its
-  // program changes are replaced by one at the start (a channel without notes gets none)
+/**
+ * A channel whose instrument was chosen here starts on it, and keeps it: its
+ * program changes are replaced by one at the start (a channel without notes gets
+ * none). Channel → the track of its first note, where that one goes.
+ */
+function replacedPrograms(doc: MidiDoc, notes: EdNote[]): Map<number, number> {
   const hosts = new Map<number, number>();
   for (const key of Object.keys(doc.programs)) {
     const ch = Number(key);
@@ -153,6 +155,34 @@ export function writeDoc(doc: MidiDoc): Uint8Array<ArrayBuffer> {
     const host = notes.find((n) => n.channel === ch)?.track ?? -1;
     if (host >= 0) hosts.set(ch, host);
   }
+  return hosts;
+}
+
+/**
+ * What writeDoc's replacement loses: per channel, the instrument changes made
+ * once its notes have started (only channels with some).
+ */
+export function lostProgramChanges(doc: MidiDoc): Record<number, number> {
+  const lost: Record<number, number> = {};
+  for (const ch of replacedPrograms(doc, doc.notes).keys()) {
+    const start = doc.notes.reduce((m, n) => (n.channel === ch ? Math.min(m, n.tick) : m), Infinity);
+    const changes = doc.events
+      .flatMap((e) => (e.ev.type === 'programChange' && e.ev.channel === ch ? [{ tick: e.tick, seq: e.seq, p: e.ev.programNumber }] : []))
+      .sort((a, b) => a.tick - b.tick || a.seq - b.seq);
+    let current = 0; // what a channel plays before any program change
+    let n = 0;
+    for (const c of changes) {
+      if (c.tick > start && c.p !== current) n++;
+      current = c.p;
+    }
+    if (n) lost[ch] = n;
+  }
+  return lost;
+}
+
+export function writeDoc(doc: MidiDoc): Uint8Array<ArrayBuffer> {
+  const notes = resolveOverlaps(doc.notes);
+  const hosts = replacedPrograms(doc, notes);
 
   interface Out { tick: number; rank: number; seq: number; ev: MidiEvent }
   const tracks: Out[][] = Array.from({ length: doc.trackCount }, () => []);

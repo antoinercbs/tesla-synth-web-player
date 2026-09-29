@@ -200,6 +200,25 @@ function createWindow(): void {
     });
   });
 
+  // The renderer holds the window on a beforeunload while something would be lost
+  // (unsaved edits, a song playing: utils/leave-guard.ts). Electron shows no prompt of
+  // its own: unanswered, the window just refuses to close.
+  win.webContents.on('will-prevent-unload', (event) => {
+    const fr = app.getLocale().startsWith('fr');
+    const choice = dialog.showMessageBoxSync(win!, {
+      type: 'warning',
+      buttons: fr ? ['Quitter quand même', 'Rester'] : ['Leave anyway', 'Stay'],
+      defaultId: 1,
+      cancelId: 1,
+      title: 'Tesla Player',
+      message: fr ? 'Quitter Tesla Player ?' : 'Leave Tesla Player?',
+      detail: fr
+        ? 'Des modifications ne sont pas enregistrées, ou les bobines jouent encore.'
+        : 'Some changes are not saved, or the coils are still playing.',
+    });
+    if (choice === 0) event.preventDefault(); // preventDefault here = ignore the beforeunload
+  });
+
   win.once('ready-to-show', () => win?.show());
   // Belt-and-suspenders: never leave the window hidden if ready-to-show stalls.
   setTimeout(() => {

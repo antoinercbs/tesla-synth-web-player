@@ -19,7 +19,7 @@
   <!-- A song (or "new") is selected: the editor + embedded debug player -->
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
-      <h1 class="view-head__title">{{ headTitle }}<page-tour-button id="edit" /></h1>
+      <h1 class="view-head__title">{{ headTitle }}<page-tour-button v-if="!dirty" id="edit" /></h1>
       <RouterLink class="icon-btn" :to="{ name: 'edit', params: {} }" :title="$t('label.closeEditor')"
         :aria-label="$t('label.closeEditor')">
         <i class="fas fa-xmark"></i>
@@ -28,7 +28,7 @@
     <div class="edit-body">
       <div class="edit-body__editor" :style="editorStyle">
         <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" @saved="onSaved"
-          @change="onChange" @deleted="onDeleted" />
+          @change="onChange" @deleted="onDeleted" @dirty="dirty = $event" />
       </div>
       <resize-handle class="edit-body__split" @resize-start="onDockResizeStart" @resize="onDockResize"
         @resize-end="saveDockWidth" />
@@ -58,6 +58,7 @@ export default {
   data() {
     return {
       playing: false,
+      dirty: false,
       // where the embedded player is: the editor adds automation points there
       playerPosition: 0,
       headerScrolled: false,

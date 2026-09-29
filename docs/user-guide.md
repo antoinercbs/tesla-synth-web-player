@@ -23,6 +23,7 @@ How to play music on your Tesla coils and configure each song. This covers the w
 - **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, language, desktop download / sync).
 - **Main area**: the current screen (Play, Edit, ...)
 - **Guided tours**: the app tour (offered on the first visit, then in the **⋯** menu) shows how the pages fit together; the **?** beside each page's title runs that page's own, detailed tour. Both run on demo data: nothing is saved and nothing reaches the coils.
+- **On a phone or a tablet** (a window under 1000 px wide), the sidebar becomes a bottom bar with the show-time pages only: **Play**, a simplified **Edit** (name, file, tags, coils; the spatialisation and the power over time stay as they are, to edit on a large screen), **Playlists** and the **MIDI files** (without the MIDI editor). **More** opens the **⋯** menu. The other pages stay reachable by their address.
 
 ## Choosing your outputs
 
@@ -34,7 +35,9 @@ Pick one of three modes:
 
 - **Synth**: the built-in Web Audio emulation. Great for composing/previewing without hardware.
 - **MIDI**: any MIDI output device the browser sees (a USB-MIDI interface to your coil setup).
-- **Serial**: a **direct USB link to the Syntherrupter** (Web Serial). Click **Connect** and pick the device's serial port. Once connected, a **Syntherrupter** page appears in the sidebar so you can [configure the device itself](./syntherrupter.md). A previously authorized port reconnects automatically on the next launch.
+- **Serial**: a **direct USB link to the Syntherrupter** (Web Serial). Click **Connect** and pick the device's serial port. Once connected, a **Syntherrupter** page appears in the sidebar so you can [configure the device itself](./syntherrupter.md). A previously authorized port reconnects automatically on the next launch, and when it is plugged back in (or the device reboots).
+
+If the coil output goes away (a USB-MIDI interface unplugged, the serial link dropped), playback stops, the sound falls back to the built-in synth and the player shows it in red until the output is back.
 
 ### Second output (optional)
 
@@ -52,14 +55,19 @@ Go to **Play**:
 2. Press play.
 3. **Autoplay** (toggle) starts the next track automatically when one ends.
 
+**Panic** (or **Esc** on the Play page, in every mode) stops everything at once: the coils first, by switching the Syntherrupter's modes off (the next Play, Live or Fixed start switches its mode back on), then every note on both outputs. **Stop** and **Pause** cut the coils the same way, so nothing still queued plays after them.
+
+Leaving the Play page, or switching its mode, while a song plays (or Live or Fixed runs) asks first, as does closing or reloading the tab.
+
 ## Live power control
 
 While a song plays you can ride the output **live**:
 
 - **Global mode**: a single **Power** fader scales the whole performance up/down.
-- **Advanced mode**: switch to per-coil control of **on-time** and **duty** for fine balancing between coils.
+- **Advanced mode**: switch to per-coil control of **on-time** and **duty** for fine balancing between coils. These settings are kept from one song to the next; back in Global mode, the fader starts from the lowest of them, so that no coil jumps up.
+- The **lock** beside the value holds every fader at **100 %** at most (remembered between sessions), for a show without overdrive.
 
-Live changes are sent to the coils immediately and don't alter the saved song. The values you can reach live are bounded by the coil's **hardware safety limits** on the Syntherrupter (see [Configuring the Syntherrupter](./syntherrupter.md)), not by software.
+Live changes are sent to the coils as the fader moves and don't alter the saved song. The values you can reach live are bounded by the coil's **hardware safety limits** on the Syntherrupter (see [Configuring the Syntherrupter](./syntherrupter.md)), not by software.
 
 ## Editing a song
 
@@ -72,7 +80,7 @@ Go to **Edit** and create or open a song. A song is a MIDI file plus a **per-coi
   - **On-time (µs)** and **Duty (%)**: the coil's power for this song (bounded by the device's safety envelope).
 - **Second-output channels**: which channels mirror to the second output for this song.
 
-Press **Save** (or **Update**). When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown as a small "edited by ..." line.
+Press **Save** (or **Update**), or **Ctrl+S**; a dot beside it marks unsaved changes, and leaving the song with some asks first. A tag can be created right from the tag menu (**New tag…**). When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown as a small "edited by ..." line.
 
 ### Power over time
 

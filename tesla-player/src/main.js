@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, watchEffect } from 'vue'
 import { createPinia } from 'pinia'
 import { createI18n } from 'vue-i18n'
 import axios from 'axios'
@@ -105,6 +105,10 @@ const i18n = createI18n({
   fallbackLocale: 'en',
   messages
 })
+
+// index.html can only say en: a screen reader picks its voice by the page's
+// language, the browser its hyphenation and its offer to translate
+watchEffect(() => { document.documentElement.lang = i18n.global.locale.value })
 
 async function bootstrap() {
   const app = createApp(App)

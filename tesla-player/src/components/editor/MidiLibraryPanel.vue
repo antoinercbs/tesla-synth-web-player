@@ -7,6 +7,7 @@ import { envelope } from "@/sysex/envelopes";
 import type { MidiFile, Song } from "@/types/domain";
 import { RouterLink } from "vue-router";
 import EmptyState from "@/components/ui/EmptyState.vue";
+import { useDropdown } from "@/components/editor/dropdown";
 
 /**
  * The MIDI file manager interface: import (button or drop anywhere on it), searchable table,
@@ -247,15 +248,28 @@ function programsTitle(f: MidiFile): string | undefined {
     return rows.length ? rows.join("\n") : undefined;
 }
 
+const {
+    open: openMenu,
+    toggle: toggleMenu,
+    close: closeMenu,
+    onKeydown: onMenuKey,
+    onFocusIn: onMenuFocusIn,
+    onFocusOut: onMenuFocusOut,
+} = useDropdown();
+function onMenuButton(key: string, e: MouseEvent): void {
+    const wrapper = (e.currentTarget as HTMLElement).closest<HTMLElement>(".midi-lib__dropdown");
+    toggleMenu(key, e);
+    if (openMenu.value === key && wrapper) alignDropdown(wrapper);
+}
+
 /** Flips the menu upwards when it would overflow the bottom of the list. */
-function alignDropdown(e: MouseEvent): void {
-    const wrapper = e.currentTarget as HTMLElement;
+function alignDropdown(wrapper: HTMLElement): void {
     const menu = wrapper.querySelector<HTMLElement>(".midi-lib__dropdown-menu");
     const list = wrapper.closest<HTMLElement>(".midi-lib__list");
     if (!menu || !list) return;
 
     // Measured while forced visible, then restored: the menu is display:none
-    // until :hover, and a hidden element has no height to measure.
+    // until opened, and a hidden element has no height to measure.
     const originalDisplay = menu.style.display;
     menu.style.display = "flex";
     const overflows =
@@ -342,11 +356,15 @@ function alignDropdown(e: MouseEvent): void {
                         {{ programsLabel(f) }}
                     </span>
                     <!-- who depends on the file, before anyone deletes it -->
-                    <div class="midi-lib__usages midi-lib__dropdown" @mouseenter="alignDropdown">
-                        <span class="midi-lib__usages-text" :class="{ 'is-none': !usesOf(f).length }">
-                            {{ usesOf(f).length ? $t("label.songsCount", usesOf(f).length) : "—" }}
-                        </span>
-                        <div v-if="usesOf(f).length" class="midi-lib__dropdown-menu is-usages">
+                    <div class="midi-lib__usages midi-lib__dropdown" :class="{ 'is-open': openMenu === `uses-${f.id}` }"
+                        @mouseenter="alignDropdown($event.currentTarget as HTMLElement)" @keydown="onMenuKey"
+                        @focusin="onMenuFocusIn(`uses-${f.id}`, $event)" @focusout="onMenuFocusOut">
+                        <button v-if="usesOf(f).length" class="midi-lib__usages-text" type="button" aria-haspopup="true"
+                            :aria-expanded="openMenu === `uses-${f.id}`" @click="onMenuButton(`uses-${f.id}`, $event)">
+                            {{ $t("label.songsCount", usesOf(f).length) }}
+                        </button>
+                        <span v-else class="midi-lib__usages-text is-none">—</span>
+                        <div v-if="usesOf(f).length" class="midi-lib__dropdown-menu is-usages" @click="closeMenu()">
                             <div class="midi-lib__dropdown-header">
                                 {{ $t("label.usedFor") }}
                             </div>
@@ -364,11 +382,15 @@ function alignDropdown(e: MouseEvent): void {
                             :title="$t('midiEditor.open')" :aria-label="$t('midiEditor.open')">
                             <i class="fas fa-pen-to-square"></i>
                         </RouterLink>
-                        <div class="midi-lib__dropdown" @mouseenter="alignDropdown">
-                            <button class="midi-lib__action" type="button" :aria-label="$t('label.moreOptions')">
+                        <div class="midi-lib__dropdown" :class="{ 'is-open': openMenu === `actions-${f.id}` }"
+                            @mouseenter="alignDropdown($event.currentTarget as HTMLElement)" @keydown="onMenuKey"
+                            @focusin="onMenuFocusIn(`actions-${f.id}`, $event)" @focusout="onMenuFocusOut">
+                            <button class="midi-lib__action" type="button" :aria-label="$t('label.moreOptions')"
+                                aria-haspopup="true" :aria-expanded="openMenu === `actions-${f.id}`"
+                                @click="onMenuButton(`actions-${f.id}`, $event)">
                                 <i class="fas fa-ellipsis-vertical"></i>
                             </button>
-                            <div class="midi-lib__dropdown-menu">
+                            <div class="midi-lib__dropdown-menu" @click="closeMenu(true)">
                                 <button class="midi-lib__dropdown-item" type="button" @click="startEditName(f)">
                                     <i class="fa-solid fa-pen"></i>
                                     <span>{{ $t("label.rename") }}</span>

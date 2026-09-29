@@ -142,6 +142,13 @@
     color: var(--volt);
 }
 
+// the phone layout leaves the MIDI editor out (ui/viewport.ts)
+@media (max-width: 1000px) {
+    .midi-lib__dl {
+        display: none;
+    }
+}
+
 .midi-lib__msg {
     display: flex;
     align-items: center;
@@ -276,11 +283,22 @@
     }
 }
 
-.midi-lib__dropdown:hover .midi-lib__dropdown-menu {
+// opened by a click, a tap or the keyboard (components/editor/dropdown.ts)
+.midi-lib__dropdown.is-open .midi-lib__dropdown-menu {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
     display: flex;
+}
+
+// a touch screen keeps :hover on what was tapped: a menu closed from inside would stay up
+@media (hover: hover) {
+    .midi-lib__dropdown:hover .midi-lib__dropdown-menu {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        display: flex;
+    }
 }
 
 .midi-lib__dropdown-item {
@@ -308,7 +326,8 @@
     text-align: center;
 }
 
-.midi-lib__dropdown-item:hover {
+.midi-lib__dropdown-item:hover,
+.midi-lib__dropdown-item:focus-visible {
     background: var(--line-strong);
     color: var(--text);
 
@@ -317,7 +336,8 @@
     }
 }
 
-.midi-lib__dropdown-item.is-danger:hover {
+.midi-lib__dropdown-item.is-danger:hover,
+.midi-lib__dropdown-item.is-danger:focus-visible {
     background: rgb(var(--danger-rgb) / 0.12);
     color: var(--danger);
 }
@@ -425,11 +445,20 @@
     transition: color 0.15s;
 }
 
+button.midi-lib__usages-text {
+    background: none;
+    border: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+}
+
 .midi-lib__usages-text.is-none {
     color: var(--text-mute);
 }
 
-.midi-lib__usages:hover .midi-lib__usages-text:not(.is-none) {
+.midi-lib__usages:hover .midi-lib__usages-text:not(.is-none),
+.midi-lib__usages.is-open .midi-lib__usages-text {
     color: var(--volt);
 }
 
@@ -544,6 +573,12 @@
     }
 }
 
-.midi-lib__dropdown:hover .midi-lib__dropdown-menu.is-dropup {
+.midi-lib__dropdown.is-open .midi-lib__dropdown-menu.is-dropup {
     transform: translateY(0);
+}
+
+@media (hover: hover) {
+    .midi-lib__dropdown:hover .midi-lib__dropdown-menu.is-dropup {
+        transform: translateY(0);
+    }
 }

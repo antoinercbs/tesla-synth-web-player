@@ -109,3 +109,17 @@
 .midi-field .combo {
     flex: 1;
 }
+
+// the phone layout keeps the essentials (ui/viewport.ts): hidden, not dropped, so a
+// save from there keeps the song's spatialisation and power curve as they are
+@media (max-width: 1000px) {
+    .editor .stereo,
+    .editor .dyn,
+    .midi-field .midi-field__edit {
+        display: none;
+    }
+
+    .editor .editor-large-only {
+        display: flex;
+    }
+}

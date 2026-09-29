@@ -1,6 +1,7 @@
 import { reactive } from 'vue';
 import { isNavigationFailure, NavigationFailureType, type RouteLocationRaw } from 'vue-router';
 import router from '@/router';
+import { confirmLeaveInPlace } from '@/utils/leave-guard';
 import { TOURS } from './steps';
 
 /**
@@ -63,6 +64,8 @@ export async function startTour(id: TourId = 'main'): Promise<void> {
   // changes asks, and can keep the user (then there is no tour)
   const failure = await router.push(entryRoute(id)).catch(() => undefined);
   if (isNavigationFailure(failure, NavigationFailureType.aborted | NavigationFailureType.cancelled)) return;
+  // already there: no guard ran, but the demo still takes the page down (a song playing)
+  if (isNavigationFailure(failure, NavigationFailureType.duplicated) && !(await confirmLeaveInPlace())) return;
   tour.welcome = false;
   tour.id = id;
   tour.origin = id === 'main' ? null : from;

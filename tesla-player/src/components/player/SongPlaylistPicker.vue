@@ -77,8 +77,9 @@ function compatibleOf(pl: Playlist): Song[] {
     .map((id) => songById(id))
     .filter((s): s is Song => !!s && s.coilCount === pl.coilCount);
 }
+// what "play all" will last: the songs of another coil count are skipped
 function playlistDurationMs(pl: Playlist): number {
-  return pl.songIds.reduce((sum, id) => sum + (songById(id)?.midiFile?.durationMs ?? 0), 0);
+  return compatibleOf(pl).reduce((sum, s) => sum + (s.midiFile?.durationMs ?? 0), 0);
 }
 
 function loadPlaylists(): void {

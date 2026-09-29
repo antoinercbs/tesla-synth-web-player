@@ -19,6 +19,9 @@ import type { CoilConfig, CoilParam, Song } from '@/types/domain';
 import CoilLegend from '@/components/player/CoilLegend.vue';
 import VizTabs from '@/components/player/VizTabs.vue';
 import PowerControlPanel from '@/components/player/PowerControlPanel.vue';
+import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import { useLeaveGuard } from '@/utils/leave-guard';
+import { tour } from '@/tour/tour';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
 
@@ -57,12 +60,17 @@ type PowerScope = 'global' | 'advanced';
 const powerScope = ref<PowerScope>((localStorage.getItem('playerPowerScope') as PowerScope) || 'global');
 watch(powerScope, (v) => localStorage.setItem('playerPowerScope', v));
 const masterPower = ref(100);
-// per-coil ontime & duty (%, default 100, keyed by coilIndex). Seeded per song.
+// per-coil ontime & duty (%, keyed by coilIndex), kept from one song to the next: a
+// coil turned down for the venue must not come back at 100 % on the next track
 const coilOntime = reactive<Record<number, number>>({});
 const coilDuty = reactive<Record<number, number>>({});
-watch(() => song.value?.id, () => {
-  for (const c of song.value?.coils ?? []) { coilOntime[c.coilIndex] = 100; coilDuty[c.coilIndex] = 100; }
+watch(() => song.value?.coils, (coils) => {
+  for (const c of coils ?? []) { coilOntime[c.coilIndex] ??= 100; coilDuty[c.coilIndex] ??= 100; }
 }, { immediate: true });
+// "≤ 100 %": the operator's lock against overdrive, for the whole show (persisted)
+const powerCapped = ref(localStorage.getItem('playerPowerCap') === '1');
+watch(powerCapped, (v) => localStorage.setItem('playerPowerCap', v ? '1' : '0'));
+const powerMax = computed(() => (powerCapped.value ? 100 : 200));
 function effRatioOntime(i: number): number {
   return powerScope.value === 'advanced' ? (coilOntime[i] ?? 100) : masterPower.value;
 }
@@ -424,6 +432,7 @@ function playFrom(fromMs: number): void {
   if (!parsedMidiFile.value || !midiStore.midiOutput) return;
   midiStore.midiOutput.resume?.(); // unlock the synth's AudioContext (a play is a gesture)
   const wasPlaying = isPlaying.value;
+  cancelTailSilence(); // it would cut this song's first notes
   teardownPlayback();
   seedPrograms();
   executeConfig();
@@ -451,6 +460,7 @@ function play(): void {
 function pause(): void {
   if (!isPlaying.value) return;
   teardownPlayback();
+  silence(); // the coils stop where the playhead stops, so resuming there doubles nothing
   isPlaying.value = false;
   paused.value = true;
   emit('playingChange', false);
@@ -522,36 +532,82 @@ function clearOutput(out: typeof midiStore.midiOutput): void {
 
 function stop(): void {
   const wasPlaying = isPlaying.value;
+  const active = wasPlaying || paused.value;
   teardownPlayback();
+  if (active) silence();
   isPlaying.value = false;
   paused.value = false;
   if (wasPlaying) emit('playingChange', false);
   playheadMs.value = 0;
 }
 
-function panic(): void {
-  midiStore.midiOutput?.sendAllSoundOff();
-  midiStore.midiOutput2?.sendAllSoundOff();
+// The coils go quiet at once (silenceCoils), but the notes already queued on a Web
+// MIDI output still come out for up to a look-ahead, on the 2nd output (speakers)
+// too: a last All Sound Off follows them.
+let tailTimer: ReturnType<typeof setTimeout> | null = null;
+function silence(): void {
+  midiStore.silenceCoils();
+  cancelTailSilence();
+  tailTimer = setTimeout(() => {
+    tailTimer = null;
+    midiStore.midiOutput?.sendAllSoundOff();
+    midiStore.midiOutput2?.sendAllSoundOff();
+  }, PLAY_LATENCY_MS + 100);
 }
+function cancelTailSilence(): void {
+  if (tailTimer) { clearTimeout(tailTimer); tailTimer = null; }
+}
+// Panic, from this player, the Play page's Esc or the Live/Fixed modes
+watch(() => midiStore.panicRev, () => stop());
+// the engine holds the outputs it was built with: a song can't carry on on another one
+watch(() => midiStore.midiOutput, (out, prev) => {
+  if (!isPlaying.value && !paused.value) return;
+  stop();
+  if (prev && prev !== out) midiStore.silenceCoils(prev);
+});
+
+const { pending: leavePending, answer: answerLeave } = useLeaveGuard(() => isPlaying.value && !tour.active);
 
 // One live update: re-send each coil at the automation's level where the song is
-// heard × the new live power. Only fires on @change (drag end), so ≤2·coils frames.
+// heard × the new live power.
 function applyLive(): void {
   sendCoilLevels(isPlaying.value ? heardMs() : playheadMs.value, true);
 }
+// While a fader moves: at most one update per automation tick, and only the coils
+// whose rounded level changed, which a serial link keeps up with.
+let liveTimer: ReturnType<typeof setTimeout> | null = null;
+function applyLiveSoon(): void {
+  if (liveTimer) return;
+  liveTimer = setTimeout(() => {
+    liveTimer = null;
+    sendCoilLevels(isPlaying.value ? heardMs() : playheadMs.value);
+  }, AUTOMATION_TICK_MS);
+}
+watch(masterPower, applyLiveSoon);
 function onPowerChange(): void {
   if (Math.abs(masterPower.value - 100) <= 3) masterPower.value = 100; // snap to unity ("home")
   applyLive();
 }
-// Switching to Advanced INHERITS the current global power into each coil's ontime & duty
-// (so nothing jumps); switching back to Global re-asserts the single power across all coils.
+function toggleCap(): void {
+  powerCapped.value = !powerCapped.value;
+  if (!powerCapped.value) return;
+  masterPower.value = Math.min(masterPower.value, 100);
+  for (const k of Object.keys(coilOntime)) coilOntime[+k] = Math.min(coilOntime[+k], 100);
+  for (const k of Object.keys(coilDuty)) coilDuty[+k] = Math.min(coilDuty[+k], 100);
+  applyLive();
+}
+// Switching to Advanced INHERITS the current global power into each coil's ontime & duty;
+// switching back to Global starts from the lowest coil setting: either way no coil jumps up.
 function setScope(next: PowerScope): void {
   if (next === powerScope.value) return;
+  const coils = song.value?.coils ?? [];
   if (next === 'advanced') {
-    for (const c of song.value?.coils ?? []) {
+    for (const c of coils) {
       coilOntime[c.coilIndex] = masterPower.value;
       coilDuty[c.coilIndex] = masterPower.value;
     }
+  } else if (coils.length) {
+    masterPower.value = Math.min(...coils.flatMap((c) => [coilOntime[c.coilIndex] ?? 100, coilDuty[c.coilIndex] ?? 100]));
   }
   powerScope.value = next;
   applyLive();
@@ -575,6 +631,7 @@ const powerCoilRows = computed(() =>
 function onCoilInput(coilIndex: number, param: CoilParam, value: number): void {
   if (param === 'ontime') coilOntime[coilIndex] = value;
   else coilDuty[coilIndex] = value;
+  applyLiveSoon();
 }
 
 function loadMidiFile(path: string): Promise<ArrayBuffer> {
@@ -607,7 +664,10 @@ function arrayBufferToString(buffer: ArrayBuffer): string {
   }
 }
 
-onBeforeUnmount(() => stop()); // stop playback + clear timers if the player unmounts
+onBeforeUnmount(() => {
+  stop(); // stop playback + clear timers if the player unmounts
+  if (liveTimer) clearTimeout(liveTimer);
+});
 
 defineExpose({ loadSong, playSong, stop });
 </script>
@@ -625,6 +685,13 @@ defineExpose({ loadSong, playSong, stop });
         <span class="switch__text">{{ $t('label.autoplay') }}</span>
       </label>
     </header>
+
+    <p v-if="midiStore.outputLost" class="player-alert" role="alert">
+      <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>
+      <span class="player-alert__text">{{ $t('player.outputLost', { name: midiStore.outputLost }) }}</span>
+      <button class="icon-btn player-alert__x" type="button" :aria-label="$t('player.dismiss')"
+        :title="$t('player.dismiss')" @click="midiStore.setOutputLost(null)"><i class="fas fa-xmark"></i></button>
+    </p>
 
     <div class="player-song">
       <span class="icon"><i class="fas fa-music"></i></span>
@@ -674,23 +741,30 @@ defineExpose({ loadSong, playSong, stop });
     <!-- LIVE POWER: a GLOBAL ⇄ ADVANCED toggle. Global = one Power fader (ontime+duty,
          all coils); Advanced = per-coil ontime/duty sliders for fine-tuning. -->
     <power-control-panel v-model:master-power="masterPower" :scope="powerScope" :coil-rows="powerCoilRows"
-      :boost="powerBoost" :dirty="masterDirty" :has-song="!!song" @set-scope="setScope" @power-change="onPowerChange"
-      @coil-input="onCoilInput" @coil-change="applyLive" @reset="resetPower" />
+      :boost="powerBoost" :dirty="masterDirty" :has-song="!!song" :capped="powerCapped" :max="powerMax"
+      @set-scope="setScope" @power-change="onPowerChange" @coil-input="onCoilInput" @coil-change="applyLive"
+      @reset="resetPower" @toggle-cap="toggleCap" />
 
     <div class="player-transport">
       <button class="btn btn--volt" type="button" :disabled="!canTransport" @click="togglePlayPause">
-        <span class="icon"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></span>{{ isPlaying ? 'Pause'
-          : 'Play' }}
+        <span class="icon"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></span>{{ isPlaying
+          ? $t('player.pause') : $t('player.play') }}
       </button>
       <button class="btn btn--stop" type="button" :disabled="!canStop" @click="stop">
-        <span class="icon"><i class="fas fa-stop"></i></span>Stop
+        <span class="icon"><i class="fas fa-stop"></i></span>{{ $t('player.stop') }}
       </button>
-      <button class="btn btn--panic" type="button" :disabled="!canPanic" @click="panic">
-        <span class="icon"><i class="fas fa-bell-slash"></i></span>Panic
+      <!-- .btn--danger: every look dresses it as its own red; control/_chrome.scss sets it apart -->
+      <button class="btn btn--danger btn--panic" type="button" :disabled="!canPanic" :title="$t('player.panicHint')"
+        @click="midiStore.panic()">
+        <span class="icon"><i class="fas fa-bell-slash"></i></span>{{ $t('player.panic') }}
       </button>
       <button class="btn" type="button" :disabled="!canSysex" @click="executeConfig">
         <span class="icon"><i class="fas fa-wrench"></i></span>{{ $t('label.executeConfiguration') }}
       </button>
     </div>
+
+    <confirm-modal :open="leavePending" :title="$t('player.leaveTitle')"
+      :message="$t('player.leaveQuestion', { name: song?.name ?? '' })" :confirm-label="$t('player.leaveConfirm')"
+      :cancel-label="$t('player.stay')" @confirm="answerLeave(true)" @close="answerLeave(false)" />
   </article>
 </template>

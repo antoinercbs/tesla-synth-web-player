@@ -518,6 +518,10 @@
     outline-offset: 1px;
 }
 
+.sidebar-more__label {
+    display: none;
+}
+
 // teleported to <body>; positioned inline (viewport coords) from the button
 .sidebar-menu {
     position: fixed;
@@ -856,8 +860,64 @@
     .sidebar > button {
         display: none;
     }
+    // the show-time pages only (ui/viewport.ts)
+    .sidebar__spacer,
     .sidebar-cstatus,
-    .sidebar-foot {
+    .sidebar-user,
+    .sidebar-conn,
+    .nav-item--wide {
         display: none;
+    }
+    // the footer's menu (language, looks, settings…) is the bar's last tab
+    .nav {
+        flex: 4 1 0;
+        width: auto;
+    }
+    .sidebar-foot,
+    .sidebar--compact .sidebar-foot {
+        flex: 1 1 0;
+        min-width: 0;
+        margin: 0;
+        padding: 0;
+        border-top: 0;
+    }
+    .sidebar-more,
+    .sidebar--compact .sidebar-more {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.35rem;
+        width: 100%;
+        height: auto;
+        min-height: 44px;
+        margin: 0;
+        padding: 0.55rem 0.2rem 0.45rem;
+        border-radius: 0;
+        color: var(--text-dim);
+    }
+    .sidebar-more:hover,
+    .sidebar-more.is-open {
+        background: none;
+        color: var(--text-strong);
+    }
+    .sidebar-more .icon {
+        font-size: large;
+    }
+    .sidebar-more__label {
+        display: unset;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-family: var(--font-body);
+        font-size: var(--fs-xs);
+        font-weight: 500;
+    }
+    // it opens above the bar, and a phone may be shorter than the menu
+    .sidebar-menu {
+        max-width: calc(100vw - 16px);
+        max-height: calc(100dvh - 6rem);
+        overflow-y: auto;
     }
 }

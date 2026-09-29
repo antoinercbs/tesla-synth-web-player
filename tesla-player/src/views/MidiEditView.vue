@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { notify } from '@/utils/toast';
+import { useBeforeUnload } from '@/utils/leave-guard';
 import { envelope } from '@/sysex/envelopes';
 import type { MidiFile } from '@/types/domain';
 import { docBeatsPerBar, readMidi, UnsupportedMidiError } from '@/midi/edit/doc';
@@ -169,7 +170,7 @@ const report = computed(() => {
   if (!e || !saveOpen.value) return null;
   const c = e.changesSinceSave();
   const total = (m: Record<number, number>): number => Object.values(m).reduce((a, b) => a + b, 0);
-  const changes: { icon: string; text: string }[] = [
+  const changes: { icon: string; text: string; warn?: boolean }[] = [
     { icon: 'fa-music', text: t('midiEditor.saveNotes', { before: total(c.before), after: total(c.after) }) },
   ];
   const label = (p: number): string => `P${p} · ${envelope(p).name}`;
@@ -180,6 +181,11 @@ const report = computed(() => {
     else if (n0 && !n1) changes.push({ icon: 'fa-minus', text: t('midiEditor.saveChannelEmptied', { ch, n: n0 }, n0) });
     else if (n1 && p0 !== undefined && p1 !== undefined && p0 !== p1) {
       changes.push({ icon: 'fa-guitar', text: t('midiEditor.saveProgram', { ch, before: label(p0), after: label(p1) }) });
+    }
+    const lost = c.programChangesLost[ch];
+    if (lost) {
+      const text = t('midiEditor.saveProgramChangesLost', { ch, n: lost, program: e.programOf(ch) }, lost);
+      changes.push({ icon: 'fa-triangle-exclamation', text, warn: true });
     }
   }
   const songs: SongReport[] = uses.value.map((s) => {
@@ -245,6 +251,7 @@ function answerDiscard(ok: boolean): void {
 }
 onBeforeRouteUpdate(() => confirmDiscard());
 onBeforeRouteLeave(() => confirmDiscard());
+useBeforeUnload(() => dirty.value);
 function back(): void {
   if (window.history.state?.back) router.back();
   else router.push({ name: 'midi' });
@@ -402,7 +409,7 @@ const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
       <template v-if="report">
         <div class="me-save__sub">{{ $t('midiEditor.saveChanges') }}</div>
         <ul class="me-save__list">
-          <li v-for="(c, i) in report.changes" :key="i"><i class="fas" :class="c.icon"></i>{{ c.text }}</li>
+          <li v-for="(c, i) in report.changes" :key="i" :class="{ 'is-warn': c.warn }"><i class="fas" :class="c.icon"></i>{{ c.text }}</li>
         </ul>
         <div class="me-save__sub">{{ $t('midiEditor.saveSongs') }}</div>
         <p v-if="!report.songs.length" class="me-save__none">{{ $t('midiEditor.saveNoSong') }}</p>

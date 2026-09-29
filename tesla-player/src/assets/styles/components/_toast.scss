@@ -55,12 +55,30 @@
     background: var(--danger);
 }
 
+// an error stays a while: a click puts it away (the others let clicks through)
+.toast--error {
+    pointer-events: auto;
+    cursor: var(--cursor-pointer, pointer);
+}
+
 .toast--error .icon {
     color: var(--danger);
 }
 
 .toast--info .icon {
     color: var(--text-dim);
+}
+
+// the live regions a screen reader hears the toasts from (the toaster is hidden from it)
+.toaster__live {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
 }
 
 .toast-enter-active,

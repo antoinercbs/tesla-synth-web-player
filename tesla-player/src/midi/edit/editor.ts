@@ -6,6 +6,7 @@ import {
   hostTrack,
   keepRange,
   leadingSilence,
+  lostProgramChanges,
   newNoteId,
   writeDoc,
   type EdEvent,
@@ -58,6 +59,8 @@ export class MidiEditor {
   private nextRev = 1;
   private savedRev = 0;
   private saved: { counts: Record<number, number>; programs: Record<number, number> };
+  // the doc keeps the program changes a save replaced; the file on disk no longer has them
+  private replacedOnDisk = new Set<number>();
 
   constructor(readonly doc: MidiDoc) {
     this.map = docTempo(doc);
@@ -336,13 +339,23 @@ export class MidiEditor {
   /* ------------------------------- saving -------------------------------- */
   bytes(): Uint8Array<ArrayBuffer> { return writeDoc(this.doc); }
   /** What changed since the file was opened or last saved, for the save dialog. */
-  changesSinceSave(): { before: Record<number, number>; after: Record<number, number>; programsBefore: Record<number, number>; programsAfter: Record<number, number> } {
-    return { before: this.saved.counts, after: this.counts(), programsBefore: this.saved.programs, programsAfter: this.startPrograms() };
+  changesSinceSave(): {
+    before: Record<number, number>;
+    after: Record<number, number>;
+    programsBefore: Record<number, number>;
+    programsAfter: Record<number, number>;
+    /** per channel, the instrument changes in the song that this save replaces by its start program */
+    programChangesLost: Record<number, number>;
+  } {
+    const lost = lostProgramChanges(this.doc);
+    for (const ch of this.replacedOnDisk) delete lost[ch];
+    return { before: this.saved.counts, after: this.counts(), programsBefore: this.saved.programs, programsAfter: this.startPrograms(), programChangesLost: lost };
   }
   markSaved(): void {
     this.savedRev = this.rev;
     this.created.clear();
     this.saved = { counts: this.counts(), programs: this.startPrograms() };
+    this.replacedOnDisk = new Set(Object.keys(lostProgramChanges(this.doc)).map(Number));
     this.changed();
   }
 }

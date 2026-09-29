@@ -3,6 +3,8 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n';
 import { useMidiStore } from '@/stores/midi';
 import { notify } from '@/utils/toast';
+import { useLeaveGuard } from '@/utils/leave-guard';
+import { tour } from '@/tour/tour';
 import { coilColor } from '@/ui/coil-colors';
 import { noteHzLabel, noteName } from '@/ui/piano-layout';
 import { MAX_COILS } from '@/types/domain';
@@ -331,6 +333,16 @@ function newSession(): void {
   saved.value = null;
   step.value = cameraReady.value ? 'trials' : 'settings';
 }
+
+// leaving ends the session (onBeforeUnmount): the trials not saved and the phone's link go with
+// it; the tour's are demo ones
+const { pending: leaving, answer: answerLeave } = useLeaveGuard(
+  () => !tour.active && ((trials.value.length > 0 && step.value !== 'done') || (running.value && !!session.value)),
+);
+const leaveMessage = computed(() => {
+  const lost = t('tune.leaveLost', { n: trials.value.length }, trials.value.length);
+  return session.value ? `${lost} ${t('tune.leavePhone')}` : lost;
+});
 
 /* --------------------------------------------------------------- save / history */
 const saving = ref(false);
@@ -720,5 +732,6 @@ onBeforeUnmount(() => { void endSession(); });
     <confirm-modal :open="confirmAbandon" :title="t('tune.abandon')" :message="t('tune.confirmAbandon', { n: trials.length })"
       :confirm-label="t('tune.abandon')" :cancel-label="t('label.cancel')" @confirm="abandon" @close="confirmAbandon = false" />
     <confirm-modal :open="!!toDelete" :title="t('label.delete')" :message="t('tune.confirmDelete')" :confirm-label="t('label.delete')" :cancel-label="t('label.cancel')" @confirm="confirmDelete" @close="toDelete = null" />
+    <confirm-modal :open="leaving" :title="t('tune.leaveTitle')" :message="leaveMessage" :confirm-label="t('tune.leave')" :cancel-label="t('label.cancel')" @confirm="answerLeave(true)" @close="answerLeave(false)" />
   </div>
 </template>

@@ -122,6 +122,23 @@ describe('MidiEditor', () => {
     expect(ed.dirty).toBe(false);
     expect(ed.changesSinceSave().before).toEqual({ 0: 2 });
   });
+
+  it('warns once of the instrument changes a save replaces, and again when the file gets them back', () => {
+    const ed = new MidiEditor(readMidi(writeMidi({
+      header: { format: 0, numTracks: 1, ticksPerBeat: 480 },
+      tracks: [[{ deltaTime: 0, type: 'programChange', channel: 0, programNumber: 1 }, on(0, 0, 60),
+        { deltaTime: 480, type: 'programChange', channel: 0, programNumber: 5 }, off(0, 0, 60), end()]],
+    })));
+    ed.setProgram(0, 2);
+    expect(ed.changesSinceSave().programChangesLost).toEqual({ 0: 1 });
+    ed.markSaved();
+    ed.setProgram(0, 3);
+    expect(ed.changesSinceSave().programChangesLost).toEqual({});
+    ed.setProgram(0, 1);
+    ed.markSaved();
+    ed.setProgram(0, 3);
+    expect(ed.changesSinceSave().programChangesLost).toEqual({ 0: 1 });
+  });
 });
 
 describe('selection criteria', () => {

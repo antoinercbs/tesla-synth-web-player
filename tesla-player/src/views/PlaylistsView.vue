@@ -39,13 +39,9 @@ watch(() => midiStore.dataRevision, loadPlaylists);
 
 function checkValidId(): void {
   const id = routeId.value;
-  console.log(id)
   if (!id || id === 'new') return;
-  console.log("a", playlists)
   if (playlists.value.length === 0) return;
-  console.log("b", id)
   const exists = playlists.value.some((x) => x.id === Number(id));
-  console.log("c", exists)
   if (!exists) {
     router.replace({ name: 'playlists', params: {} });
   }
@@ -72,8 +68,9 @@ function onSaved(p: Playlist): void {
 }
 function onDeleted(id: number): void {
   playlists.value = playlists.value.filter((p) => p.id !== id);
-  close();
+  router.push({ name: 'playlists', params: {} });
 }
+const dirty = ref(false);
 
 const headerScrolled = ref(false);
 let scrollEl: HTMLElement | null = null;
@@ -117,14 +114,16 @@ onBeforeUnmount(() => {
   <!-- editor -->
   <div v-else class="screen pl-screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
-      <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}<page-tour-button id="playlists" /></h1>
+      <h1 class="view-head__title">{{ headTitle || $t('label.newPlaylist') }}<page-tour-button v-if="!dirty"
+          id="playlists" /></h1>
       <RouterLink class="icon-btn" :to="{ name: 'playlists', params: {} }" :title="$t('label.closeEditor')"
         :aria-label="$t('label.closeEditor')">
         <i class="fas fa-xmark"></i>
       </RouterLink>
     </header>
     <div class="screen-body screen-body--fill">
-      <playlist-manager :playlists="playlists" :playlist-id="routeId ?? null" @saved="onSaved" @deleted="onDeleted" />
+      <playlist-manager :playlists="playlists" :playlist-id="routeId ?? null" @saved="onSaved" @deleted="onDeleted"
+        @dirty="dirty = $event" />
     </div>
   </div>
 </template>

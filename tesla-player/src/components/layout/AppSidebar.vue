@@ -33,24 +33,26 @@
         <span class="nav-item__label nav-item__label--long">{{ $t('nav.midi') }}</span>
         <span class="nav-item__label nav-item__label--short">{{ $t('nav.midiShort') }}</span>
       </router-link>
-      <router-link class="nav-item" :to="{ name: 'envelopes' }" :title="sidebarCompact ? $t('nav.envelopes') : null">
+      <!-- --wide: not offered by the phone layout (ui/viewport.ts) -->
+      <router-link class="nav-item nav-item--wide" :to="{ name: 'envelopes' }"
+        :title="sidebarCompact ? $t('nav.envelopes') : null">
         <span class="icon"><i class="fas fa-chart-line"></i></span><span class="nav-item__label">{{ $t('nav.envelopes')
           }}</span>
       </router-link>
       <!-- content above, hardware below -->
       <span class="nav__sep" aria-hidden="true"></span>
-      <router-link class="nav-item" :to="{ name: 'tune' }" :title="sidebarCompact ? $t('nav.tune') : null">
+      <router-link class="nav-item nav-item--wide" :to="{ name: 'tune' }" :title="sidebarCompact ? $t('nav.tune') : null">
         <span class="icon"><i class="fas fa-bullseye"></i></span><span class="nav-item__label">{{ $t('nav.tune')
         }}</span>
       </router-link>
       <!-- device config: only reachable over a link with read-back (serial, or a
            Web MIDI output paired with the device's input, e.g. native USB-MIDI) -->
-      <router-link v-if="midiStore.deviceLink" class="nav-item" :to="{ name: 'syntherrupter' }"
+      <router-link v-if="midiStore.deviceLink" class="nav-item nav-item--wide" :to="{ name: 'syntherrupter' }"
         :title="sidebarCompact ? $t('nav.syntherrupter') : null">
         <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
         }}</span>
       </router-link>
-      <span v-else class="nav-item is-disabled" :title="$t('label.serialNeededForConfig')">
+      <span v-else class="nav-item nav-item--wide is-disabled" :title="$t('label.serialNeededForConfig')">
         <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
         }}</span>
         <i class="fas fa-lock nav-item__lock"></i>
@@ -193,7 +195,9 @@
       <button ref="moreBtn" class="sidebar-more" :class="{ 'is-open': menuOpen }" type="button"
         :title="$t('label.moreOptions')" :aria-label="$t('label.moreOptions')" aria-haspopup="menu"
         :aria-expanded="menuOpen" @click="toggleMenu">
-        <i class="fas fa-ellipsis"></i>
+        <span class="icon"><i class="fas fa-ellipsis"></i></span>
+        <!-- the tab's label, in the phone layout's bottom bar -->
+        <span class="sidebar-more__label">{{ $t('nav.more') }}</span>
       </button>
     </footer>
   </aside>
@@ -256,6 +260,7 @@ import { useAuthStore } from '@/stores/auth'
 import { coilColor } from '@/ui/coil-colors'
 import { startTour } from '@/tour/tour'
 import { notify } from '@/utils/toast'
+import { mobileLayout } from '@/ui/viewport'
 import { getTeslaSynth, SYNTH_MODELS, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
 import { WebMidiLink } from '@/serial/webmidi-link'
@@ -316,7 +321,8 @@ export default {
       sidebarCompact: localStorage.getItem('sidebarCompact') === '1',
       creditsOpen: false,
       menuOpen: false,
-      menuStyle: {}
+      menuStyle: {},
+      menuWidth: 0
     }
   },
   computed: {
@@ -376,23 +382,29 @@ export default {
   },
   methods: {
     coilColor,
-    saveConfig({ config, tags }) {
-      const savedConfig = this.axios.put('/api/settings', config)
-        .then(r => { this.midiStore.setAppConfig(r.data) })
-        .catch(err => console.error('Save config failed', err))
-      const savedTags = this.axios.put('/api/tags/sync', tags)
-        .then(r => {
-          this.midiStore.setTagList(r.data)
-          // A deleted tag is gone from song_tags too, so the songs in memory
-          // still carry stale pills until they are re-read.
-          return this.axios.get('/api/songs')
-            .then(s => { this.midiStore.setMidiSongList(s.data) })
-        })
-        .catch(err => console.error('Save tags failed', err))
-      Promise.all([savedConfig, savedTags]).then(() => {
+    async saveConfig({ config, tags }) {
+      const [savedConfig, savedTags] = await Promise.allSettled([
+        this.axios.put('/api/settings', config),
+        this.axios.put('/api/tags/sync', tags),
+      ])
+      if (savedConfig.status === 'fulfilled') this.midiStore.setAppConfig(savedConfig.value.data)
+      else console.error('Save config failed', savedConfig.reason)
+      if (savedTags.status === 'fulfilled') {
+        this.midiStore.setTagList(savedTags.value.data)
+        // A deleted tag is gone from song_tags too, so the songs in memory
+        // still carry stale pills until they are re-read.
+        this.axios.get('/api/songs')
+          .then(s => { this.midiStore.setMidiSongList(s.data) })
+          .catch(err => console.error('Reload songs failed', err))
+      } else {
+        console.error('Save tags failed', savedTags.reason)
+      }
+      if (savedConfig.status === 'fulfilled' && savedTags.status === 'fulfilled') {
         notify('label.settingsSaved')
         this.configOpen = false
-      })
+      } else {
+        notify('label.saveFailed', 'error') // the modal stays open with what was typed
+      }
     },
     // Resolve output 1 from the current mode. Output 2 is always a WebMIDI device.
     // A live serial link is never clobbered (a WebMIDI (dis)connect must not drop
@@ -421,8 +433,23 @@ export default {
       this.midiStore.setDeviceLink(link ? markRaw(link) : null)
     },
     refreshOutputs() {
+      const before = this.midiStore.midiOutput
       this.midiStore.setMidiOutputList(WebMidi.outputs)
       this.resolveOutputs()
+      const after = this.midiStore.midiOutput
+      if (this.output1Mode !== 'midi' || after === before) return
+      if (after?.id === SYNTH_OUTPUT_ID && before && before.id !== SYNTH_OUTPUT_ID) this.reportOutputLost(before.name)
+      else if (after && after.id !== SYNTH_OUTPUT_ID) this.reportOutputBack(after.name)
+    },
+    // the synth stands in so that sound never stops, which is exactly what must not go unnoticed
+    reportOutputLost(name) {
+      this.midiStore.setOutputLost(name)
+      notify(this.$t('player.outputLostToast', { name }), 'error')
+    },
+    reportOutputBack(name) {
+      if (!this.midiStore.outputLost) return
+      this.midiStore.setOutputLost(null)
+      notify(this.$t('player.outputBack', { name }))
     },
     onEnabled() {
       this.midiStore.setMidiOutputList(WebMidi.outputs)
@@ -437,6 +464,7 @@ export default {
     // --- output-1 mode switch + serial (Syntherrupter) link ---
     onMode1Change(mode) {
       localStorage.setItem('output1Mode', mode)
+      this.midiStore.setOutputLost(null)
       if (mode !== 'serial' && this.midiStore.serialConnected) this.closeSerial()
       if (mode === 'serial') this.setMidiDeviceLink(null) // the serial link provides it once connected
       if (mode === 'synth') {
@@ -468,10 +496,11 @@ export default {
     },
     async openSerial(port) {
       const label = this.portLabel(port)
-      const out = await SerialMidiOutput.open(port, label, () => this.onSerialClosed())
+      const out = await SerialMidiOutput.open(port, label, () => this.onSerialClosed(label))
       this.midiStore.setMidiOutput(markRaw(out))
       this.midiStore.setDeviceLink(out)
       this.midiStore.setSerialConnection(label)
+      this.reportOutputBack(label)
     },
     async closeSerial() {
       const out = this.midiStore.midiOutput
@@ -483,11 +512,19 @@ export default {
       await this.closeSerial()
       this.resolveOutputs() // fall back to the synth
     },
-    onSerialClosed() {
+    onSerialClosed(label) {
       // stream ended (physical unplug or close) — drop the link + fall back
+      const wasOpen = this.midiStore.serialConnected
       this.midiStore.setSerialConnection(null)
       if (this.midiStore.deviceLink instanceof SerialMidiOutput) this.midiStore.setDeviceLink(null)
       if (this.output1Mode === 'serial') this.resolveOutputs()
+      if (wasOpen && this.output1Mode === 'serial') this.reportOutputLost(label)
+    },
+    // A port this app was allowed before, plugged back (or the device rebooted, from
+    // its config page): reopen it without the picker, as at startup.
+    onSerialPortConnect(e) {
+      if (this.output1Mode !== 'serial' || this.midiStore.serialConnected || !e.target) return
+      this.openSerial(e.target).catch(err => console.error('Serial reconnect failed', err))
     },
     portLabel(port) {
       const info = port.getInfo ? port.getInfo() : null
@@ -523,16 +560,18 @@ export default {
         this.menuOpen = false
         return
       }
-      // pinned in viewport coords (the menu is teleported out of the sidebar):
-      // above the button when expanded, beside the rail when compact
+      // pinned in viewport coords (the menu is teleported out of the sidebar): above
+      // the button when expanded and in the phone's bottom bar, beside the rail when compact
       const r = this.$refs.moreBtn.getBoundingClientRect()
-      this.menuStyle = this.sidebarCompact
+      this.menuStyle = this.sidebarCompact && !mobileLayout.value
         ? { left: `${r.right + 10}px`, bottom: `${window.innerHeight - r.bottom}px` }
-        : { right: `${window.innerWidth - r.right}px`, bottom: `${window.innerHeight - r.top + 8}px` }
+        : { right: `${Math.max(8, window.innerWidth - r.right)}px`, bottom: `${window.innerHeight - r.top + 8}px` }
+      this.menuWidth = window.innerWidth
       this.menuOpen = true
     },
     closeMenu() {
-      this.menuOpen = false
+      // a phone's toolbars showing and hiding change the height only: the menu stays put
+      if (window.innerWidth !== this.menuWidth) this.menuOpen = false
     },
     onDocPointer(e) {
       if (this.$refs.menu?.contains(e.target) || this.$refs.moreBtn?.contains(e.target)) return
@@ -596,6 +635,7 @@ export default {
         .then(ports => { if (ports[0]) this.openSerial(ports[0]).catch(() => { }) })
         .catch(() => { })
     }
+    if (this.serialSupported) navigator.serial.addEventListener('connect', this.onSerialPortConnect)
     this.ping()
     this.pingTimer = setInterval(this.ping, 10000)
     // Native menu "Server configuration…" opens the modal.
@@ -608,6 +648,7 @@ export default {
     this.setMenuListeners(false)
     if (this.pingTimer) clearInterval(this.pingTimer)
     if (this.unsubServerConfig) this.unsubServerConfig()
+    if (this.serialSupported) navigator.serial.removeEventListener('connect', this.onSerialPortConnect)
     if (WebMidi.enabled) {
       WebMidi.removeListener('connected', this.refreshOutputs)
       WebMidi.removeListener('disconnected', this.refreshOutputs)

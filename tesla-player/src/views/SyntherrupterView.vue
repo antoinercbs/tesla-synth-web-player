@@ -48,7 +48,7 @@ const loading = ref(false);
 const errored = ref(false);
 const loadPct = ref(0); // 0..100, drives the progress bar
 const loadLabel = ref(''); // subtitle describing the current read step
-const confirm = ref<{ title: string; message: string; action: () => void } | null>(null);
+const confirm = ref<{ title: string; message: string; label?: string; action: () => void } | null>(null);
 const info = ref<SynthParam | null>(null);
 function showInfo(p: SynthParam): void { info.value = p; }
 
@@ -239,16 +239,27 @@ function applySection(entries: Entry[]): void {
   }
 }
 
+// the device saves the values it runs on: an edit not applied yet is not among them
 function saveEeprom(): void {
-  const out = link();
-  if (!out) return;
-  out.send(buildCommand({ pn: ACTION_PN.EEPROM_UPDATE, value: 1 }));
-  notify('sp.savedEeprom');
+  const pending = [...coils.value.flatMap(coilEntries), ...sysEntries, ...uiEntries, ...users.flatMap(userEntries)]
+    .filter(isDirty).length;
+  confirm.value = {
+    title: t('sp.eepromTitle'),
+    message: pending ? `${t('sp.eepromMsg')} ${t('sp.eepromPending', { n: pending }, pending)}` : t('sp.eepromMsg'),
+    label: t('sp.save'),
+    action: () => {
+      const out = link();
+      if (!out) return;
+      out.send(buildCommand({ pn: ACTION_PN.EEPROM_UPDATE, value: 1 }));
+      notify('sp.savedEeprom');
+    },
+  };
 }
 function reboot(): void {
   confirm.value = {
     title: t('sp.rebootTitle'),
     message: t('sp.rebootMsg'),
+    label: t('sp.reboot'),
     action: () => {
       link()?.send(buildCommand({ pn: ACTION_PN.RESET, value: ACTION_PN.RESET_MAGIC }));
       notify('sp.rebooting');
@@ -415,7 +426,7 @@ onMounted(() => {
     </footer>
 
     <confirm-modal :open="!!confirm" :title="confirm?.title ?? ''" :message="confirm?.message ?? ''"
-      :confirm-label="$t('sp.apply')" :cancel-label="$t('label.cancel')"
+      :confirm-label="confirm?.label ?? $t('sp.apply')" :cancel-label="$t('label.cancel')"
       @confirm="runConfirm" @close="confirm = null" />
 
     <!-- per-parameter explanation -->

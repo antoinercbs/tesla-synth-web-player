@@ -49,6 +49,30 @@
     margin-left: auto;
 }
 
+// the coil output went away (AppSidebar): stays until it's back or dismissed
+.player-alert {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.6rem 1rem 0;
+    padding: 0.5rem 0.4rem 0.5rem 0.75rem;
+    border: 1px solid rgb(var(--danger-rgb) / 0.45);
+    border-radius: var(--radius-md);
+    background: rgb(var(--danger-rgb) / 0.12);
+    color: var(--danger-text);
+    font-size: var(--fs-sm);
+}
+
+.player-alert__text {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.player-alert__x {
+    flex: 0 0 auto;
+    color: inherit;
+}
+
 // autoplay toggle pinned right
 
 .player-song {
@@ -210,7 +234,8 @@
     color: var(--danger);
 }
 
-.power-head__reset {
+.power-head__reset,
+.power-head__cap {
     width: 1.8rem;
     height: 1.8rem;
     border-radius: var(--radius-sm);
@@ -226,9 +251,16 @@
     padding: 0;
 }
 
-.power-head__reset:hover:not(:disabled) {
+.power-head__reset:hover:not(:disabled),
+.power-head__cap:hover {
     color: var(--volt);
     border-color: var(--volt);
+}
+
+.power-head__cap.is-on {
+    color: var(--volt);
+    border-color: var(--volt);
+    background: var(--volt-10);
 }
 
 .power-head__reset:disabled {
@@ -310,6 +342,12 @@
 .power-zones__over {
     color: var(--danger);
     opacity: 0.85;
+}
+
+// locked at 100 %: the overdrive zone is out of reach
+.player-power.is-capped .power-zones__over {
+    opacity: 0.35;
+    text-decoration: line-through;
 }
 
 // ADVANCED scope: one row per coil with ontime + duty sub-sliders (coil-coloured)
@@ -422,6 +460,7 @@
 
 // the visualisation block (VU / score / occupancy) flexes; others keep height
 .player-song,
+.player-alert,
 .player-hint,
 .player-progress,
 .player-power,

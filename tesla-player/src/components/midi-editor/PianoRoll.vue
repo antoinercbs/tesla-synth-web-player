@@ -345,8 +345,11 @@ function createAt(x: number, y: number, free: boolean): EdNote {
   return note;
 }
 
+// a touch long-press fires contextmenu too: only a secondary button (mouse, pen barrel) deletes
+let secondaryPress = false;
 function onPointerDown(e: PointerEvent): void {
   const sc = scroller.value;
+  secondaryPress = e.button === 2;
   if (e.button !== 0 || !sc) return;
   const { x, y } = local(e);
   if (x > sc.clientWidth || y > sc.clientHeight) return; // on a scrollbar
@@ -478,6 +481,8 @@ function onDblClick(e: MouseEvent): void {
 }
 function onContextMenu(e: MouseEvent): void {
   e.preventDefault();
+  if (!secondaryPress) return;
+  secondaryPress = false;
   const { x, y } = local(e);
   const hit = hitNote(x, y);
   if (hit) props.ed.deleteNote(hit);

@@ -364,6 +364,24 @@
     margin-left: auto;
 }
 
+.pl-dirty {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-left: auto;
+    color: var(--amber);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.pl-dirty i {
+    font-size: 0.45rem;
+}
+
+.pl-dirty + .pl-footer__save {
+    margin-left: 0;
+}
+
 @media (max-width: 1000px) {
     .pl-editor,
     .pl-panes,

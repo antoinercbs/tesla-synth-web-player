@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
+import { useLeaveGuard } from '@/utils/leave-guard';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
@@ -10,7 +11,11 @@ import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { Playlist, Song } from '@/types/domain';
 
 const props = defineProps<{ playlists: Playlist[]; playlistId: string | null }>();
-const emit = defineEmits<{ (e: 'saved', p: Playlist): void; (e: 'deleted', id: number): void }>();
+const emit = defineEmits<{
+  (e: 'saved', p: Playlist): void;
+  (e: 'deleted', id: number): void;
+  (e: 'dirty', dirty: boolean): void;
+}>();
 
 const midiStore = useMidiStore();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
@@ -19,6 +24,14 @@ function blankDraft(): Playlist {
   return { id: 0, name: 'Untitled playlist', coilCount: midiStore.appConfig.defaultCoilCount || 3, songIds: [] };
 }
 const draft = ref<Playlist>(blankDraft());
+// what the server holds (the blank one for a new playlist): an edit undone is no longer a change
+const snapshot = (): string =>
+  JSON.stringify({ name: draft.value.name, coilCount: draft.value.coilCount, songIds: draft.value.songIds });
+const baseline = ref(snapshot());
+function show(p: Playlist): void {
+  draft.value = p;
+  baseline.value = snapshot();
+}
 const confirmDelete = ref(false);
 const librarySearch = ref('');
 const onlyCompatible = ref(false);
@@ -27,13 +40,17 @@ const onlyCompatible = ref(false);
 // same playlist when the parent list refreshes (mirrors the song editor).
 function loadDraft(): void {
   const pid = props.playlistId;
-  if (pid == null || pid === 'new') { if (draft.value.id !== 0) draft.value = blankDraft(); return; }
+  if (pid == null || pid === 'new') { if (draft.value.id !== 0) show(blankDraft()); return; }
   const id = Number(pid);
   if (draft.value.id === id) return;
   const p = props.playlists.find((x) => x.id === id);
-  draft.value = p ? { ...p, songIds: [...p.songIds] } : blankDraft();
+  show(p ? { ...p, songIds: [...p.songIds] } : blankDraft());
 }
 watch([() => props.playlistId, () => props.playlists], loadDraft, { immediate: true });
+
+const dirty = computed(() => snapshot() !== baseline.value);
+watch(dirty, (d) => emit('dirty', d), { immediate: true });
+const { pending: leavePending, answer: answerLeave } = useLeaveGuard(() => dirty.value);
 
 const songs = computed<Song[]>(() => midiStore.midiSongList);
 function songById(id: number): Song | undefined {
@@ -42,9 +59,10 @@ function songById(id: number): Song | undefined {
 function isCompatible(coilCount: number | undefined): boolean {
   return coilCount === draft.value.coilCount;
 }
-// total play length of the draft playlist ("~" if any track's length is unknown)
+// total play length of what will play ("~" if any track's length is unknown): the
+// player skips a song made for another coil count (SongPlaylistPicker)
 const playlistSongs = computed<Song[]>(
-  () => draft.value.songIds.map(songById).filter((s): s is Song => s != null),
+  () => draft.value.songIds.map(songById).filter((s): s is Song => s != null && isCompatible(s.coilCount)),
 );
 const playlistTotalLabel = computed(() => {
   const label = formatDuration(totalDurationMs(playlistSongs.value));
@@ -99,21 +117,43 @@ function onDropOnList(): void {
 }
 
 /* ------------------------------- persistence ------------------------------ */
+const saving = ref(false);
 async function savePlaylist(): Promise<void> {
+  if (saving.value || !dirty.value) return;
+  saving.value = true;
   const body = { name: draft.value.name, coilCount: draft.value.coilCount, songIds: draft.value.songIds };
-  const { data } = draft.value.id
-    ? await axios.put<Playlist>(`/api/playlists/${draft.value.id}`, body)
-    : await axios.post<Playlist>('/api/playlists', body);
-  draft.value = { ...data, songIds: [...(data.songIds ?? [])] };
-  emit('saved', data);
-  notify('label.playlistSaved');
+  try {
+    const { data } = draft.value.id
+      ? await axios.put<Playlist>(`/api/playlists/${draft.value.id}`, body)
+      : await axios.post<Playlist>('/api/playlists', body);
+    // before 'saved': a new playlist's page then moves to its id, past the leave guard
+    show({ ...data, songIds: [...(data.songIds ?? [])] });
+    emit('saved', data);
+    notify('label.playlistSaved');
+  } catch (err) {
+    console.error('Playlist save failed', err);
+    notify('label.saveFailed', 'error');
+  } finally {
+    saving.value = false;
+  }
 }
 function doDelete(): void {
   const id = draft.value.id;
   confirmDelete.value = false;
   if (!id) return;
-  axios.delete(`/api/playlists/${id}`).then(() => emit('deleted', id));
+  axios.delete(`/api/playlists/${id}`).then(() => {
+    baseline.value = snapshot(); // nothing left to keep: the way back to the chooser must not ask
+    emit('deleted', id);
+  });
 }
+
+function onKey(e: KeyboardEvent): void {
+  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 's') return;
+  e.preventDefault();
+  if (!leavePending.value && !confirmDelete.value) savePlaylist();
+}
+onMounted(() => window.addEventListener('keydown', onKey));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
 </script>
 
 <template>
@@ -180,7 +220,7 @@ function doDelete(): void {
         <header class="pl-pane__head">
           <span class="icon"><i class="fas fa-list"></i></span>{{ $t('label.currentPlaylist') }}
           <span class="pl-pane__count">{{ draft.songIds.length }}</span>
-          <span class="pl-pane__total" v-if="draft.songIds.length">{{ playlistTotalLabel }}</span>
+          <span class="pl-pane__total" v-if="playlistSongs.length">{{ playlistTotalLabel }}</span>
         </header>
         <ul class="pl-list pl-list--drop" :class="{ 'is-drop': draggingLib }" @dragover.prevent
           @drop.prevent="onDropOnList">
@@ -225,13 +265,19 @@ function doDelete(): void {
       <button v-if="draft.id" class="btn btn--danger-ghost" type="button" @click="confirmDelete = true">
         <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.delete') }}
       </button>
-      <button class="btn btn--volt pl-footer__save" type="button" @click="savePlaylist">
-        <span class="icon"><i class="fas fa-save"></i></span>{{ draft.id ? $t('label.update') : $t('label.save') }}
+      <span v-if="dirty" class="pl-dirty"><i class="fas fa-circle"></i>{{ $t('label.unsavedChanges') }}</span>
+      <button class="btn btn--volt pl-footer__save" type="button" :disabled="!dirty || saving"
+        :title="$t('label.saveShortcut')" @click="savePlaylist">
+        <span class="icon"><i class="fas" :class="saving ? 'fa-spinner fa-spin' : 'fa-save'"></i></span>{{ draft.id
+          ? $t('label.update') : $t('label.save') }}
       </button>
     </div>
 
     <confirm-modal :open="confirmDelete" :title="$t('label.delete')"
       :message="`${$t('label.deleteQuestion')} « ${draft.name} » ?`" :confirm-label="$t('label.confirm')"
       :cancel-label="$t('label.cancel')" @confirm="doDelete" @close="confirmDelete = false" />
+    <confirm-modal :open="leavePending" :title="$t('label.unsavedChanges')" :message="$t('label.discardPlaylist')"
+      :confirm-label="$t('label.discard')" :cancel-label="$t('label.cancel')" @confirm="answerLeave(true)"
+      @close="answerLeave(false)" />
   </article>
 </template>

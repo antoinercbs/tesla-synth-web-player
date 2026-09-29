@@ -402,8 +402,9 @@
         background: radial-gradient(circle at 35% 30%, #a05a55, #6a1a16 50%, #3a0a08);
     }
 
-    // what deletes sits under a red safety cover, lifted by the pointer or the keyboard
-    .btn--danger,
+    // what deletes sits under a red safety cover, lifted by the pointer or the keyboard;
+    // never over Panic (a .btn--danger too), which must be one press away
+    .btn--danger:not(.btn--panic),
     .btn--danger-ghost {
         position: relative;
 

@@ -7,6 +7,7 @@ import { stopTour, tour } from '@/tour/tour';
 import { enterDemo, exitDemo, isDemoOutputActive, reassertDemo } from '@/tour/demo/demo-mode';
 import { DEMO_ENVELOPE_PROGRAM, DEMO_FILE_ID, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from '@/tour/demo/data';
 import { phoneView } from '@/tour/demo/fake-camera';
+import { mobileLayout } from '@/ui/viewport';
 import FakePhone from './FakePhone.vue';
 import TourRich from './TourRich.vue';
 import WelcomeDialog from './WelcomeDialog.vue';
@@ -47,7 +48,7 @@ let target: HTMLElement | null = null;
 let showSeq = 0; // a newer step wins over a slower, earlier one still resolving
 let ro: ResizeObserver | null = null;
 
-const steps = computed(() => TOURS[tour.id]);
+const steps = computed(() => TOURS[tour.id].filter((s) => !(s.wide && mobileLayout.value)));
 // another tour may have left its index past this one's end, for the render before show(0)
 const step = computed(() => steps.value[index.value] ?? steps.value[0]);
 const isLast = computed(() => index.value === steps.value.length - 1);

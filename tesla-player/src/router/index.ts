@@ -74,6 +74,8 @@ const routes: RouteRecordRaw[] = [
   ...(import.meta.env.DEV
     ? [{ path: "/styleguide", name: "styleguide", component: () => import("@/views/StyleGuideView.vue") }]
     : []),
+  // an address no route knows (a typo, an old link) would show an empty page
+  { path: "/:pathMatch(.*)*", redirect: "/play" },
 ];
 
 const router = createRouter({

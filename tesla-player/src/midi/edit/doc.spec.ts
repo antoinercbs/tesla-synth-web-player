@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseMidi, writeMidi, type MidiEvent } from 'midi-file';
-import { cutRange, docTempo, keepRange, leadingSilence, readMidi, resolveOverlaps, UnsupportedMidiError, writeDoc, type EdNote } from './doc';
+import { cutRange, docTempo, keepRange, leadingSilence, lostProgramChanges, readMidi, resolveOverlaps, UnsupportedMidiError, writeDoc, type EdNote } from './doc';
 
 const on = (deltaTime: number, channel: number, noteNumber: number, velocity = 100): MidiEvent =>
   ({ deltaTime, type: 'noteOn', channel, noteNumber, velocity });
@@ -83,6 +83,33 @@ describe('writeDoc', () => {
     expect(length(doc)).toBe(1480);
     doc.notes[0].dur = 3000;
     expect(length(doc)).toBe(3000);
+  });
+});
+
+describe('lostProgramChanges', () => {
+  // ch 0: set up before its notes (twice), then changes at 480 and 960, and one repeating what plays
+  const tracks = (): MidiEvent[][] => [
+    [program(0, 0, 4), program(0, 0, 6), on(240, 0, 60), off(240, 0, 60), program(0, 0, 7), program(480, 0, 7), program(0, 0, 4), on(0, 0, 62), off(480, 0, 62), end()],
+    [on(0, 1, 48), program(480, 1, 3), off(0, 1, 48), end()],
+  ];
+
+  it('counts the instrument changes made once a replaced channel\'s notes have started', () => {
+    const doc = readMidi(file(tracks()));
+    doc.programs[0] = 22;
+    expect(lostProgramChanges(doc)).toEqual({ 0: 2 });
+  });
+
+  it('counts a first program change after the notes, from the program 0 they start on', () => {
+    const doc = readMidi(file(tracks()));
+    doc.programs[1] = 9;
+    expect(lostProgramChanges(doc)).toEqual({ 1: 1 });
+  });
+
+  it('says nothing for a channel whose program changes are kept', () => {
+    const doc = readMidi(file(tracks()));
+    expect(lostProgramChanges(doc)).toEqual({});
+    doc.programs[0] = 4;
+    expect(lostProgramChanges(doc)).toEqual({});
   });
 });
 

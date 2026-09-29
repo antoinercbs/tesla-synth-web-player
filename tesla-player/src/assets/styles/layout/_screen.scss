@@ -78,4 +78,9 @@
         flex: none;
         overflow: visible;
     }
+
+    // the phone layout plays songs only (PlayView keeps it in Playback, ui/viewport.ts)
+    .screen-head .mode-switch--play {
+        display: none;
+    }
 }

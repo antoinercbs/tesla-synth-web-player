@@ -6,6 +6,9 @@ import LiveMode from '@/components/player/LiveMode.vue';
 import FixedMode from '@/components/player/FixedMode.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
+import { confirmLeaveInPlace } from '@/utils/leave-guard';
+import { mobileLayout } from '@/ui/viewport';
+import { tour } from '@/tour/tour';
 
 type PlayMode = 'playback' | 'live' | 'fixed';
 
@@ -31,6 +34,29 @@ function modeDisabled(id: PlayMode): boolean {
 watch(() => midiStore.isSynthOutput, (synth) => {
   if (synth && mode.value === 'fixed') mode.value = 'playback';
 }, { immediate: true });
+
+// the mode's component goes, and what it plays with it: it may ask first
+async function requestMode(next: PlayMode): Promise<void> {
+  if (next === mode.value || !(await confirmLeaveInPlace())) return;
+  mode.value = next;
+}
+// the phone layout plays songs only (its mode switch is hidden)
+watch(mobileLayout, (mobile) => { if (mobile) void requestMode('playback'); }, { immediate: true });
+
+function inTextField(el: EventTarget | null): boolean {
+  return el instanceof HTMLElement
+    && !!el.closest('textarea, select, [contenteditable="true"], input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"])');
+}
+// Esc = Panic, as on show-control desks; unless it closes something open over the page
+function onKeydown(e: KeyboardEvent): void {
+  if (e.key !== 'Escape' || e.defaultPrevented || tour.active || inTextField(e.target)) return;
+  // popover menus stay in the DOM while closed: only a shown one counts
+  const open = document.querySelectorAll('.modal-overlay, .sidebar-menu, [role="menu"], [role="listbox"]');
+  if ([...open].some((el) => el.getClientRects().length > 0)) return;
+  midiStore.panic();
+}
+onMounted(() => window.addEventListener('keydown', onKeydown));
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
 
 const headerScrolled = ref(false);
 let scrollEl: HTMLElement | null = null;
@@ -62,7 +88,8 @@ const activeComponent = computed(
   <div class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ $t('nav.play') }}<page-tour-button id="play" /></h1>
-      <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="MODES.map((m) => ({
+      <segmented-control :model-value="mode" class="mode-switch mode-switch--play" label-class="mode-switch__label"
+        @update:model-value="requestMode" :options="MODES.map((m) => ({
         value: m.id, label: $t(m.key), icon: m.icon,
         disabled: modeDisabled(m.id),
         title: modeDisabled(m.id) ? $t('label.fixedNeedsHardware') : '',

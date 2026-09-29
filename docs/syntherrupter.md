@@ -49,7 +49,7 @@ Two helpful cues:
 
 - Edits are **applied per section**, not all at once.
 - **Safety-critical** changes ask for confirmation (output-invert asks twice).
-- **Save to EEPROM** persists your changes so they survive a power cycle.
+- **Save to EEPROM** persists the **applied** values so they survive a power cycle. It asks first, and says how many edits aren't applied yet (those aren't saved: cancel and apply them first).
 - **Reboot** restarts the device.
 
 ## Safety notes
