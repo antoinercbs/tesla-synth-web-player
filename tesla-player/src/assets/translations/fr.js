@@ -132,7 +132,6 @@ export default {
     outputSelection: "Sélection de la sortie MIDI",
     coils: "Bobines",
     output: "Sortie",
-    generalConfig: "Configuration générale",
     songManager: "Mes morceaux",
     songSequencer: "Éditeur de morceau",
     playlistManager: "Gestionnaire de playlists",
@@ -149,19 +148,8 @@ export default {
     save: "Sauvegarder",
     update: "Mettre à jour",
     noFile: "Aucun fichier",
-    firstOutput: "Sortie principale",
-    secondOutput: "Deuxième sortie",
-    output2Offset: "Décalage 2ᵉ sortie",
     output2OffsetHint:
       "Décalage de timing manuel de la 2ᵉ sortie pour compenser un écart de latence matériel (négatif = plus tôt).",
-    builtinSynth: "Synthé intégré",
-    outSynth: "Synthé",
-    outMidi: "MIDI",
-    outSerial: "Série",
-    noMidiOutput: "Aucune sortie MIDI détectée",
-    chooseMidiOutput: "Choisir une sortie MIDI",
-    serialConnect: "Connecter série",
-    serialDisconnect: "Déconnecter",
     serialPort: "Port série",
     serialUnsupported: "Série non supporté par ce navigateur",
     serialError: "Impossible d'ouvrir le port série",
@@ -169,7 +157,6 @@ export default {
       "Connecte-toi en série, ou choisis le port USB-MIDI du Syntherrupter (ESP32) comme sortie MIDI, pour configurer l'appareil",
     info: "Info",
     close: "Fermer",
-    emulationHint: "Émulé, sans matériel",
     synthModel: "Timbre",
     synthModelName: {
       tesla: "Arc vivant",
@@ -211,9 +198,9 @@ export default {
     ontimeRatio: "Facteur multiplicateur ontime (0 - 200%)",
     dutyRatio: "Facteur multiplicateur duty cycle (0 - 200%)",
     coilCount: "Nombre de bobines Tesla",
-    generalConfig: "Configuration générale",
     defaultCoilCount: "Nombre de bobines par défaut",
     coilNames: "Noms des bobines",
+    editCoils: "Modifier les bobines",
     coilNamePlaceholder: "Nom de la bobine {n}",
     unnamedCoil: "Sans nom",
     language: "Langue",
@@ -382,6 +369,27 @@ export default {
     leaveConfirm: "Arrêter et quitter",
     stay: "Rester",
   },
+  output: {
+    coils: "Bobines",
+    speakers: "Enceintes",
+    synth: "Synthé émulé",
+    synthSub: "sans matériel",
+    midiSub: "Interface MIDI",
+    serialName: "Syntherrupter",
+    serialSub: "Syntherrupter en série",
+    unplugged: "Débranchée : son sur le synthé",
+    disconnected: "Déconnecté : son sur le synthé",
+    speakersUnplugged: "Débranchées",
+    none: "Aucune",
+    groupEmulation: "Émulation",
+    groupMidi: "Interfaces MIDI",
+    groupSerial: "Syntherrupter en série",
+    noInterface: "Aucune interface détectée",
+    missing: "{name} (débranchée)",
+    connect: "Connecter un port USB…",
+    disconnect: "Déconnecter",
+    offset: "Décalage avec les bobines",
+  },
   auth: {
     signIn: "Se connecter",
     signOut: "Se déconnecter",
@@ -498,10 +506,6 @@ export default {
     sepia: "Sépia",
     nocturne: "Nocturne",
 
-    citymap: "Plan de ville",
-    nightmap: "Plan de nuit",
-    signage: "Signalétique",
-
     openspace: "Open space",
     afterwork: "Afterwork",
     premium: "Premium",
@@ -521,6 +525,22 @@ export default {
     original: "D'origine",
     daylight: "Plein jour",
     blackout: "Nuit noire",
+
+    final: "Finale",
+    finalv2: "Finale v2",
+    finalok: "Finale OK validée",
+
+    toner: "Toner fatigué",
+    fax: "Papier fax",
+    ditto: "Polycopié violet",
+
+    shag: "Moquette orange",
+    avocado: "Vert avocat",
+    corduroy: "Velours côtelé",
+
+    digital: "Vert numérique",
+    redpill: "Pilule rouge",
+    bluepill: "Pilule bleue",
   },
   skin: {
     title: "Apparence",
@@ -555,8 +575,6 @@ export default {
 
     sheetmusic: "Partition",
 
-    metro: "Plan de métro",
-
     network: "Réseau pro",
 
     karaoke: "Karaoké",
@@ -566,6 +584,14 @@ export default {
     portal: "Portail carrière",
 
     v1: "Version 1 (2022)",
+
+    committee: "Direction artistique bancale",
+
+    photocopy: "Photocopie de photocopie",
+
+    seventies: "Salon années 70",
+
+    coderain: "Pluie de code",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",
@@ -629,14 +655,13 @@ export default {
         title: "Les paramètres généraux",
         text: "Le menu **⋯** ouvre les réglages de l'instance, à faire une fois :",
         points: [
-          "**Configuration générale** : les bobines de l'installation, combien il y en a et leurs noms ;",
-          "les **étiquettes** qui classent les morceaux ;",
+          "les **tags** qui classent les morceaux ;",
           "la **langue** et les **couleurs** de l'interface.",
         ],
       },
       output: {
         title: "La sortie",
-        text: "Où partent les notes :",
+        text: "Où partent les notes, une ligne pour les **bobines**, une pour les **enceintes** ; un clic ouvre ses choix :",
         points: [
           "**Synthé** : une émulation dans le navigateur, sans matériel ;",
           "**MIDI** : une interface MIDI ou un Syntherrupter ;",
@@ -646,7 +671,7 @@ export default {
       coils: {
         title: "Les bobines",
         text: "Chaque bobine a sa couleur, la même partout dans l'app.",
-        note: "Leur nombre et leurs noms viennent de la configuration générale.",
+        note: "Le crayon à côté du titre règle leur nombre et leurs noms.",
       },
       pathPlay: {
         title: "1. Sur scène",

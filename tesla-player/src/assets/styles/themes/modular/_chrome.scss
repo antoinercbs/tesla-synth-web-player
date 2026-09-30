@@ -472,11 +472,9 @@
     }
 
     // --- menus, dialogs, toasts ---------------------------------------------------------------------------------------------
+    // a menu is a face (panel-2), not the case: the face's ink, as on the modals
     #{$menus} {
-        --text: var(--mod-case-text);
-        --text-dim: var(--mod-case-dim);
-        --text-mute: var(--mod-case-mute);
-        --text-strong: var(--mod-case-strong);
+        @include face-ink;
 
         border: 1px solid #000;
         box-shadow: var(--shadow-pop);

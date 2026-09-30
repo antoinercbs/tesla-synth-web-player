@@ -1,0 +1,304 @@
+// ===========================================================================
+//  1970S LIVING ROOM LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $seventies map (seventies/_skin.scss), its colours the
+// room picked among seventies/_palettes.scss (every colour here reads one, --sv-…).
+// Here: the titles' stacked shadow, the three stripes under each head, the panelled
+// sidebar and its text, the pill of what is picked, the hi-fi knob of a slider.
+// Every rule sits under [data-skin="seventies"] and this file comes last; the pages'
+// controls are named by family (../_families.scss).
+
+// the era's three stripes under a head: the bottom 12px of their drawing make the
+// border (a gradient's slice is cut from an image the size of the box)
+@mixin stripes {
+    border-bottom: 12px solid transparent;
+    border-image: var(--sv-stripes-edge) 0 0 12 0;
+}
+
+[data-skin="seventies"] {
+    color-scheme: light;
+
+    ::selection {
+        background: var(--sv-shadow-1);
+        color: #ffffff;
+    }
+
+    .view-head__title {
+        font-weight: 800;
+        letter-spacing: 0;
+        color: var(--text-strong);
+        text-shadow:
+            3px 3px 0 var(--sv-shadow-1),
+            6px 6px 0 var(--sv-shadow-2);
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--panel);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        @include stripes;
+
+        box-shadow: none;
+    }
+
+    // --- panels: rounded like a television, the stripes under their head -------------------
+    #{$panels} {
+        border: 3px solid var(--sv-edge);
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    #{$panel-heads} {
+        --text: var(--sv-head-ink);
+        --text-dim: var(--sv-head-ink);
+        --text-strong: var(--sv-head-ink);
+        --volt: var(--sv-head-ink);
+        --seg-color: var(--sv-head-ink);
+        --tab-active-color: var(--sv-head-ink);
+
+        @include stripes;
+
+        background: var(--sv-head);
+        color: var(--sv-head-ink);
+        font-family: var(--font-display);
+    }
+
+    .player-panel__head .icon,
+    .pl-pane__head .icon,
+    .queue-head__title .icon {
+        color: var(--sv-head-ink);
+    }
+
+    .player-synth-badge {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px var(--sv-head-ink);
+    }
+
+    .coil-card__title,
+    .tune-panel__title,
+    .editor-section__title {
+        font-family: var(--font-display);
+    }
+
+    .play-row.is-current {
+        background: color-mix(in srgb, var(--sv-shadow-1) 18%, transparent);
+    }
+
+    .play-row.is-current::before {
+        left: 0;
+        width: 6px;
+        border-radius: 3px;
+        background: var(--sv-stripes);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    // --- the sidebar: wood panelling, its text light on it ----------------------------------------
+    .sidebar {
+        --text: var(--sv-wood-ink);
+        --text-dim: var(--sv-wood-dim);
+        --text-mute: var(--sv-wood-dim);
+        --text-strong: var(--sv-wood-ink);
+
+        border-right: 4px solid var(--sv-edge);
+    }
+
+    .brand__label {
+        filter: invert(1);
+    }
+
+    .brand__app,
+    .sidebar-section__title {
+        font-family: var(--font-display);
+        text-shadow: 2px 2px 0 var(--sv-edge);
+    }
+
+    .brand__app {
+        letter-spacing: 0.04em;
+    }
+
+    .sidebar-section__title {
+        font-size: var(--fs-md);
+    }
+
+    .brand__sep,
+    .nav__sep {
+        background: var(--sv-wood-dim);
+    }
+
+    .sidebar-section + .sidebar-section,
+    .sidebar-foot {
+        border-top-color: var(--sv-wood-dim);
+    }
+
+    .nav-item {
+        border-radius: 999px;
+        font-family: var(--font-body);
+        font-weight: 700;
+        letter-spacing: 0;
+        color: var(--sv-wood-ink);
+    }
+
+    .nav-item .icon {
+        color: inherit;
+    }
+
+    .nav-item:hover {
+        background: rgb(255 255 255 / 0.12);
+        color: var(--sv-wood-ink);
+    }
+
+    .nav-item.router-link-active {
+        border-radius: 999px;
+        background: var(--sv-cord), var(--grad);
+        color: var(--on-grad);
+        box-shadow: 0 3px 0 var(--sv-edge);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .sidebar .segmented button.is-active,
+    .sidebar-menu .segmented button.is-active {
+        background: var(--grad);
+        color: var(--on-grad);
+        box-shadow: none;
+    }
+
+    // --- buttons: corduroy pills, pressed down ------------------------------------------------------
+    .btn:hover:not(:disabled),
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled) {
+        border-color: var(--sv-edge);
+        color: inherit;
+        filter: brightness(1.07);
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled),
+    .field-btn:active:not(:disabled) {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 var(--sv-edge);
+    }
+
+    .btn--ghost:not(:hover) {
+        border-color: transparent;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border: 2px solid var(--sv-edge);
+        border-radius: 999px;
+        background: var(--sv-cord), var(--sv-btn);
+        color: var(--sv-btn-ink);
+
+        &:hover:not(:disabled) {
+            border-color: var(--sv-edge);
+            color: var(--sv-btn-ink);
+            filter: brightness(1.07);
+        }
+    }
+
+    #{$pushed-on},
+    .play-row.is-current .row-btn--play {
+        border-color: var(--sv-edge);
+        background: var(--sv-cord), var(--grad);
+        color: var(--on-grad);
+    }
+
+    .segmented__arc {
+        bottom: -4px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--sv-stripes);
+    }
+
+    .chan-cell {
+        border-color: var(--sv-edge);
+        border-radius: 999px;
+        background: var(--sv-btn);
+        color: var(--sv-btn-ink);
+    }
+
+    .chan-cell.is-on {
+        border-color: var(--sv-edge);
+        background: var(--cell, var(--volt));
+        color: #ffffff;
+        font-weight: 700;
+    }
+
+    // --- sliders: a velvet groove, the hi-fi's knob ------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: var(--sv-cord), var(--sv-btn);
+        --range-track-h: 8px;
+        --range-track-radius: 999px;
+        --range-track-shadow: inset 0 0 0 2px var(--sv-edge);
+        --range-thumb: var(--sv-knob);
+        --range-thumb-hover: var(--sv-knob);
+        --range-thumb-w: 22px;
+        --range-thumb-h: 22px;
+        --range-thumb-border: 2px solid var(--sv-edge);
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 3px 0 var(--sv-edge);
+        --range-focus: 3px solid var(--sv-shadow-1);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs ----------------------------------------------------------------------------
+    #{$menus} {
+        border-width: 3px;
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: color-mix(in srgb, var(--sv-shadow-1) 22%, transparent);
+            color: var(--text-strong);
+        }
+    }
+
+    .combo__option.is-active {
+        background: color-mix(in srgb, var(--sv-shadow-1) 22%, transparent);
+    }
+
+    .modal-card {
+        padding-top: 0;
+        border-width: 3px;
+    }
+
+    .modal-card__head {
+        @include stripes;
+
+        margin: 0 -1.5rem 1.1rem;
+        padding: 0.6rem 0.6rem 0.5rem 1.5rem;
+        background: var(--sv-head);
+    }
+
+    .modal-card__title .icon {
+        color: var(--sv-head-ink);
+    }
+}
+
+[data-skin="seventies"][data-theme="corduroy"] {
+    color-scheme: dark;
+}

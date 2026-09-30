@@ -27,25 +27,27 @@ How to play music on your Tesla coils and configure each song. This covers the w
 
 ## Choosing your outputs
 
-Output selection lives in the sidebar and is remembered between sessions.
+The sidebar's **Output** section has two lines, **Coils** and **Speakers**. Each shows what is actually playing, with a light (green: a device answers; orange: the one chosen is missing). A click opens its menu, and the choice is remembered between sessions.
 
-### First output (the coils)
+### Coils
 
-Pick one of three modes:
+The menu lists every destination in one place:
 
-- **Synth**: the built-in Web Audio emulation. Great for composing/previewing without hardware.
-- **MIDI**: any MIDI output device the browser sees (a USB-MIDI interface to your coil setup).
-- **Serial**: a **direct USB link to the Syntherrupter** (Web Serial). Click **Connect** and pick the device's serial port. Once connected, a **Syntherrupter** page appears in the sidebar so you can [configure the device itself](./syntherrupter.md). A previously authorized port reconnects automatically on the next launch, and when it is plugged back in (or the device reboots).
+- **Emulated synth**: the built-in Web Audio emulation, for composing and previewing without hardware. Its **timbre** is set right below it; the MIDI editor and the envelope audition use it too, whatever the output.
+- **MIDI interfaces**: every MIDI output the browser sees (a USB-MIDI interface to your coil setup).
+- **Syntherrupter over USB**: a **direct serial link to the Syntherrupter** (Web Serial). **Connect a USB port…** opens the browser's port picker. Once connected, a **Syntherrupter** page appears in the sidebar so you can [configure the device itself](./syntherrupter.md), and **Disconnect** goes back to the synth. A previously authorized port reconnects automatically on the next launch, and when it is plugged back in (or the device reboots).
 
-If the coil output goes away (a USB-MIDI interface unplugged, the serial link dropped), playback stops, the sound falls back to the built-in synth and the player shows it in red until the output is back.
+If the coil output goes away (a USB-MIDI interface unplugged, the serial link dropped), its line turns orange and says so, playback stops, the sound falls back to the built-in synth and the player shows it in red until the output is back.
 
-### Second output (optional)
+### Speakers (optional)
 
-Toggle on a **second output** to mirror selected channels to another device (typically speakers playing alongside the coils). You choose **which MIDI channels** go to it (per song), and a **latency offset** slider lets you nudge it earlier/later to stay in sync with the coils (hardware interfaces have different delays).
+Pick a MIDI device to mirror selected channels to it (typically speakers playing alongside the coils), or **None**. You choose **which MIDI channels** go to it per song, and the menu's **offset from the coils** slider nudges it earlier or later to stay in sync with them (hardware interfaces have different delays).
 
-### Coils & general config
+### Coils & tags
 
-The sidebar lists your coils with their colors and names. The ⚙ button opens **general configuration**: name each physical coil and set the **default coil count** used when creating new songs. This has no incidence on hardware behavior; names are just labels, and the coil count is just a default for the UI.
+The sidebar lists your coils with their colors and names. The pen beside the **Coils** title opens their settings: name each physical coil and set the **default coil count** used when creating new songs (with the sidebar collapsed, or on a phone, it's the **Coils** item of the **⋯** menu). This has no incidence on hardware behavior; names are just labels, and the coil count is just a default for the UI.
+
+**Tags**, in the **⋯** menu, lists the tags that sort the songs: add, rename, recolor or delete them. A tag can also be created right from a song's tag menu.
 
 ## Playing a song or playlist
 

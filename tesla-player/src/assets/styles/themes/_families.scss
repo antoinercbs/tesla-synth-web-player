@@ -5,11 +5,11 @@
 // page adds joins every look by being listed here. Only selectors: no output.
 
 // a page's own bordered button, and those of them that stay pressed while on
-$push-buttons: ".row-btn, .queue-btn, .pl-icon-btn, .me-ibtn, .power-head__reset, .power-head__cap, .coil-filter-toggle, .coil-toggle, .piano__oct, .stepper__btn, .env-lib__new";
+$push-buttons: ".row-btn, .sidebar-out, .queue-btn, .pl-icon-btn, .me-ibtn, .power-head__reset, .power-head__cap, .coil-filter-toggle, .coil-toggle, .piano__oct, .stepper__btn, .env-lib__new";
 $pushed-on: ".queue-btn.is-active, .power-head__cap.is-on, .coil-filter-toggle.is-active, .coil-toggle.is-on, .stepper__btn.is-active";
 
 // a page's own bare icon button (a toolbar's)
-$flat-buttons: ".me-ico, .me-x, .dyn-row__remove, .midi-lib__action, .midi-lib__edit-icon, .combo__clear, .roll-range__x, .env-steps__remove, .cfg-tag-del, .tour__x";
+$flat-buttons: ".me-ico, .sidebar-section__edit, .me-x, .dyn-row__remove, .midi-lib__action, .midi-lib__edit-icon, .combo__clear, .roll-range__x, .env-steps__remove, .cfg-tag-del, .tour__x";
 
 // the bars that pad their .btn taller than a look's own size
 $button-bars: ".player-transport, .edit-body__dock .player-transport, .me-toolbar, .me-selbar, .me-pop, .midi-lib__bar, .tour__nav";

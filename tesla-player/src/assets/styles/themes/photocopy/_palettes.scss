@@ -1,0 +1,176 @@
+@use "sass:map";
+
+// ===========================================================================
+//  PHOTOCOPY LOOK: its palettes
+// ===========================================================================
+// A copy of a copy of the app: the paper and its grain, the toner's speckles, the
+// dark edges the lid let through, a streak the drum leaves down every page; then
+// what someone did to it with pens, a highlighter on what matters (the coils'
+// colours, the one picked) and a red marker round Panic. Each palette is written out
+// whole, as the custom properties it sets on [data-theme="<id>"]: the shared ones,
+// then its own, including the chrome photocopy/_chrome.scss and the $photocopy map
+// read (--pc-ink, --pc-paper…). ui/themes.ts lists the ids for the look, the first is
+// its default (its spec checks both).
+
+// the grain of a copy in an ink ($r $g $b, 0 to 1): $gain and $bias turn the noise's
+// alpha into the ink's, a fine grain or sparse speckles
+@function -pc-noise($r, $g, $b, $gain, $bias, $freq, $size) {
+    @return svg-url('<filter id="n" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="#{$freq}" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 #{$r} 0 0 0 0 #{$g} 0 0 0 0 #{$b} 0 0 0 #{$gain} #{$bias}"/></filter><rect width="100%" height="100%" filter="url(#n)"/>', $size, $size);
+}
+
+@function -pc-textures($r, $g, $b, $paper) {
+    $grain: -pc-noise($r, $g, $b, 0.45, -0.18, 0.9, 180);
+    $speckle: -pc-noise($r, $g, $b, 12, -8.3, 0.55, 240);
+    @return (
+        pc-paper: "#{$grain}, #{$speckle}, #{$paper}",
+        pc-speckle: $speckle,
+        pc-worn: -pc-noise(1, 1, 1, 6, -3.9, 0.7, 200),
+    );
+}
+
+$pc-shared: (
+    hi-rgb: "0 0 0",
+    ink: #161616,
+    knob: #ffffff,
+    danger: #d81e1e,
+    danger-rgb: "216 30 30",
+    danger-text: #c01818,
+    danger-text-hover: #800c0c,
+    ok: #1a8a3a,
+    ok-rgb: "26 138 58",
+    amber: #c98a00,
+    amber-rgb: "201 138 0",
+    caution: #b38600,
+    caution-rgb: "179 134 0",
+    caution-text: #5a4400,
+    warn: #b36b00,
+    conflict: #a85a00,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    // the highlighters someone went over the copy with
+    coil-0: #ea2a86,
+    coil-1: #d9b600,
+    coil-2: #1fbf4f,
+    coil-3: #149ad6,
+    coil-4: #9346f0,
+    coil-5: #f07a12,
+    plasma: #9346f0,
+    pc-mark: "rgb(255 238 0 / 0.7)",
+    pc-red: #d81e1e,
+    pc-header: none,
+);
+
+// the order is the picker's, the first the look's default
+$photocopy-palettes: (
+    // the office copier, its toner running low
+    toner: map.merge(
+        -pc-textures(0, 0, 0, #eeede8),
+        (
+            bg: #eeede8,
+            bg-2: #f6f5f1,
+            panel: #f4f3ee,
+            panel-2: #e8e7e1,
+            bg-rgb: "238 237 232",
+            line-rgb: "20 20 20",
+            text: #161616,
+            text-rgb: "22 22 22",
+            text-dim: #333333,
+            text-mute: #555555,
+            text-strong: #000000,
+            text-bright: #000000,
+            volt: #161616,
+            volt-rgb: "22 22 22",
+            grad: "linear-gradient(#fff266, #fff266)",
+            on-grad: #161616,
+            arc-core: #bdbdbd,
+            arc-mid: #555555,
+            arc-deep: #161616,
+            arc-glow-rgb: "85 85 85",
+            pc-ink: #161616,
+            pc-head: #1a1a1a,
+            pc-head-ink: #f4f3ee,
+            pc-edge: "rgb(0 0 0 / 0.85)",
+            pc-streak: "rgb(0 0 0 / 0.12)",
+            pc-bleed: "rgb(0 0 0 / 0.45)",
+            swatch: "linear-gradient(90deg, #161616 0 12%, transparent 12%), linear-gradient(transparent 55%, rgb(255 238 0 / 0.8) 55% 80%, transparent 80%), #eeede8",
+        )
+    ),
+    // the thermal paper of a fax, gone yellow, its ink gone brown
+    fax: map.merge(
+        -pc-textures(0.27, 0.22, 0.15, #ece2c0),
+        (
+            bg: #ece2c0,
+            bg-2: #f3ebcf,
+            panel: #efe6c6,
+            panel-2: #e3d8b3,
+            bg-rgb: "236 226 192",
+            line-rgb: "70 60 44",
+            text: #463c2c,
+            text-rgb: "70 60 44",
+            text-dim: #54492f,
+            text-mute: #6a5c44,
+            text-strong: #2e2618,
+            text-bright: #1e180e,
+            volt: #463c2c,
+            volt-rgb: "70 60 44",
+            grad: "linear-gradient(#f5e36b, #f5e36b)",
+            on-grad: #2e2618,
+            arc-core: #d8c9a0,
+            arc-mid: #6a5c44,
+            arc-deep: #2e2618,
+            arc-glow-rgb: "106 92 68",
+            pc-ink: #463c2c,
+            pc-head: #564a36,
+            pc-head-ink: #efe6c6,
+            pc-edge: "rgb(70 55 30 / 0.6)",
+            pc-streak: "rgb(70 55 30 / 0.1)",
+            pc-bleed: "rgb(70 60 44 / 0.35)",
+            pc-header: '"DE : CLUBELEK · P. 01/01"',
+            swatch: "linear-gradient(90deg, #463c2c 0 12%, transparent 12%), #ece2c0",
+        )
+    ),
+    // the school's spirit duplicator: violet, blurred, smelling of alcohol
+    ditto: map.merge(
+        -pc-textures(0.36, 0.23, 0.6, #fbfaf6),
+        (
+            bg: #fbfaf6,
+            bg-2: #ffffff,
+            panel: #fdfcf8,
+            panel-2: #f1eef7,
+            bg-rgb: "251 250 246",
+            line-rgb: "91 58 154",
+            text: #4b2d86,
+            text-rgb: "75 45 134",
+            text-dim: #5b3e96,
+            text-mute: #7055a6,
+            text-strong: #3a1d73,
+            text-bright: #2a1060,
+            volt: #5b3a9a,
+            volt-rgb: "91 58 154",
+            ink: #ffffff,
+            grad: "linear-gradient(#ffb3e6, #ffb3e6)",
+            on-grad: #3a1d73,
+            arc-core: #d9ccf2,
+            arc-mid: #7a5bc0,
+            arc-deep: #3a1d73,
+            arc-glow-rgb: "122 91 192",
+            pc-ink: #5b3a9a,
+            pc-head: #5b3a9a,
+            pc-head-ink: #fdfcf8,
+            pc-edge: "rgb(91 58 154 / 0.35)",
+            pc-streak: "rgb(91 58 154 / 0.1)",
+            pc-bleed: "rgb(91 58 154 / 0.6)",
+            pc-mark: "rgb(255 150 220 / 0.6)",
+            swatch: "linear-gradient(90deg, #5b3a9a 0 12%, transparent 12%), #fbfaf6",
+        )
+    ),
+);
+
+@each $id, $p in $photocopy-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($pc-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

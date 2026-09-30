@@ -173,6 +173,9 @@ export interface AppTag {
   color: string;
 }
 
+/** A new tag's colour until it's changed in the tags' settings (the server's default too). */
+export const DEFAULT_TAG_COLOR = '#46e0ff';
+
 export const MIN_COILS = 1;
 export const MAX_COILS = 6;
 export const MIDI_CHANNEL_COUNT = 16;

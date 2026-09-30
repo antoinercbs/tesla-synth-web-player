@@ -1,0 +1,204 @@
+@use "sass:map";
+
+// ===========================================================================
+//  1970S LIVING ROOM LOOK: its palettes
+// ===========================================================================
+// A living room of the seventies: the wallpaper's circles, the wood panelling, the
+// three stripes of the era, velvet corduroy, the hi-fi's knob. Each palette is
+// written out whole, as the custom properties it sets on [data-theme="<id>"]: the
+// shared ones, then its own, including the chrome seventies/_chrome.scss and the
+// $seventies map read (--sv-wall, --sv-btn…). ui/themes.ts lists the ids for the look,
+// the first is its default (its spec checks both).
+
+// the wallpaper: rings of three colours on a ground, every other row shifted
+@function -sv-wall($a, $b, $c, $ground) {
+    $ring: "radial-gradient(circle at 50% 50%, #{$a} 0 17%, #{$b} 17% 29%, #{$c} 29% 41%, transparent 41%)";
+    @return "#{$ring} 0 0 / 76px 76px, #{$ring} 38px 38px / 76px 76px, #{$ground}";
+}
+
+// the panelling: planks of a wood, their grooves, the grain in them
+@function -sv-wood($a, $b, $c) {
+    @return "repeating-linear-gradient(90deg, rgb(0 0 0 / 0.22) 0 2px, transparent 2px 46px), repeating-linear-gradient(90deg, #{$a} 0 7px, #{$b} 7px 11px, #{$c} 11px 20px, #{$b} 20px 27px, #{$a} 27px 46px)";
+}
+
+$sv-shared: (
+    knob: #fff4d8,
+    sv-cord: "repeating-linear-gradient(90deg, rgb(0 0 0 / 0.1) 0 2px, rgb(255 255 255 / 0.14) 2px 3px, transparent 3px 6px)",
+    sv-knob: "radial-gradient(circle at 40% 35%, #fff4d8 0 14%, #d9b27a 48%, #8a5a2a 100%)",
+    sv-danger: "linear-gradient(180deg, #e0583a, #a8301a)",
+);
+
+$sv-light: (
+    hi-rgb: "0 0 0",
+    ink: #ffffff,
+    on-grad: #ffffff,
+    danger: #c0301a,
+    danger-rgb: "192 48 26",
+    danger-text: #a8281a,
+    danger-text-hover: #701a0e,
+    ok: #5a7a14,
+    ok-rgb: "90 122 20",
+    amber: #c98a00,
+    amber-rgb: "201 138 0",
+    caution: #b38600,
+    caution-rgb: "179 134 0",
+    caution-text: #5a4400,
+    warn: #b35a00,
+    conflict: #a85a00,
+    duplicate: #a8301a,
+    duplicate-rgb: "168 48 26",
+    worse: #a8301a,
+    coil-0: #c8321e,
+    coil-1: #c99518,
+    coil-2: #5f7f1e,
+    coil-3: #2a8080,
+    coil-4: #8a4fa3,
+    coil-5: #e07b1f,
+    plasma: #8a4fa3,
+);
+
+// the order is the picker's, the first the look's default
+$seventies-palettes: (
+    // the orange shag carpet and its brown
+    shag: (
+        bg: #f3e2bd,
+        bg-2: #fbf3e0,
+        panel: #f7ebcf,
+        panel-2: #efdcb2,
+        bg-rgb: "243 226 189",
+        line-rgb: "122 62 18",
+        text: #3b2412,
+        text-rgb: "59 36 18",
+        text-dim: #5a3a1e,
+        text-mute: #744e2a,
+        text-strong: #5a1e05,
+        text-bright: #2a1405,
+        volt: #b84e14,
+        volt-rgb: "184 78 20",
+        grad: "linear-gradient(180deg, #f08a3c, #cc5a18)",
+        arc-core: #ffd36a,
+        arc-mid: #e8731c,
+        arc-deep: #7a3e12,
+        arc-glow-rgb: "232 115 28",
+        sv-wall: -sv-wall(#7a3e12, #e8731c, #e0a526, #f3e2bd),
+        sv-wood: -sv-wood(#8a5226, #7a461e, #95592b),
+        sv-wood-ink: #fbe9c6,
+        sv-wood-dim: #eed6a8,
+        sv-head: #efdcb2,
+        sv-head-ink: #5a1e05,
+        sv-stripes: "linear-gradient(180deg, #e0a526 0 33.4%, #e8731c 33.4% 66.7%, #b3401a 66.7%)",
+        sv-stripes-edge: "linear-gradient(to top, #b3401a 0 4px, #e8731c 4px 8px, #e0a526 8px 12px, transparent 12px)",
+        sv-btn: #e8cf9a,
+        sv-btn-ink: #3b2412,
+        sv-edge: #7a3e12,
+        sv-shadow-1: #e8731c,
+        sv-shadow-2: #b3401a,
+        swatch: "radial-gradient(circle at 50% 50%, #7a3e12 0 18%, #e8731c 18% 34%, #e0a526 34% 50%, #f3e2bd 50%)",
+    ),
+    // the avocado of the kitchen, the harvest gold of the fridge
+    avocado: (
+        bg: #efe6c3,
+        bg-2: #faf5e2,
+        panel: #f3ecd0,
+        panel-2: #e6dcb4,
+        bg-rgb: "239 230 195",
+        line-rgb: "63 74 14",
+        text: #2f2a10,
+        text-rgb: "47 42 16",
+        text-dim: #4a4420,
+        text-mute: #655c30,
+        text-strong: #3f4a0e,
+        text-bright: #1e1a05,
+        volt: #5a6a12,
+        volt-rgb: "90 106 18",
+        grad: "linear-gradient(180deg, #a3b240, #6f7d24)",
+        arc-core: #f2d06a,
+        arc-mid: #d9a521,
+        arc-deep: #5a6a12,
+        arc-glow-rgb: "217 165 33",
+        sv-wall: -sv-wall(#6b4a1e, #7d8b2e, #d9a521, #efe6c3),
+        sv-wood: -sv-wood(#9a6a36, #8a5c2c, #a6743e),
+        sv-wood-ink: #fbf0cf,
+        sv-wood-dim: #efdfae,
+        sv-head: #e6dcb4,
+        sv-head-ink: #3f4a0e,
+        sv-stripes: "linear-gradient(180deg, #d9a521 0 33.4%, #7d8b2e 33.4% 66.7%, #6b4a1e 66.7%)",
+        sv-stripes-edge: "linear-gradient(to top, #6b4a1e 0 4px, #7d8b2e 4px 8px, #d9a521 8px 12px, transparent 12px)",
+        sv-btn: #d9cf8f,
+        sv-btn-ink: #2f2a10,
+        sv-edge: #5f5320,
+        sv-shadow-1: #d9a521,
+        sv-shadow-2: #7d8b2e,
+        swatch: "radial-gradient(circle at 50% 50%, #6b4a1e 0 18%, #7d8b2e 18% 34%, #d9a521 34% 50%, #efe6c3 50%)",
+    ),
+    // the same room at night, in brown velvet and lamp light
+    corduroy: (
+        bg: #2a1a0e,
+        bg-2: #1f140a,
+        panel: #3a2616,
+        panel-2: #4a3220,
+        bg-rgb: "42 26 14",
+        hi-rgb: "255 255 255",
+        line-rgb: "255 217 160",
+        text: #f3e2bd,
+        text-rgb: "243 226 189",
+        text-dim: #dcc49a,
+        text-mute: #b89e74,
+        text-strong: #ffd9a0,
+        text-bright: #fff4dc,
+        volt: #f0a040,
+        volt-rgb: "240 160 64",
+        ink: #2a1405,
+        grad: "linear-gradient(180deg, #f0a040, #c26a1a)",
+        on-grad: #2a1405,
+        arc-core: #ffd9a0,
+        arc-mid: #f0a040,
+        arc-deep: #c2541a,
+        arc-glow-rgb: "240 160 64",
+        danger: #ff6a4a,
+        danger-rgb: "255 106 74",
+        danger-text: #ff8a6a,
+        danger-text-hover: #ffb8a0,
+        ok: #a8c85a,
+        ok-rgb: "168 200 90",
+        amber: #f0a040,
+        amber-rgb: "240 160 64",
+        caution: #f0c050,
+        caution-rgb: "240 192 80",
+        caution-text: #f5d27a,
+        warn: #f09030,
+        conflict: #f0a050,
+        duplicate: #ff8a5a,
+        duplicate-rgb: "255 138 90",
+        worse: #ff8a5a,
+        coil-0: #ff6a4a,
+        coil-1: #f0c050,
+        coil-2: #a8c85a,
+        coil-3: #5ac8c0,
+        coil-4: #c890e0,
+        coil-5: #ff9a3c,
+        plasma: #c890e0,
+        sv-wall: -sv-wall(#1f140a, #a4461a, #c89020, #2a1a0e),
+        sv-wood: -sv-wood(#4a2c16, #3e2410, #563420),
+        sv-wood-ink: #f3e2bd,
+        sv-wood-dim: #dcc49a,
+        sv-head: #4a3220,
+        sv-head-ink: #ffd9a0,
+        sv-stripes: "linear-gradient(180deg, #c89020 0 33.4%, #c2541a 33.4% 66.7%, #7a2e10 66.7%)",
+        sv-stripes-edge: "linear-gradient(to top, #7a2e10 0 4px, #c2541a 4px 8px, #c89020 8px 12px, transparent 12px)",
+        sv-btn: #7a5626,
+        sv-btn-ink: #fff4dc,
+        sv-edge: #140c05,
+        sv-shadow-1: #c2541a,
+        sv-shadow-2: #7a2e10,
+        swatch: "radial-gradient(circle at 50% 50%, #1f140a 0 18%, #a4461a 18% 34%, #c89020 34% 50%, #2a1a0e 50%)",
+    ),
+);
+
+@each $id, $p in $seventies-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge(map.merge($sv-shared, $sv-light), $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

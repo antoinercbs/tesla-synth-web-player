@@ -37,12 +37,15 @@ export const THEMES = {
   aquarium: ['lagoon', 'abyss', 'koi'],
   pocket: ['peasoup', 'pocketgrey', 'backlit'],
   sheetmusic: ['ivory', 'sepia', 'nocturne'],
-  metro: ['citymap', 'nightmap', 'signage'],
   network: ['openspace', 'afterwork', 'premium'],
   karaoke: ['lyricblue', 'glitter', 'velvet'],
   crossstitch: ['aida', 'linen', 'blackaida'],
   portal: ['periwinkle', 'mauve', 'afterhours'],
   v1: ['original', 'daylight', 'blackout'],
+  committee: ['final', 'finalv2', 'finalok'],
+  photocopy: ['toner', 'fax', 'ditto'],
+  seventies: ['shag', 'avocado', 'corduroy'],
+  coderain: ['digital', 'redpill', 'bluepill'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

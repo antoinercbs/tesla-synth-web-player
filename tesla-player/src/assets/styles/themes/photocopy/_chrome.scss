@@ -1,0 +1,373 @@
+// ===========================================================================
+//  PHOTOCOPY LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $photocopy map (photocopy/_skin.scss), its colours the
+// paper picked among photocopy/_palettes.scss (every colour here reads one, --pc-…).
+// Here: the ink bleeding round the letters, the edges, streak and speckles laid over
+// the whole page (under the dialogs, never catching a click), the solid bands worn
+// by the copier, the highlighter on what is picked, the red marker round Panic.
+// Every rule sits under [data-skin="photocopy"] and this file comes last; the pages'
+// controls are named by family (../_families.scss).
+
+// a highlighter's stroke across the lower part of a line
+@mixin highlighted {
+    background: linear-gradient(transparent 12%, var(--pc-mark) 12% 88%, transparent 88%);
+}
+
+[data-skin="photocopy"] {
+    color-scheme: light;
+
+    body {
+        text-shadow:
+            0 0 0.6px var(--pc-bleed),
+            0 0 1.4px var(--pc-bleed);
+    }
+
+    ::selection {
+        background: var(--pc-mark);
+        color: var(--pc-ink);
+    }
+
+    // the copier's marks over the whole page: the lid's dark edges, a little askew,
+    // the drum's streak, the toner's speckles
+    .app-shell::after {
+        content: "";
+        position: fixed;
+        z-index: 60;
+        inset: 0;
+        pointer-events: none;
+        background:
+            linear-gradient(90.6deg, var(--pc-edge) 0 0.5%, transparent 1.3%),
+            linear-gradient(179.5deg, var(--pc-edge) 0 0.7%, transparent 1.8%),
+            linear-gradient(270.4deg, var(--pc-edge) 0 0.3%, transparent 0.9%),
+            linear-gradient(90deg, transparent 63.2%, var(--pc-streak) 63.3% 63.5%, transparent 63.6%),
+            var(--pc-speckle);
+    }
+
+    // the fax's line at the top of the page (the copies have none)
+    .app-main::before {
+        content: var(--pc-header);
+        display: block;
+        padding: 0.3rem 1rem 0;
+        font-family: var(--font-mono);
+        font-size: var(--fs-xs);
+        letter-spacing: 0.1em;
+        color: var(--text-dim);
+    }
+
+    .view-head__title {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+        text-underline-offset: 0.18em;
+    }
+
+    .brand__emblem {
+        animation: none;
+        filter: grayscale(1) contrast(1.4);
+    }
+
+    .brand__label {
+        filter: none;
+    }
+
+    // Times is wider than the lab's face: tracked tighter, the name still fits
+    .brand__app {
+        letter-spacing: 0.03em;
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--bg);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head.is-scrolled {
+        box-shadow: 0 1.5px 0 var(--pc-ink);
+    }
+
+    .modal-overlay,
+    .live-piano__arm {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    // --- boxes drawn in the ink, their heads solid and worn ----------------------------------
+    #{$panels} {
+        border: 1.5px solid var(--pc-ink);
+        background: transparent;
+    }
+
+    #{$panel-heads} {
+        --text: var(--pc-head-ink);
+        --text-dim: var(--pc-head-ink);
+        --text-mute: var(--pc-head-ink);
+        --text-strong: var(--pc-head-ink);
+        --text-bright: var(--pc-head-ink);
+        --volt: var(--pc-head-ink);
+        --seg-color: var(--pc-head-ink);
+        --tab-active-color: var(--pc-head-ink);
+
+        border-bottom: 0;
+        background: var(--pc-worn), var(--pc-head);
+        color: var(--pc-head-ink);
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .player-panel__head .icon,
+    .pl-pane__head .icon,
+    .queue-head__title .icon {
+        color: var(--pc-head-ink);
+    }
+
+    .player-synth-badge {
+        background: transparent;
+        box-shadow: inset 0 0 0 1px var(--pc-head-ink);
+    }
+
+    .play-row,
+    .pl-row,
+    .midi-lib__item {
+        border-bottom: 1px dotted var(--pc-ink);
+        border-radius: 0;
+    }
+
+    .play-row:hover {
+        background: transparent;
+        text-decoration: underline;
+    }
+
+    .play-row.is-current {
+        @include highlighted;
+    }
+
+    .play-row.is-current::before {
+        display: none;
+    }
+
+    .play-row.is-current .row-btn--play {
+        border-color: var(--pc-ink);
+        background: var(--pc-ink);
+        color: var(--bg);
+    }
+
+    // --- the sidebar ---------------------------------------------------------------------------
+    .sidebar {
+        border-right: 1.5px solid var(--pc-ink);
+    }
+
+    .brand__sep,
+    .nav__sep,
+    #{$menu-seps} {
+        background: var(--pc-ink);
+    }
+
+    .nav-item {
+        border-radius: 0;
+        font-family: var(--font-body);
+        font-weight: 400;
+        letter-spacing: 0;
+        color: var(--text);
+    }
+
+    .nav-item:hover {
+        background: transparent;
+        color: var(--text);
+        text-decoration: underline;
+    }
+
+    .nav-item.router-link-active {
+        @include highlighted;
+
+        border-radius: 0;
+        color: var(--text-strong);
+        font-weight: 700;
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .nav-item .icon,
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .sidebar-section__title {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        text-decoration: underline;
+        color: var(--text-strong);
+    }
+
+    .sidebar-section + .sidebar-section,
+    .sidebar-foot {
+        border-top: 1px dotted var(--pc-ink);
+    }
+
+    .sidebar .segmented button.is-active,
+    .sidebar-menu .segmented button.is-active {
+        background: var(--pc-mark);
+        color: var(--pc-ink);
+        box-shadow: none;
+    }
+
+    // the coils: a stroke of each highlighter
+    .sidebar-coil__dot {
+        background: color-mix(in srgb, var(--c) 70%, transparent);
+    }
+
+    // --- buttons: boxes; the highlighter under the pointer ---------------------------------------
+    .btn:not(.btn--volt, .btn--danger):hover:not(:disabled),
+    .icon-btn:hover:not(:disabled),
+    .field-btn:hover:not(:disabled) {
+        @include highlighted;
+
+        border-color: var(--pc-ink);
+        color: var(--pc-ink);
+    }
+
+    .btn--volt,
+    .btn--volt:hover {
+        border-color: var(--pc-ink);
+        filter: none;
+    }
+
+    // Panic and the other red buttons: ringed by hand in red marker
+    .btn--danger,
+    .btn--danger:hover {
+        border: 2.5px solid var(--pc-red);
+        border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+        color: var(--pc-red);
+        filter: none;
+    }
+
+    .btn--stop:not(:disabled) .icon {
+        color: var(--pc-red);
+    }
+
+    #{$push-buttons} {
+        border: 1px solid var(--pc-ink);
+        border-radius: 0;
+        background: transparent;
+        color: var(--pc-ink);
+
+        &:hover:not(:disabled) {
+            @include highlighted;
+
+            border-color: var(--pc-ink);
+            color: var(--pc-ink);
+        }
+    }
+
+    #{$pushed-on} {
+        @include highlighted;
+
+        border-color: var(--pc-ink);
+        color: var(--pc-ink);
+    }
+
+    #{$flat-buttons} {
+        border-radius: 0;
+    }
+
+    .segmented.segmented--tabs {
+        border-bottom: 1.5px solid var(--pc-ink);
+    }
+
+    .segmented__arc {
+        bottom: -3px;
+        height: 3px;
+        background: var(--pc-red);
+    }
+
+    // a channel: a box, highlighted in its coil's colour when on
+    .chan-cell {
+        border: 1px solid var(--pc-ink);
+        border-radius: 0;
+        background: transparent;
+        color: var(--pc-ink);
+    }
+
+    .chan-cell.is-on {
+        border-color: var(--pc-ink);
+        background: color-mix(in srgb, var(--cell, var(--volt)) 60%, transparent);
+        color: var(--pc-ink);
+        font-weight: 700;
+    }
+
+    // --- sliders: a ruled line, a block of toner ---------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: var(--pc-ink);
+        --range-track-h: 2px;
+        --range-track-radius: 0;
+        --range-track-shadow: none;
+        --range-thumb: var(--pc-ink);
+        --range-thumb-hover: var(--pc-ink);
+        --range-thumb-w: 10px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 0;
+        --range-thumb-shadow: none;
+        --range-focus: 2px dotted var(--pc-ink);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs, notes ---------------------------------------------------------------------
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            @include highlighted;
+
+            color: var(--pc-ink);
+        }
+    }
+
+    .combo__option.is-active {
+        @include highlighted;
+    }
+
+    .modal-card {
+        padding-top: 0;
+        border-width: 1.5px;
+    }
+
+    .modal-card__head {
+        --text: var(--pc-head-ink);
+        --text-strong: var(--pc-head-ink);
+        --volt: var(--pc-head-ink);
+
+        margin: 0 -1.5rem 1.1rem;
+        padding: 0.45rem 0.6rem 0.45rem 1.5rem;
+        background: var(--pc-worn), var(--pc-head);
+    }
+
+    .modal-card__title {
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .modal-card__title .icon {
+        color: var(--pc-head-ink);
+    }
+
+    .toast::before {
+        display: none;
+    }
+}

@@ -131,7 +131,6 @@ export default {
     outputSelection: "MIDI output selection",
     coils: "Coils",
     output: "Output",
-    generalConfig: "General configuration",
     songManager: "My songs",
     songSequencer: "Song editor",
     playlistManager: "Playlist manager",
@@ -148,19 +147,8 @@ export default {
     save: "Save",
     update: "Update",
     noFile: "No file",
-    firstOutput: "Main output",
-    secondOutput: "Second output",
-    output2Offset: "2nd output offset",
     output2OffsetHint:
       "Manual timing offset for the 2nd output to compensate a hardware latency difference (negative = earlier).",
-    builtinSynth: "Built-in synth",
-    outSynth: "Synth",
-    outMidi: "MIDI",
-    outSerial: "Serial",
-    noMidiOutput: "No MIDI output detected",
-    chooseMidiOutput: "Choose a MIDI output",
-    serialConnect: "Connect serial",
-    serialDisconnect: "Disconnect",
     serialPort: "Serial port",
     serialUnsupported: "Serial not supported in this browser",
     serialError: "Could not open the serial port",
@@ -168,7 +156,6 @@ export default {
       "Connect over serial, or select the Syntherrupter's USB-MIDI port (ESP32) as MIDI output, to configure the device",
     info: "Info",
     close: "Close",
-    emulationHint: "Emulated",
     synthModel: "Timbre",
     synthModelName: {
       tesla: "Live arc",
@@ -210,9 +197,9 @@ export default {
     ontimeRatio: "Ontime multiplier factor (0 - 200%)",
     dutyRatio: "Duty cycle multiplier factor (0 - 200%)",
     coilCount: "Number of Tesla coils",
-    generalConfig: "General configuration",
     defaultCoilCount: "Default number of coils",
     coilNames: "Coil names",
+    editCoils: "Edit the coils",
     coilNamePlaceholder: "Coil {n} name",
     unnamedCoil: "Unnamed",
     language: "Language",
@@ -379,6 +366,27 @@ export default {
     leaveConfirm: "Stop and leave",
     stay: "Stay",
   },
+  output: {
+    coils: "Coils",
+    speakers: "Speakers",
+    synth: "Emulated synth",
+    synthSub: "no hardware",
+    midiSub: "MIDI interface",
+    serialName: "Syntherrupter",
+    serialSub: "Syntherrupter over USB",
+    unplugged: "Unplugged: sound on the synth",
+    disconnected: "Disconnected: sound on the synth",
+    speakersUnplugged: "Unplugged",
+    none: "None",
+    groupEmulation: "Emulation",
+    groupMidi: "MIDI interfaces",
+    groupSerial: "Syntherrupter over USB",
+    noInterface: "No interface detected",
+    missing: "{name} (unplugged)",
+    connect: "Connect a USB port…",
+    disconnect: "Disconnect",
+    offset: "Offset from the coils",
+  },
   auth: {
     signIn: "Sign in",
     signOut: "Sign out",
@@ -495,10 +503,6 @@ export default {
     sepia: "Sepia",
     nocturne: "Nocturne",
 
-    citymap: "City map",
-    nightmap: "Night map",
-    signage: "Signage",
-
     openspace: "Open space",
     afterwork: "After work",
     premium: "Premium",
@@ -518,6 +522,22 @@ export default {
     original: "Original",
     daylight: "Daylight",
     blackout: "Blackout",
+
+    final: "Final",
+    finalv2: "Final v2",
+    finalok: "Final OK approved",
+
+    toner: "Tired toner",
+    fax: "Fax paper",
+    ditto: "Spirit duplicator",
+
+    shag: "Orange shag",
+    avocado: "Avocado",
+    corduroy: "Corduroy",
+
+    digital: "Digital green",
+    redpill: "Red pill",
+    bluepill: "Blue pill",
   },
   skin: {
     title: "Look",
@@ -552,8 +572,6 @@ export default {
 
     sheetmusic: "Sheet music",
 
-    metro: "Metro map",
-
     network: "Pro network",
 
     karaoke: "Karaoke",
@@ -563,6 +581,14 @@ export default {
     portal: "Career portal",
 
     v1: "Version 1 (2022)",
+
+    committee: "Wobbly art direction",
+
+    photocopy: "Photocopy of a photocopy",
+
+    seventies: "1970s living room",
+
+    coderain: "Code rain",
   },
   skinGroup: {
     computers: "Vintage computers",
@@ -626,14 +652,13 @@ export default {
         title: "General settings",
         text: "The **⋯** menu opens the instance's settings, done once:",
         points: [
-          "**General configuration**: the installation's coils, how many and their names;",
           "the **tags** that sort the songs;",
           "the interface's **language** and **colours**.",
         ],
       },
       output: {
         title: "The output",
-        text: "Where the notes go:",
+        text: "Where the notes go, one line for the **coils** and one for the **speakers**; a click opens its choices:",
         points: [
           "**Synth**: an emulation in the browser, no hardware;",
           "**MIDI**: a MIDI interface or a Syntherrupter;",
@@ -643,7 +668,7 @@ export default {
       coils: {
         title: "The coils",
         text: "Each coil has its colour, the same everywhere in the app.",
-        note: "Their number and their names come from the general configuration.",
+        note: "The pen beside their title sets how many there are and their names.",
       },
       pathPlay: {
         title: "1. On stage",

@@ -1,0 +1,398 @@
+// ===========================================================================
+//  WOBBLY ART DIRECTION LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $committee map (committee/_skin.scss), its colours the
+// version picked among committee/_palettes.scss (every colour here reads one, --cm-…).
+// Here: each kind of panel with a head, a border and a face of its own, the nav's
+// items each in another colour and face, the bevelled buttons pressed in, the tilted
+// boxes, the rainbow title. Nothing that moves under the pointer is tilted: the
+// panels holding a canvas or the transport stay square. Every rule sits under
+// [data-skin="committee"] and this file comes last; the pages' controls are named by
+// family (../_families.scss).
+
+// a head in one member's colour: the text tokens take its ink (a token naming
+// another resolves on <html>: set again here)
+@mixin head($colour, $ink) {
+    --text: #{$ink};
+    --text-dim: #{$ink};
+    --text-mute: #{$ink};
+    --text-strong: #{$ink};
+    --text-bright: #{$ink};
+    --volt: #{$ink};
+    --seg-color: #{$ink};
+    --tab-active-color: #{$ink};
+
+    background: #{$colour};
+    color: #{$ink};
+    text-shadow: 2px 2px 0 var(--cm-shadow);
+}
+
+[data-skin="committee"] {
+    color-scheme: light;
+
+    // the title: a rainbow in an outline, tilted, in the face nobody else wanted
+    .view-head__title {
+        font-family: Papyrus, "Rye", fantasy;
+        font-weight: 700;
+        letter-spacing: 0;
+        background: var(--cm-rainbow);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        -webkit-text-stroke: 1px var(--cm-btn-ink);
+        filter: drop-shadow(4px 4px 0 var(--cm-d));
+        transform: rotate(-2deg);
+    }
+
+    .view-head__title .icon-btn {
+        -webkit-text-stroke: 0;
+    }
+
+    .brand__app {
+        font-family: Impact, "Barlow Condensed", sans-serif;
+        font-weight: 400;
+        color: var(--cm-d);
+        text-shadow: 2px 2px 0 var(--cm-c);
+    }
+
+    .brand__emblem {
+        animation-duration: 0.6s;
+    }
+
+    .screen-head.is-scrolled,
+    .editor-footer,
+    .pl-footer,
+    .wiz-foot {
+        background: var(--cm-b);
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+
+    .screen-head .mode-switch {
+        transform: rotate(1.5deg);
+    }
+
+    // --- panels: a border in every style, a head in every colour and face -------------
+    #{$panels} {
+        border: 3px solid var(--cm-c);
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+    }
+
+    .player-panel {
+        border: 6px double var(--cm-d);
+        border-radius: 0;
+    }
+
+    .play-panel {
+        border: 3px dashed var(--cm-a);
+        border-radius: 26px 0;
+    }
+
+    .pl-pane,
+    .pl-meta,
+    .editor-meta {
+        border: 5px ridge var(--cm-b);
+        border-radius: 0 18px;
+    }
+
+    .editor-section,
+    .tune-panel {
+        border: 4px dotted var(--cm-a);
+        border-radius: 20px;
+    }
+
+    .coil-card {
+        border: 5px groove var(--cm-btn);
+    }
+
+    .player-panel__head {
+        @include head(var(--cm-d), var(--cm-d-ink));
+
+        font-family: "Times New Roman", Times, serif;
+        font-style: italic;
+    }
+
+    .play-panel__head {
+        @include head(var(--cm-a), var(--cm-a-ink));
+
+        font-family: Impact, "Barlow Condensed", sans-serif;
+        letter-spacing: 0.08em;
+    }
+
+    .queue-head {
+        @include head(var(--cm-b), var(--cm-b-ink));
+
+        font-family: "Courier New", Courier, monospace;
+    }
+
+    .pl-pane__head {
+        @include head(var(--cm-c), var(--cm-c-ink));
+
+        font-family: "Creepster", cursive;
+        font-weight: 400;
+        letter-spacing: 0.06em;
+    }
+
+    #{$panel-heads} {
+        border-bottom: 3px dashed currentcolor;
+    }
+
+    .player-panel__head .icon,
+    .pl-pane__head .icon,
+    .queue-head__title .icon {
+        color: inherit;
+    }
+
+    .coil-card__title {
+        font-family: "Rye", serif;
+        font-weight: 400;
+        color: var(--cm-d);
+    }
+
+    .tune-panel__title,
+    .editor-section__title {
+        font-family: Impact, "Barlow Condensed", sans-serif;
+        font-weight: 400;
+        letter-spacing: 0.04em;
+        color: var(--cm-a);
+        text-shadow: 2px 2px 0 var(--cm-c);
+    }
+
+    // --- the sidebar: each item chosen by someone else ------------------------------------
+    .nav-item {
+        border: 2px solid transparent;
+        border-radius: 0 14px;
+        font-weight: 700;
+        text-shadow: 1px 1px 0 var(--cm-shadow);
+    }
+
+    .nav a.nav-item:nth-of-type(4n + 1) {
+        background: var(--cm-a);
+        color: var(--cm-a-ink);
+        font-family: "Comic Sans MS", "Comic Sans", cursive;
+    }
+
+    .nav a.nav-item:nth-of-type(4n + 2) {
+        background: var(--cm-b);
+        color: var(--cm-b-ink);
+        font-family: "Times New Roman", Times, serif;
+    }
+
+    .nav a.nav-item:nth-of-type(4n + 3) {
+        background: var(--cm-c);
+        color: var(--cm-c-ink);
+        font-family: Impact, "Barlow Condensed", sans-serif;
+        font-weight: 400;
+        letter-spacing: 0.05em;
+    }
+
+    .nav a.nav-item:nth-of-type(4n) {
+        background: var(--cm-d);
+        color: var(--cm-d-ink);
+        font-family: "Courier New", Courier, monospace;
+    }
+
+    .nav-item .icon,
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .nav-item + .nav-item {
+        margin-top: 3px;
+    }
+
+    .nav-item:hover {
+        filter: hue-rotate(90deg);
+    }
+
+    .nav-item.router-link-active {
+        border: 3px dashed var(--text-strong);
+        border-radius: 0 14px;
+        transform: scale(1.04) rotate(-1deg);
+    }
+
+    .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    // the sections, boxes of their own, tilted each their way
+    .sidebar-section {
+        padding: 0.6rem 0.7rem;
+        border: 3px dotted var(--cm-d);
+        background: var(--panel);
+        box-shadow: var(--shadow-panel);
+        transform: rotate(-1.2deg);
+    }
+
+    .sidebar-section + .sidebar-section {
+        border-top: 3px dotted var(--cm-d);
+        transform: rotate(1.4deg);
+    }
+
+    .sidebar-section__title {
+        font-family: "Rye", serif;
+        font-size: var(--fs-md);
+        font-weight: 400;
+        color: var(--cm-d);
+    }
+
+    .sidebar-foot {
+        padding: 0.3rem 0.5rem;
+        background: var(--panel);
+    }
+
+    // --- buttons: a bevel on every one, pressed in when held ---------------------------------
+    .btn,
+    .icon-btn,
+    .field-btn,
+    #{$push-buttons},
+    .chan-cell {
+        border-width: 3px;
+        border-style: outset;
+    }
+
+    .btn:active:not(:disabled),
+    .icon-btn:active:not(:disabled),
+    .field-btn:active:not(:disabled) {
+        border-style: inset;
+        box-shadow: none;
+    }
+
+    .btn--volt,
+    .btn--volt:hover {
+        border-color: var(--cm-d);
+        text-shadow:
+            1px 1px 0 #000000,
+            -1px -1px 0 #000000,
+            1px -1px 0 #000000,
+            -1px 1px 0 #000000;
+    }
+
+    .btn--danger,
+    .btn--danger:hover {
+        border-color: var(--danger);
+    }
+
+    .btn--ghost:not(:hover) {
+        border-color: transparent;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    #{$push-buttons} {
+        border-color: var(--cm-btn);
+        border-radius: 0;
+        background: var(--cm-btn);
+        color: var(--cm-btn-ink);
+
+        &:active:not(:disabled) {
+            border-style: inset;
+        }
+    }
+
+    #{$pushed-on} {
+        border-color: var(--cm-c);
+        background: var(--cm-c);
+        color: var(--cm-c-ink);
+    }
+
+    .play-row.is-current .row-btn--play {
+        border-color: var(--cm-a);
+        background: var(--cm-a);
+        color: var(--cm-a-ink);
+    }
+
+    .play-row.is-current {
+        background: var(--cm-c);
+        color: var(--cm-c-ink);
+    }
+
+    .play-row.is-current::before {
+        display: none;
+    }
+
+    .segmented:not(.segmented--tabs) button.is-active {
+        outline: 2px dashed var(--cm-d);
+        outline-offset: -3px;
+    }
+
+    .segmented__arc {
+        bottom: -4px;
+        height: 6px;
+        background: var(--cm-rainbow);
+    }
+
+    .chan-cell {
+        border-color: var(--cm-btn);
+        background: var(--cm-btn);
+        color: var(--cm-btn-ink);
+    }
+
+    .chan-cell.is-on {
+        border-color: var(--cell, var(--volt));
+        background: var(--cell, var(--volt));
+        color: #ffffff;
+        text-shadow: 1px 1px 0 #000000;
+    }
+
+    // --- sliders: a rainbow groove, a fat cap ---------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: var(--cm-rainbow);
+        --range-track-h: 10px;
+        --range-track-radius: 0;
+        --range-track-shadow: 3px 3px 0 var(--cm-shadow);
+        --range-thumb: var(--cm-a);
+        --range-thumb-hover: var(--cm-b);
+        --range-thumb-w: 24px;
+        --range-thumb-h: 24px;
+        --range-thumb-border: 3px solid var(--cm-btn-ink);
+        --range-thumb-radius: 50% 0;
+        --range-thumb-shadow: 3px 3px 0 var(--cm-shadow);
+        --range-focus: 3px dashed var(--cm-a);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+
+    // --- menus, dialogs ----------------------------------------------------------------------------
+    #{$menus} {
+        border-width: 3px;
+        border-style: dashed;
+    }
+
+    #{$menu-items} {
+        &:hover,
+        &:focus-visible {
+            background: var(--cm-b);
+            color: var(--cm-b-ink);
+        }
+    }
+
+    .modal-card {
+        padding-top: 0;
+        border-width: 5px;
+        border-style: double;
+    }
+
+    .modal-card__head {
+        @include head(var(--cm-rainbow), var(--cm-d-ink));
+
+        margin: 0 -1.5rem 1.1rem;
+        padding: 0.5rem 0.6rem 0.5rem 1.5rem;
+    }
+
+    .modal-card__title .icon {
+        color: inherit;
+    }
+}
+
+[data-skin="committee"][data-theme="finalok"] {
+    color-scheme: dark;
+}

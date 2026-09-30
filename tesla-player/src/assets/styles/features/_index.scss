@@ -7,7 +7,7 @@
 @import "midi-library/midi-library";
 
 // the components, children before their parents (a parent restyles a child it holds)
-@import "settings/general-config-modal";
+@import "settings/config-modals";
 @import "desktop/server-config-modal";
 @import "desktop/sync-modal";
 @import "desktop/download-modal";

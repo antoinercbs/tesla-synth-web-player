@@ -193,12 +193,6 @@ $tax-blocks: ".coil-card, .me-card, .env-card, .env-lib__group, .sy-card, .cam-c
         content: "\A0\25B8";
     }
 
-    .editor-tags__empty,
-    .sidebar-hint {
-        font-style: italic;
-        font-weight: 300;
-    }
-
     // --- a field: a dotted leader and its box code after its label, a white box open at the top --------------------
     .field-label {
         display: flex;
@@ -423,23 +417,9 @@ $tax-blocks: ".coil-card, .me-card, .env-card, .env-lib__group, .sy-card, .cam-c
         }
     }
 
-    // --- the sidebar: its label → control rows led by dots, the administration's frame, the code ------------------------
+    // --- the sidebar: the administration's frame, the code ------------------------
     .sidebar {
         border-right: 1.5px solid var(--tax-ink);
-    }
-
-    .sidebar-row__label {
-        display: flex;
-        flex: 1 1 auto;
-        align-items: baseline;
-
-        &::after {
-            content: "";
-            flex: 1 1 auto;
-            min-width: 1em;
-            margin: 0 0.1em 0 0.35em;
-            border-bottom: 1.5px dotted var(--text-mute);
-        }
     }
 
     .sidebar__spacer {

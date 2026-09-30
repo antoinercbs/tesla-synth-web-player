@@ -272,8 +272,10 @@
         box-shadow: var(--shadow-panel);
     }
 
+    // boxes of their own: no line between them
     .sidebar-section + .sidebar-section {
         margin-top: 0.75rem;
+        border-top: 0;
     }
 
     .sidebar-section__title {

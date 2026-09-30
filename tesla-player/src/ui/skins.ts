@@ -9,7 +9,7 @@ import { applyTheme, setTheme, storedTheme, type ThemeId } from './themes';
  * put on. This module lists the ids, fetches and applies the chosen one, a
  * `data-skin` attribute on <html>. The choice is per device.
  */
-export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control', 'synthwave', 'tubes', 'modular', 'halloween', 'rpg', 'aquarium', 'pocket', 'sheetmusic', 'metro', 'network', 'karaoke', 'crossstitch', 'portal', 'v1'] as const;
+export const SKINS = ['lab', 'xp', 'scope', 'term', 'web1', 'steam', 'blueprint', 'blocks', 'videotex', 'gel', 'circus', 'noel', 'pcb', 'cork', 'taxform', 'sheet', 'control', 'synthwave', 'tubes', 'modular', 'halloween', 'rpg', 'aquarium', 'pocket', 'sheetmusic', 'network', 'karaoke', 'crossstitch', 'portal', 'v1', 'committee', 'photocopy', 'seventies', 'coderain'] as const;
 export type SkinId = (typeof SKINS)[number];
 export const DEFAULT_SKIN: SkinId = 'lab';
 
@@ -20,11 +20,11 @@ export const DEFAULT_SKIN: SkinId = 'lab';
  */
 export const SKIN_TOP: readonly SkinId[] = [DEFAULT_SKIN, 'control', 'v1'];
 export const SKIN_GROUPS: readonly { id: string; skins: readonly SkinId[] }[] = [
-  { id: 'computers', skins: ['videotex', 'term', 'web1', 'xp', 'gel', 'synthwave'] },
+  { id: 'computers', skins: ['videotex', 'term', 'web1', 'xp', 'gel', 'synthwave', 'coderain'] },
   { id: 'workshop', skins: ['scope', 'modular', 'tubes', 'pcb', 'blueprint', 'steam'] },
-  { id: 'office', skins: ['cork', 'taxform', 'sheet', 'network', 'portal'] },
+  { id: 'office', skins: ['cork', 'taxform', 'sheet', 'network', 'portal', 'committee', 'photocopy'] },
   { id: 'fun', skins: ['circus', 'halloween', 'noel', 'blocks', 'rpg', 'pocket', 'karaoke'] },
-  { id: 'scenes', skins: ['aquarium', 'sheetmusic', 'metro', 'crossstitch'] },
+  { id: 'scenes', skins: ['aquarium', 'sheetmusic', 'crossstitch', 'seventies'] },
 ];
 
 const STORE_KEY = 'skin';

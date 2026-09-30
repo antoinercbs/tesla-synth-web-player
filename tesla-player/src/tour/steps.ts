@@ -77,7 +77,7 @@ export const MAIN_STEPS: TourStep[] = [
   { id: 'welcome', icon: 'fa-bolt', points: ['fa-gear', 'fa-play', 'fa-folder-open', 'fa-pencil', 'fa-list-ul', 'fa-bullseye'], tiles: true, note: 'tip', noteIcon: 'fa-flask', route: PLAY },
   { id: 'nav', icon: 'fa-compass', points: ['fa-music', 'fa-microchip'], route: PLAY, target: '.nav', placement: 'right' },
   // the menu opens beside the sidebar; the next step closes it
-  { id: 'settings', icon: 'fa-gear', points: ['fa-bolt', 'fa-tags', 'fa-palette'], route: PLAY, target: '.sidebar-menu', placement: 'right', click: '.sidebar-more:not(.is-open)' },
+  { id: 'settings', icon: 'fa-gear', points: ['fa-tags', 'fa-palette'], route: PLAY, target: '.sidebar-menu', placement: 'right', click: '.sidebar-more:not(.is-open)' },
   { id: 'output', wide: true, icon: 'fa-plug', points: ['fa-wave-square', 'fa-diagram-project', 'fa-plug'], route: PLAY, target: '.sidebar-section:not(:has(.sidebar-coils))', placement: 'right', click: '.sidebar-more.is-open' },
   { id: 'coils', wide: true, icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
   // the path of a song, from the stage back to its file

@@ -237,8 +237,11 @@
     padding: 0 0.25rem;
 }
 
+// a line between the output and the coils, as between the nav's groups and above the footer
 .sidebar-section + .sidebar-section {
-    margin-top: 1.3rem;
+    margin-top: 1.1rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid var(--line);
 }
 
 .sidebar-section__title {
@@ -246,6 +249,42 @@
     font-size: var(--fs-xs);
     font-weight: 600;
     color: var(--text-mute);
+}
+
+// the coils' settings, at the end of their title's line (without making it taller)
+.sidebar-section--coils .sidebar-section__title {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.sidebar-section__edit {
+    flex: 0 0 auto;
+    margin: -0.4rem -0.3rem -0.4rem auto;
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+    transition:
+        color 0.15s,
+        background 0.15s;
+}
+
+.sidebar-section__edit:hover {
+    color: var(--text);
+    background: var(--line-006);
+}
+
+.sidebar-section__edit:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 1px;
 }
 
 // The shared .segmented is sized for the main pane and fills its active segment
@@ -266,109 +305,131 @@
     box-shadow: var(--ring-inset) var(--volt-30);
 }
 
-.sidebar-select {
-    margin-top: 0.5rem;
-}
-
-.select-field.sidebar-select select {
-    padding: 0.42rem 1.8rem 0.42rem 0.65rem;
-    font-size: var(--fs-sm);
-}
-
-.select-field.sidebar-select select:disabled {
-    color: var(--text-mute);
-    cursor: var(--cursor-default, default);
-}
-
-.sidebar-hint {
+// --- output: a button per destination (the coils', the speakers'), each opening its menu.
+// A look dresses it as its push buttons (themes/_families.scss): the texts inherit the
+// look's button colour, the state says itself in the icon, the dot and the words.
+.sidebar-out {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    margin: 0.5rem 0 0;
-    font-size: var(--fs-xs);
-    color: var(--text-mute);
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.45rem 0.5rem 0.45rem 0.6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: rgb(var(--hi-rgb) / 0.02);
+    color: var(--text-strong);
+    font: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+    transition:
+        border-color 0.15s,
+        background 0.15s;
 }
 
-.sidebar-hint.is-error {
-    color: var(--danger);
+.sidebar-out + .sidebar-out {
+    margin-top: 0.45rem;
 }
 
-// output-1 serial (Syntherrupter) connect control
-.sidebar-serial {
+.sidebar-out:hover,
+.sidebar-out.is-open {
+    border-color: var(--volt-50);
+    background: var(--volt-06);
+}
+
+.sidebar-out:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 1px;
+}
+
+.sidebar-out__icon {
+    flex: 0 0 1rem;
+    text-align: center;
+    font-size: var(--fs-sm);
+    color: var(--volt);
+}
+
+.sidebar-out--speakers .sidebar-out__icon {
+    color: var(--plasma);
+}
+
+.sidebar-out__text {
+    flex: 1 1 auto;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    margin-top: 0.5rem;
-    gap: 0.5rem;
+    line-height: 1.25;
 }
 
-.sidebar-serial .sidebar-hint {
-    margin-top: 0;
+.sidebar-out__key {
+    font-size: 0.66rem;
+    font-weight: 600;
+    opacity: 0.72;
 }
 
-.sidebar-serial__btn {
-    justify-content: center;
-    padding: 0.45rem 0.6rem;
-    font-size: var(--fs-xs);
+.sidebar-out__value,
+.sidebar-out__sub {
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.sidebar-serial__on {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    font-family: var(--font-mono);
-    font-size: var(--fs-xs);
-    color: var(--text);
+.sidebar-out__value {
+    font-size: var(--fs-sm);
+    font-weight: 500;
 }
 
-.sidebar-serial__on .conn__dot {
+.sidebar-out__sub {
+    font-size: 0.68rem;
+    opacity: 0.72;
+}
+
+// "None": a choice, not a device
+.sidebar-out.is-none .sidebar-out__value {
+    font-weight: 400;
+    opacity: 0.62;
+}
+
+.sidebar-out__dot {
+    flex: 0 0 auto;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.sidebar-out.is-ok .sidebar-out__dot {
     background: var(--ok);
 }
 
-// label + switch on one line (second output)
-.sidebar-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-top: 0.8rem;
+.sidebar-out.is-emu .sidebar-out__dot {
+    background: var(--volt);
+    opacity: 0.6;
 }
 
-.sidebar-row__label {
-    font-size: var(--fs-sm);
-    color: var(--text-dim);
-    cursor: var(--cursor-pointer, pointer);
+.sidebar-out__chev {
+    flex: 0 0 auto;
+    font-size: 0.6rem;
+    opacity: 0.55;
 }
 
-// beside its label, not under it like the MIDI output picker
-.sidebar-select.synth-model {
-    flex: 1;
-    min-width: 0;
-    margin-top: 0;
+// chosen but not there, the synth standing in. The words keep the button's colour: an
+// amber text would vanish on a look's light face
+.sidebar .sidebar-out.is-warn {
+    border-color: rgb(var(--amber-rgb) / 0.65);
 }
 
-.sidebar-offset {
-    margin-top: 0.6rem;
+.sidebar-out.is-warn .sidebar-out__icon {
+    color: var(--amber);
 }
 
-.sidebar-offset__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    font-size: var(--fs-xs);
-    color: var(--text-mute);
+// what happens instead is the point: never cut short
+.sidebar-out.is-warn .sidebar-out__sub {
+    font-weight: 600;
+    opacity: 1;
+    white-space: normal;
 }
 
-.sidebar-offset__val {
-    font-family: var(--font-mono);
-    font-variant-numeric: tabular-nums;
-    color: var(--text-dim);
-}
-
-.sidebar-offset__range {
-    width: 100%;
-    accent-color: var(--volt);
+.sidebar-out.is-warn .sidebar-out__dot {
+    background: var(--amber);
 }
 
 .sidebar-coils {
@@ -605,6 +666,86 @@
     color: var(--volt);
 }
 
+// --- an output's menu (AppSidebar): groups of destinations, the one playing checked
+.sidebar-menu--output {
+    width: 264px;
+    max-height: calc(100vh - 16px);
+    overflow-y: auto;
+}
+
+.sidebar-menu__group {
+    display: block;
+    margin: 0;
+    padding: 0.45rem 0.6rem 0.2rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+}
+
+.sidebar-menu__check {
+    flex: 0 0 0.8rem;
+    font-size: 0.7rem;
+    color: var(--volt);
+}
+
+.sidebar-menu__item.is-current {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+.sidebar-menu__item:disabled {
+    cursor: var(--cursor-default, default);
+    opacity: 0.7;
+}
+
+.sidebar-menu__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sidebar-menu__note {
+    margin: 0;
+    padding: 0.3rem 0.6rem 0.4rem 2.4rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+// what belongs to the item above it: the synth's timbre, the speakers' offset
+.sidebar-menu__sub {
+    padding: 0.1rem 0.4rem 0.45rem 2.4rem;
+}
+
+.sidebar-menu__row--sub {
+    padding-left: 2.4rem;
+}
+
+.sidebar-offset {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding-left: 0.6rem;
+}
+
+.sidebar-offset__range {
+    flex: 1 1 auto;
+    min-width: 0;
+    accent-color: var(--volt);
+}
+
+.sidebar-offset__val {
+    flex: 0 0 auto;
+    min-width: 3.6rem;
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    color: var(--text);
+}
+
 // --- collapsible "compact" sidebar -----------------------------------------
 // The brand toggle narrows the sidebar to an icon-only rail: the brand shrinks
 // to the glyph, nav labels hide (tooltips take over), the output/coils sections
@@ -741,6 +882,11 @@
 
 .cstat--spk {
     color: var(--plasma);
+}
+
+.cstat.is-warn {
+    border-color: rgb(var(--amber-rgb) / 0.65);
+    color: var(--amber);
 }
 
 .cstat-conn {

@@ -1,5 +1,5 @@
 <template>
-  <aside class="sidebar" :class="{ 'sidebar--compact': sidebarCompact }">
+  <aside ref="aside" class="sidebar" :class="{ 'sidebar--compact': sidebarCompact }">
     <div class="brand">
       <router-link class="brand__emblem" :to="{ name: 'play' }" aria-label="Tesla Player" :style="emblemStyle" />
       <span class="brand__sep" aria-hidden="true"></span>
@@ -63,92 +63,26 @@
 
     <section class="sidebar-section">
       <h2 class="sidebar-section__title">{{ $t('title.output') }}</h2>
-      <!-- output 1 transport: virtual synth · MIDI device · bidirectional serial -->
-      <segmented-control v-model="output1Mode" fill class="output-modes" :aria-label="$t('label.firstOutput')"
-        @update:model-value="onMode1Change" :options="[
-          { value: 'synth', label: $t('label.outSynth') },
-          { value: 'midi', label: $t('label.outMidi') },
-          {
-            value: 'serial', label: $t('label.outSerial'), disabled: !serialSupported,
-            title: serialSupported ? '' : $t('label.serialUnsupported')
-          },
-        ]" />
-
-      <template v-if="output1Mode === 'synth'">
-        <p class="sidebar-hint">
-          <i class="fas fa-wave-square"></i>{{ $t('label.emulationHint') }}
-        </p>
-        <!-- the editor and the envelope audition play on this synth too, whatever the output -->
-        <div class="sidebar-row">
-          <label class="sidebar-row__label" for="synth-model">{{ $t('label.synthModel') }}</label>
-          <div class="select-field sidebar-select synth-model">
-            <select id="synth-model" v-model="synthModel" :title="$t(`label.synthModelHint.${synthModel}`)"
-              @change="onSynthModelChange">
-              <option v-for="m in synthModels" :key="m" :value="m">{{ $t(`label.synthModelName.${m}`) }}</option>
-            </select>
-          </div>
-        </div>
-      </template>
-
-      <div v-else-if="output1Mode === 'midi'" class="select-field sidebar-select">
-        <select v-if="outputs.length" v-model="selectedOutputId" :aria-label="$t('label.firstOutput')"
-          @change="onOutputChange">
-          <option v-if="!selectedOutputListed" :value="selectedOutputId" disabled>{{ $t('label.chooseMidiOutput') }}
-          </option>
-          <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-        </select>
-        <!-- nothing to pick: the empty state lives in the field itself -->
-        <select v-else disabled :aria-label="$t('label.firstOutput')">
-          <option>{{ $t('label.noMidiOutput') }}</option>
-        </select>
-      </div>
-
-      <div v-else class="sidebar-serial">
-        <template v-if="midiStore.serialConnected">
-          <span class="sidebar-serial__on"><span class="conn__dot"></span>{{ midiStore.serialPortLabel }}</span>
-          <button class="btn btn--ghost sidebar-serial__btn" type="button" @click="disconnectSerial">
-            <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('label.serialDisconnect') }}
-          </button>
-        </template>
-        <template v-else>
-          <button class="btn btn--volt sidebar-serial__btn" type="button" :disabled="!serialSupported"
-            @click="connectSerial">
-            <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('label.serialConnect') }}
-          </button>
-          <p v-if="!serialSupported" class="sidebar-hint">{{ $t('label.serialUnsupported') }}</p>
-          <p v-else-if="serialError" class="sidebar-hint is-error">{{ serialError }}</p>
-        </template>
-      </div>
-
-      <!-- second output is off by default (compact); the toggle reveals the picker -->
-      <div class="sidebar-row">
-        <label class="sidebar-row__label" for="out2-toggle">{{ $t('label.secondOutput') }}</label>
-        <label class="switch">
-          <input id="out2-toggle" type="checkbox" v-model="showSecondOutput" @change="onSecondToggle">
-          <span class="switch__track"></span>
-        </label>
-      </div>
-      <template v-if="showSecondOutput">
-        <div class="select-field sidebar-select">
-          <select v-model="selectedOutput2Id" :aria-label="$t('label.secondOutput')" @change="onOutput2Change">
-            <option :value="null">—</option>
-            <option v-for="o in outputs" :key="o.id" :value="o.id">{{ o.name }}</option>
-          </select>
-        </div>
-        <!-- manual latency offset to align the 2nd output with the 1st (hardware calibration) -->
-        <div v-if="selectedOutput2Id" class="sidebar-offset" :title="$t('label.output2OffsetHint')">
-          <div class="sidebar-offset__head">
-            <label for="out2-offset">{{ $t('label.output2Offset') }}</label>
-            <span class="sidebar-offset__val">{{ output2Offset > 0 ? '+' : '' }}{{ output2Offset }} ms</span>
-          </div>
-          <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
-            v-model.number="output2Offset">
-        </div>
-      </template>
+      <!-- what plays, not what was chosen: a missing device shows as such, the synth standing in -->
+      <button v-for="row in outRows" :key="row.id" class="sidebar-out" type="button"
+        :class="[`sidebar-out--${row.id}`, `is-${row.state}`, { 'is-open': outMenu === row.id }]" aria-haspopup="menu"
+        :aria-expanded="outMenu === row.id" @click="toggleOutMenu(row.id, $event)">
+        <span class="sidebar-out__icon"><i class="fas" :class="row.icon"></i></span>
+        <span class="sidebar-out__text">
+          <span class="sidebar-out__key">{{ row.label }}</span>
+          <span class="sidebar-out__value">{{ row.name }}</span>
+          <span v-if="row.sub" class="sidebar-out__sub">{{ row.sub }}</span>
+        </span>
+        <span class="sidebar-out__dot" aria-hidden="true"></span>
+        <i class="fas fa-chevron-right sidebar-out__chev" aria-hidden="true"></i>
+      </button>
     </section>
 
-    <section class="sidebar-section">
-      <h2 class="sidebar-section__title">{{ $t('title.coils') }}</h2>
+    <section class="sidebar-section sidebar-section--coils">
+      <!-- in the title: it follows the title wherever a look puts it -->
+      <h2 class="sidebar-section__title">{{ $t('title.coils') }}<button class="sidebar-section__edit" type="button"
+          :title="$t('label.editCoils')" :aria-label="$t('label.editCoils')" @click="coilsOpen = true"><i
+            class="fas fa-pen"></i></button></h2>
       <ul class="sidebar-coils">
         <li v-for="n in midiStore.appConfig.defaultCoilCount" :key="n - 1" class="sidebar-coil">
           <span class="sidebar-coil__dot" :style="{ '--c': coilColor(n - 1) }"></span>
@@ -168,11 +102,12 @@
 
     <!-- Compact rail keeps the essentials visible: selected output(s) + connection. -->
     <div v-if="sidebarCompact" class="sidebar-cstatus">
-      <span class="cstat" :class="{ 'is-synth': midiStore.isSynthOutput || midiStore.isSerialOutput }"
-        :title="$t('label.firstOutput') + ' · ' + output1Name">
+      <span class="cstat" :class="{ 'is-synth': midiStore.isSynthOutput || midiStore.isSerialOutput, 'is-warn': coilsOut.state === 'warn' }"
+        :title="`${$t('output.coils')} · ${coilsOut.name}`">
         <i class="fas" :class="output1Icon"></i>
       </span>
-      <span v-if="selectedOutput2Id" class="cstat cstat--spk" :title="$t('label.secondOutput') + ' · ' + output2Name">
+      <span v-if="selectedOutput2Id" class="cstat cstat--spk" :class="{ 'is-warn': speakersOut.state === 'warn' }"
+        :title="`${$t('output.speakers')} · ${speakersOut.name}`">
         <i class="fas fa-volume-high"></i>
       </span>
       <span v-if="!isElectron" class="cstat-conn" :class="{ 'is-up': isConnected }" :title="connLabel">
@@ -215,8 +150,13 @@
       </div>
       <theme-picker class="sidebar-menu__theme" />
       <div class="sidebar-menu__sep"></div>
-      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('configOpen')">
-        <span class="icon"><i class="fas fa-gear"></i></span>{{ $t('title.generalConfig') }}
+      <!-- the coils' own place is their sidebar list: here only when it isn't shown -->
+      <button v-if="coilsInMenu" class="sidebar-menu__item" type="button" role="menuitem"
+        @click="openFromMenu('coilsOpen')">
+        <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('title.coils') }}
+      </button>
+      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('tagsOpen')">
+        <span class="icon"><i class="fas fa-tags"></i></span>{{ $t('label.tags') }}
       </button>
       <button v-if="isElectron" class="sidebar-menu__item" type="button" role="menuitem"
         @click="openFromMenu('serverOpen')">
@@ -240,9 +180,103 @@
     </div>
   </Teleport>
 
-  <!-- sidebar action modals (config / desktop sync+server / download) -->
-  <general-config-modal :open="configOpen" :config="midiStore.appConfig" @save="saveConfig" @close="configOpen = false"
-    :tags="midiStore.tagList" />
+  <!-- An output's menu, beside the sidebar: the footer menu's classes, so every look dresses it. -->
+  <Teleport to="body">
+    <div v-if="outMenu" ref="outMenu" class="sidebar-menu sidebar-menu--output" :style="outMenuStyle" role="menu"
+      :aria-label="outMenu === 'coils' ? $t('output.coils') : $t('output.speakers')" @keydown="onOutMenuKey">
+      <template v-if="outMenu === 'coils'">
+        <p class="sidebar-menu__group">{{ $t('output.groupEmulation') }}</p>
+        <button class="sidebar-menu__item" :class="{ 'is-current': coilsOn === 'synth' }" type="button"
+          role="menuitemradio" :aria-checked="coilsOn === 'synth'" @click="pickSynth">
+          <span class="sidebar-menu__check"><i v-if="coilsOn === 'synth'" class="fas fa-check"></i></span>
+          <span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('output.synth') }}
+        </button>
+        <!-- whatever the output: the editor and the envelope audition play on this synth too -->
+        <div class="sidebar-menu__row sidebar-menu__row--sub">
+          <label for="synth-model">{{ $t('label.synthModel') }}</label>
+          <div class="select-field">
+            <select id="synth-model" :value="synthModel" :title="$t(`label.synthModelHint.${synthModel}`)"
+              @change="setSynthModel($event.target.value)">
+              <option v-for="m in synthModels" :key="m" :value="m">{{ $t(`label.synthModelName.${m}`) }}</option>
+            </select>
+          </div>
+        </div>
+        <div class="sidebar-menu__sep"></div>
+        <p class="sidebar-menu__group">{{ $t('output.groupMidi') }}</p>
+        <button v-if="coilsOn === 'missing'" class="sidebar-menu__item is-current" type="button" role="menuitemradio"
+          aria-checked="true" disabled>
+          <span class="sidebar-menu__check"><i class="fas fa-check"></i></span>
+          <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('output.missing', { name: coilsOut.name }) }}
+        </button>
+        <button v-for="o in outputs" :key="o.id" class="sidebar-menu__item"
+          :class="{ 'is-current': coilsOn === 'midi' && selectedOutputId === o.id }" type="button" role="menuitemradio"
+          :aria-checked="coilsOn === 'midi' && selectedOutputId === o.id" @click="pickMidi(o)">
+          <span class="sidebar-menu__check"><i v-if="coilsOn === 'midi' && selectedOutputId === o.id"
+              class="fas fa-check"></i></span>
+          <span class="icon"><i class="fas fa-plug"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
+        </button>
+        <p v-if="!outputs.length" class="sidebar-menu__note">{{ $t('output.noInterface') }}</p>
+        <div class="sidebar-menu__sep"></div>
+        <p class="sidebar-menu__group">{{ $t('output.groupSerial') }}</p>
+        <template v-if="midiStore.serialConnected">
+          <button class="sidebar-menu__item is-current" type="button" role="menuitemradio" aria-checked="true"
+            @click="closeOutMenu(true)">
+            <span class="sidebar-menu__check"><i class="fas fa-check"></i></span>
+            <span class="icon"><i class="fas fa-bolt"></i></span><span class="sidebar-menu__name">{{
+              midiStore.serialPortLabel }}</span>
+          </button>
+          <button class="sidebar-menu__item" type="button" role="menuitem" @click="disconnectSerial">
+            <span class="sidebar-menu__check"></span>
+            <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('output.disconnect') }}
+          </button>
+        </template>
+        <template v-else>
+          <button class="sidebar-menu__item" :class="{ 'is-current': coilsOn === 'serial' }" type="button"
+            role="menuitem" :disabled="!serialSupported" @click="connectSerial">
+            <span class="sidebar-menu__check"><i v-if="coilsOn === 'serial'" class="fas fa-check"></i></span>
+            <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('output.connect') }}
+          </button>
+          <p v-if="!serialSupported" class="sidebar-menu__note">{{ $t('label.serialUnsupported') }}</p>
+        </template>
+      </template>
+
+      <template v-else>
+        <button class="sidebar-menu__item" :class="{ 'is-current': !selectedOutput2Id }" type="button"
+          role="menuitemradio" :aria-checked="!selectedOutput2Id" @click="pickSpeakers(null)">
+          <span class="sidebar-menu__check"><i v-if="!selectedOutput2Id" class="fas fa-check"></i></span>
+          <span class="icon"><i class="fas fa-volume-xmark"></i></span>{{ $t('output.none') }}
+        </button>
+        <div class="sidebar-menu__sep"></div>
+        <p class="sidebar-menu__group">{{ $t('output.groupMidi') }}</p>
+        <button v-if="speakersOut.state === 'warn'" class="sidebar-menu__item is-current" type="button"
+          role="menuitemradio" aria-checked="true" disabled>
+          <span class="sidebar-menu__check"><i class="fas fa-check"></i></span>
+          <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('output.missing', { name: speakersOut.name }) }}
+        </button>
+        <button v-for="o in outputs" :key="o.id" class="sidebar-menu__item"
+          :class="{ 'is-current': selectedOutput2Id === o.id }" type="button" role="menuitemradio"
+          :aria-checked="selectedOutput2Id === o.id" @click="pickSpeakers(o)">
+          <span class="sidebar-menu__check"><i v-if="selectedOutput2Id === o.id" class="fas fa-check"></i></span>
+          <span class="icon"><i class="fas fa-plug"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
+        </button>
+        <p v-if="!outputs.length" class="sidebar-menu__note">{{ $t('output.noInterface') }}</p>
+        <template v-if="selectedOutput2Id">
+          <div class="sidebar-menu__sep"></div>
+          <!-- hardware calibration: interfaces answer with different delays -->
+          <label class="sidebar-menu__group" for="out2-offset">{{ $t('output.offset') }}</label>
+          <div class="sidebar-menu__sub sidebar-offset" :title="$t('label.output2OffsetHint')">
+            <input id="out2-offset" class="sidebar-offset__range" type="range" min="-200" max="200" step="5"
+              v-model.number="output2Offset">
+            <span class="sidebar-offset__val">{{ offsetLabel }}</span>
+          </div>
+        </template>
+      </template>
+    </div>
+  </Teleport>
+
+  <!-- sidebar action modals (coils, tags / desktop sync+server / download) -->
+  <coils-modal :open="coilsOpen" :config="midiStore.appConfig" @save="saveCoils" @close="coilsOpen = false" />
+  <tags-modal :open="tagsOpen" :tags="midiStore.tagList" @save="saveTags" @close="tagsOpen = false" />
   <server-config-modal v-if="isElectron" :open="serverOpen" @close="serverOpen = false" @saved="onServerSaved" />
   <sync-modal v-if="isElectron" :open="syncOpen" @close="syncOpen = false" @applied="onSyncApplied" />
   <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
@@ -264,8 +298,8 @@ import { mobileLayout } from '@/ui/viewport'
 import { getTeslaSynth, SYNTH_MODELS, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
 import { WebMidiLink } from '@/serial/webmidi-link'
-import SegmentedControl from '@/components/ui/SegmentedControl.vue'
-import GeneralConfigModal from '@/components/settings/GeneralConfigModal.vue'
+import CoilsModal from '@/components/settings/CoilsModal.vue'
+import TagsModal from '@/components/settings/TagsModal.vue'
 import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
 import SyncModal from '@/components/desktop/SyncModal.vue'
 import DownloadModal from '@/components/desktop/DownloadModal.vue'
@@ -277,14 +311,15 @@ import SkinPicker from '@/components/settings/SkinPicker.vue'
 /**
  * The application sidebar: brand, navigation, the collapse/compact toggle, MIDI
  * output selection (incl. the built-in synth + WebMIDI device resolution), the
- * coil legend, and a footer (account / connection status + a menu holding the
- * language, config, desktop sync/server, download and credits actions). Owns the WebMIDI lifecycle + output resolution (it IS the
+ * coil legend (which opens the coils' settings), and a footer (account / connection
+ * status + a menu holding the language, look, tags, desktop sync/server, download and
+ * credits actions). Owns the WebMIDI lifecycle + output resolution (it IS the
  * output picker) and the connection ping. App.vue stays a thin shell.
  */
 export default {
   name: 'AppSidebar',
   components: {
-    SegmentedControl, GeneralConfigModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal, LocalePicker, ThemePicker, SkinPicker,
+    CoilsModal, TagsModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal, LocalePicker, ThemePicker, SkinPicker,
   },
   data() {
     return {
@@ -297,10 +332,12 @@ export default {
       synthModels: SYNTH_MODELS,
       synthModel: SYNTH_MODELS.includes(localStorage.getItem('synthModel'))
         ? localStorage.getItem('synthModel') : 'tesla',
-      serialError: '',
+      // the persisted serial port is being reopened: no "disconnected" before it's tried
+      serialRestoring: localStorage.getItem('output1Mode') === 'serial' && 'serial' in navigator,
       isConnected: false,
       pingTimer: null,
-      configOpen: false,
+      coilsOpen: false,
+      tagsOpen: false,
       // Electron desktop bridge (absent in the web build).
       isElectron: typeof window !== 'undefined' && window.teslaElectron?.isElectron === true,
       serverOpen: false,
@@ -315,8 +352,11 @@ export default {
       // default to the built-in synth until a real output is explicitly chosen
       selectedOutputId: localStorage.getItem('midiOutput1Id') || SYNTH_OUTPUT_ID,
       selectedOutput2Id: localStorage.getItem('midiOutput2Id') || null,
-      // 2nd-output picker is collapsed unless a device is set (compact by default)
-      showSecondOutput: !!localStorage.getItem('midiOutput2Id'),
+      // names of the devices picked, to say which one is unplugged
+      savedOutput1Name: localStorage.getItem('midiOutput1Name') || '',
+      savedOutput2Name: localStorage.getItem('midiOutput2Name') || '',
+      outMenu: null, // 'coils' | 'speakers': the output whose menu is open
+      outMenuStyle: {},
       // narrow icon-rail sidebar (persisted); nav stays, the verbose cards collapse
       sidebarCompact: localStorage.getItem('sidebarCompact') === '1',
       creditsOpen: false,
@@ -332,13 +372,16 @@ export default {
     emblemStyle() {
       return { '--emblem-src': `url("${logoSrc}")` }
     },
-    isSynthSelected() { return this.selectedOutputId === SYNTH_OUTPUT_ID },
     outputs() {
       return this.midiStore.midiOutputList || []
     },
     // false while output 1 is still the synth fallback (no device picked yet)
     selectedOutputListed() {
       return this.outputs.some(o => o.id === this.selectedOutputId)
+    },
+    // the coil list is a section of the full sidebar only
+    coilsInMenu() {
+      return this.sidebarCompact || mobileLayout.value
     },
     showUser() {
       return this.authStore.enabled && this.authStore.authenticated
@@ -360,15 +403,63 @@ export default {
       if (this.midiStore.isSynthOutput) return 'fa-wave-square'
       return 'fa-plug'
     },
-    // name shown as the tooltip on the compact-sidebar output-1 chip
-    output1Name() {
-      if (this.midiStore.isSerialOutput) return this.midiStore.serialPortLabel
-      return this.isSynthSelected
-        ? this.$t('label.builtinSynth')
-        : (this.outputs.find(o => o.id === this.selectedOutputId)?.name || '—')
+    // until Web MIDI answers, a device not listed yet isn't a device unplugged
+    midiReady() {
+      return this.midiStore.midiOutputList !== null
     },
-    output2Name() {
-      return this.outputs.find(o => o.id === this.selectedOutput2Id)?.name || '—'
+    // the coils' output as it is: 'synth', 'midi', 'serialOn', or chosen but not there:
+    // 'missing' (a MIDI interface), 'serial' (no link)
+    coilsOn() {
+      if (this.output1Mode === 'serial') return this.midiStore.serialConnected ? 'serialOn' : 'serial'
+      if (this.output1Mode === 'midi' && this.selectedOutputId !== SYNTH_OUTPUT_ID) {
+        return this.selectedOutputListed ? 'midi' : 'missing'
+      }
+      return 'synth'
+    },
+    coilsOut() {
+      const t = this.$t
+      const midiName = this.savedOutput1Name || t('output.midiSub')
+      switch (this.coilsOn) {
+        case 'serialOn':
+          return { icon: 'fa-bolt', name: this.midiStore.serialPortLabel, sub: t('output.serialSub'), state: 'ok' }
+        case 'serial':
+          return this.serialRestoring
+            ? { icon: 'fa-bolt', name: t('output.serialName'), sub: t('output.serialSub'), state: 'idle' }
+            : { icon: 'fa-plug-circle-xmark', name: t('output.serialName'), sub: t('output.disconnected'), state: 'warn' }
+        case 'midi':
+          return {
+            icon: 'fa-bolt', name: this.outputs.find(o => o.id === this.selectedOutputId).name,
+            sub: t('output.midiSub'), state: 'ok',
+          }
+        case 'missing':
+          return this.midiReady
+            ? { icon: 'fa-plug-circle-xmark', name: midiName, sub: t('output.unplugged'), state: 'warn' }
+            : { icon: 'fa-bolt', name: midiName, sub: t('output.midiSub'), state: 'idle' }
+        default:
+          return {
+            icon: 'fa-bolt', name: t('output.synth'),
+            sub: `${t(`label.synthModelName.${this.synthModel}`)} · ${t('output.synthSub')}`, state: 'emu',
+          }
+      }
+    },
+    speakersOut() {
+      const t = this.$t
+      if (!this.selectedOutput2Id) return { icon: 'fa-volume-high', name: t('output.none'), sub: '', state: 'none' }
+      const dev = this.outputs.find(o => o.id === this.selectedOutput2Id)
+      if (dev) return { icon: 'fa-volume-high', name: dev.name, sub: this.output2Offset ? this.offsetLabel : '', state: 'ok' }
+      const name = this.savedOutput2Name || t('output.midiSub')
+      return this.midiReady
+        ? { icon: 'fa-plug-circle-xmark', name, sub: t('output.speakersUnplugged'), state: 'warn' }
+        : { icon: 'fa-volume-high', name, sub: '', state: 'idle' }
+    },
+    outRows() {
+      return [
+        { id: 'coils', label: this.$t('output.coils'), ...this.coilsOut },
+        { id: 'speakers', label: this.$t('output.speakers'), ...this.speakersOut },
+      ]
+    },
+    offsetLabel() {
+      return `${this.output2Offset > 0 ? '+' : ''}${this.output2Offset} ms`
     },
     // manual 2nd-output timing offset (ms), persisted per-machine in the store
     output2Offset: {
@@ -378,33 +469,43 @@ export default {
   },
   watch: {
     menuOpen(open) { this.setMenuListeners(open) },
-    $route() { this.menuOpen = false }
+    outMenu(id, was) { if (!id !== !was) this.setOutMenuListeners(!!id) },
+    $route() {
+      this.menuOpen = false
+      this.outMenu = null
+    }
   },
   methods: {
     coilColor,
-    async saveConfig({ config, tags }) {
-      const [savedConfig, savedTags] = await Promise.allSettled([
-        this.axios.put('/api/settings', config),
-        this.axios.put('/api/tags/sync', tags),
-      ])
-      if (savedConfig.status === 'fulfilled') this.midiStore.setAppConfig(savedConfig.value.data)
-      else console.error('Save config failed', savedConfig.reason)
-      if (savedTags.status === 'fulfilled') {
-        this.midiStore.setTagList(savedTags.value.data)
-        // A deleted tag is gone from song_tags too, so the songs in memory
-        // still carry stale pills until they are re-read.
-        this.axios.get('/api/songs')
-          .then(s => { this.midiStore.setMidiSongList(s.data) })
-          .catch(err => console.error('Reload songs failed', err))
-      } else {
-        console.error('Save tags failed', savedTags.reason)
+    // on failure the modal stays open with what was typed
+    async saveCoils(config) {
+      try {
+        const r = await this.axios.put('/api/settings', config)
+        this.midiStore.setAppConfig(r.data)
+      } catch (err) {
+        console.error('Save coils failed', err)
+        notify('label.saveFailed', 'error')
+        return
       }
-      if (savedConfig.status === 'fulfilled' && savedTags.status === 'fulfilled') {
-        notify('label.settingsSaved')
-        this.configOpen = false
-      } else {
-        notify('label.saveFailed', 'error') // the modal stays open with what was typed
+      notify('label.settingsSaved')
+      this.coilsOpen = false
+    },
+    async saveTags(tags) {
+      try {
+        const r = await this.axios.put('/api/tags/sync', tags)
+        this.midiStore.setTagList(r.data)
+      } catch (err) {
+        console.error('Save tags failed', err)
+        notify('label.saveFailed', 'error')
+        return
       }
+      notify('label.settingsSaved')
+      this.tagsOpen = false
+      // A deleted tag is gone from song_tags too, so the songs in memory
+      // still carry stale pills until they are re-read.
+      this.axios.get('/api/songs')
+        .then(s => { this.midiStore.setMidiSongList(s.data) })
+        .catch(err => console.error('Reload songs failed', err))
     },
     // Resolve output 1 from the current mode. Output 2 is always a WebMIDI device.
     // A live serial link is never clobbered (a WebMIDI (dis)connect must not drop
@@ -416,12 +517,19 @@ export default {
         const dev = this.outputs.find(o => o.id === this.selectedOutputId) || null;
         this.midiStore.setMidiOutput(dev || getTeslaSynth());
         this.setMidiDeviceLink(dev);
+        if (dev) this.rememberName(1, dev.name);
       } else {
         this.midiStore.setMidiOutput(getTeslaSynth());
         this.selectedOutputId = SYNTH_OUTPUT_ID;
         this.setMidiDeviceLink(null);
       }
-      this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null);
+      const dev2 = this.outputs.find(o => o.id === this.selectedOutput2Id) || null;
+      this.midiStore.setMidiOutput2(dev2);
+      if (dev2) this.rememberName(2, dev2.name);
+    },
+    rememberName(n, name) {
+      this[`savedOutput${n}Name`] = name
+      localStorage.setItem(`midiOutput${n}Name`, name)
     },
     // Config read-back over Web MIDI: pair the output with the device's input of
     // the same name (e.g. the ESP32 Syntherrupter's native USB-MIDI port). A
@@ -457,10 +565,6 @@ export default {
       WebMidi.addListener('disconnected', this.refreshOutputs)
       this.resolveOutputs() // restore the persisted output selection
     },
-    onOutputChange() {
-      localStorage.setItem('midiOutput1Id', this.selectedOutputId || SYNTH_OUTPUT_ID)
-      this.resolveOutputs()
-    },
     // --- output-1 mode switch + serial (Syntherrupter) link ---
     onMode1Change(mode) {
       localStorage.setItem('output1Mode', mode)
@@ -477,22 +581,50 @@ export default {
         this.resolveOutputs() // midi → device/synth ; serial → synth until Connect
       }
     },
-    onSynthModelChange() {
-      localStorage.setItem('synthModel', this.synthModel)
-      getTeslaSynth().setModel(this.synthModel)
+    setSynthModel(model) {
+      this.synthModel = model
+      localStorage.setItem('synthModel', model)
+      getTeslaSynth().setModel(model)
     },
+    // --- the outputs' menus ---
+    pickSynth() {
+      this.closeOutMenu(true)
+      if (this.coilsOn === 'synth') return
+      this.output1Mode = 'synth'
+      this.onMode1Change('synth')
+    },
+    pickMidi(dev) {
+      this.closeOutMenu(true)
+      this.selectedOutputId = dev.id
+      localStorage.setItem('midiOutput1Id', dev.id)
+      this.rememberName(1, dev.name)
+      this.output1Mode = 'midi'
+      this.onMode1Change('midi')
+    },
+    pickSpeakers(dev) {
+      this.closeOutMenu(true)
+      this.selectedOutput2Id = dev ? dev.id : null
+      if (dev) this.rememberName(2, dev.name)
+      this.onOutput2Change()
+    },
+    // the output becomes the serial link once there is one: a dismissed picker changes nothing
     async connectSerial() {
-      this.serialError = ''
+      this.closeOutMenu(true)
       if (!this.serialSupported) return
       try {
         const port = await navigator.serial.requestPort()
+        this.setMidiDeviceLink(null)
         await this.openSerial(port)
       } catch (err) {
         if (err && err.name !== 'NotFoundError') { // NotFoundError = picker dismissed
-          this.serialError = this.$t('label.serialError')
+          notify('label.serialError', 'error')
           console.error('Serial connect failed', err)
         }
+        return
       }
+      this.output1Mode = 'serial'
+      localStorage.setItem('output1Mode', 'serial')
+      this.midiStore.setOutputLost(null)
     },
     async openSerial(port) {
       const label = this.portLabel(port)
@@ -508,9 +640,10 @@ export default {
       if (this.midiStore.deviceLink === out) this.midiStore.setDeviceLink(null)
       if (out && out.id === SERIAL_OUTPUT_ID) { try { await out.close() } catch { /* */ } }
     },
-    async disconnectSerial() {
-      await this.closeSerial()
-      this.resolveOutputs() // fall back to the synth
+    disconnectSerial() {
+      this.closeOutMenu(true)
+      this.output1Mode = 'synth'
+      this.onMode1Change('synth') // closes the link
     },
     onSerialClosed(label) {
       // stream ended (physical unplug or close) — drop the link + fall back
@@ -539,13 +672,6 @@ export default {
       else localStorage.removeItem('midiOutput2Id')
       this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null)
     },
-    // toggling the 2nd output off clears it (so it can't stay active while hidden)
-    onSecondToggle() {
-      if (!this.showSecondOutput && this.selectedOutput2Id) {
-        this.selectedOutput2Id = null
-        this.onOutput2Change()
-      }
-    },
     startTourFromMenu() {
       this.menuOpen = false
       startTour()
@@ -567,11 +693,64 @@ export default {
         ? { left: `${r.right + 10}px`, bottom: `${window.innerHeight - r.bottom}px` }
         : { right: `${Math.max(8, window.innerWidth - r.right)}px`, bottom: `${window.innerHeight - r.top + 8}px` }
       this.menuWidth = window.innerWidth
+      this.outMenu = null
       this.menuOpen = true
     },
     closeMenu() {
       // a phone's toolbars showing and hiding change the height only: the menu stays put
-      if (window.innerWidth !== this.menuWidth) this.menuOpen = false
+      if (window.innerWidth !== this.menuWidth) {
+        this.menuOpen = false
+        this.outMenu = null
+      }
+    },
+    // beside the sidebar, level with its button, kept on screen once its height is known
+    toggleOutMenu(id, e) {
+      if (this.outMenu === id) {
+        this.closeOutMenu()
+        return
+      }
+      this.menuOpen = false
+      this.outAnchor = e.currentTarget
+      const btn = this.outAnchor.getBoundingClientRect()
+      const side = this.$refs.aside.getBoundingClientRect()
+      this.outMenuStyle = { left: `${side.right + 8}px`, top: `${btn.top}px` }
+      this.menuWidth = window.innerWidth
+      this.outMenu = id
+      this.$nextTick(() => {
+        const el = this.$refs.outMenu
+        if (!el) return
+        const top = Math.max(8, Math.min(btn.top, window.innerHeight - 8 - el.offsetHeight))
+        this.outMenuStyle = { ...this.outMenuStyle, top: `${top}px` }
+        const items = el.querySelectorAll('.sidebar-menu__item:not(:disabled)')
+        ;([...items].find(i => i.classList.contains('is-current')) || items[0])?.focus()
+      })
+    },
+    closeOutMenu(refocus = false) {
+      if (!this.outMenu) return
+      this.outMenu = null
+      if (refocus) this.outAnchor?.focus()
+    },
+    onOutDocPointer(e) {
+      if (this.$refs.outMenu?.contains(e.target) || this.outAnchor?.contains(e.target)) return
+      this.closeOutMenu()
+    },
+    onOutDocKey(e) {
+      if (e.key === 'Escape') this.closeOutMenu(true)
+    },
+    // up and down through the items; the timbre and the offset keep their own arrows
+    onOutMenuKey(e) {
+      if ((e.key !== 'ArrowDown' && e.key !== 'ArrowUp') || e.target.closest('.segmented, input')) return
+      const items = [...this.$refs.outMenu.querySelectorAll('.sidebar-menu__item:not(:disabled)')]
+      if (!items.length) return
+      e.preventDefault()
+      const i = items.indexOf(document.activeElement)
+      items[(i + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length].focus()
+    },
+    setOutMenuListeners(on) {
+      const fn = on ? 'addEventListener' : 'removeEventListener'
+      document[fn]('pointerdown', this.onOutDocPointer, true)
+      document[fn]('keydown', this.onOutDocKey)
+      window[fn]('resize', this.closeMenu)
     },
     onDocPointer(e) {
       if (this.$refs.menu?.contains(e.target) || this.$refs.moreBtn?.contains(e.target)) return
@@ -632,8 +811,9 @@ export default {
     // Serial mode persisted → silently reopen a previously-authorized port (no prompt).
     if (this.output1Mode === 'serial' && this.serialSupported) {
       navigator.serial.getPorts()
-        .then(ports => { if (ports[0]) this.openSerial(ports[0]).catch(() => { }) })
+        .then(ports => (ports[0] ? this.openSerial(ports[0]) : undefined))
         .catch(() => { })
+        .finally(() => { this.serialRestoring = false })
     }
     if (this.serialSupported) navigator.serial.addEventListener('connect', this.onSerialPortConnect)
     this.ping()
@@ -646,6 +826,7 @@ export default {
   },
   beforeUnmount() {
     this.setMenuListeners(false)
+    this.setOutMenuListeners(false)
     if (this.pingTimer) clearInterval(this.pingTimer)
     if (this.unsubServerConfig) this.unsubServerConfig()
     if (this.serialSupported) navigator.serial.removeEventListener('connect', this.onSerialPortConnect)

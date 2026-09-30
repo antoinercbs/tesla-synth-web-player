@@ -2,7 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import { MAX_COILS, MIN_COILS } from '@/types/domain';
+import { DEFAULT_TAG_COLOR, MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { AppTag, CoilConfig, CoilEvent, Song, SongStereo } from '@/types/domain';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { notify } from '@/utils/toast';
@@ -82,8 +82,6 @@ const {
 } = useDropdown();
 const newTagName = ref('');
 const creatingTag = ref(false);
-// what the settings give a new tag (GeneralConfigModal); its colour is changed there
-const NEW_TAG_COLOR = '#46e0ff';
 function sameName(a: string, b: string): boolean {
   return a.localeCompare(b, undefined, { sensitivity: 'accent' }) === 0;
 }
@@ -106,7 +104,7 @@ async function createTag(): Promise<void> {
       addExisting(taken);
       return;
     }
-    const { data } = await axios.put<AppTag[]>('/api/tags/sync', [...current, { name, color: NEW_TAG_COLOR }]);
+    const { data } = await axios.put<AppTag[]>('/api/tags/sync', [...current, { name, color: DEFAULT_TAG_COLOR }]);
     midiStore.setTagList(data);
     const before = new Set(current.map((t) => t.id));
     const created = data.find((t) => !before.has(t.id));

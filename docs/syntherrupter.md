@@ -18,7 +18,7 @@ Besides playing music, the app can read and edit the **Syntherrupter's own on-bo
 ## Connecting
 
 1. Plug the Syntherrupter into your computer's USB port.
-2. In the sidebar, set the **first output** to **Serial** and click **Connect**.
+2. In the sidebar, click the **Coils** output line, then **Connect a USB port…** under **Syntherrupter over USB**.
 3. Pick the device's serial port in the browser prompt (on Linux it usually shows up as `ttyACM0`).
 
 Once the link is up, a **Syntherrupter** entry appears in the sidebar navigation. (The port is remembered, so next time it reconnects without prompting.)
@@ -27,10 +27,10 @@ Once the link is up, a **Syntherrupter** entry appears in the sidebar navigation
 
 ## ESP32 Syntherrupter (native USB-MIDI)
 
-The ESP32 port of the Syntherrupter (ESP32-S3, native USB) shows up on USB as **two devices at once**: a serial port (same byte stream as the Tiva LaunchPad, so **Serial** mode works as above) and a **USB-MIDI** device named **Syntherrupter ESP32** (no driver needed).
+The ESP32 port of the Syntherrupter (ESP32-S3, native USB) shows up on USB as **two devices at once**: a serial port (same byte stream as the Tiva LaunchPad, so the serial link works as above) and a **USB-MIDI** device named **Syntherrupter ESP32** (no driver needed).
 
-- **Recommended for playback: first output = MIDI → "Syntherrupter ESP32".** Web MIDI keeps the player's timestamped scheduling (Serial mode sends notes as soon as they're processed).
-- **The configuration page also works in MIDI mode**: the device answers on its USB-MIDI input, so the app pairs the output with the input of the same name and reads the settings back. With a plain USB-MIDI interface to a Tiva Syntherrupter this only works if the Syntherrupter's DIN MIDI OUT is wired back to the interface; otherwise use Serial.
+- **Recommended for playback: Coils output = "Syntherrupter ESP32" under MIDI interfaces.** Web MIDI keeps the player's timestamped scheduling (the serial link sends notes as soon as they're processed).
+- **The configuration page also works over MIDI**: the device answers on its USB-MIDI input, so the app pairs the output with the input of the same name and reads the settings back. With a plain USB-MIDI interface to a Tiva Syntherrupter this only works if the Syntherrupter's DIN MIDI OUT is wired back to the interface; otherwise use the serial link.
 
 ## The configuration page
 
