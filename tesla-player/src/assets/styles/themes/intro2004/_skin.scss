@@ -1,0 +1,73 @@
+@use "sass:map";
+
+// ===========================================================================
+//  2004 WEBSITE INTRO LOOK: its structure
+// ===========================================================================
+// A website intro of 2004: a wide, slanted techno face for the titles (Exo 2), a
+// pixel face for the small labels (Tiny5), Verdana for the rest as the web had it,
+// glossy buttons split by their light, glows instead of shadows. The lab's map merged
+// with what the intro changes; its colours are its palettes (intro2004/_palettes.scss),
+// what tokens cannot say (the spinning logo, the glare, the flare, the preloader, the
+// swoosh) intro2004/_chrome.scss.
+$intro2004: map.merge(
+    $lab,
+    (
+        font-display: '"Exo 2", "Chakra Petch", sans-serif',
+        font-body: 'Verdana, Geneva, "DejaVu Sans", sans-serif',
+        fs-xs: 0.68rem,
+        fs-sm: 0.72rem,
+        fs-md: 0.78rem,
+        fs-lg: 0.86rem,
+        fs-xl: 1.05rem,
+        fs-2xl: 2rem,
+        radius-2xs: 2px,
+        radius-xs: 3px,
+        radius-sm: 4px,
+        radius-md: 5px,
+        radius: 6px,
+        radius-xl: 8px,
+        radius-lg: 10px,
+        shadow-pop: "0 0 20px var(--fl-glow)",
+        shadow-float: "0 0 24px var(--fl-glow)",
+        shadow-modal: "0 0 34px var(--fl-glow)",
+        shadow-panel: "0 0 14px -4px var(--fl-glow)",
+        focus-ring: "0 0 0 1px var(--volt), 0 0 10px var(--fl-glow)",
+        focus-ring-strong: "0 0 0 2px var(--volt), 0 0 12px var(--fl-glow)",
+        backdrop: "radial-gradient(1000px 520px at 50% -10%, rgb(var(--arc-glow-rgb) / 0.22), transparent 65%), var(--bg)",
+        micro-arc: linear-gradient(#000, #000),
+        micro-arc-v: linear-gradient(#000, #000),
+        // the shared pieces (their tokens: components/*.scss): glossy, glowing
+        btn-radius: 6px,
+        btn-bg: var(--fl-gloss),
+        btn-border: var(--fl-edge),
+        btn-color: var(--text-strong),
+        btn-weight: 700,
+        btn-font: var(--font-body),
+        btn-shadow: "inset 0 1px 0 rgb(255 255 255 / 0.18)",
+        btn-hover-border: var(--volt),
+        btn-hover-color: #ffffff,
+        btn-primary-bg: var(--grad),
+        btn-primary-color: var(--on-grad),
+        btn-primary-shadow: "0 0 14px var(--fl-glow), inset 0 1px 0 rgb(255 255 255 / 0.4)",
+        icon-btn-radius: 6px,
+        icon-btn-bg: var(--fl-gloss),
+        icon-btn-border: var(--fl-edge),
+        icon-btn-color: var(--text-strong),
+        field-border: var(--fl-edge),
+        field-focus-border: var(--volt),
+        field-btn-bg: var(--fl-gloss),
+        field-btn-border: var(--fl-edge),
+        field-btn-color: var(--text-strong),
+        seg-bg: var(--bg-2),
+        seg-border: var(--fl-edge),
+        seg-radius: 6px,
+        seg-item-radius: 4px,
+        seg-active-bg: var(--grad),
+        seg-active-color: var(--on-grad),
+        switch-border: var(--fl-edge),
+        modal-border: var(--volt),
+        modal-radius: 10px,
+        menu-border: var(--fl-edge),
+        toast-border: var(--volt),
+    )
+);

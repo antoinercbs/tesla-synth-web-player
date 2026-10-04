@@ -1,4 +1,4 @@
-import type { Point } from '@/vision/arc-meter';
+import type { Point, Wall } from '@/vision/arc-meter';
 
 /**
  * Accumulated arc silhouette ("heat"): how often each cell of the measurement
@@ -15,9 +15,10 @@ export interface HeatPayload {
   /** Work-px position of the grid origin (the crop origin). */
   x0: number;
   y0: number;
-  /** Zone, in work px, for drawing. */
+  /** Zone, in work px, for drawing: a wall and a floor, or (records made before it) a disk. */
   breakout: Point;
-  roiRadius: number;
+  wall?: Wall | null;
+  roiRadius?: number | null;
   excludeBelowY: number | null;
   /** Arc direction (degrees, screen coords) when the zone is a half-disk. */
   dirDeg?: number | null;
@@ -54,7 +55,7 @@ export function downsampleHeat(
   acc: Uint32Array | Float32Array,
   width: number,
   height: number,
-  geom: { x0: number; y0: number; breakout: Point; roiRadius: number; excludeBelowY: number | null; dirDeg?: number | null },
+  geom: { x0: number; y0: number; breakout: Point; wall?: Wall | null; roiRadius?: number | null; excludeBelowY: number | null; dirDeg?: number | null },
   frames: number,
   maxCells = HEAT_MAX_CELLS,
 ): HeatPayload {
@@ -73,7 +74,7 @@ export function downsampleHeat(
   for (let k = 0; k < sums.length; k++) { sums[k] /= counts[k] || 1; if (sums[k] > max) max = sums[k]; }
   const bytes = new Uint8Array(w * h);
   if (max > 0) for (let k = 0; k < bytes.length; k++) bytes[k] = Math.round((255 * sums[k]) / max);
-  return { w, h, cell, x0: geom.x0, y0: geom.y0, breakout: geom.breakout, roiRadius: geom.roiRadius, excludeBelowY: geom.excludeBelowY, dirDeg: geom.dirDeg ?? null, frames, max, data: encodeBytes(bytes) };
+  return { w, h, cell, x0: geom.x0, y0: geom.y0, breakout: geom.breakout, wall: geom.wall ?? null, roiRadius: geom.roiRadius ?? null, excludeBelowY: geom.excludeBelowY, dirDeg: geom.dirDeg ?? null, frames, max, data: encodeBytes(bytes) };
 }
 
 /**

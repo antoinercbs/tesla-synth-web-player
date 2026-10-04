@@ -4,7 +4,7 @@
 
 Tuning ("accord") a Tesla coil means moving the **primary tap** until the primary resonates with the secondary *as loaded by its arcs*, which is a little off the no-load resonance. The usual way is to play a note, look at the arcs, cut the power, move the tap by an eighth of a turn, and repeat, judging by eye. The **Tuning** screen replaces the eye with a phone camera and remembers the result.
 
-It runs as a guided session in four steps — **settings → camera → trials → save** — and every session ends with a saved record.
+It runs as a guided session in four steps — **settings → camera → trials → save** — and every session ends with a saved record. To simply measure arcs, whatever drives the coil and without saving anything, use the [free arc meter](#free-arc-meter).
 
 **Contents**
 
@@ -12,6 +12,7 @@ It runs as a guided session in four steps — **settings → camera → trials �
 - [The procedure](#the-procedure)
 - [Reading the results](#reading-the-results)
 - [Saving a tuning](#saving-a-tuning)
+- [Free arc meter](#free-arc-meter)
 - [How the measurement works](#how-the-measurement-works)
 - [Limits and good practice](#limits-and-good-practice)
 - [Safety](#safety)
@@ -39,7 +40,7 @@ Once the first trial has run, the coil and tone fields are locked for the sessio
 
 ### 2. Camera
 
-A QR code appears: scan it with the phone (or open the link on this computer for its webcam). On the phone: start the camera, **tap the picture where the arcs start** (the breakout point — nothing else is enabled until you do), turn the zone towards the **side the arcs go** (a breakout point throws them one way, so the zone is a half-disk), size it so the longest arcs fit inside, raise the **floor line** above the coil base and any LEDs, then *Zone OK*. The player moves on to the trials by itself. From now on, do not touch the phone.
+A QR code appears: scan it with the phone (or open the link on this computer for its webcam). On the phone: start the camera, then place the zone **with your finger, on the picture**. Put your finger on the **tip of the breakout pin** and swipe towards the side the arcs go: that sets the pin and the side in one gesture (*Zone OK* stays off until you do). The zone is a **corner**: everything on the arcs' side of a vertical **wall** just behind the pin (the toroid and the coil are ignored), above the dashed **floor**. Put the floor at the ground or the strike rail: the arcs dive towards it, and a strike is measured down to it (it stays where the ground is when the pin moves). Drag the red dot, the wall or the floor to adjust them; touch the arrow beside the pin to flip the side. Nothing else caps the length but the picture's edge. The picture fills the screen and never moves; the panel at the bottom lies over it and can be pulled down to its essentials (or touched on its handle) to see the whole frame. Then *Zone OK*. The player moves on to the trials by itself. From now on, do not touch the phone.
 
 ### 3. Trials
 
@@ -71,16 +72,26 @@ Saving is the last step of every session, not an afterthought: *Finish and save*
 
 The **History** tab (switch at the top right of the Tuning screen) lists every saved tuning across coils, with a coil filter and a place search. A row opens into the full record: map, the trial series drawn on the primary, arc silhouettes, tone and comment. *Use this position* brings the coil, primary settings and tap back into the Tuning tab. When the camera reports a position near a saved tuning, the tool also recalls it ("Last tuning near here").
 
+## Free arc meter
+
+The same camera measurement on its own: no session, no test tone, nothing saved, so it works with any coil, driven by this app or not. Open it from **Tuning → Free measurement**, or on a phone from the **More** menu (*Arc meter*).
+
+1. Start the camera and place the zone by hand, as in a session (see [Camera](#2-camera)).
+2. With the coil **off**, *Capture the background*.
+3. Fire the coil. Each **run** is cut out by itself, from its first arc until 1.5 s without one, and added to the **Runs** tab with its P90 (the figure of merit of the trials); the best run is marked. Very short detections (fewer than 3 frames with an arc) are dropped as glitches.
+
+Two tabs share the screen. **Camera** keeps the picture: the bottom panel holds the live reading and the last run's P90 (plus *Redo background* when the phone has moved), and pulled up, *Redo background* and *Change zone*. **Runs** lists them, the best on top, each with its P90, maximum, hit rate, duration and silhouette; a pair of scissors marks a run whose arcs were often cut by the picture's edge or the wall (its length is short). The camera keeps measuring while the list is shown. The runs live as long as the page stays open. Lengths are in pixels, comparable as long as the phone does not move.
+
 ## How the measurement works
 
 Everything runs on the phone; only small summaries travel to the player.
 
 1. **Background**: right before each trial, with the coil off, the camera accumulates a couple of dozen frames. Their per-pixel 20th percentile is the background; the per-pixel noise is measured on the dark side of the distribution, so a stray arc cannot inflate it.
-2. **Alignment**: each frame is aligned onto the background by an integer translation found by normalised cross-correlation on gradient features of the decor around the zone. The phone is supposed to be still: this is a safety net, and a shift beyond a few pixels flags the frame as *moved* and discards it.
+2. **Alignment**: each frame is aligned onto the background by an integer translation found by normalised cross-correlation on gradient features of the decor next to the zone: a band behind the wall (the toroid, the coil) and one below the floor. The phone is supposed to be still: this is a safety net, and a shift beyond a few pixels flags the frame as *moved* and discards it.
 3. **Difference and top-hat**: the frame minus the background (max over the colour channels), then a white top-hat with a 9×9 window: thin bright filaments survive, diffuse illumination (the arc lighting up the room) and exposure drift do not.
 4. **Threshold**: per pixel, the largest of 5 × the measured noise, 2 × the background gradient (tolerates residual misalignment on static edges) and a floor of 16 levels.
 5. **Thin channels only**: a pixel counts only if the top-hat keeps most of its brightness (a channel does; ground lit up by a strike keeps only its texture). So a ground strike is measured up to where the channel meets the ground, not across the lit ground. The rule looks at *how* a pixel is lit, not at how many of its neighbours are: a channel that blooms to several pixels, or forks, passes like a hair-thin one.
-6. **Chaining**: the mask is bridged over small gaps and flood-filled from a small disk around the breakout; only what is connected to the breakout counts, and only if it contains a clearly bright core (an arc does, an edge residue does not). The length is the farthest kept pixel from the breakout.
+6. **Chaining**: the mask is bridged over small gaps and flood-filled from a small disk around the breakout (10 px of the work frame); only what is connected to the breakout counts, and only if it contains a clearly bright core (an arc does, an edge residue does not). The length is the farthest kept pixel from the breakout. When the kept arc touches the wall or the picture's edge, the length is short of the real one: the phone says so live (the limit turns red), and the free meter marks the run.
 
 On the club's test recordings this gives a P90 that varies by about 3 % between successive 3 s windows on a fixed camera, even with music playing rather than a constant tone.
 
@@ -90,7 +101,7 @@ On the club's test recordings this gives a P90 that varies by about 3 % between 
 - **Frame against a dark background** when you can, with the coil base and any LEDs below the floor line. Bright lit windows behind the arcs reduce the contrast.
 - **Filming a screen** (a video of a coil) is a useful dry run but a harsh one: screen refresh and moiré add flicker the background model cannot predict, so expect stray detections that a real scene does not produce.
 - **Daylight** has not been validated: arcs are far less visible and the measurement gets noisy. Dusk or shade works much better.
-- If the arc reaches the edge of the zone, the length saturates: enlarge the zone.
+- If the arcs reach the picture's edge or the wall, the length saturates: the phone warns. Move the phone back, or the wall.
 - The phone locks exposure, white balance and focus when the browser allows it (Android Chrome); on iOS the background capture at each trial compensates instead.
 
 ## Safety
@@ -102,7 +113,7 @@ On the club's test recordings this gives a P90 that varies by about 3 % between 
 
 ## For developers
 
-- Front: `tesla-player/src/vision/arc-meter.ts` (the meter, pure TypeScript, unit-tested and replayable on recordings), `src/tuning/*` (session protocol and link, tone runner, suggestion, heat maps, components), views `TuneView.vue` (player, the four-step session) and `TuneCameraView.vue` (phone, route `/tune/cam/:sessionId`, no app chrome, public).
+- Front: `tesla-player/src/vision/arc-meter.ts` (the meter, pure TypeScript, unit-tested and replayable on recordings), `src/tuning/*` (session protocol and link, tone runner, suggestion, heat maps, components), views `TuneView.vue` (player, the four-step session), `TuneCameraView.vue` (phone, route `/tune/cam/:sessionId`, no app chrome, public) and `ArcMeterView.vue` (the free meter, route `/tune/meter`, no app chrome, behind the login). Both phone pages are built on `tuning/ArcCamera.vue` (camera, corner zone placed by touch, background, per-frame measurement, the overlay sheet); the meter still accepts the prototype's disk zone, which the replays and the records saved with it use; `tuning/arc-window.ts` holds a measurement window (statistics + silhouette) and the run segmentation of the free meter.
 - Backend: `nest-backend/src/tuning/` — an in-memory session relay gated by the session token rather than OIDC, and the `CoilTuning` table behind `/api/tunings`.
 - **The live channel is a WebSocket**, one per side, on `…/sessions/:id/ws?token=&after=&who=`: the hub (`tuning-ws.hub.ts`) pushes events and presence changes, and a publish travels up the same socket and comes back acknowledged with its sequence number. A reconnection replays from `after=`, so nothing is lost. SSE (`GET …/events`) and polling (`GET …/poll` + `POST …/events`) remain as fallbacks when a socket cannot be opened at all (a proxy that does not upgrade), and for publishing while the channel is down.
 - Desktop: `electron/src/lan-server.ts` starts an HTTPS server on the in-process Nest app for the session (self-signed certificate cached in the user data folder) and routes its `upgrade` events to the same hub, so the phone gets the WebSocket. The renderer cannot upgrade over the in-process `app://` transport, so it runs the *same* hub connection through the main process (`tuning:open` / `tuning:send` / `tuning:message` IPC).

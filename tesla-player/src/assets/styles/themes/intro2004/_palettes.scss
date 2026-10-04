@@ -1,0 +1,157 @@
+@use "sass:map";
+
+// ===========================================================================
+//  2004 WEBSITE INTRO LOOK: its palettes
+// ===========================================================================
+// The animated intro of a 2004 website, of no one site: a dark stage, glowing lines
+// sweeping across it, a lens flare drifting, chrome lettering, glossy buttons a glare
+// runs over, the preloader's bar. Each palette is written out whole, as the custom
+// properties it sets on [data-theme="<id>"]: the shared ones, then its own, including
+// the chrome intro2004/_chrome.scss and the $intro2004 map read (--fl-glow, --fl-gloss…).
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+// the lens flare: a hot spot and the rings strung out from it
+@function -fl-flare($rgb) {
+    @return "radial-gradient(circle at 18% 22%, rgb(255 255 255 / 0.5) 0 1.2%, rgb(#{$rgb} / 0.35) 2.5%, transparent 9%), radial-gradient(circle at 34% 40%, rgb(#{$rgb} / 0.18) 0 3%, transparent 3.4%), radial-gradient(circle at 46% 52%, transparent 0 5%, rgb(#{$rgb} / 0.14) 5.2% 6%, transparent 6.4%), radial-gradient(circle at 58% 63%, rgb(255 255 255 / 0.12) 0 1.6%, transparent 2%)";
+}
+
+@function -fl-stage($rgb) {
+    @return (
+        fl-flare: -fl-flare($rgb),
+        fl-lines: "repeating-linear-gradient(115deg, transparent 0 120px, rgb(#{$rgb} / 0.1) 120px 121px, transparent 121px 260px)",
+        fl-glow: "rgb(#{$rgb} / 0.6)",
+        fl-edge: "rgb(#{$rgb} / 0.45)",
+        fl-glare: "linear-gradient(100deg, transparent 20%, rgb(255 255 255 / 0.55) 50%, transparent 80%)",
+        fl-chrome: "linear-gradient(180deg, #ffffff 0%, #dfe6ee 45%, #7f8a98 50%, #c6cfdb 75%, #ffffff 100%)",
+    );
+}
+
+$fl-shared: (
+    hi-rgb: "255 255 255",
+    text-bright: #ffffff,
+    knob: #ffffff,
+    danger: #ff3b3b,
+    danger-rgb: "255 59 59",
+    danger-text: #ff6a6a,
+    danger-text-hover: #ffaaaa,
+    ok: #7dff5a,
+    ok-rgb: "125 255 90",
+    amber: #ffb020,
+    amber-rgb: "255 176 32",
+    caution: #ffd24d,
+    caution-rgb: "255 210 77",
+    caution-text: #ffd966,
+    warn: #ff9f1a,
+    conflict: #ffb454,
+    duplicate: #ff8c69,
+    duplicate-rgb: "255 140 105",
+    worse: #ff8c42,
+    coil-0: #ff4d6d,
+    coil-1: #ffd23f,
+    coil-2: #7dff5a,
+    coil-3: #36d6ff,
+    coil-4: #b98aff,
+    coil-5: #ff8c42,
+    plasma: #b98aff,
+    fl-skip: '"SKIP INTRO »"',
+);
+
+// the order is the picker's, the first the look's default
+$intro2004-palettes: (
+    // the blue glow of every intro that year
+    neonblue: map.merge(
+        -fl-stage("54 190 255"),
+        (
+            bg: #03060d,
+            bg-2: #060b16,
+            panel: #0a1222,
+            panel-2: #111c33,
+            bg-rgb: "3 6 13",
+            line-rgb: "54 190 255",
+            text: #d8ecff,
+            text-rgb: "216 236 255",
+            text-dim: #a7c4e0,
+            text-mute: #7f9bb8,
+            text-strong: #ffffff,
+            volt: #36beff,
+            volt-rgb: "54 190 255",
+            ink: #03060d,
+            grad: "linear-gradient(180deg, #7fd8ff 0%, #1a9ae6 50%, #0870b8 51%, #1f9ae0 100%)",
+            on-grad: #ffffff,
+            arc-core: #e0f6ff,
+            arc-mid: #36beff,
+            arc-deep: #1f5aff,
+            arc-glow-rgb: "54 190 255",
+            fl-gloss: "linear-gradient(180deg, #2a3a58 0%, #1a2640 50%, #0f1830 51%, #16223c 100%)",
+            fl-band: "linear-gradient(180deg, #16284a 0%, #0c1830 50%, #081226 51%, #0e1a34 100%)",
+            swatch: "radial-gradient(circle at 30% 30%, #ffffff 0 4%, rgb(54 190 255 / 0.6) 8%, transparent 20%), linear-gradient(115deg, transparent 48%, rgb(54 190 255 / 0.6) 50%, transparent 52%), #03060d",
+        )
+    ),
+    // orange on black, the other half of the year's intros
+    sunburst: map.merge(
+        -fl-stage("255 140 30"),
+        (
+            bg: #0c0602,
+            bg-2: #120904,
+            panel: #1a0e06,
+            panel-2: #26160a,
+            bg-rgb: "12 6 2",
+            line-rgb: "255 140 30",
+            text: #ffe6cc,
+            text-rgb: "255 230 204",
+            text-dim: #e6c29a,
+            text-mute: #bb9670,
+            text-strong: #ffffff,
+            volt: #ff9a2e,
+            volt-rgb: "255 154 46",
+            ink: #0c0602,
+            grad: "linear-gradient(180deg, #ffc27a 0%, #ff8a1a 50%, #d86400 51%, #ff8a1a 100%)",
+            on-grad: #1a0c02,
+            arc-core: #fff0dc,
+            arc-mid: #ff8c1e,
+            arc-deep: #d0301a,
+            arc-glow-rgb: "255 140 30",
+            fl-gloss: "linear-gradient(180deg, #4a2c14 0%, #331c0a 50%, #241206 51%, #2e1a0a 100%)",
+            fl-band: "linear-gradient(180deg, #3e220c 0%, #2a1606 50%, #1e0e04 51%, #281406 100%)",
+            swatch: "radial-gradient(circle at 30% 30%, #ffffff 0 4%, rgb(255 140 30 / 0.6) 8%, transparent 20%), linear-gradient(115deg, transparent 48%, rgb(255 140 30 / 0.6) 50%, transparent 52%), #0c0602",
+        )
+    ),
+    // brushed silver and lime, the portfolio of a studio
+    darkchrome: map.merge(
+        -fl-stage("160 255 40"),
+        (
+            bg: #0b0c0e,
+            bg-2: #101114,
+            panel: #17191d,
+            panel-2: #20232a,
+            bg-rgb: "11 12 14",
+            line-rgb: "160 255 40",
+            text: #e4e8ee,
+            text-rgb: "228 232 238",
+            text-dim: #b8bec8,
+            text-mute: #8e959f,
+            text-strong: #ffffff,
+            volt: #a0ff28,
+            volt-rgb: "160 255 40",
+            ink: #0b0c0e,
+            grad: "linear-gradient(180deg, #d4ff8a 0%, #8ee61a 50%, #5fb800 51%, #8ee61a 100%)",
+            on-grad: #0b0c0e,
+            arc-core: #f0ffd8,
+            arc-mid: #a0ff28,
+            arc-deep: #c0c8d4,
+            arc-glow-rgb: "160 255 40",
+            fl-gloss: "linear-gradient(180deg, #4a4f58 0%, #30343b 50%, #22252b 51%, #2c3037 100%)",
+            fl-band: "linear-gradient(180deg, #3a3e46 0%, #262a31 50%, #1a1d22 51%, #23262c 100%)",
+            swatch: "radial-gradient(circle at 30% 30%, #ffffff 0 4%, rgb(160 255 40 / 0.6) 8%, transparent 20%), linear-gradient(180deg, #dfe6ee, #7f8a98 50%, #c6cfdb), #0b0c0e",
+        )
+    ),
+);
+
+@each $id, $p in $intro2004-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($fl-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

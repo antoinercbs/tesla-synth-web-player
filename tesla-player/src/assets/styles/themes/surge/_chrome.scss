@@ -1,0 +1,303 @@
+// ===========================================================================
+//  OVERVOLTAGE LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $surge map (surge/_skin.scss), its colours the palette
+// picked among surge/_palettes.scss (every colour here reads one, --sg-…). Here: the
+// arcs crackling under each head and down the sidebar's edge (two shapes, flicked
+// between under three times a second: no flash, a thin line), the light dipping twice
+// every few seconds, the titles and icons humming, a spark where the pointer lands.
+// Panic and Stop spark nothing and nothing that holds them moves; every motion is by
+// transform or opacity, and none for whoever asks for less. Every rule sits under
+// [data-skin="surge"] and this file comes last; the pages' controls are named by
+// family (../_families.scss).
+
+$sg-sparking: ".btn:not(.btn--panic, .btn--stop), .nav-item, .row-btn, .icon-btn";
+$sg-humming: ".view-head__title, .brand__app, .nav-item .icon, .player-panel__head .icon, .sidebar-coil__dot";
+
+@keyframes sg-flick-a {
+    0%,
+    32% {
+        opacity: 1;
+    }
+
+    33%,
+    65% {
+        opacity: 0.15;
+    }
+
+    66%,
+    100% {
+        opacity: 0.55;
+    }
+}
+
+@keyframes sg-flick-b {
+    0%,
+    32% {
+        opacity: 0.1;
+    }
+
+    33%,
+    65% {
+        opacity: 1;
+    }
+
+    66%,
+    100% {
+        opacity: 0.4;
+    }
+}
+
+// the light dipping: twice, briefly, every seven seconds
+@keyframes sg-brownout {
+    0%,
+    70%,
+    73%,
+    76%,
+    100% {
+        opacity: 0;
+    }
+
+    71.5% {
+        opacity: 0.35;
+    }
+
+    74.5% {
+        opacity: 0.22;
+    }
+}
+
+@keyframes sg-hum {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    25% {
+        transform: translate(0.6px, -0.4px);
+    }
+
+    50% {
+        transform: translate(-0.5px, 0.5px);
+    }
+
+    75% {
+        transform: translate(0.4px, 0.6px);
+    }
+}
+
+@keyframes sg-spark {
+    0% {
+        opacity: 1;
+        transform: scale(0.4) rotate(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: scale(1.4) rotate(30deg);
+    }
+}
+
+// two arcs laid along an edge, one showing while the other fades
+@mixin arcs($a, $b, $size, $along) {
+    &::before,
+    &::after {
+        content: "";
+        position: absolute;
+        z-index: 2;
+        pointer-events: none;
+        background: var(#{$a}) 0 0 / #{$size} repeat-#{$along};
+    }
+
+    &::after {
+        background-image: var(#{$b});
+    }
+}
+
+[data-skin="surge"] {
+    color-scheme: dark;
+
+    ::selection {
+        background: var(--volt);
+        color: var(--ink);
+    }
+
+    .view-head__title,
+    .brand__app {
+        letter-spacing: 0.04em;
+        color: var(--text-strong);
+        text-shadow:
+            0 0 8px var(--sg-glow),
+            0 0 18px var(--sg-glow);
+    }
+
+    // Audiowide is wider than the lab's face: smaller and tracked tighter, the name fits
+    .brand__app {
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
+    }
+
+    .brand__emblem {
+        filter: drop-shadow(0 0 8px var(--sg-glow));
+    }
+
+    // --- the arcs: under the heads, down the sidebar --------------------------------------
+    #{$panels} {
+        border-color: var(--sg-edge);
+        box-shadow: var(--shadow-panel);
+    }
+
+    #{$panel-heads} {
+        position: relative;
+        background: var(--sg-band);
+        border-bottom-color: var(--sg-edge);
+
+        @include arcs(--sg-arc-a, --sg-arc-b, 200px 16px, x);
+
+        &::before,
+        &::after {
+            left: 0;
+            right: 0;
+            bottom: -8px;
+            height: 16px;
+        }
+    }
+
+    .sidebar {
+        position: relative;
+        border-right-color: var(--sg-edge);
+
+        @include arcs(--sg-arc-va, --sg-arc-vb, 16px 200px, y);
+
+        &::before,
+        &::after {
+            top: 0;
+            bottom: 0;
+            right: 0;
+            width: 16px;
+        }
+    }
+
+    .nav-item.router-link-active {
+        box-shadow: 0 0 14px -2px var(--sg-glow);
+    }
+
+    .nav-item.router-link-active::before {
+        width: 4px;
+        left: -2px;
+        background: var(--arc-core);
+        box-shadow: 0 0 10px var(--sg-glow);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .segmented__arc {
+        bottom: -8px;
+        height: 16px;
+        margin-left: 0;
+        padding: 0;
+        background: var(--sg-arc-a) 0 0 / 200px 16px repeat-x;
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    .sidebar-coil__dot {
+        box-shadow: 0 0 8px var(--c);
+    }
+
+    .play-row.is-current::before {
+        width: 4px;
+        left: 0;
+        background: var(--arc-core);
+        box-shadow: 0 0 10px var(--sg-glow);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    // --- the light dipping over the whole page (under the dialogs, never catching a click) ---------
+    .app-shell::after {
+        content: "";
+        position: fixed;
+        z-index: 90;
+        inset: 0;
+        background: #000000;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    // --- sliders: a live wire, its hot point --------------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: var(--sg-edge);
+        --range-track-h: 3px;
+        --range-track-radius: 2px;
+        --range-track-shadow: 0 0 8px var(--sg-glow);
+        --range-thumb: radial-gradient(circle, var(--arc-core) 0 35%, var(--volt) 60%, var(--arc-deep));
+        --range-thumb-hover: var(--range-thumb);
+        --range-thumb-w: 18px;
+        --range-thumb-h: 18px;
+        --range-thumb-border: 0;
+        --range-thumb-radius: 50%;
+        --range-thumb-shadow: 0 0 12px var(--sg-glow);
+        --range-focus: 2px solid var(--volt);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+
+    // --- the motion -------------------------------------------------------------------------------------
+    @media (prefers-reduced-motion: no-preference) {
+        #{$panel-heads},
+        .sidebar {
+            &::before {
+                animation: sg-flick-a 1.1s infinite;
+            }
+
+            &::after {
+                animation: sg-flick-b 1.1s infinite;
+            }
+        }
+
+        .sidebar {
+            &::before,
+            &::after {
+                animation-duration: 1.3s;
+            }
+        }
+
+        .app-shell::after {
+            animation: sg-brownout 7s infinite;
+        }
+
+        #{$sg-humming} {
+            animation: sg-hum 0.24s steps(4) infinite;
+        }
+
+        // a spark at the corner of what the pointer lands on
+        #{$sg-sparking} {
+            position: relative;
+
+            &::after {
+                content: "";
+                position: absolute;
+                z-index: 5;
+                top: -18px;
+                right: -18px;
+                width: 36px;
+                height: 36px;
+                background: var(--sg-spark) center / contain no-repeat;
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            &:hover:not(:disabled)::after {
+                animation: sg-spark 0.35s ease-out;
+            }
+        }
+    }
+}

@@ -541,6 +541,26 @@ export default {
     digital: "Vert numérique",
     redpill: "Pilule rouge",
     bluepill: "Pilule bleue",
+
+    strawberry: "Fraise",
+    mint: "Menthe",
+    blueberry: "Myrtille",
+
+    confetti: "Confettis",
+    bunting: "Guirlande",
+    nightparty: "Fête de nuit",
+
+    bluearc: "Arc bleu",
+    violetarc: "Arc violet",
+    sodium: "Lampe au sodium",
+
+    neonblue: "Bleu néon",
+    sunburst: "Éclat orange",
+    darkchrome: "Chrome sombre",
+
+    hyperpop: "Hyperpop",
+    slime: "Slime",
+    doomscroll: "Scroll à 3 h du mat'",
   },
   skin: {
     title: "Apparence",
@@ -592,6 +612,16 @@ export default {
     seventies: "Salon années 70",
 
     coderain: "Pluie de code",
+
+    gelatin: "Tout en gelée",
+
+    birthday: "Anniversaire surprise",
+
+    surge: "Surtension",
+
+    intro2004: "Intro de site 2004",
+
+    brainrot: "Brainrot",
   },
   skinGroup: {
     computers: "Ordinateurs d'antan",
@@ -1056,20 +1086,21 @@ export default {
         title: "Sur le téléphone",
         text: "Le téléphone a scanné le QR code : la page caméra s'ouvre dans son navigateur.",
         points: [
-          "Pose-le sur un support, la bobine et l'espace au-dessus du tore dans le cadre.",
+          "Pose-le sur un support, la pointe de sortie et l'espace où partent les arcs dans le cadre.",
           "Puis démarre la caméra.",
         ],
       },
       tuneBreakout: {
-        title: "Le point de sortie",
-        text: "Touche l'image là où les arcs partent, en haut du tore : la zone de mesure se place autour de ce point.",
+        title: "La pointe de sortie",
+        text: "Pose le doigt sur le bout de la pointe d'où partent les arcs, et glisse vers le côté où ils vont : la zone de mesure se place de ce côté.",
       },
       tuneZone: {
         title: "La zone de mesure",
-        text: "Ajuste la zone :",
+        text: "La zone est un coin, réglé au doigt :",
         points: [
-          "agrandis-la pour que les arcs les plus longs y tiennent, et tourne-la du côté où ils partent (ici, vers le haut) ;",
-          "remonte la ligne basse au-dessus du pied de la bobine et des LED : rien n'est mesuré en dessous.",
+          "le mur, derrière la pointe : rien n'est mesuré au-delà (le tore, la bobine) ;",
+          "le sol pointillé, au niveau du sol ou de l'anneau anti-frappe : les arcs y plongent, une frappe est mesurée jusque-là ;",
+          "la flèche à côté de la pointe inverse le côté quand on la touche.",
         ],
       },
       tuneZoneOk: {
@@ -1107,7 +1138,7 @@ export default {
       },
       tunePhoneTrial: {
         title: "L'essai, côté téléphone",
-        text: "Le téléphone suit chaque essai : la note mesurée, la longueur des arcs en direct, puis le score comparé au meilleur.",
+        text: "Le téléphone suit chaque essai. Replié, son tiroir montre la note mesurée et la longueur des arcs en direct ; tiré vers le haut, l'essai en détail et le score comparé au meilleur.",
         note: "Son bouton **STOP** arrête tout depuis la bobine.",
       },
       tuneCompare: {
@@ -1734,16 +1765,26 @@ export default {
         "Caméra indisponible. Autorise l'accès à la caméra puis recharge la page.",
       needHttps:
         "La caméra ne fonctionne qu'en HTTPS (ou sur cet ordinateur via localhost).",
-      step1: "Touche le point de sortie, là où les arcs quittent le tore.",
-      tapPrompt: "Touche l\u2019image là où les arcs partent",
-      tapFirst: "Touche d\u2019abord le point de sortie",
-      step2:
-        "Tourne la zone du côté où partent les arcs et agrandis-la pour que les plus longs y tiennent. Remonte ensuite la ligne basse au-dessus du pied de la bobine et des LED.",
-      direction: "Côté des arcs",
-      radius: "Rayon de la zone",
-      floor: "Ligne basse",
       validate: "Zone OK",
       redo: "Changer la zone",
+      aimPrompt: "Pose le doigt sur la pointe et glisse vers où partent les arcs",
+      aimFirst: "Place d'abord la pointe",
+      legendBreakout: "Pointe",
+      legendSide: "Côté",
+      legendWall: "Mur",
+      legendFloor: "Sol",
+      howBreakout:
+        "Le point rouge, au bout de la pointe d'où partent les arcs : fais-le glisser pour l'ajuster, ou pose le doigt ailleurs et glisse pour tout replacer.",
+      howSide:
+        "La flèche montre le côté où partent les arcs : touche-la pour l'inverser.",
+      howWall:
+        "Le mur, juste derrière la pointe : rien n'est mesuré de l'autre côté (le tore, la bobine, son pied).",
+      howFloor:
+        "Le sol pointillé : place-le au niveau du sol, ou de l'anneau anti-frappe. Un arc qui y frappe est mesuré jusque-là ; rien n'est mesuré en dessous.",
+      edgeFrame: "Les arcs sortent de l'image : recule le téléphone",
+      edgeWall: "Les arcs touchent le mur : recule-le",
+      sheetMore: "Afficher les détails",
+      sheetLess: "Masquer les détails",
       waiting: "Prête, en attente de l'ordinateur",
       capturing: "Capture du fond…",
       measuring: "Mesure",
@@ -1772,6 +1813,26 @@ export default {
       trialAborted: "Essai interrompu",
       waitingTrial:
         "Prête. Lance un essai depuis l'ordinateur, il s'affichera ici pendant qu'il tourne.",
+    },
+    meter: {
+      title: "Mesure d'arcs",
+      open: "Mesure libre",
+      openHint:
+        "Mesurer la longueur des arcs à la caméra, sans session ni sauvegarde, quoi que ce soit qui commande la bobine.",
+      bgFirst:
+        "Coupe la bobine, puis capture le fond : chaque image lui sera comparée.",
+      captureBg: "Capturer le fond",
+      recaptureBg: "Refaire le fond",
+      watching: "En attente d'arcs",
+      running: "Tir en cours",
+      lastRun: "Dernier tir : {px} px",
+      tabCamera: "Caméra",
+      runs: "Tirs",
+      bestRun: "Meilleur : #{n} · {px} px",
+      cut: "Arcs coupés par le bord de l'image ou le mur : longueur sous-estimée",
+      clear: "Effacer",
+      runsEmpty:
+        "Allume la bobine : chaque tir est mesuré tout seul, du premier arc jusqu'à {gap} sans arc. Longueurs en pixels, comparables tant que le téléphone ne bouge pas. Rien n'est enregistré.",
     },
   },
   message: {

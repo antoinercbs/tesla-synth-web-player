@@ -438,7 +438,12 @@ onBeforeUnmount(() => { void endSession(); });
   <div class="screen tune">
     <header class="screen-head">
       <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="tune-live-dot"></span>{{ phaseLabel }}</span></h1>
-      <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="modeOptions" />
+      <div class="tune-head-actions">
+        <router-link class="btn btn--ghost" :to="{ name: 'arc-meter' }" :title="t('tune.meter.openHint')">
+          <span class="icon"><i class="fas fa-ruler"></i></span>{{ t('tune.meter.open') }}
+        </router-link>
+        <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="modeOptions" />
+      </div>
     </header>
 
     <!-- ================================================================ History tab -->

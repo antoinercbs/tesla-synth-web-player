@@ -39,22 +39,33 @@ export interface Rect {
   y1: number;
 }
 
-/** Where to look: all in work-pixel coordinates of the full frame. */
+/** A vertical wall behind the breakout: the zone is the side of x = `x` that `side` points to. */
+export interface Wall {
+  x: number;
+  side: 1 | -1;
+}
+
+/**
+ * Where to look: all in work-pixel coordinates of the full frame. The zone is
+ * the whole frame, cut by whichever limits are set. The app sets a wall and a
+ * floor (a breakout pin throws its arcs to one side); the disk is the
+ * prototype's zone, kept for the replays and the records saved with it.
+ */
 export interface ArcGeometry {
   width: number;
   height: number;
-  /** Breakout point (top of the toroid where arcs start). */
+  /** Breakout point (the tip of the pin the arcs leave from). */
   breakout: Point;
-  /** Radius of the measurement disk around the breakout. */
-  roiRadius: number;
-  /** Rows at or below this y are ignored (excludes the coil base / LEDs). Null = none. */
+  wall?: Wall | null;
+  /** Rows at or below this y are ignored (excludes the coil base / LEDs / the ground). Null = none. */
   excludeBelowY?: number | null;
   /** Extra rectangular exclusions (a lit window, a lamp). */
   excludeRects?: Rect[];
+  /** Radius of a measurement disk around the breakout. Null = no limit but the frame. */
+  roiRadius?: number | null;
   /**
-   * Direction the arcs leave the breakout in, degrees in screen coordinates
-   * (0 = right, −90 = up). When set, the zone is the HALF-disk on that side: a
-   * single breakout point only ever throws arcs one way. Null = full disk.
+   * With a disk: direction the arcs leave the breakout in, degrees in screen
+   * coordinates (0 = right, −90 = up); the zone is the HALF-disk on that side.
    */
   dirDeg?: number | null;
 }
@@ -70,8 +81,10 @@ export interface ArcMeterParams {
   tophat: number;
   /** Bridging gap between mask fragments, px. */
   gapPx: number;
-  /** Root disk radius as a fraction of roiRadius (min 4 px). */
+  /** Root disk radius as a fraction of roiRadius (min 4 px)... */
   rootFrac: number;
+  /** ...and without a disk, in px: it must not grow with the zone, or it swallows short arcs. */
+  rootPx: number;
   /** Absolute top-hat level a detection must reach somewhere to count. */
   seed: number;
   /** ...and relative to the local threshold. */
@@ -82,8 +95,10 @@ export interface ArcMeterParams {
   confMin: number;
   /** Shift beyond which the camera is considered MOVED since the background. */
   movedPx: number;
-  /** Decor radius (× roiRadius) the alignment and the crop extend to. */
+  /** Decor radius (× roiRadius) the alignment and the crop extend to... */
   decorFactor: number;
+  /** ...and without a disk, the band behind the wall and below the floor, px. */
+  decorPx: number;
   /**
    * A pixel counts as arc only if its top-hat response is at least this fraction
    * of its difference to the background: a thin channel keeps ≈ 100 % of its
@@ -100,12 +115,14 @@ export const DEFAULT_PARAMS: ArcMeterParams = {
   tophat: 9,
   gapPx: 3,
   rootFrac: 0.18,
+  rootPx: 10,
   seed: 60,
   seedRel: 2,
   searchPx: 24,
   confMin: 0.3,
   movedPx: 6,
   decorFactor: 1.6,
+  decorPx: 40,
   thinRatio: 0.5,
 };
 
@@ -132,6 +149,11 @@ export interface Measurement {
   stable: boolean;
   /** True when the shift exceeds movedPx: the phone moved since the background. */
   moved: boolean;
+  /**
+   * The arc reaches a limit, so L may be short of the real length: the edge of
+   * the picture, or the zone's wall / disk. Reaching the floor is not one (a strike).
+   */
+  edge: 'frame' | 'zone' | null;
 }
 
 /** Crop rectangle (full-frame work px) the meter operates on. */
@@ -439,6 +461,10 @@ export class BackgroundBuilder {
  * The meter
  * -------------------------------------------------------------------------- */
 
+const RIM_FRAME = 1, RIM_ZONE = 2;
+/** Below this many decor pixels the alignment has nothing to hold on to: frames are taken as they come. */
+const MIN_ALIGN_PX = 64;
+
 export class ArcMeter {
   readonly params: ArcMeterParams;
   /** Full-frame size the geometry refers to. */
@@ -457,6 +483,8 @@ export class ArcMeter {
   readonly roi: Uint8Array;
   readonly root: Uint8Array;
   readonly alignMask: Uint8Array;
+  /** Zone pixels on a limit that cuts an arc short: RIM_FRAME or RIM_ZONE, else 0. */
+  readonly rim: Uint8Array;
   readonly dist: Float32Array;
   /** Kept arc pixels of the last measurement, crop-sized (for the overlay). */
   readonly keep: Uint8Array;
@@ -482,40 +510,55 @@ export class ArcMeter {
     this.params = { ...DEFAULT_PARAMS, ...params };
     const p = this.params;
     this.frameWidth = geom.width; this.frameHeight = geom.height;
-    const r = geom.roiRadius;
-    const reach = Math.ceil(p.decorFactor * r + p.searchPx + p.tophat);
-    const x0 = Math.max(0, Math.floor(geom.breakout.x - reach));
-    const y0 = Math.max(0, Math.floor(geom.breakout.y - reach));
-    const x1 = Math.min(geom.width, Math.ceil(geom.breakout.x + reach) + 1);
-    const y1 = Math.min(geom.height, Math.ceil(geom.breakout.y + reach) + 1);
+    const r = geom.roiRadius ?? null;
+    const wall = geom.wall ?? null;
+    const excl = geom.excludeBelowY ?? null;
+    let x0: number, y0: number, x1: number, y1: number;
+    if (r != null) {
+      const reach = Math.ceil(p.decorFactor * r + p.searchPx + p.tophat);
+      x0 = Math.floor(geom.breakout.x - reach); y0 = Math.floor(geom.breakout.y - reach);
+      x1 = Math.ceil(geom.breakout.x + reach) + 1; y1 = Math.ceil(geom.breakout.y + reach) + 1;
+    } else {
+      // the zone up to the frame's edges, plus the decor band behind the wall and below the floor
+      x0 = 0; y0 = 0; x1 = geom.width; y1 = geom.height;
+      if (wall) { if (wall.side > 0) x0 = Math.floor(wall.x - p.decorPx); else x1 = Math.ceil(wall.x + p.decorPx) + 1; }
+      if (excl != null) y1 = Math.ceil(excl + p.decorPx);
+    }
+    x0 = Math.max(0, x0); y0 = Math.max(0, y0); x1 = Math.min(geom.width, x1); y1 = Math.min(geom.height, y1);
     this.crop = { x0, y0, w: Math.max(8, x1 - x0), h: Math.max(8, y1 - y0) };
     const w = this.crop.w, h = this.crop.h, n = w * h;
     this.width = w; this.height = h;
     this.bx = geom.breakout.x - x0; this.by = geom.breakout.y - y0;
-    this.rootRadius = Math.max(4, p.rootFrac * r);
+    this.rootRadius = r != null ? Math.max(4, p.rootFrac * r) : Math.max(4, p.rootPx);
     this.roi = new Uint8Array(n); this.root = new Uint8Array(n); this.alignMask = new Uint8Array(n);
+    this.rim = new Uint8Array(n);
     this.dist = new Float32Array(n);
-    const excl = geom.excludeBelowY ?? null;
     const rects = geom.excludeRects ?? [];
     const dir = geom.dirDeg == null ? null : { x: Math.cos((geom.dirDeg * Math.PI) / 180), y: Math.sin((geom.dirDeg * Math.PI) / 180) };
+    const RIM = 2;
     for (let y = 0; y < h; y++) {
       for (let x = 0; x < w; x++) {
         const i = y * w + x;
         const fx = x + x0, fy = y + y0;
         const dd = Math.hypot(x - this.bx, y - this.by);
         this.dist[i] = dd;
-        let inRoi = dd <= r;
+        let inRoi = r == null || dd <= r;
         // half-disk: keep the arcs' side (with the root disk fully inside)
         if (dir && (x - this.bx) * dir.x + (y - this.by) * dir.y < -this.rootRadius) inRoi = false;
+        if (wall && (fx - wall.x) * wall.side < 0) inRoi = false;
         if (excl != null && fy >= excl) inRoi = false;
         for (const q of rects) if (fx >= q.x0 && fx < q.x1 && fy >= q.y0 && fy < q.y1) inRoi = false;
         this.roi[i] = inRoi ? 1 : 0;
         this.root[i] = dd <= this.rootRadius ? 1 : 0;
+        if (!inRoi) continue;
+        // the limits that cut an arc short (the floor stops a strike: not one of them)
+        if (fx < RIM || fy < RIM || fx >= geom.width - RIM || fy >= geom.height - RIM) this.rim[i] = RIM_FRAME;
+        else if ((r != null && dd > r - RIM) || (wall && (fx - wall.x) * wall.side < RIM)) this.rim[i] = RIM_ZONE;
       }
     }
     const big = new Uint8Array(n), tmp = new Uint8Array(n);
     dilateBinary(this.roi, w, h, 7, big, tmp);
-    for (let i = 0; i < n; i++) this.alignMask[i] = !big[i] && this.dist[i] <= p.decorFactor * r ? 1 : 0;
+    for (let i = 0; i < n; i++) this.alignMask[i] = !big[i] && (r == null || this.dist[i] <= p.decorFactor * r) ? 1 : 0;
     this.cropBuf = new Uint8ClampedArray(n * 4);
     this.aligned = new Uint8ClampedArray(n * 4);
     this.gray = new Float32Array(n);
@@ -595,7 +638,7 @@ export class ArcMeter {
    * then fine ±3 px. Returns the masked NCC as confidence.
    */
   align(crop: Uint8ClampedArray): Shift {
-    if (!this.nccFull || !this.nccQ) return { dx: 0, dy: 0, conf: 1 };
+    if (!this.nccFull || !this.nccQ || this.alignXs.length < MIN_ALIGN_PX) return { dx: 0, dy: 0, conf: 1 };
     const w = this.width, h = this.height;
     toGray(crop, w * h, this.gray);
     const feat = this.feature(this.gray, this.f3);
@@ -687,10 +730,11 @@ export class ArcMeter {
       }
     }
     const keep = this.keep; keep.fill(0);
-    let area = 0, strong = false, energy = 0, L = 0, tipIdx = -1;
+    let area = 0, strong = false, energy = 0, L = 0, tipIdx = -1, rim = 0;
     for (let i = 0; i < n; i++) {
       if (!(mask[i] && visited[i])) continue;
       keep[i] = 1; area++; energy += top[i];
+      if (this.rim[i] > rim) rim = this.rim[i];
       if (!this.root[i]) {
         const need = Math.max(p.seed, p.seedRel * bg.thr[i]);
         if (top[i] > need) strong = true;
@@ -699,10 +743,11 @@ export class ArcMeter {
     }
     if (!strong || area === 0) {
       keep.fill(0);
-      return { L: 0, tip: null, area: 0, stray: maskCount, energy: 0, shift: sh, stable, moved };
+      return { L: 0, tip: null, area: 0, stray: maskCount, energy: 0, shift: sh, stable, moved, edge: null };
     }
     const tip = tipIdx >= 0 ? { x: (tipIdx % w) + this.crop.x0, y: Math.floor(tipIdx / w) + this.crop.y0 } : null;
-    return { L, tip, area, stray: maskCount - area, energy, shift: sh, stable, moved };
+    const edge = rim === RIM_ZONE ? 'zone' : rim === RIM_FRAME ? 'frame' : null;
+    return { L, tip, area, stray: maskCount - area, energy, shift: sh, stable, moved, edge };
   }
 }
 

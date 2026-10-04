@@ -46,6 +46,11 @@ export const THEMES = {
   photocopy: ['toner', 'fax', 'ditto'],
   seventies: ['shag', 'avocado', 'corduroy'],
   coderain: ['digital', 'redpill', 'bluepill'],
+  gelatin: ['strawberry', 'mint', 'blueberry'],
+  birthday: ['confetti', 'bunting', 'nightparty'],
+  surge: ['bluearc', 'violetarc', 'sodium'],
+  intro2004: ['neonblue', 'sunburst', 'darkchrome'],
+  brainrot: ['hyperpop', 'slime', 'doomscroll'],
 } as const satisfies Record<SkinId, readonly string[]>;
 export type ThemeId = (typeof THEMES)[SkinId][number];
 

@@ -1,0 +1,312 @@
+// ===========================================================================
+//  2004 WEBSITE INTRO LOOK: the chrome its tokens cannot say
+// ===========================================================================
+// Its type and shape are the $intro2004 map (intro2004/_skin.scss), its colours the
+// palette picked among intro2004/_palettes.scss (every colour here reads one, --fl-…).
+// Here: the preloader's bar at start, the "skip intro" that skips nothing, the logo
+// spinning, the glare running over the buttons, the lens flare drifting, the lines
+// sweeping behind, the boxes and the title flying in. Panic and Stop stay plain and
+// nothing that holds them moves; every motion is by transform or opacity, and none
+// for whoever asks for less. Every rule sits under [data-skin="intro2004"] and this
+// file comes last; the pages' controls are named by family (../_families.scss).
+
+$fl-glaring: ".btn:not(.btn--panic, .btn--stop), .segmented:not(.segmented--tabs) button.is-active";
+
+@keyframes fl-preload {
+    0% {
+        transform: scaleX(0);
+        opacity: 1;
+    }
+
+    85% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scaleX(1);
+        opacity: 0;
+    }
+}
+
+@keyframes fl-blink {
+    to {
+        opacity: 0.3;
+    }
+}
+
+@keyframes fl-spin {
+    to {
+        transform: rotateY(360deg);
+    }
+}
+
+@keyframes fl-glare {
+    0% {
+        transform: translateX(-120%) skewX(-20deg);
+    }
+
+    35%,
+    100% {
+        transform: translateX(260%) skewX(-20deg);
+    }
+}
+
+@keyframes fl-drift {
+    from {
+        transform: translate(-8%, -6%);
+    }
+
+    to {
+        transform: translate(10%, 8%);
+    }
+}
+
+// one period of the lines, along their direction (115deg)
+@keyframes fl-sweep {
+    to {
+        transform: translate(235.6px, 109.9px);
+    }
+}
+
+@keyframes fl-swoosh {
+    from {
+        transform: translateX(-70px) skewX(10deg);
+        opacity: 0;
+    }
+}
+
+@keyframes fl-zoom {
+    from {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+[data-skin="intro2004"] {
+    color-scheme: dark;
+
+    ::selection {
+        background: var(--volt);
+        color: var(--ink);
+    }
+
+    // --- the stage: the lines behind, the flare in front (never catching a click) ------------
+    .app-shell {
+        position: relative;
+        isolation: isolate;
+    }
+
+    .app-shell::before,
+    .app-shell::after {
+        content: "";
+        position: fixed;
+        pointer-events: none;
+    }
+
+    .app-shell::before {
+        z-index: -1;
+        inset: -300px 0 0 -300px;
+        background: var(--fl-lines);
+    }
+
+    .app-shell::after {
+        z-index: 44;
+        inset: -20%;
+        background: var(--fl-flare);
+        mix-blend-mode: screen;
+    }
+
+    // the preloader's bar, then "skip intro", which skips nothing
+    .app-main::before {
+        content: "";
+        position: fixed;
+        z-index: 46;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--grad);
+        box-shadow: 0 0 10px var(--fl-glow);
+        transform-origin: 0 50%;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .app-main::after {
+        content: var(--fl-skip);
+        position: fixed;
+        z-index: 46;
+        top: 4px;
+        right: 14px;
+        font-family: "Tiny5", var(--font-body);
+        font-size: 0.75rem;
+        letter-spacing: 0.08em;
+        color: var(--text-mute);
+        pointer-events: none;
+    }
+
+    // --- lettering: chrome titles, pixel labels ----------------------------------------------------
+    .view-head__title {
+        font-style: italic;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        background: var(--fl-chrome);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        filter: drop-shadow(0 0 8px var(--fl-glow));
+    }
+
+    .brand {
+        perspective: 500px;
+    }
+
+    .brand__app {
+        font-style: italic;
+        font-weight: 800;
+    }
+
+    .brand__emblem {
+        filter: drop-shadow(0 0 8px var(--fl-glow));
+    }
+
+    #{$panel-heads},
+    .nav-item,
+    .sidebar-section__title {
+        font-family: "Tiny5", var(--font-body);
+        font-size: 0.95rem;
+        font-weight: 400;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    // --- boxes: dark glass, glossy heads with a glowing line --------------------------------------------
+    #{$panels} {
+        border-color: var(--fl-edge);
+        background: rgb(var(--bg-rgb) / 0.82);
+        box-shadow: var(--shadow-panel);
+    }
+
+    #{$panel-heads} {
+        border-bottom: 1px solid var(--volt);
+        background: var(--fl-band);
+        box-shadow: 0 1px 8px var(--fl-glow);
+    }
+
+    .nav-item.router-link-active {
+        position: relative;
+        overflow: hidden;
+        background: var(--grad);
+        color: var(--on-grad);
+        box-shadow: 0 0 14px var(--fl-glow);
+    }
+
+    .nav-item.router-link-active .icon {
+        color: inherit;
+    }
+
+    .sidebar-coil__dot {
+        box-shadow: 0 0 8px var(--c);
+    }
+
+    .play-row.is-current::before {
+        left: 0;
+        width: 3px;
+        background: var(--volt);
+        box-shadow: 0 0 8px var(--fl-glow);
+        -webkit-mask: none;
+        mask: none;
+    }
+
+    // the glare a button carries (and the nav's picked item, in place of its arc)
+    #{$fl-glaring} {
+        position: relative;
+        overflow: hidden;
+    }
+
+    #{$fl-glaring},
+    .nav-item.router-link-active {
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 50%;
+            background: var(--fl-glare);
+            transform: translateX(-120%) skewX(-20deg);
+            -webkit-mask: none;
+            mask: none;
+            pointer-events: none;
+        }
+    }
+
+    // --- sliders: a glossy groove, a chrome cap ------------------------------------------------------
+    #{$sliders},
+    .power-range {
+        --range-track: var(--fl-gloss);
+        --range-track-h: 6px;
+        --range-track-radius: 3px;
+        --range-track-shadow: inset 0 0 0 1px var(--fl-edge);
+        --range-thumb: var(--fl-chrome);
+        --range-thumb-hover: var(--fl-chrome);
+        --range-thumb-w: 12px;
+        --range-thumb-h: 22px;
+        --range-thumb-border: 1px solid var(--volt);
+        --range-thumb-radius: 3px;
+        --range-thumb-shadow: 0 0 10px var(--fl-glow);
+        --range-focus: 2px solid var(--volt);
+    }
+
+    #{$sliders} {
+        @include drawn-range;
+    }
+
+    .power-range {
+        @include drawn-range($track: false);
+    }
+
+    // --- the motion ---------------------------------------------------------------------------------------
+    @media (prefers-reduced-motion: no-preference) {
+        .app-shell::before {
+            will-change: transform;
+            animation: fl-sweep 14s linear infinite;
+        }
+
+        .app-shell::after {
+            will-change: transform;
+            animation: fl-drift 18s ease-in-out infinite alternate;
+        }
+
+        .app-main::before {
+            animation: fl-preload 1.6s ease-out;
+        }
+
+        .app-main::after {
+            animation: fl-blink 1.1s ease-in-out infinite alternate;
+        }
+
+        .brand__emblem {
+            animation: fl-spin 3.5s linear infinite;
+        }
+
+        .view-head__title {
+            animation: fl-zoom 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        #{$fl-glaring},
+        .nav-item.router-link-active {
+            &::before {
+                animation: fl-glare 3.4s ease-in-out infinite;
+            }
+        }
+
+        #{$panels} {
+            &:not(:has(.player-transport, .btn--panic, canvas)) {
+                animation: fl-swoosh 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+            }
+        }
+    }
+}

@@ -538,6 +538,26 @@ export default {
     digital: "Digital green",
     redpill: "Red pill",
     bluepill: "Blue pill",
+
+    strawberry: "Strawberry",
+    mint: "Mint",
+    blueberry: "Blueberry",
+
+    confetti: "Confetti",
+    bunting: "Bunting",
+    nightparty: "Night party",
+
+    bluearc: "Blue arc",
+    violetarc: "Violet arc",
+    sodium: "Sodium lamp",
+
+    neonblue: "Neon blue",
+    sunburst: "Sunburst",
+    darkchrome: "Dark chrome",
+
+    hyperpop: "Hyperpop",
+    slime: "Slime",
+    doomscroll: "3 a.m. scroll",
   },
   skin: {
     title: "Look",
@@ -589,6 +609,16 @@ export default {
     seventies: "1970s living room",
 
     coderain: "Code rain",
+
+    gelatin: "All jelly",
+
+    birthday: "Surprise birthday",
+
+    surge: "Overvoltage",
+
+    intro2004: "2004 website intro",
+
+    brainrot: "Brainrot",
   },
   skinGroup: {
     computers: "Vintage computers",
@@ -1053,20 +1083,21 @@ export default {
         title: "On the phone",
         text: "The phone has scanned the QR code: the camera page opens in its browser.",
         points: [
-          "Put it on a stand, the coil and the space above the toroid in the frame.",
+          "Put it on a stand, the breakout pin and the space the arcs go into in the frame.",
           "Then start the camera.",
         ],
       },
       tuneBreakout: {
-        title: "The breakout point",
-        text: "Tap the picture where the arcs start, at the top of the toroid: the measuring zone centres on that point.",
+        title: "The breakout pin",
+        text: "Put your finger on the tip of the pin the arcs leave from, and swipe towards the side they go: the measuring zone takes that side.",
       },
       tuneZone: {
         title: "The measuring zone",
-        text: "Adjust the zone:",
+        text: "The zone is a corner, set with a finger:",
         points: [
-          "enlarge it so the longest arcs fit, and turn it towards where they go (here, upwards);",
-          "raise the bottom line above the coil's base and its LEDs: nothing is measured below it.",
+          "the wall, behind the pin: nothing beyond it is measured (the toroid, the coil);",
+          "the dashed floor, at the ground or the strike rail: the arcs dive towards it, and a strike is measured down to it;",
+          "the arrow beside the pin flips the side when touched.",
         ],
       },
       tuneZoneOk: {
@@ -1104,7 +1135,7 @@ export default {
       },
       tunePhoneTrial: {
         title: "The trial, on the phone",
-        text: "The phone follows each trial: the note being measured, the arcs' length live, then the score against the best.",
+        text: "The phone follows each trial. Pulled down, its sheet shows the note being measured and the arcs' length live; pulled up, the trial in detail and the score against the best.",
         note: "Its **STOP** button stops everything from the coil.",
       },
       tuneCompare: {
@@ -1728,16 +1759,26 @@ export default {
       noCamera: "Camera unavailable. Allow camera access and reload.",
       needHttps:
         "The camera only works over HTTPS (or on this computer via localhost).",
-      step1: "Tap the breakout point, where the arcs leave the toroid.",
-      tapPrompt: "Tap the picture where the arcs start",
-      tapFirst: "Tap the breakout point first",
-      step2:
-        "Turn the zone towards the side the arcs go, and size it so the longest arcs fit. Then raise the floor line above the coil base and any LEDs.",
-      direction: "Arc side",
-      radius: "Zone radius",
-      floor: "Floor line",
       validate: "Zone OK",
       redo: "Change zone",
+      aimPrompt: "Put your finger on the pin and swipe towards where the arcs go",
+      aimFirst: "Place the pin first",
+      legendBreakout: "Pin",
+      legendSide: "Side",
+      legendWall: "Wall",
+      legendFloor: "Floor",
+      howBreakout:
+        "The red dot, at the tip of the pin the arcs leave from: drag it to adjust it, or put your finger elsewhere and swipe to place everything again.",
+      howSide:
+        "The arrow shows the side the arcs go: touch it to flip it.",
+      howWall:
+        "The wall, just behind the pin: nothing on its other side is measured (the toroid, the coil, its base).",
+      howFloor:
+        "The dashed floor: put it at the ground, or the strike rail. An arc striking it is measured down to it; nothing below it is measured.",
+      edgeFrame: "The arcs leave the picture: move the phone back",
+      edgeWall: "The arcs reach the wall: move it back",
+      sheetMore: "Show details",
+      sheetLess: "Hide details",
       waiting: "Ready, waiting for the computer",
       capturing: "Capturing background…",
       measuring: "Measuring",
@@ -1765,6 +1806,26 @@ export default {
       trialAborted: "Trial stopped",
       waitingTrial:
         "Ready. Start a trial from the computer and it will show here while it runs.",
+    },
+    meter: {
+      title: "Arc meter",
+      open: "Free measurement",
+      openHint:
+        "Measure arc length with the camera, without a session or saving, whatever drives the coil.",
+      bgFirst:
+        "Turn the coil off, then capture the background: every frame is compared to it.",
+      captureBg: "Capture the background",
+      recaptureBg: "Redo background",
+      watching: "Waiting for arcs",
+      running: "Run in progress",
+      lastRun: "Last run: {px} px",
+      tabCamera: "Camera",
+      runs: "Runs",
+      bestRun: "Best: #{n} · {px} px",
+      cut: "Arcs cut by the picture's edge or the wall: the length is short",
+      clear: "Clear",
+      runsEmpty:
+        "Fire the coil: each run is measured on its own, from the first arc until {gap} without one. Lengths are in pixels, comparable as long as the phone stays put. Nothing is saved.",
     },
   },
   message: {

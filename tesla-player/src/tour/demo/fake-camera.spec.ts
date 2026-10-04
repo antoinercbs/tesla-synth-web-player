@@ -48,7 +48,7 @@ describe("the tuning tour's fake phone", () => {
     phoneTapBreakout();
     phoneValidateZone();
     expect(phoneView.step).toBe('ready');
-    expect(last('camera:geometry')?.payload).toMatchObject({ width: 640, height: 480 });
+    expect(last('camera:geometry')?.payload).toMatchObject({ width: 288, height: 512, wall: { side: 1 } });
   });
 
   it('answers the background capture of a trial', () => {

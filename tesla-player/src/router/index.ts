@@ -59,6 +59,14 @@ const routes: RouteRecordRaw[] = [
     component: () => import("@/views/TuneCameraView.vue"),
     meta: { bare: true, public: true },
   },
+  // The same camera without a session: nothing drives the coil, nothing is saved.
+  // Bare too (dark, all screen to the picture), but behind the auth gate.
+  {
+    path: "/tune/meter",
+    name: "arc-meter",
+    component: () => import("@/views/ArcMeterView.vue"),
+    meta: { bare: true },
+  },
   // Auth (only ever reached when the server has OIDC enabled).
   {
     path: "/login",

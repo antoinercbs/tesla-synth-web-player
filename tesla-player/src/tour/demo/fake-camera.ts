@@ -13,19 +13,18 @@ import { DEMO_PLACE } from './data';
  *
  * `phoneView` is what its screen shows, for the tour's phone
  * (components/tour/FakePhone.vue): the same states as TuneCameraView. The
- * phone's own steps (start the camera, tap the breakout, set the zone,
- * validate) are its controls there, pressed by the tour's pointer.
+ * phone's own steps (start the camera, place the pin, set the wall and the
+ * floor, validate) are its controls there, pressed by the tour's pointer.
  */
 const SESSION_ID = 'tour-demo';
 const HOUR = 3_600_000;
 const PEAK = 6.25;
-export const GEOMETRY: CameraGeometry = { width: 640, height: 480, breakout: { x: 320, y: 300 }, roiRadius: 200, excludeBelowY: 330, dirDeg: -90 };
-// the heat grid covers the half-disk above the breakout
-const CELL = 7;
-const X0 = 120;
-const Y0 = 100;
-const W = Math.ceil(400 / CELL);
-const H = Math.ceil(220 / CELL);
+// a phone held upright (the camera page's portrait work frame); the coil's pin
+// throws its arcs to the right, and they dive for the ground
+const FRAME = { width: 288, height: 512 };
+export const PIN = { x: 174, y: 170 };
+/** Where the ground starts in the picture. */
+export const GROUND_Y = 350;
 
 let createdAt = 0;
 let online = false;
@@ -38,17 +37,16 @@ let tapTurns = PEAK;
 let onNoteEnd: (() => void) | null = null;
 
 type NoteState = 'pending' | 'measuring' | 'done' | 'skipped';
-export type ZoneKey = 'radius' | 'dirDeg' | 'floorBelow';
+export type ZoneKey = 'wallBack' | 'floorBelow';
 export interface PhoneView {
   step: 'off' | 'intro' | 'setup' | 'ready';
   breakoutSet: boolean;
-  /** The zone as set on the phone, in work px (floorBelow: the floor line under the breakout). */
+  /** The zone as set on the phone, in work px: the wall behind the pin, the floor under it. */
   zone: Record<ZoneKey, number>;
   trial: {
     index: number;
     tapLabel: string;
     phase: 'background' | 'notes' | 'done';
-    bgFrames: number;
     notes: { note: number; state: NoteState; p90: number | null }[];
     /** 0..1 of the note being measured */
     progress: number;
@@ -58,12 +56,23 @@ export interface PhoneView {
   /** Arc length (work px) the coil throws right now; 0 = quiet. */
   arc: number;
 }
-// the camera page's zone once the breakout is tapped (a quarter of the frame, floor
-// at 35 % of it), and the one the demo measures with
-const START_ZONE: Record<ZoneKey, number> = { radius: 120, dirDeg: -90, floorBelow: 42 };
-export const DEMO_ZONE: Record<ZoneKey, number> = {
-  radius: GEOMETRY.roiRadius, dirDeg: GEOMETRY.dirDeg ?? -90, floorBelow: (GEOMETRY.excludeBelowY ?? 0) - GEOMETRY.breakout.y,
+// the camera page's zone once the pin is placed (wall right behind it, floor near
+// the frame's bottom), and the one the demo measures with: the floor up to the ground
+const START_ZONE: Record<ZoneKey, number> = { wallBack: 14, floorBelow: Math.round(FRAME.height * 0.8) - PIN.y };
+export const DEMO_ZONE: Record<ZoneKey, number> = { wallBack: 14, floorBelow: GROUND_Y - PIN.y };
+export const GEOMETRY: CameraGeometry = {
+  ...FRAME, breakout: PIN, wall: { x: PIN.x - DEMO_ZONE.wallBack, side: 1 }, excludeBelowY: PIN.y + DEMO_ZONE.floorBelow,
 };
+const WALL_X = GEOMETRY.wall!.x;
+const FLOOR_Y = GEOMETRY.excludeBelowY!;
+// the heat grid covers the meter's crop: the zone, plus its band behind the wall and below the floor
+const CELL = 6;
+const X0 = WALL_X - 40;
+const Y0 = 0;
+const W = Math.ceil((FRAME.width - X0) / CELL);
+const H = Math.ceil((FLOOR_Y + 40) / CELL);
+/** Drawn arcs against the measured length: the figures stay those of the demo history. */
+export const DRAW_SCALE = 0.7;
 const offView = (): PhoneView => ({ step: 'off', breakoutSet: false, zone: { ...START_ZONE }, trial: null, live: { L: 0, measuring: false }, arc: 0 });
 export const phoneView = reactive<PhoneView>(offView());
 
@@ -117,10 +126,10 @@ function arcHeat(length: number, seed: number, strokes: number): HeatPayload {
   const acc = new Float32Array(W * H);
   const walk = (x: number, y: number, dir: number, len: number, depth: number): void => {
     for (let d = 0; d < len; d += 3) {
-      dir += (rand() - 0.5) * 0.7;
+      dir += (rand() - 0.38) * 0.6; // the arcs bend down, towards the ground
       x += Math.cos(dir) * 3;
       y += Math.sin(dir) * 3;
-      if (y > GEOMETRY.excludeBelowY! || Math.hypot(x - GEOMETRY.breakout.x, y - GEOMETRY.breakout.y) > GEOMETRY.roiRadius) return;
+      if (y >= FLOOR_Y || x < WALL_X || x >= FRAME.width || y < 0) return;
       const cx = Math.floor((x - X0) / CELL);
       const cy = Math.floor((y - Y0) / CELL);
       if (cx >= 0 && cx < W && cy >= 0 && cy < H) acc[cy * W + cx] += 1;
@@ -128,15 +137,14 @@ function arcHeat(length: number, seed: number, strokes: number): HeatPayload {
     }
   };
   for (let s = 0; s < strokes; s++) {
-    walk(GEOMETRY.breakout.x, GEOMETRY.breakout.y, -Math.PI / 2 + (rand() - 0.5) * 2.3, length * (0.5 + 0.7 * rand()), 0);
+    walk(PIN.x, PIN.y, 0.15 + (rand() - 0.5) * 0.9, DRAW_SCALE * length * (0.5 + 0.7 * rand()), 0);
   }
   let max = 0;
   for (const v of acc) max = Math.max(max, v);
   // square root: every arc stays visible next to the breakout's hot spot
   const bytes = new Uint8Array(acc.length);
   if (max > 0) for (let k = 0; k < acc.length; k++) bytes[k] = Math.round(255 * Math.sqrt(acc[k] / max));
-  const { breakout, roiRadius, excludeBelowY, dirDeg } = GEOMETRY;
-  return { w: W, h: H, cell: CELL, x0: X0, y0: Y0, breakout, roiRadius, excludeBelowY: excludeBelowY ?? null, dirDeg, frames: strokes, max, data: encodeBytes(bytes) };
+  return { w: W, h: H, cell: CELL, x0: X0, y0: Y0, breakout: PIN, wall: GEOMETRY.wall, excludeBelowY: FLOOR_Y, frames: strokes, max, data: encodeBytes(bytes) };
 }
 
 function onDesktopEvent(type: string, p: Record<string, unknown>): void {
@@ -144,14 +152,13 @@ function onDesktopEvent(type: string, p: Record<string, unknown>): void {
     case 'trial:begin':
       tapTurns = Number(p.tapTurns) || PEAK;
       phoneView.trial = {
-        index: Number(p.index) || 1, tapLabel: String(p.tapLabel ?? tapTurns), phase: 'background', bgFrames: 0,
+        index: Number(p.index) || 1, tapLabel: String(p.tapLabel ?? tapTurns), phase: 'background',
         notes: (Array.isArray(p.notes) ? p.notes : []).map((note: number) => ({ note, state: 'pending', p90: null })),
         progress: 0, result: null,
       };
       break;
     case 'capture:background':
       push('camera:status', { state: 'capturing' });
-      for (let i = 1; i <= 6; i++) later(i * 110, () => { if (phoneView.trial) phoneView.trial.bgFrames = i * 4; });
       later(700, () => {
         push('background:ready', { trialId: p.trialId, frames: 24, sigmaMedian: 1.7 + 0.4 * Math.random() });
         push('camera:status', { state: 'ready' });
@@ -226,6 +233,7 @@ export function phoneStartCamera(): void {
   push('camera:status', { state: 'setup' });
 }
 
+/** The finger lands on the pin's tip and swipes towards the arcs: the pin, its side, the wall and the floor appear. */
 export function phoneTapBreakout(): void {
   if (phoneView.step === 'setup') phoneView.breakoutSet = true;
 }
@@ -246,7 +254,7 @@ export function phoneAdjustZone(key: ZoneKey): void {
 
 export function phoneValidateZone(): void {
   if (phoneView.step !== 'setup' || !phoneView.breakoutSet) return;
-  // whatever was left on the sliders, the demo measures in its own zone
+  // wherever the wall and the floor were left, the demo measures in its own zone
   Object.assign(phoneView.zone, DEMO_ZONE);
   phoneView.step = 'ready';
   push('camera:position', { lat: DEMO_PLACE.lat, lon: DEMO_PLACE.lon, accuracyM: 8 });

@@ -1,0 +1,222 @@
+@use "sass:map";
+
+// ===========================================================================
+//  BRAINROT LOOK: its palettes
+// ===========================================================================
+// The oversaturated feed, of no one app and no one game: thick outlines and hard
+// shadows on loud colours, and the clips that keep you watching drawn here in the
+// palette's colours: an endless runner seen from behind (its track, --br-track, scrolls;
+// its runner, --br-runner, dodges), a hydraulic press squashing a ball (--br-press-frame,
+// --br-press-plate, --br-ball). The captions (--br-caption, --br-notif) are in French in
+// every language, as the feed is. Each palette is written out whole, as the custom
+// properties it sets on [data-theme="<id>"]: the shared ones, then its own, including the
+// chrome brainrot/_chrome.scss and the $brainrot map read. ui/themes.ts lists the ids for
+// the look, the first is its default (its spec checks both).
+
+// the track, a 90 x 80 tile that repeats down (the clip shows two, whatever its
+// size: the chrome scrolls it a tile at a time): three lanes of rails on their
+// sleepers, a train in each outer lane, coins and a barrier down the middle one
+@function -br-track($ground, $sleeper, $rail, $train, $train2, $coin) {
+    $body: '<rect width="90" height="80" fill="#{$ground}"/>';
+    @each $cx in (15, 45, 75) {
+        @for $i from 0 to 8 {
+            $body: $body + '<rect x="#{$cx - 12}" y="#{$i * 10 + 3}" width="24" height="4" fill="#{$sleeper}"/>';
+        }
+        $body: $body + '<path d="M#{$cx - 8} 0V80M#{$cx + 8} 0V80" stroke="#{$rail}" stroke-width="2"/>';
+    }
+    $body: $body + '<rect x="3" y="4" width="24" height="34" rx="4" fill="#{$train}" stroke="#111" stroke-width="1.5"/><rect x="7" y="8" width="16" height="8" rx="2" fill="#bfe9ff"/>';
+    $body: $body + '<rect x="63" y="44" width="24" height="34" rx="4" fill="#{$train2}" stroke="#111" stroke-width="1.5"/><rect x="67" y="48" width="16" height="8" rx="2" fill="#bfe9ff"/>';
+    @each $y in (12, 26, 40) {
+        $body: $body + '<circle cx="45" cy="#{$y}" r="4.2" fill="#{$coin}" stroke="#a86a00" stroke-width="1.2"/>';
+    }
+    $body: $body + '<rect x="35" y="60" width="20" height="7" fill="#ff3b3b" stroke="#111"/><path d="M38 60l4 7M44 60l4 7M50 60l4 7" stroke="#fff" stroke-width="2"/>';
+    @return svg-url($body, 90, 80);
+}
+
+// the runner from behind: cap, hoodie, a backpack, legs
+@function -br-runner($hoodie, $cap, $pants) {
+    $body: '<ellipse cx="9" cy="23" rx="7" ry="2" fill="#000" fill-opacity=".3"/>';
+    $body: $body + '<rect x="5" y="14" width="3" height="8" rx="1.5" fill="#{$pants}"/><rect x="10" y="14" width="3" height="8" rx="1.5" fill="#{$pants}"/>';
+    $body: $body + '<rect x="3" y="6" width="12" height="10" rx="4" fill="#{$hoodie}" stroke="#111" stroke-width="1"/><rect x="6" y="8" width="6" height="6" rx="1.5" fill="#111" fill-opacity=".35"/>';
+    $body: $body + '<circle cx="9" cy="4.5" r="3.6" fill="#f2c39b" stroke="#111" stroke-width=".8"/><path d="M5.4 4a3.6 3.6 0 0 1 7.2 0z" fill="#{$cap}"/>';
+    @return svg-url($body, 18, 25);
+}
+
+// the press: its frame and base (still), its plate on the rod (it comes down), the
+// ball (it gets squashed)
+@function -br-press-frame($metal) {
+    @return svg-url('<rect x="4" y="2" width="92" height="6" rx="2" fill="#{$metal}" stroke="#111"/><rect x="6" y="8" width="6" height="44" fill="#{$metal}" stroke="#111"/><rect x="88" y="8" width="6" height="44" fill="#{$metal}" stroke="#111"/><rect x="2" y="52" width="96" height="4" rx="1" fill="#111"/>', 100, 56);
+}
+
+@function -br-press-plate($metal) {
+    @return svg-url('<rect x="46" y="0" width="8" height="10" fill="#{$metal}" stroke="#111"/><rect x="26" y="10" width="48" height="6" rx="1.5" fill="#{$metal}" stroke="#111"/>', 100, 16);
+}
+
+@function -br-ball($colour) {
+    @return svg-url('<circle cx="13" cy="13" r="12" fill="#{$colour}" stroke="#111" stroke-width="1.5"/><ellipse cx="9" cy="8" rx="4" ry="3" fill="#fff" fill-opacity=".55"/>', 26, 26);
+}
+
+$br-shared: (
+    knob: #ffffff,
+    danger: #ff2a2a,
+    danger-rgb: "255 42 42",
+    caution: #ffd400,
+    caution-rgb: "255 212 0",
+    warn: #ff8a00,
+    conflict: #ff8a00,
+    duplicate: #ff5fd2,
+    duplicate-rgb: "255 95 210",
+    worse: #ff8a00,
+    amber: #ffb000,
+    amber-rgb: "255 176 0",
+    br-yellow: #ffe500,
+    br-caption: '"attends la fin 😭"',
+    br-notif: '"+1 abonné ✨"',
+    br-runner: -br-runner(#ff2bd6, #00e0ff, #2a2a6a),
+    br-press-frame: -br-press-frame(#c9ced6),
+    br-press-plate: -br-press-plate(#c9ced6),
+);
+
+$br-light: (
+    hi-rgb: "0 0 0",
+    text-bright: #000000,
+    ink: #111111,
+    on-grad: #111111,
+    danger-text: #c40000,
+    danger-text-hover: #800000,
+    ok: #0a9a3a,
+    ok-rgb: "10 154 58",
+    caution-text: #5a4700,
+    coil-0: #e8003a,
+    coil-1: #d4a000,
+    coil-2: #0a9a3a,
+    coil-3: #0088d6,
+    coil-4: #8a2be2,
+    coil-5: #f06000,
+    plasma: #8a2be2,
+    br-line: #111111,
+    br-shadow: #111111,
+);
+
+// the order is the picker's, the first the look's default
+$brainrot-palettes: (
+    // hot pink, cyan and lime, outlined in black
+    hyperpop: map.merge(
+        $br-light,
+        (
+            bg: #ff7ad9,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #fff0fb,
+            bg-rgb: "255 122 217",
+            line-rgb: "17 17 17",
+            text: #111111,
+            text-rgb: "17 17 17",
+            text-dim: #2e2e2e,
+            text-mute: #4a4a4a,
+            text-strong: #000000,
+            volt: #c400a0,
+            volt-rgb: "196 0 160",
+            grad: "linear-gradient(135deg, #c6ff00, #00f0ff)",
+            arc-core: #ffffff,
+            arc-mid: #ff2bd6,
+            arc-deep: #00c8ff,
+            arc-glow-rgb: "255 43 214",
+            br-page: "radial-gradient(circle, rgb(255 255 255 / 0.35) 2px, transparent 2.5px) 0 0 / 22px 22px, linear-gradient(135deg, #ff7ad9, #b77bff)",
+            br-a: #c6ff00,
+            br-b: #00f0ff,
+            br-c: #ffe500,
+            br-head: "linear-gradient(90deg, #00f0ff, #c6ff00)",
+            br-track: -br-track(#6b6f7a, #4a3a2a, #d8dde6, #ff2bd6, #00c8ff, #ffd400),
+            br-ball: -br-ball(#00f0ff),
+            swatch: "linear-gradient(135deg, #ff7ad9 0 40%, #c6ff00 40% 70%, #00f0ff 70%)",
+        )
+    ),
+    // toxic slime green and purple
+    slime: map.merge(
+        $br-light,
+        (
+            bg: #b6ff3a,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #f4ffe4,
+            bg-rgb: "182 255 58",
+            line-rgb: "17 17 17",
+            text: #111111,
+            text-rgb: "17 17 17",
+            text-dim: #2e2e2e,
+            text-mute: #4a4a4a,
+            text-strong: #000000,
+            volt: #7a1fd6,
+            volt-rgb: "122 31 214",
+            grad: "linear-gradient(135deg, #b98aff, #ff5fd2)",
+            arc-core: #ffffff,
+            arc-mid: #8a2be2,
+            arc-deep: #39d000,
+            arc-glow-rgb: "138 43 226",
+            br-page: "radial-gradient(circle at 30% 30%, rgb(255 255 255 / 0.3) 0 18%, transparent 19%) 0 0 / 46px 46px, linear-gradient(160deg, #b6ff3a, #39d000)",
+            br-a: #b98aff,
+            br-b: #ff5fd2,
+            br-c: #00f0ff,
+            br-head: "linear-gradient(90deg, #b98aff, #ff5fd2)",
+            br-track: -br-track(#5f6a5a, #3e3226, #d8dde6, #8a2be2, #ff5fd2, #ffd400),
+            br-ball: -br-ball(#ff5fd2),
+            swatch: "linear-gradient(135deg, #b6ff3a 0 40%, #b98aff 40% 70%, #ff5fd2 70%)",
+        )
+    ),
+    // black at three in the morning, the screen too bright
+    doomscroll: (
+        bg: #000000,
+        bg-2: #0b0b0f,
+        panel: #121218,
+        panel-2: #1c1c26,
+        bg-rgb: "0 0 0",
+        hi-rgb: "255 255 255",
+        line-rgb: "255 255 255",
+        text: #f2f2f7,
+        text-rgb: "242 242 247",
+        text-dim: #c8c8d2,
+        text-mute: #9a9aa8,
+        text-strong: #ffffff,
+        text-bright: #ffffff,
+        volt: #b98aff,
+        volt-rgb: "185 138 255",
+        ink: #000000,
+        grad: "linear-gradient(135deg, #b98aff, #00c8ff)",
+        on-grad: #000000,
+        arc-core: #ffffff,
+        arc-mid: #b98aff,
+        arc-deep: #00c8ff,
+        arc-glow-rgb: "185 138 255",
+        danger-text: #ff6a6a,
+        danger-text-hover: #ffb0b0,
+        ok: #3dff8a,
+        ok-rgb: "61 255 138",
+        caution-text: #ffe680,
+        coil-0: #ff4d6d,
+        coil-1: #ffd23f,
+        coil-2: #3dff8a,
+        coil-3: #36d6ff,
+        coil-4: #c07bff,
+        coil-5: #ff9a3c,
+        plasma: #c07bff,
+        br-line: #ffffff,
+        br-shadow: #6a3dd6,
+        br-page: "radial-gradient(800px 500px at 50% 0%, rgb(185 138 255 / 0.18), transparent 70%), #000000",
+        br-a: #b98aff,
+        br-b: #00c8ff,
+        br-c: #ff5fd2,
+        br-head: "linear-gradient(90deg, #2a1a5a, #0a2a4a)",
+        br-track: -br-track(#30323a, #22201c, #8a8f99, #6a3dd6, #0a6a9a, #c8a000),
+        br-ball: -br-ball(#b98aff),
+        swatch: "linear-gradient(135deg, #000000 0 50%, #b98aff 50% 75%, #00c8ff 75%)",
+    ),
+);
+
+@each $id, $p in $brainrot-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($br-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

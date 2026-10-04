@@ -168,7 +168,7 @@ const RUN = ['.tune-run__go:not(:disabled)', '.modal-card--confirm .btn--danger'
 const RUN_DONE = '.tune-run__go:not(:disabled)';
 // the fake phone (components/tour/FakePhone.vue) and its controls
 const PHONE = '.fphone__device';
-const zoneSlider = (key: string): string => `.fphone__slider[data-k="${key}"] .fphone__hit:not(:disabled)`;
+const zoneGrip = (key: string): string => `.fphone__handle[data-k="${key}"]`;
 
 const TUNE_STEPS: TourStep[] = [
   { id: 'tuneIntro', icon: 'fa-bullseye', points: ['fa-mobile-screen', 'fa-music', 'fa-chart-line'], note: 'tip', noteIcon: 'fa-flask', route: TUNE },
@@ -180,8 +180,8 @@ const TUNE_STEPS: TourStep[] = [
   // on the phone: it opens the QR code's page, then the tour's pointer does its setup;
   // once the zone is validated the computer moves to the trials by itself
   { id: 'tunePhoneOpen', icon: 'fa-mobile-screen', points: ['fa-crop-simple', 'fa-video'], route: TUNE, target: PHONE, placement: 'right', enter: joinFakePhone, click: '.fphone__start', phone: true },
-  { id: 'tuneBreakout', icon: 'fa-crosshairs', route: TUNE, target: PHONE, placement: 'right', click: '.fphone__spot', phone: true },
-  { id: 'tuneZone', icon: 'fa-draw-polygon', points: ['fa-expand', 'fa-arrow-up'], route: TUNE, target: PHONE, placement: 'right', click: [zoneSlider('radius'), zoneSlider('floorBelow')], phone: true },
+  { id: 'tuneBreakout', icon: 'fa-hand-pointer', route: TUNE, target: PHONE, placement: 'right', click: '.fphone__spot', phone: true },
+  { id: 'tuneZone', icon: 'fa-draw-polygon', points: ['fa-grip-lines-vertical', 'fa-grip-lines', 'fa-arrow-right-arrow-left'], route: TUNE, target: PHONE, placement: 'right', click: zoneGrip('floorBelow'), phone: true },
   { id: 'tuneZoneOk', icon: 'fa-circle-check', note: 'warn', route: TUNE, target: PHONE, placement: 'right', click: ['.fphone__validate:not(:disabled)', wizardStep(3)], until: '.tune-side', phone: true },
   { id: 'tuneTap', icon: 'fa-hand', note: 'tip', route: TUNE, target: '.tune-run', placement: 'left', click: [wizardStep(3), sideTab(1)], phone: true },
   { id: 'tuneRun', icon: 'fa-play', points: ['fa-image', 'fa-music', 'fa-eye'], note: 'tip', noteIcon: 'fa-flask', route: TUNE, target: '.tune-side', placement: 'left', click: RUN, plays: true, once: true, until: RUN_DONE, phone: true },

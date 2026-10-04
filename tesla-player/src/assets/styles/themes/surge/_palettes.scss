@@ -1,0 +1,202 @@
+@use "sass:map";
+@use "sass:math";
+
+// ===========================================================================
+//  OVERVOLTAGE LOOK: its palettes
+// ===========================================================================
+// The app with too many volts in it: arcs crackling along the edges (two shapes of
+// each, --sg-arc-a/-b across and --sg-arc-va/-vb down, the chrome flicking between
+// them), a spark where the pointer lands (--sg-spark), the light dipping now and
+// then. Each palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// surge/_chrome.scss and the $surge map read. ui/themes.ts lists the ids for the look,
+// the first is its default (its spec checks both).
+
+// an arc across a tile, jagged about its middle and level with it at both ends (the
+// tiles join), a small fork halfway; drawn three times, a halo, its glow, its core
+@function -sg-arc($core, $glow, $seed, $w: 200, $h: 16, $vertical: false) {
+    $mid: math.div($h, 2);
+    $pts: "";
+    $fork: "";
+    @for $i from 0 through 20 {
+        $x: $i * math.div($w, 20);
+        $y: $mid;
+        @if $i > 0 and $i < 20 {
+            $y: $mid + ($i * 37 + $seed * 23) % 11 - 5;
+        }
+        @if $vertical {
+            $pts: $pts + "#{$y},#{$x} ";
+        } @else {
+            $pts: $pts + "#{$x},#{$y} ";
+        }
+        @if $i == 7 + $seed % 5 {
+            @if $vertical {
+                $fork: "#{$y},#{$x} #{$y + 6},#{$x + 9} #{$y + 3},#{$x + 16}";
+            } @else {
+                $fork: "#{$x},#{$y} #{$x + 9},#{$y + 6} #{$x + 16},#{$y + 3}";
+            }
+        }
+    }
+    $line: 'fill="none" stroke-linejoin="bevel" stroke-linecap="round"';
+    $body: '<polyline points="#{$pts}" #{$line} stroke="#{$glow}" stroke-opacity=".3" stroke-width="5"/>';
+    $body: $body + '<polyline points="#{$pts}" #{$line} stroke="#{$glow}" stroke-width="2.2"/>';
+    $body: $body + '<polyline points="#{$pts}" #{$line} stroke="#{$core}" stroke-width="1"/>';
+    $body: $body + '<polyline points="#{$fork}" #{$line} stroke="#{$glow}" stroke-width="1.4"/>';
+    @if $vertical {
+        @return svg-url($body, $h, $w);
+    }
+    @return svg-url($body, $w, $h);
+}
+
+// a spark: short strokes flung out from a hot point
+@function -sg-spark($core, $glow) {
+    $body: '<circle cx="24" cy="24" r="3" fill="#{$core}"/>';
+    @for $i from 0 to 8 {
+        $a: $i * 45deg + 10deg;
+        $r1: 6;
+        $r2: 14 + ($i * 5) % 9;
+        $body: $body + '<line x1="#{24 + math.round(math.cos($a) * $r1)}" y1="#{24 + math.round(math.sin($a) * $r1)}" x2="#{24 + math.round(math.cos($a) * $r2)}" y2="#{24 + math.round(math.sin($a) * $r2)}" stroke="#{$glow}" stroke-width="1.6" stroke-linecap="round"/>';
+    }
+    @return svg-url($body, 48, 48);
+}
+
+@function -sg-volts($core, $glow) {
+    @return (
+        sg-arc-a: -sg-arc($core, $glow, 1),
+        sg-arc-b: -sg-arc($core, $glow, 4),
+        sg-arc-va: -sg-arc($core, $glow, 2, 200, 16, true),
+        sg-arc-vb: -sg-arc($core, $glow, 7, 200, 16, true),
+        sg-spark: -sg-spark($core, $glow),
+    );
+}
+
+$sg-shared: (
+    hi-rgb: "255 255 255",
+    text-bright: #ffffff,
+    knob: #ffffff,
+    danger: #ff4d4d,
+    danger-rgb: "255 77 77",
+    danger-text: #ff7a7a,
+    danger-text-hover: #ffb0b0,
+    ok: #3ddc97,
+    ok-rgb: "61 220 151",
+    amber: #ffb020,
+    amber-rgb: "255 176 32",
+    caution: #ffd24d,
+    caution-rgb: "255 210 77",
+    caution-text: #ffd966,
+    warn: #ff9f1a,
+    conflict: #ffb454,
+    duplicate: #ff8c69,
+    duplicate-rgb: "255 140 105",
+    worse: #ff8c42,
+    coil-0: #ff4d6d,
+    coil-1: #ffd23f,
+    coil-2: #3ddc97,
+    coil-3: #4cc9f0,
+    coil-4: #b15cff,
+    coil-5: #ff8c42,
+    plasma: #b15cff,
+);
+
+// the order is the picker's, the first the look's default
+$surge-palettes: (
+    // the blue-white of an arc in the air
+    bluearc: map.merge(
+        -sg-volts(#f4f9ff, #6aa8ff),
+        (
+            bg: #04070f,
+            bg-2: #070c18,
+            panel: #0a1122,
+            panel-2: #101a32,
+            bg-rgb: "4 7 15",
+            line-rgb: "106 168 255",
+            text: #d6e4ff,
+            text-rgb: "214 228 255",
+            text-dim: #a6badf,
+            text-mute: #8196bd,
+            text-strong: #f4f9ff,
+            volt: #7ab4ff,
+            volt-rgb: "122 180 255",
+            ink: #04070f,
+            grad: "linear-gradient(135deg, #3a7bff, #7a4dff)",
+            on-grad: #ffffff,
+            arc-core: #f4f9ff,
+            arc-mid: #6aa8ff,
+            arc-deep: #7a4dff,
+            arc-glow-rgb: "106 168 255",
+            sg-glow: "rgb(106 168 255 / 0.6)",
+            sg-edge: "rgb(106 168 255 / 0.4)",
+            sg-band: "linear-gradient(180deg, #13214a, #0c1634)",
+            swatch: "linear-gradient(100deg, transparent 44%, #f4f9ff 46%, #6aa8ff 48%, transparent 52%), #04070f",
+        )
+    ),
+    // the violet of a coil's streamers
+    violetarc: map.merge(
+        -sg-volts(#fbf4ff, #c07bff),
+        (
+            bg: #09040f,
+            bg-2: #0e0718,
+            panel: #140a22,
+            panel-2: #1d1032,
+            bg-rgb: "9 4 15",
+            line-rgb: "192 123 255",
+            text: #eadcff,
+            text-rgb: "234 220 255",
+            text-dim: #c4aee6,
+            text-mute: #9c86c2,
+            text-strong: #fbf4ff,
+            volt: #c890ff,
+            volt-rgb: "200 144 255",
+            ink: #09040f,
+            grad: "linear-gradient(135deg, #8a3dff, #d0258e)",
+            on-grad: #ffffff,
+            arc-core: #fbf4ff,
+            arc-mid: #c07bff,
+            arc-deep: #d0258e,
+            arc-glow-rgb: "192 123 255",
+            sg-glow: "rgb(192 123 255 / 0.6)",
+            sg-edge: "rgb(192 123 255 / 0.4)",
+            sg-band: "linear-gradient(180deg, #2a1348, #1a0c30)",
+            swatch: "linear-gradient(100deg, transparent 44%, #fbf4ff 46%, #c07bff 48%, transparent 52%), #09040f",
+        )
+    ),
+    // a street lamp's sodium, humming before it goes out
+    sodium: map.merge(
+        -sg-volts(#fff6e0, #ffa640),
+        (
+            bg: #0d0803,
+            bg-2: #130c05,
+            panel: #1a1108,
+            panel-2: #24180c,
+            bg-rgb: "13 8 3",
+            line-rgb: "255 166 64",
+            text: #ffe6c2,
+            text-rgb: "255 230 194",
+            text-dim: #e0c09a,
+            text-mute: #b89872,
+            text-strong: #fff6e0,
+            volt: #ffb35a,
+            volt-rgb: "255 179 90",
+            ink: #0d0803,
+            grad: "linear-gradient(135deg, #ff9a2e, #d0541a)",
+            on-grad: #1a0c02,
+            arc-core: #fff6e0,
+            arc-mid: #ffa640,
+            arc-deep: #d0541a,
+            arc-glow-rgb: "255 166 64",
+            sg-glow: "rgb(255 166 64 / 0.6)",
+            sg-edge: "rgb(255 166 64 / 0.4)",
+            sg-band: "linear-gradient(180deg, #3a240e, #251608)",
+            swatch: "linear-gradient(100deg, transparent 44%, #fff6e0 46%, #ffa640 48%, transparent 52%), #0d0803",
+        )
+    ),
+);
+
+@each $id, $p in $surge-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($sg-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

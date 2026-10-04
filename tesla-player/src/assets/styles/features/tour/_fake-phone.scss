@@ -6,7 +6,7 @@
 // sized to the screen; everything inside scales with it (em on a width-based font)
 .fphone {
     position: fixed;
-    width: min(20rem, 22vw, calc((100vh - 4rem) * 0.55));
+    width: min(18rem, 22vw, calc((100vh - 5rem) * 0.52));
     display: flex;
     flex-direction: column;
     gap: 0.4rem;
@@ -60,16 +60,33 @@
     color: var(--text);
 }
 
+// the camera page: the picture fills the screen, the head and the sheet lie over it
+.fphone__stage {
+    position: relative;
+    background: var(--cam-bg);
+}
+
+.fphone__canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+}
+
 .fphone__head {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 0.5em;
-    padding: 0.9em 1em 0.5em;
-    background: var(--cam-bg);
+    padding: 0.9em 1em 1.2em;
+    background: linear-gradient(rgb(var(--lo-rgb) / 0.8), transparent);
     font-family: var(--font-display);
     font-size: 0.85em;
     color: var(--text-dim);
+    pointer-events: none;
 }
 
 .fphone__title {
@@ -77,6 +94,7 @@
     align-items: center;
     gap: 0.45em;
     white-space: nowrap;
+    color: var(--text);
 }
 
 .fphone__link {
@@ -94,19 +112,9 @@
     background: var(--ok);
 }
 
-.fphone__stage {
-    position: relative;
-    background: var(--cam-bg);
-}
-
-.fphone__canvas {
-    display: block;
-    width: 100%;
-    aspect-ratio: 4 / 3;
-}
-
-// the breakout, where a finger taps the picture
-.fphone__spot {
+// where a finger takes the picture: the pin, then the wall's and the floor's grips
+.fphone__spot,
+.fphone__handle {
     position: absolute;
     width: 2.4em;
     height: 2.4em;
@@ -120,7 +128,7 @@
 .fphone__tapme {
     position: absolute;
     left: 50%;
-    bottom: 0.6em;
+    top: 3.2em;
     transform: translateX(-50%);
     display: inline-flex;
     align-items: center;
@@ -131,7 +139,8 @@
     border: 1px solid var(--volt);
     border-radius: var(--radius-pill);
     background: rgb(var(--bg-rgb) / 0.86);
-    font-size: 0.85em;
+    font-size: 0.8em;
+    text-align: center;
     pointer-events: none;
 }
 
@@ -153,96 +162,84 @@
     margin: 0;
 }
 
-.fphone__panel {
+.fphone__sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.6em;
-    padding: 0.8em;
+    gap: 0.5em;
+    max-height: 64%;
+    overflow: hidden;
+    padding: 0.4em 0.7em 0.7em;
     border-top: 1px solid rgb(var(--line-rgb) / 0.15);
+    border-radius: 1.1em 1.1em 0 0;
+    background: rgb(var(--bg-rgb) / 0.9);
+}
+
+.fphone__sheet-grip {
+    align-self: center;
+    width: 2.4em;
+    height: 0.25em;
+    border-radius: var(--radius-pill);
+    background: rgb(var(--line-rgb) / 0.5);
 }
 
 .fphone__hint {
     margin: 0;
     color: var(--text-dim);
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 
-.fphone__stepline {
+.fphone__legend {
     display: flex;
-    gap: 0.6em;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.2em 0.8em;
     margin: 0;
-    font-size: 0.85em;
-    line-height: 1.35;
-}
-
-.fphone__stepn {
-    flex: none;
-    display: grid;
-    place-items: center;
-    width: 1.6em;
-    height: 1.6em;
-    border-radius: 50%;
-    background: var(--volt);
-    color: var(--ink);
-    font-weight: 700;
-}
-
-.fphone__sliders {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45em;
-}
-
-.fphone__sliders.is-idle {
-    opacity: 0.45;
-}
-
-.fphone__slider {
-    display: grid;
-    grid-template-columns: 8.2em 1fr 3em;
-    align-items: center;
-    gap: 0.6em;
-    font-size: 0.85em;
-}
-
-.fphone__slider-label {
+    padding: 0;
+    list-style: none;
+    font-size: 0.75em;
     color: var(--text-dim);
 }
 
-.fphone__track {
-    position: relative;
-    height: 0.3em;
-    border-radius: var(--radius-pill);
-    background: rgb(var(--line-rgb) / 0.25);
+.fphone__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
 }
 
-.fphone__thumb {
-    position: absolute;
-    top: 50%;
-    width: 1.1em;
-    height: 1.1em;
+.fphone__swatch {
+    display: inline-block;
+    flex: none;
+}
+
+.fphone__swatch--dot {
+    width: 0.75em;
+    height: 0.75em;
     border-radius: 50%;
-    background: var(--volt);
-    transform: translate(-50%, -50%);
+    background: var(--danger);
+    outline: 1.5px solid var(--text-bright);
 }
 
-// where the demo's finger slides the thumb to
-.fphone__hit {
-    position: absolute;
-    top: 50%;
-    width: 1.6em;
-    height: 1.6em;
-    padding: 0;
-    border: 0;
-    border-radius: 50%;
-    background: transparent;
-    transform: translate(-50%, -50%);
+.fphone__swatch--arrow {
+    width: 0.65em;
+    height: 0.75em;
+    background: rgb(var(--zone-rgb));
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
 }
 
-.fphone__slider-val {
-    font-family: var(--font-mono);
-    font-weight: 500;
-    text-align: right;
+.fphone__swatch--wall {
+    width: 0.3em;
+    height: 0.95em;
+    margin-left: 0.3em;
+    border-left: 2px solid rgb(var(--zone-rgb));
+}
+
+.fphone__swatch--floor {
+    width: 1em;
+    border-top: 2px dashed rgb(var(--zone-rgb));
 }
 
 .fphone__trial {
@@ -275,14 +272,6 @@
     font-weight: 700;
     font-size: 1.25em;
     color: var(--volt);
-}
-
-.fphone__bg {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45em;
-    color: var(--text-dim);
-    font-size: 0.85em;
 }
 
 .fphone__notes {

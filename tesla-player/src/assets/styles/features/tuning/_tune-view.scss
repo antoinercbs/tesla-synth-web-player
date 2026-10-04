@@ -606,6 +606,12 @@ label.tune-field:hover {
     font-weight: 500;
 }
 
+.tune-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
 .tune-live-dot {
     width: 0.7rem;
     height: 0.7rem;

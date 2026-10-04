@@ -1,0 +1,35 @@
+@use "sass:map";
+
+// ===========================================================================
+//  OVERVOLTAGE LOOK: its structure
+// ===========================================================================
+// The lab with too much current in it: a wide technical face for the titles
+// (Audiowide), the lab's own for the rest, glows instead of shadows. The lab's map
+// merged with what the surge changes; its colours are its palettes
+// (surge/_palettes.scss), what tokens cannot say (the crackling arcs, the sparks, the
+// light dipping, the hum) surge/_chrome.scss.
+$surge: map.merge(
+    $lab,
+    (
+        font-display: 'Audiowide, "Chakra Petch", system-ui, sans-serif',
+        fs-2xl: 1.9rem,
+        shadow-pop: "0 0 22px var(--sg-glow)",
+        shadow-float: "0 0 26px var(--sg-glow)",
+        shadow-modal: "0 0 36px var(--sg-glow)",
+        shadow-panel: "0 0 16px -4px var(--sg-glow)",
+        focus-ring: "0 0 0 1px var(--volt), 0 0 10px var(--sg-glow)",
+        focus-ring-strong: "0 0 0 2px var(--volt), 0 0 12px var(--sg-glow)",
+        backdrop: "radial-gradient(900px 500px at 70% -10%, rgb(var(--arc-glow-rgb) / 0.16), transparent 60%), var(--bg)",
+        micro-arc: linear-gradient(#000, #000),
+        micro-arc-v: linear-gradient(#000, #000),
+        btn-border: var(--sg-edge),
+        btn-hover-border: var(--volt),
+        btn-primary-shadow: "0 0 14px var(--sg-glow)",
+        icon-btn-border: var(--sg-edge),
+        field-border: var(--sg-edge),
+        seg-border: var(--sg-edge),
+        modal-border: var(--volt),
+        menu-border: var(--sg-edge),
+        toast-border: var(--volt),
+    )
+);

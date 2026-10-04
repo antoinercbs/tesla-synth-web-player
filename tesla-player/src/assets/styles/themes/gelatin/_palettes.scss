@@ -1,0 +1,142 @@
+@use "sass:map";
+
+// ===========================================================================
+//  ALL JELLY LOOK: its palettes
+// ===========================================================================
+// Everything made of jelly, in three flavours: the glossy blob of a button (its
+// light spot, its depth), the paler jelly of the boxes, the plate's dots behind. Each
+// palette is written out whole, as the custom properties it sets on
+// [data-theme="<id>"]: the shared ones, then its own, including the chrome
+// gelatin/_chrome.scss and the $gelatin map read (--gl-jelly, --gl-edge…). ui/themes.ts
+// lists the ids for the look, the first is its default (its spec checks both).
+
+// a blob of jelly from its light colour to its deep one, the light spot on top
+@function -gl-blob($light, $deep) {
+    @return "radial-gradient(ellipse 60% 45% at 32% 18%, rgb(255 255 255 / 0.7) 0 30%, transparent 70%), linear-gradient(180deg, #{$light}, #{$deep})";
+}
+
+$gl-shared: (
+    hi-rgb: "0 0 0",
+    text-bright: #000000,
+    ink: #ffffff,
+    on-grad: #ffffff,
+    knob: #ffffff,
+    danger: #d8192e,
+    danger-rgb: "216 25 46",
+    danger-text: #b3142a,
+    danger-text-hover: #7a0c1a,
+    ok: #1f9a4a,
+    ok-rgb: "31 154 74",
+    amber: #d08a00,
+    amber-rgb: "208 138 0",
+    caution: #c29a00,
+    caution-rgb: "194 154 0",
+    caution-text: #5a4700,
+    warn: #c25a00,
+    conflict: #b35000,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #e0203e,
+    coil-1: #d4a000,
+    coil-2: #1f9a4a,
+    coil-3: #0b86c9,
+    coil-4: #8a3cd6,
+    coil-5: #f06a12,
+    plasma: #8a3cd6,
+    gl-danger: -gl-blob(#ff8a8a, #d8192e),
+    gl-shine: "inset 0 -5px 10px rgb(0 0 0 / 0.14), inset 0 3px 5px rgb(255 255 255 / 0.75)",
+);
+
+// the order is the picker's, the first the look's default
+$gelatin-palettes: (
+    strawberry: (
+        bg: #fff0f3,
+        bg-2: #ffffff,
+        panel: #ffe6ec,
+        panel-2: #ffd6e0,
+        bg-rgb: "255 240 243",
+        line-rgb: "200 30 80",
+        text: #3a0d1c,
+        text-rgb: "58 13 28",
+        text-dim: #5c2236,
+        text-mute: #7a3a50,
+        text-strong: #8a0a36,
+        volt: #c8185a,
+        volt-rgb: "200 24 90",
+        grad: -gl-blob(#ff9bb8, #d8245e),
+        arc-core: #ffd0dc,
+        arc-mid: #ff4f86,
+        arc-deep: #b0104a,
+        arc-glow-rgb: "255 79 134",
+        gl-plate: "radial-gradient(circle, rgb(255 120 160 / 0.22) 18%, transparent 20%) 0 0 / 30px 30px, #fff0f3",
+        gl-jelly: -gl-blob(#fff0f4, #ffc2d3),
+        gl-jelly-ink: #5c0a28,
+        gl-band: -gl-blob(#ffb3c8, #ff7aa0),
+        gl-band-ink: #4a0418,
+        gl-edge: #f08aa8,
+        swatch: "radial-gradient(ellipse 60% 45% at 32% 22%, rgb(255 255 255 / 0.8) 0 30%, transparent 70%), linear-gradient(180deg, #ff9bb8, #d8245e)",
+    ),
+    mint: (
+        bg: #ecfff4,
+        bg-2: #ffffff,
+        panel: #dcfbe9,
+        panel-2: #c6f5da,
+        bg-rgb: "236 255 244",
+        line-rgb: "10 120 70",
+        text: #0c2e1c,
+        text-rgb: "12 46 28",
+        text-dim: #1f4a33,
+        text-mute: #36644b,
+        text-strong: #07603a,
+        volt: #0b7a48,
+        volt-rgb: "11 122 72",
+        grad: -gl-blob(#7ff0b0, #14b263),
+        arc-core: #d6ffe6,
+        arc-mid: #3ddc84,
+        arc-deep: #0b7a48,
+        arc-glow-rgb: "61 220 132",
+        gl-plate: "radial-gradient(circle, rgb(60 200 120 / 0.2) 18%, transparent 20%) 0 0 / 30px 30px, #ecfff4",
+        gl-jelly: -gl-blob(#f0fff6, #b8f2d0),
+        gl-jelly-ink: #064a2c,
+        gl-band: -gl-blob(#a8f5ca, #5fe09a),
+        gl-band-ink: #043a22,
+        gl-edge: #6fd49c,
+        swatch: "radial-gradient(ellipse 60% 45% at 32% 22%, rgb(255 255 255 / 0.8) 0 30%, transparent 70%), linear-gradient(180deg, #7ff0b0, #14b263)",
+    ),
+    blueberry: (
+        bg: #f2f0ff,
+        bg-2: #ffffff,
+        panel: #e6e1ff,
+        panel-2: #d7cfff,
+        bg-rgb: "242 240 255",
+        line-rgb: "80 50 200",
+        text: #1c1240,
+        text-rgb: "28 18 64",
+        text-dim: #33285e,
+        text-mute: #4f447c,
+        text-strong: #3a1fa8,
+        volt: #4f32c8,
+        volt-rgb: "79 50 200",
+        grad: -gl-blob(#b3a2ff, #5a3cf0),
+        arc-core: #e2dcff,
+        arc-mid: #8a6bff,
+        arc-deep: #4f32c8,
+        arc-glow-rgb: "138 107 255",
+        gl-plate: "radial-gradient(circle, rgb(120 90 255 / 0.18) 18%, transparent 20%) 0 0 / 30px 30px, #f2f0ff",
+        gl-jelly: -gl-blob(#f6f4ff, #cfc4ff),
+        gl-jelly-ink: #26156e,
+        gl-band: -gl-blob(#c9bcff, #9a82ff),
+        gl-band-ink: #1a0c5a,
+        gl-edge: #9f8cff,
+        swatch: "radial-gradient(ellipse 60% 45% at 32% 22%, rgb(255 255 255 / 0.8) 0 30%, transparent 70%), linear-gradient(180deg, #b3a2ff, #5a3cf0)",
+    ),
+);
+
+@each $id, $p in $gelatin-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($gl-shared, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

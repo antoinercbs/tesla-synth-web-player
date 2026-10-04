@@ -1,0 +1,236 @@
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+
+// ===========================================================================
+//  BIRTHDAY SURPRISE LOOK: its palettes
+// ===========================================================================
+// A surprise party every day: confetti falling (--bd-confetti, a tile the chrome lets
+// fall, sparse in front and dense behind), a burst of it at each click (--bd-burst),
+// the bunting across the top, balloons in the sidebar, icing dripping under the
+// heads. All drawn here in the palette's colours. Each palette is written out whole,
+// as the custom properties it sets on [data-theme="<id>"]: the shared ones, then its
+// own, including the chrome birthday/_chrome.scss and the $birthday map read.
+// ui/themes.ts lists the ids for the look, the first is its default (its spec checks
+// both).
+
+// $count pieces of confetti strewn over a tile: strips, dots and squares, turned
+// every way, in the colours in turn
+@function -bd-confetti($colours, $seed, $count, $w, $h) {
+    $body: "";
+    $n: list.length($colours);
+    @for $i from 0 to $count {
+        $x: ($i * 173 + $seed * 37) % $w;
+        $y: ($i * 311 + $seed * 59) % $h;
+        $rot: ($i * 47 + $seed * 13) % 180;
+        $c: list.nth($colours, $i % $n + 1);
+        $kind: $i % 3;
+        @if $kind == 0 {
+            $body: $body + '<rect x="-5" y="-2" width="10" height="4" rx="1" fill="#{$c}" transform="translate(#{$x} #{$y}) rotate(#{$rot})"/>';
+        } @else if $kind == 1 {
+            $body: $body + '<circle cx="#{$x}" cy="#{$y}" r="3" fill="#{$c}"/>';
+        } @else {
+            $body: $body + '<rect x="-3" y="-3" width="6" height="6" fill="#{$c}" transform="translate(#{$x} #{$y}) rotate(#{$rot})"/>';
+        }
+    }
+    @return svg-url($body, $w, $h);
+}
+
+// a burst: strips flung out from the middle of a 160px square
+@function -bd-burst($colours) {
+    $body: "";
+    $n: list.length($colours);
+    @for $i from 0 to 18 {
+        $a: $i * 20deg;
+        $r: 46 + ($i * 7) % 26;
+        $x: 80 + math.round(math.cos($a) * $r);
+        $y: 80 + math.round(math.sin($a) * $r);
+        $c: list.nth($colours, $i % $n + 1);
+        $body: $body + '<rect x="-5" y="-2" width="10" height="4" rx="1" fill="#{$c}" transform="translate(#{$x} #{$y}) rotate(#{math.div($a, 1deg) + 90})"/>';
+    }
+    @return svg-url($body, 160, 160);
+}
+
+// the bunting: a string sagging between two points, a flag on it in each colour
+@function -bd-bunting($colours, $string) {
+    $body: '<path d="M0 3 Q120 17 240 3" fill="none" stroke="#{$string}" stroke-width="1.5"/>';
+    $n: list.length($colours);
+    @for $i from 0 to 6 {
+        $x: 10 + $i * 38;
+        $sag: math.round(3 + 14 * math.sin(math.div(($x + 10) * 180deg, 240)));
+        $c: list.nth($colours, $i % $n + 1);
+        $body: $body + '<path d="M#{$x} #{$sag} L#{$x + 26} #{$sag} L#{$x + 13} #{$sag + 22} Z" fill="#{$c}"/>';
+    }
+    @return svg-url($body, 240, 44);
+}
+
+// three balloons on their strings, bunched
+@function -bd-balloons($a, $b, $c, $string) {
+    $body: '<path d="M30 46 Q34 90 60 118 M60 36 Q58 80 60 118 M90 50 Q84 92 60 118" fill="none" stroke="#{$string}" stroke-width="1.2"/>';
+    @each $x, $y, $col in (30, 25, $a), (60, 16, $b), (90, 29, $c) {
+        $body: $body + '<g transform="translate(#{$x} #{$y})"><ellipse rx="17" ry="21" fill="#{$col}"/><ellipse cx="-6" cy="-8" rx="4" ry="6" fill="#fff" fill-opacity=".45"/><path d="M-3 21 L3 21 L0 25 Z" fill="#{$col}"/></g>';
+    }
+    @return svg-url($body, 120, 122);
+}
+
+$bd-light: (
+    hi-rgb: "0 0 0",
+    text-bright: #000000,
+    ink: #ffffff,
+    on-grad: #ffffff,
+    knob: #ffffff,
+    danger: #d8192e,
+    danger-rgb: "216 25 46",
+    danger-text: #b3142a,
+    danger-text-hover: #7a0c1a,
+    ok: #1f9a4a,
+    ok-rgb: "31 154 74",
+    amber: #d08a00,
+    amber-rgb: "208 138 0",
+    caution: #c29a00,
+    caution-rgb: "194 154 0",
+    caution-text: #5a4700,
+    warn: #c25a00,
+    conflict: #b35000,
+    duplicate: #c2410c,
+    duplicate-rgb: "194 65 12",
+    worse: #c2410c,
+    coil-0: #e0203e,
+    coil-1: #d4a000,
+    coil-2: #1f9a4a,
+    coil-3: #0b86c9,
+    coil-4: #8a3cd6,
+    coil-5: #f06a12,
+    plasma: #8a3cd6,
+    bd-sign: '"JOYEUX ANNIVERSAIRE !"',
+);
+
+// the colours of a party, and the parts drawn in them
+@function -bd-party($colours, $string, $seed) {
+    @return (
+        bd-confetti: -bd-confetti($colours, $seed, 46, 360, 420),
+        bd-confetti-front: -bd-confetti($colours, $seed + 3, 7, 520, 640),
+        bd-burst: -bd-burst($colours),
+        bd-bunting: -bd-bunting($colours, $string),
+        bd-balloons: -bd-balloons(list.nth($colours, 1), list.nth($colours, 4), list.nth($colours, 2), $string),
+    );
+}
+
+$-bd-bright: (#ff4f81, #ffc933, #3ecf8e, #3ab0ff, #9b6bff, #ff8a3d);
+$-bd-neon: (#ff5fd2, #ffe14d, #39ff9a, #36d6ff, #b98aff, #ff9a3c);
+
+// the order is the picker's, the first the look's default
+$birthday-palettes: (
+    // confetti on a white tablecloth, pink icing
+    confetti: map.merge(
+        -bd-party($-bd-bright, #8a6a90, 1),
+        (
+            bg: #fffaf2,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #fff3e6,
+            bg-rgb: "255 250 242",
+            line-rgb: "150 60 120",
+            text: #2a1630,
+            text-rgb: "42 22 48",
+            text-dim: #4a2e52,
+            text-mute: #6a4c72,
+            text-strong: #8a1f6a,
+            volt: #c81e64,
+            volt-rgb: "200 30 100",
+            grad: "linear-gradient(135deg, #ff4f81, #ff8a3d)",
+            arc-core: #ffe0ec,
+            arc-mid: #ff4f81,
+            arc-deep: #9b6bff,
+            arc-glow-rgb: "255 79 129",
+            bd-icing: #ffc2d6,
+            bd-icing-ink: #6a0a3a,
+            bd-stripes: "repeating-linear-gradient(-45deg, #ff4f81 0 8px, #ffffff 8px 16px)",
+            swatch: "radial-gradient(circle at 30% 30%, #ff4f81 0 12%, transparent 14%), radial-gradient(circle at 70% 40%, #3ab0ff 0 10%, transparent 12%), radial-gradient(circle at 45% 72%, #ffc933 0 11%, transparent 13%), #fffaf2",
+        )
+    ),
+    // the bunting's lemon and sky, lemon icing
+    bunting: map.merge(
+        -bd-party(($-bd-bright), #6a7a90, 4),
+        (
+            bg: #f2f8ff,
+            bg-2: #ffffff,
+            panel: #ffffff,
+            panel-2: #eaf3ff,
+            bg-rgb: "242 248 255",
+            line-rgb: "40 90 170",
+            text: #14223a,
+            text-rgb: "20 34 58",
+            text-dim: #2e3e5a,
+            text-mute: #4c5c78,
+            text-strong: #1f4fa0,
+            volt: #1f62c8,
+            volt-rgb: "31 98 200",
+            grad: "linear-gradient(135deg, #3ab0ff, #9b6bff)",
+            arc-core: #e0f2ff,
+            arc-mid: #3ab0ff,
+            arc-deep: #ffc933,
+            arc-glow-rgb: "58 176 255",
+            bd-icing: #ffe38a,
+            bd-icing-ink: #5a4200,
+            bd-stripes: "repeating-linear-gradient(-45deg, #3ab0ff 0 8px, #ffffff 8px 16px)",
+            swatch: "radial-gradient(circle at 30% 30%, #3ab0ff 0 12%, transparent 14%), radial-gradient(circle at 70% 40%, #ffc933 0 10%, transparent 12%), radial-gradient(circle at 45% 72%, #3ecf8e 0 11%, transparent 13%), #f2f8ff",
+        )
+    ),
+    // the party after dark, the confetti glowing
+    nightparty: map.merge(
+        -bd-party($-bd-neon, #9a86c0, 7),
+        (
+            bg: #140a24,
+            bg-2: #0e0619,
+            panel: #1f1236,
+            panel-2: #2a1a48,
+            bg-rgb: "20 10 36",
+            hi-rgb: "255 255 255",
+            line-rgb: "255 95 210",
+            text: #f3eaff,
+            text-rgb: "243 234 255",
+            text-dim: #d6c8f0,
+            text-mute: #aa98cc,
+            text-strong: #ffd6f4,
+            text-bright: #ffffff,
+            volt: #ff5fd2,
+            volt-rgb: "255 95 210",
+            ink: #140a24,
+            grad: "linear-gradient(135deg, #ff5fd2, #b98aff)",
+            on-grad: #140a24,
+            arc-core: #ffe0f7,
+            arc-mid: #ff5fd2,
+            arc-deep: #36d6ff,
+            arc-glow-rgb: "255 95 210",
+            danger: #ff4d4d,
+            danger-rgb: "255 77 77",
+            danger-text: #ff7a7a,
+            danger-text-hover: #ffb0b0,
+            ok: #39ff9a,
+            ok-rgb: "57 255 154",
+            caution: #ffe14d,
+            caution-rgb: "255 225 77",
+            caution-text: #ffe680,
+            coil-0: #ff4d6d,
+            coil-1: #ffe14d,
+            coil-2: #39ff9a,
+            coil-3: #36d6ff,
+            coil-4: #b98aff,
+            coil-5: #ff9a3c,
+            plasma: #b98aff,
+            bd-icing: #3a1f5c,
+            bd-icing-ink: #ffd6f4,
+            bd-stripes: "repeating-linear-gradient(-45deg, #ff5fd2 0 8px, #1f1236 8px 16px)",
+            swatch: "radial-gradient(circle at 30% 30%, #ff5fd2 0 12%, transparent 14%), radial-gradient(circle at 70% 40%, #36d6ff 0 10%, transparent 12%), radial-gradient(circle at 45% 72%, #ffe14d 0 11%, transparent 13%), #140a24",
+        )
+    ),
+);
+
+@each $id, $p in $birthday-palettes {
+    [data-theme="#{$id}"] {
+        @each $key, $value in map.merge($bd-light, $p) {
+            --#{$key}: #{$value};
+        }
+    }
+}

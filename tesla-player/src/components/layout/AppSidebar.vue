@@ -140,6 +140,13 @@
   <!-- Teleported: the sidebar scrolls, so an in-flow popover would be clipped. -->
   <Teleport to="body">
     <div v-if="menuOpen" ref="menu" class="sidebar-menu" :style="menuStyle" role="menu">
+      <!-- the phone's way to the arc meter: the Tuning page that offers it isn't in its bar -->
+      <template v-if="isMobile">
+        <button class="sidebar-menu__item" type="button" role="menuitem" @click="$router.push({ name: 'arc-meter' })">
+          <span class="icon"><i class="fas fa-ruler"></i></span>{{ $t('tune.meter.title') }}
+        </button>
+        <div class="sidebar-menu__sep"></div>
+      </template>
       <div class="sidebar-menu__row">
         <span>{{ $t('label.language') }}</span>
         <locale-picker />
@@ -379,9 +386,12 @@ export default {
     selectedOutputListed() {
       return this.outputs.some(o => o.id === this.selectedOutputId)
     },
+    isMobile() {
+      return mobileLayout.value
+    },
     // the coil list is a section of the full sidebar only
     coilsInMenu() {
-      return this.sidebarCompact || mobileLayout.value
+      return this.sidebarCompact || this.isMobile
     },
     showUser() {
       return this.authStore.enabled && this.authStore.authenticated

@@ -43,13 +43,23 @@ function draw(): void {
   const css = getComputedStyle(c);
   ctx.lineWidth = 1.5;
   ctx.strokeStyle = `rgb(${css.getPropertyValue('--zone-rgb')} / 0.85)`;
-  ctx.beginPath();
-  if (h.dirDeg == null) ctx.arc(X(h.breakout.x), Y(h.breakout.y), h.roiRadius * k, 0, Math.PI * 2);
-  else { const a = (h.dirDeg * Math.PI) / 180; ctx.arc(X(h.breakout.x), Y(h.breakout.y), h.roiRadius * k, a - Math.PI / 2, a + Math.PI / 2); ctx.closePath(); }
-  ctx.stroke();
+  // the floor spans the zone: the disk's width, or from the wall to the grid's edge
+  const gx0 = h.x0, gx1 = h.x0 + h.w * h.cell;
+  let fx0 = gx0, fx1 = gx1;
+  if (h.roiRadius != null) {
+    const R = h.roiRadius;
+    ctx.beginPath();
+    if (h.dirDeg == null) ctx.arc(X(h.breakout.x), Y(h.breakout.y), R * k, 0, Math.PI * 2);
+    else { const a = (h.dirDeg * Math.PI) / 180; ctx.arc(X(h.breakout.x), Y(h.breakout.y), R * k, a - Math.PI / 2, a + Math.PI / 2); ctx.closePath(); }
+    ctx.stroke();
+    fx0 = h.breakout.x - R; fx1 = h.breakout.x + R;
+  } else if (h.wall) {
+    ctx.beginPath(); ctx.moveTo(X(h.wall.x), Y(h.y0)); ctx.lineTo(X(h.wall.x), Y(h.excludeBelowY ?? h.y0 + h.h * h.cell)); ctx.stroke();
+    if (h.wall.side > 0) fx0 = h.wall.x; else fx1 = h.wall.x;
+  }
   if (h.excludeBelowY != null) {
     ctx.setLineDash([5, 4]);
-    ctx.beginPath(); ctx.moveTo(X(h.breakout.x - h.roiRadius), Y(h.excludeBelowY)); ctx.lineTo(X(h.breakout.x + h.roiRadius), Y(h.excludeBelowY)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(X(fx0), Y(h.excludeBelowY)); ctx.lineTo(X(fx1), Y(h.excludeBelowY)); ctx.stroke();
     ctx.setLineDash([]);
   }
   ctx.fillStyle = css.getPropertyValue('--danger');

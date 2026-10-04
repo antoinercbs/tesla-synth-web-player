@@ -321,6 +321,73 @@ describe('ArcMeter', () => {
     expect(facingRight.geom.dirDeg).toBe(0);
   });
 
+  describe('corner zone (a pin throwing its arcs to the right)', () => {
+    const CORNER: ArcGeometry = { width: W, height: H, breakout: { x: 96, y: 60 }, wall: { x: 84, side: 1 }, excludeBelowY: 80 };
+    const withBackground = (geom: ArcGeometry): ArcMeter => {
+      const m = new ArcMeter(geom);
+      const b = m.backgroundBuilder();
+      for (let k = 0; k < 12; k++) b.add(m.cropFrom(scene({ seed: 400 + k })));
+      m.buildBackground(b);
+      return m;
+    };
+    const longArc = [{ x: 96, y: 60 }, { x: 120, y: 45 }, { x: 150, y: 30 }, { x: 180, y: 25 }]; // tip ≈ 91 px away
+
+    it('measures a long sideways arc to its tip, where a disk would cut it', () => {
+      const r = withBackground(CORNER).measure(scene({ seed: 5, arc: longArc }));
+      expect(r.L).toBeGreaterThan(87);
+      expect(r.L).toBeLessThan(95);
+      expect(r.edge).toBeNull();
+      const disk = meterWithBackground().measure(scene({ seed: 5, arc: longArc }));
+      expect(disk.L).toBeLessThan(GEOM.roiRadius! + 1);
+      expect(disk.edge).toBe('zone');
+    });
+
+    it('keeps the root disk small, so a short arc still counts', () => {
+      const r = withBackground(CORNER).measure(scene({ seed: 5, arc: [{ x: 96, y: 60 }, { x: 105, y: 56 }, { x: 113, y: 52 }] }));
+      expect(r.L).toBeGreaterThan(15);
+      expect(r.L).toBeLessThan(21);
+    });
+
+    it('cuts an arc that runs behind the wall, and says so', () => {
+      const r = withBackground(CORNER).measure(scene({ seed: 5, arc: [{ x: 96, y: 60 }, { x: 70, y: 52 }, { x: 45, y: 56 }] }));
+      expect(r.L).toBeLessThan(16);
+      expect(r.edge).toBe('zone');
+    });
+
+    it('measures a strike down to the floor, without calling it cut', () => {
+      // the arcs head for the ground: this one dives to the floor line (y = 80) and on into the ground
+      const r = withBackground(CORNER).measure(scene({ seed: 5, arc: [{ x: 96, y: 60 }, { x: 118, y: 66 }, { x: 136, y: 76 }, { x: 146, y: 92 }] }));
+      const toFloor = Math.hypot(138 - 96, 79 - 60); // ≈ 46
+      expect(r.L).toBeGreaterThan(toFloor - 4);
+      expect(r.L).toBeLessThan(toFloor + 4);
+      expect(r.edge).toBeNull();
+    });
+
+    it('flags an arc that runs out of the picture', () => {
+      const r = withBackground(CORNER).measure(scene({ seed: 5, arc: [{ x: 96, y: 60 }, { x: 150, y: 45 }, { x: 191, y: 40 }] }));
+      expect(r.L).toBeGreaterThan(90);
+      expect(r.edge).toBe('frame');
+    });
+
+    it('aligns on the decor behind the wall and below the floor', () => {
+      const m = withBackground(CORNER);
+      const still = m.measure(scene({ seed: 8, arc: longArc }));
+      const moved = m.measure(scene({ seed: 9, arc: longArc, shift: { dx: 6, dy: -4 } }));
+      expect(moved.shift.dx).toBe(6);
+      expect(moved.shift.dy).toBe(-4);
+      expect(moved.stable).toBe(true);
+      expect(Math.abs(moved.L - still.L)).toBeLessThan(3);
+    });
+
+    it('runs without any limit, taking the frames as they come', () => {
+      const m = withBackground({ width: W, height: H, breakout: { x: 96, y: 60 } });
+      expect(m.crop).toEqual({ x0: 0, y0: 0, w: W, h: H });
+      const r = m.measure(scene({ seed: 5, arc: longArc }));
+      expect(r.shift).toEqual({ dx: 0, dy: 0, conf: 1 });
+      expect(r.L).toBeGreaterThan(87);
+    });
+  });
+
   it('does not count an arc-like filament that is not connected to the breakout', () => {
     const m = meterWithBackground();
     const r = m.measure(scene({ seed: 10, arc: [{ x: 40, y: 20 }, { x: 60, y: 35 }] }));
