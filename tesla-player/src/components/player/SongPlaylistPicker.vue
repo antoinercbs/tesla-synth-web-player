@@ -7,6 +7,7 @@ import EmptyState from '@/components/ui/EmptyState.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration } from '@/utils/format';
 import type { Song, Playlist } from '@/types/domain';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The playback source picker: songs library (search + coil-count filter) and
@@ -125,7 +126,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
           :class="{ 'is-current': song.id === currentId }">
           <button class="row-btn row-btn--play" type="button" @click="emit('play-now', song)"
             :title="$t('label.playNow')">
-            <i class="fas" :class="song.id === currentId ? 'fa-volume-high' : 'fa-play'"></i>
+            <i class="fas" :class="song.id === currentId ? ICONS.nowPlaying : 'fa-play'"></i>
           </button>
           <div class="play-row__main">
             <span class="play-row__name">{{ song.name }}</span>
@@ -142,7 +143,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
                 <span v-for="i in coilChips(song.coilCount)" :key="i" class="coil-dot"
                   :style="{ '--c': coilColor(i) }"></span>
                 <span v-if="usesSpeaker(song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
-                    class="fas fa-volume-high"></i></span>
+                    class="fas" :class="ICONS.speakers"></i></span>
               </span>
             </div>
             <div class="play-row__acts">
@@ -220,7 +221,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
           :class="{ 'is-current': entry.song.id === currentId, 'is-incompatible': !entry.compatible }">
           <button class="row-btn row-btn--play" type="button" :disabled="!entry.compatible"
             @click="entry.compatible && emit('play-now', entry.song)" :title="$t('label.playNow')">
-            <i class="fas" :class="entry.song.id === currentId ? 'fa-volume-high' : 'fa-play'"></i>
+            <i class="fas" :class="entry.song.id === currentId ? ICONS.nowPlaying : 'fa-play'"></i>
           </button>
           <div class="play-row__main">
             <span class="play-row__name">{{ entry.song.name }}</span>
@@ -240,7 +241,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
                 <span v-for="i in coilChips(entry.song.coilCount)" :key="i" class="coil-dot"
                   :style="{ '--c': coilColor(i) }"></span>
                 <span v-if="usesSpeaker(entry.song)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i
-                    class="fas fa-volume-high"></i></span>
+                    class="fas" :class="ICONS.speakers"></i></span>
               </span>
             </div>
             <div class="play-row__acts">

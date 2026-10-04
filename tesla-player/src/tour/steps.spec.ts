@@ -45,7 +45,8 @@ describe('tour steps', () => {
 
   it('name every tour, with its icon', () => {
     for (const id of Object.keys(TOURS)) {
-      expect(TOUR_ICONS[id as keyof typeof TOUR_ICONS], id).toMatch(/^fa-/);
+      // a Font Awesome name, or one of the app's own (ui/icons.ts)
+      expect(TOUR_ICONS[id as keyof typeof TOUR_ICONS], id).toMatch(/^(fa|tp)-/);
       for (const lang of LANGS) expect(typeof get(messages[lang] as Tree, `tour.names.${id}`), `${lang} ${id}`).toBe('string');
     }
   });

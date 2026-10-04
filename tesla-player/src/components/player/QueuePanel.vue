@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { formatDuration } from '@/utils/format';
 import type { Song } from '@/types/domain';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The "up next" queue panel (presentational). All queue logic lives in the
@@ -92,7 +93,7 @@ function onDrop(toPos: number): void {
         <span class="queue-item__idx">{{ opos + 1 }}</span>
         <span class="queue-item__name">{{ queue[qi]?.name }}</span>
         <span class="queue-item__dur">{{ formatDuration(queue[qi]?.midiFile?.durationMs) }}</span>
-        <span v-if="opos === pos" class="icon queue-item__live"><i class="fas fa-volume-high"></i></span>
+        <span v-if="opos === pos" class="icon queue-item__live"><i class="fas" :class="ICONS.nowPlaying"></i></span>
         <button class="queue-btn queue-item__remove" type="button" @click.stop="emit('remove', opos)"
           :title="$t('label.delete')">
           <i class="fas fa-xmark"></i>

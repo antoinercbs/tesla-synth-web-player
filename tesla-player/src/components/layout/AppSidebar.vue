@@ -36,24 +36,24 @@
       <!-- --wide: not offered by the phone layout (ui/viewport.ts) -->
       <router-link class="nav-item nav-item--wide" :to="{ name: 'envelopes' }"
         :title="sidebarCompact ? $t('nav.envelopes') : null">
-        <span class="icon"><i class="fas fa-chart-line"></i></span><span class="nav-item__label">{{ $t('nav.envelopes')
+        <span class="icon"><i class="fas" :class="ICONS.envelope"></i></span><span class="nav-item__label">{{ $t('nav.envelopes')
           }}</span>
       </router-link>
       <!-- content above, hardware below -->
       <span class="nav__sep" aria-hidden="true"></span>
       <router-link class="nav-item nav-item--wide" :to="{ name: 'tune' }" :title="sidebarCompact ? $t('nav.tune') : null">
-        <span class="icon"><i class="fas fa-bullseye"></i></span><span class="nav-item__label">{{ $t('nav.tune')
+        <span class="icon"><i class="fas" :class="ICONS.tuning"></i></span><span class="nav-item__label">{{ $t('nav.tune')
         }}</span>
       </router-link>
       <!-- device config: only reachable over a link with read-back (serial, or a
            Web MIDI output paired with the device's input, e.g. native USB-MIDI) -->
       <router-link v-if="midiStore.deviceLink" class="nav-item nav-item--wide" :to="{ name: 'syntherrupter' }"
         :title="sidebarCompact ? $t('nav.syntherrupter') : null">
-        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
+        <span class="icon"><i class="fas" :class="ICONS.interrupter"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
         }}</span>
       </router-link>
       <span v-else class="nav-item nav-item--wide is-disabled" :title="$t('label.serialNeededForConfig')">
-        <span class="icon"><i class="fas fa-sliders"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
+        <span class="icon"><i class="fas" :class="ICONS.interrupter"></i></span><span class="nav-item__label">{{ $t('nav.syntherrupter')
         }}</span>
         <i class="fas fa-lock nav-item__lock"></i>
       </span>
@@ -108,7 +108,7 @@
       </span>
       <span v-if="selectedOutput2Id" class="cstat cstat--spk" :class="{ 'is-warn': speakersOut.state === 'warn' }"
         :title="`${$t('output.speakers')} · ${speakersOut.name}`">
-        <i class="fas fa-volume-high"></i>
+        <i class="fas" :class="ICONS.speakers"></i>
       </span>
       <span v-if="!isElectron" class="cstat-conn" :class="{ 'is-up': isConnected }" :title="connLabel">
         <span class="conn__dot"></span>
@@ -143,7 +143,7 @@
       <!-- the phone's way to the arc meter: the Tuning page that offers it isn't in its bar -->
       <template v-if="isMobile">
         <button class="sidebar-menu__item" type="button" role="menuitem" @click="$router.push({ name: 'arc-meter' })">
-          <span class="icon"><i class="fas fa-ruler"></i></span>{{ $t('tune.meter.title') }}
+          <span class="icon"><i class="fas" :class="ICONS.arcMeter"></i></span>{{ $t('tune.meter.title') }}
         </button>
         <div class="sidebar-menu__sep"></div>
       </template>
@@ -160,7 +160,7 @@
       <!-- the coils' own place is their sidebar list: here only when it isn't shown -->
       <button v-if="coilsInMenu" class="sidebar-menu__item" type="button" role="menuitem"
         @click="openFromMenu('coilsOpen')">
-        <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('title.coils') }}
+        <span class="icon"><i class="fas" :class="ICONS.coil"></i></span>{{ $t('title.coils') }}
       </button>
       <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('tagsOpen')">
         <span class="icon"><i class="fas fa-tags"></i></span>{{ $t('label.tags') }}
@@ -196,7 +196,7 @@
         <button class="sidebar-menu__item" :class="{ 'is-current': coilsOn === 'synth' }" type="button"
           role="menuitemradio" :aria-checked="coilsOn === 'synth'" @click="pickSynth">
           <span class="sidebar-menu__check"><i v-if="coilsOn === 'synth'" class="fas fa-check"></i></span>
-          <span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('output.synth') }}
+          <span class="icon"><i class="fas" :class="ICONS.synth"></i></span>{{ $t('output.synth') }}
         </button>
         <!-- whatever the output: the editor and the envelope audition play on this synth too -->
         <div class="sidebar-menu__row sidebar-menu__row--sub">
@@ -220,7 +220,7 @@
           :aria-checked="coilsOn === 'midi' && selectedOutputId === o.id" @click="pickMidi(o)">
           <span class="sidebar-menu__check"><i v-if="coilsOn === 'midi' && selectedOutputId === o.id"
               class="fas fa-check"></i></span>
-          <span class="icon"><i class="fas fa-plug"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
+          <span class="icon"><i class="fas" :class="ICONS.midi"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
         </button>
         <p v-if="!outputs.length" class="sidebar-menu__note">{{ $t('output.noInterface') }}</p>
         <div class="sidebar-menu__sep"></div>
@@ -229,7 +229,7 @@
           <button class="sidebar-menu__item is-current" type="button" role="menuitemradio" aria-checked="true"
             @click="closeOutMenu(true)">
             <span class="sidebar-menu__check"><i class="fas fa-check"></i></span>
-            <span class="icon"><i class="fas fa-bolt"></i></span><span class="sidebar-menu__name">{{
+            <span class="icon"><i class="fas" :class="ICONS.serial"></i></span><span class="sidebar-menu__name">{{
               midiStore.serialPortLabel }}</span>
           </button>
           <button class="sidebar-menu__item" type="button" role="menuitem" @click="disconnectSerial">
@@ -241,7 +241,7 @@
           <button class="sidebar-menu__item" :class="{ 'is-current': coilsOn === 'serial' }" type="button"
             role="menuitem" :disabled="!serialSupported" @click="connectSerial">
             <span class="sidebar-menu__check"><i v-if="coilsOn === 'serial'" class="fas fa-check"></i></span>
-            <span class="icon"><i class="fas fa-plug"></i></span>{{ $t('output.connect') }}
+            <span class="icon"><i class="fas" :class="ICONS.serial"></i></span>{{ $t('output.connect') }}
           </button>
           <p v-if="!serialSupported" class="sidebar-menu__note">{{ $t('label.serialUnsupported') }}</p>
         </template>
@@ -264,7 +264,7 @@
           :class="{ 'is-current': selectedOutput2Id === o.id }" type="button" role="menuitemradio"
           :aria-checked="selectedOutput2Id === o.id" @click="pickSpeakers(o)">
           <span class="sidebar-menu__check"><i v-if="selectedOutput2Id === o.id" class="fas fa-check"></i></span>
-          <span class="icon"><i class="fas fa-plug"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
+          <span class="icon"><i class="fas" :class="ICONS.midi"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
         </button>
         <p v-if="!outputs.length" class="sidebar-menu__note">{{ $t('output.noInterface') }}</p>
         <template v-if="selectedOutput2Id">
@@ -299,6 +299,7 @@ import labelSrc from '@/assets/label_high_black.svg'
 import { useMidiStore } from '@/stores/midi'
 import { useAuthStore } from '@/stores/auth'
 import { coilColor } from '@/ui/coil-colors'
+import { ICONS } from '@/ui/icons'
 import { startTour } from '@/tour/tour'
 import { notify } from '@/utils/toast'
 import { mobileLayout } from '@/ui/viewport'
@@ -331,6 +332,7 @@ export default {
   data() {
     return {
       labelSrc,
+      ICONS,
       // output-1 transport mode: 'synth' | 'midi' | 'serial' (persisted). Defaults
       // from the legacy persisted device id (synth vs a real MIDI output).
       output1Mode: localStorage.getItem('output1Mode')
@@ -409,9 +411,9 @@ export default {
     },
     /** Compact-rail chip icon for the active output 1. */
     output1Icon() {
-      if (this.midiStore.isSerialOutput) return 'fa-bolt'
-      if (this.midiStore.isSynthOutput) return 'fa-wave-square'
-      return 'fa-plug'
+      if (this.midiStore.isSerialOutput) return ICONS.serial
+      if (this.midiStore.isSynthOutput) return ICONS.synth
+      return ICONS.midi
     },
     // until Web MIDI answers, a device not listed yet isn't a device unplugged
     midiReady() {
@@ -431,36 +433,36 @@ export default {
       const midiName = this.savedOutput1Name || t('output.midiSub')
       switch (this.coilsOn) {
         case 'serialOn':
-          return { icon: 'fa-bolt', name: this.midiStore.serialPortLabel, sub: t('output.serialSub'), state: 'ok' }
+          return { icon: ICONS.serial, name: this.midiStore.serialPortLabel, sub: t('output.serialSub'), state: 'ok' }
         case 'serial':
           return this.serialRestoring
-            ? { icon: 'fa-bolt', name: t('output.serialName'), sub: t('output.serialSub'), state: 'idle' }
+            ? { icon: ICONS.serial, name: t('output.serialName'), sub: t('output.serialSub'), state: 'idle' }
             : { icon: 'fa-plug-circle-xmark', name: t('output.serialName'), sub: t('output.disconnected'), state: 'warn' }
         case 'midi':
           return {
-            icon: 'fa-bolt', name: this.outputs.find(o => o.id === this.selectedOutputId).name,
+            icon: ICONS.midi, name: this.outputs.find(o => o.id === this.selectedOutputId).name,
             sub: t('output.midiSub'), state: 'ok',
           }
         case 'missing':
           return this.midiReady
             ? { icon: 'fa-plug-circle-xmark', name: midiName, sub: t('output.unplugged'), state: 'warn' }
-            : { icon: 'fa-bolt', name: midiName, sub: t('output.midiSub'), state: 'idle' }
+            : { icon: ICONS.midi, name: midiName, sub: t('output.midiSub'), state: 'idle' }
         default:
           return {
-            icon: 'fa-bolt', name: t('output.synth'),
+            icon: ICONS.synth, name: t('output.synth'),
             sub: `${t(`label.synthModelName.${this.synthModel}`)} · ${t('output.synthSub')}`, state: 'emu',
           }
       }
     },
     speakersOut() {
       const t = this.$t
-      if (!this.selectedOutput2Id) return { icon: 'fa-volume-high', name: t('output.none'), sub: '', state: 'none' }
+      if (!this.selectedOutput2Id) return { icon: ICONS.speakers, name: t('output.none'), sub: '', state: 'none' }
       const dev = this.outputs.find(o => o.id === this.selectedOutput2Id)
-      if (dev) return { icon: 'fa-volume-high', name: dev.name, sub: this.output2Offset ? this.offsetLabel : '', state: 'ok' }
+      if (dev) return { icon: ICONS.speakers, name: dev.name, sub: this.output2Offset ? this.offsetLabel : '', state: 'ok' }
       const name = this.savedOutput2Name || t('output.midiSub')
       return this.midiReady
         ? { icon: 'fa-plug-circle-xmark', name, sub: t('output.speakersUnplugged'), state: 'warn' }
-        : { icon: 'fa-volume-high', name, sub: '', state: 'idle' }
+        : { icon: ICONS.speakers, name, sub: '', state: 'idle' }
     },
     outRows() {
       return [

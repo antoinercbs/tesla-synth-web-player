@@ -3,6 +3,7 @@ import { ref } from 'vue';
 import { notify } from '@/utils/toast';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * Dev-only reference sheet (/styleguide, not routed in production builds): the
@@ -74,7 +75,7 @@ const on = ref(true);
           <segmented-control v-model="tab" tabs :options="[
             { value: 'a', label: 'VU', icon: 'fa-chart-simple' },
             { value: 'b', label: 'Score', icon: 'fa-music' },
-            { value: 'c', label: 'Coils', icon: 'fa-bolt' },
+            { value: 'c', label: 'Coils', icon: ICONS.coil },
           ]" />
           <span class="sg-nav"><span class="sg-nav__arc"></span>Active nav item / row</span>
           <span class="arc-loader" aria-hidden="true"></span><span class="sg-label">loading</span>
@@ -118,6 +119,17 @@ const on = ref(true);
         <div class="sg-row">
           <span class="coil-legend">
             <span v-for="i in 6" :key="i" class="coil-legend__chip" :style="{ '--c': `var(--coil-${i - 1})` }">{{ i - 1 }}</span>
+          </span>
+        </div>
+      </section>
+
+      <section class="sg-block">
+        <h2 class="sg-title">Icons — one per notion (ui/icons.ts), next to a Font Awesome glyph</h2>
+        <div class="sg-icons">
+          <span v-for="(icon, notion) in ICONS" :key="notion" class="sg-icon">
+            <span class="sg-icon__glyphs"><i class="fas" :class="icon"></i><span class="icon"><i class="fas" :class="icon"></i></span><i class="fas fa-play"></i></span>
+            <code>{{ notion }}</code>
+            <small>{{ icon }}</small>
           </span>
         </div>
       </section>

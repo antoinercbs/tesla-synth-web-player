@@ -5,6 +5,7 @@ import LocalePicker from '@/components/settings/LocalePicker.vue';
 import SkinPicker from '@/components/settings/SkinPicker.vue';
 import ThemePicker from '@/components/settings/ThemePicker.vue';
 import { dismissWelcome, startTour, tour } from '@/tour/tour';
+import { ICONS } from '@/ui/icons';
 
 /**
  * First visit on a device: language, look and colours (applied as they are picked),
@@ -14,7 +15,7 @@ const emblemStyle = { '--emblem-src': `url("${logoSrc}")` };
 </script>
 
 <template>
-  <BaseModal :open="tour.welcome" :title="$t('welcome.title')" icon="fa-bolt" card-class="welcome-modal"
+  <BaseModal :open="tour.welcome" :title="$t('welcome.title')" :icon="ICONS.welcome" card-class="welcome-modal"
     :close-label="$t('welcome.skip')" @close="dismissWelcome">
     <div class="welcome">
       <span class="brand__emblem welcome__logo" :style="emblemStyle" aria-hidden="true"></span>

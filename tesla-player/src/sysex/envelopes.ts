@@ -50,18 +50,6 @@ export function envelope(program: number): Envelope {
   return BY_PROGRAM.get(program) ?? { program, name: `Program ${program}`, kind: 'piano' };
 }
 
-const KIND_ICON: Record<EnvelopeKind, string> = {
-  constant: 'fa-wave-square',
-  piano: 'fa-music',
-  pad: 'fa-wind',
-  staccato: 'fa-bolt',
-  legato: 'fa-grip-lines',
-  custom: 'fa-chart-line',
-};
-export function envelopeIcon(program: number): string {
-  return KIND_ICON[envelope(program).kind];
-}
-
 // ---------------------------------------------------------------------------
 // Library envelopes (programs 20-63). The store registers the list here so the
 // synth, the VU and every picker read the very shape the device is sent; the

@@ -9,14 +9,15 @@ import PageTourButton from '@/components/tour/PageTourButton.vue';
 import { confirmLeaveInPlace } from '@/utils/leave-guard';
 import { mobileLayout } from '@/ui/viewport';
 import { tour } from '@/tour/tour';
+import { ICONS } from '@/ui/icons';
 
 type PlayMode = 'playback' | 'live' | 'fixed';
 
 const midiStore = useMidiStore();
 const MODES: { id: PlayMode; icon: string; key: string }[] = [
   { id: 'playback', icon: 'fa-play', key: 'label.modePlayback' },
-  { id: 'live', icon: 'fa-tower-broadcast', key: 'label.modeLive' },
-  { id: 'fixed', icon: 'fa-wave-square', key: 'label.modeFixed' },
+  { id: 'live', icon: ICONS.live, key: 'label.modeLive' },
+  { id: 'fixed', icon: ICONS.fixedMode, key: 'label.modeFixed' },
 ];
 const STORAGE_KEY = 'playMode';
 

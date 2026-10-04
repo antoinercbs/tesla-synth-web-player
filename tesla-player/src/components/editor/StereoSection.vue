@@ -7,6 +7,7 @@ import { noteName } from '@/ui/piano-layout';
 import type { ChannelPlacement, CoilConfig, PanFollow, SongStereo, StereoBlend } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import StereoStage from '@/components/editor/StereoStage.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * A song's spatialisation: where its coils stand, how far each reaches, and
@@ -54,7 +55,7 @@ const placedPans = computed(() => {
 type Source = 'file' | 'pitch' | 'omni';
 const sourceOptions = computed(() => [
   { value: 'file' as const, label: t('stereo.sourceFile'), icon: 'fa-file-audio', title: t('stereo.sourceFileHint') },
-  { value: 'pitch' as const, label: t('stereo.sourcePitch'), icon: 'fa-music', title: t('stereo.sourcePitchHint') },
+  { value: 'pitch' as const, label: t('stereo.sourcePitch'), icon: ICONS.pitchPan, title: t('stereo.sourcePitchHint') },
   { value: 'omni' as const, label: t('stereo.sourceOmni'), icon: 'fa-circle-nodes', title: t('stereo.sourceOmniHint') },
 ]);
 const FOLLOWS: PanFollow[] = ['each', 'lowest', 'highest', 'loudest'];
@@ -146,7 +147,7 @@ function filePanText(row: (typeof channels.value)[number]): string {
   <section class="editor-section stereo">
     <div class="stereo__head">
       <h2 class="editor-section__title">
-        <span class="icon"><i class="fas fa-arrows-left-right"></i></span>{{ $t('stereo.title') }}
+        <span class="icon"><i class="fas" :class="ICONS.stereo"></i></span>{{ $t('stereo.title') }}
       </h2>
       <label class="switch">
         <input type="checkbox" :checked="!!stereo" @change="toggle(($event.target as HTMLInputElement).checked)" />

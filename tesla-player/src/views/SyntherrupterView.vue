@@ -16,6 +16,7 @@ import ParamCell from '@/components/settings/ParamCell.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * Syntherrupter hardware config page (needs a link with read-back: Web Serial, or
@@ -306,7 +307,7 @@ onMounted(() => {
         <!-- COILS — one row per coil, columns = the physical safety envelope -->
         <section class="sy-block">
           <header class="sy-block__head">
-            <h2 class="sy-block__title"><i class="fas fa-bolt"></i>{{ $t('sp.coilsTitle') }}</h2>
+            <h2 class="sy-block__title"><i class="fas" :class="ICONS.coil"></i>{{ $t('sp.coilsTitle') }}</h2>
             <p class="sy-block__hint">{{ $t('sp.coilsHint') }}</p>
           </header>
           <div class="sy-panel">
@@ -360,7 +361,7 @@ onMounted(() => {
         <!-- DISPLAY — the device's own touchscreen -->
         <section class="sy-block">
           <header class="sy-block__head">
-            <h2 class="sy-block__title"><i class="fas fa-display"></i>{{ $t('sp.displayTitle') }}</h2>
+            <h2 class="sy-block__title"><i class="fas" :class="ICONS.deviceScreen"></i>{{ $t('sp.displayTitle') }}</h2>
             <p class="sy-block__hint">{{ $t('sp.displayHint') }}</p>
           </header>
           <article class="sy-card">

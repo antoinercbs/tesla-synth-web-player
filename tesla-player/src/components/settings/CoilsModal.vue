@@ -4,6 +4,7 @@ import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS, type AppConfig } from '@/types/domain';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import { ICONS } from '@/ui/icons';
 
 /** The installation's coils (the sidebar's coil list opens it): how many, and their names. */
 const props = defineProps<{ open: boolean; config: AppConfig }>();
@@ -43,7 +44,7 @@ function save(): void {
 </script>
 
 <template>
-  <BaseModal :open="open" :title="$t('title.coils')" icon="fa-bolt" card-class="cfg-modal"
+  <BaseModal :open="open" :title="$t('title.coils')" :icon="ICONS.coil" card-class="cfg-modal"
     :close-label="$t('label.cancel')" @close="emit('close')">
     <div class="cfg-modal__body">
       <div class="cfg-field">

@@ -17,6 +17,7 @@ import MidiLibraryModal from '@/components/editor/MidiLibraryModal.vue';
 import StereoSection from '@/components/editor/StereoSection.vue';
 import DynamicsSection from '@/components/editor/DynamicsSection.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
+import { ICONS } from '@/ui/icons';
 
 const props = defineProps<{
   song?: Song | null;
@@ -410,7 +411,7 @@ watch(draft, () => emitChange(), { deep: true });
 
     <article class="coil-card output2-card" :style="{ '--coil': 'var(--plasma)' }">
       <header class="coil-card__head">
-        <span class="coil-card__icon"><i class="fas fa-volume-high"></i></span>
+        <span class="coil-card__icon"><i class="fas" :class="ICONS.speakers"></i></span>
         <h3 class="coil-card__title">{{ $t('label.secondOutputChannels') }}</h3>
         <span class="coil-card__count">{{ output2Count }} ch</span>
       </header>

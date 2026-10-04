@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { ArcMeter, DEFAULT_PARAMS, summarize, type Background, type BackgroundBuilder, type Measurement, type Shift } from '@/vision/arc-meter';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The camera side of the arc meter, shared by the phone page of a tuning session
@@ -15,7 +16,7 @@ const props = withDefaults(defineProps<{
   icon?: string;
   /** i18n key: covers the picture with this error (e.g. the session is gone). */
   error?: string | null;
-}>(), { icon: 'fa-bullseye', error: null });
+}>(), { icon: ICONS.tuning, error: null });
 const emit = defineEmits<{
   (e: 'started', size: { width: number; height: number }): void;
   /** A new meter, without background yet. */

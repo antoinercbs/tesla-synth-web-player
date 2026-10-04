@@ -5,6 +5,7 @@ import { coilColor } from '@/ui/coil-colors';
 import { useMidiStore } from '@/stores/midi';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 import EnvelopeSelect from '@/envelopes/EnvelopeSelect.vue';
+import { ICONS } from '@/ui/icons';
 
 const props = defineProps<{ index: number; showEnvelope?: boolean; availableChannels?: number[] | null }>();
 const coil = defineModel<CoilConfig>({ required: true });
@@ -72,7 +73,7 @@ const program = computed<number | null>({
 
     <template v-if="showEnvelope">
       <span class="readout-label coil-env__label">
-        <span class="icon"><i class="fas fa-sliders"></i></span>{{ $t('label.instrument') }}
+        <span class="icon"><i class="fas" :class="ICONS.instrument"></i></span>{{ $t('label.instrument') }}
       </span>
       <envelope-select v-model="program" class="coil-env" :none-label="$t('label.noOverride')" />
     </template>

@@ -10,6 +10,7 @@ import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import { ArcWindow, RunSegmenter } from '@/tuning/arc-window';
 import type { HeatPayload } from '@/tuning/heat';
 import { mobileLayout } from '@/ui/viewport';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The arc meter on its own: no session, no tone, nothing saved. Whatever drives
@@ -100,7 +101,7 @@ function close(): void {
 </script>
 
 <template>
-  <arc-camera ref="cam" :title="t('tune.meter.title')" icon="fa-ruler" @zone="onZone" @setup="onSetup" @measure="onMeasure">
+  <arc-camera ref="cam" :title="t('tune.meter.title')" :icon="ICONS.arcMeter" @zone="onZone" @setup="onSetup" @measure="onMeasure">
     <template #head>
       <segmented-control v-if="zoneSet" v-model="tab" class="cam__tabs" tabs :options="tabOptions" :aria-label="t('tune.meter.title')" />
       <button class="cam__close" type="button" :title="t('label.close')" :aria-label="t('label.close')" @click="close"><i class="fas fa-xmark"></i></button>
@@ -118,7 +119,7 @@ function close(): void {
       <template v-if="hasBackground">
         <arc-readout :live="live" :state="stateText" :active="current.active" />
         <button v-if="live.moved && !capture.active" class="cam-btn cam-btn--volt" type="button" @click="captureBackground">
-          <i class="fas fa-camera-rotate"></i>{{ t('tune.meter.recaptureBg') }}
+          <i class="fas" :class="ICONS.recaptureBackground"></i>{{ t('tune.meter.recaptureBg') }}
         </button>
       </template>
     </template>
@@ -126,9 +127,9 @@ function close(): void {
     <template #ready="{ capture, hasBackground, redoZone }">
       <div class="cam__actions cam__actions--even">
         <button v-if="hasBackground" class="cam-btn" type="button" :disabled="capture.active" @click="captureBackground">
-          <i class="fas fa-camera-rotate"></i>{{ t('tune.meter.recaptureBg') }}
+          <i class="fas" :class="ICONS.recaptureBackground"></i>{{ t('tune.meter.recaptureBg') }}
         </button>
-        <button class="cam-btn" type="button" @click="redoZone"><i class="fas fa-crosshairs"></i>{{ t('tune.cam.redo') }}</button>
+        <button class="cam-btn" type="button" @click="redoZone"><i class="fas" :class="ICONS.editZone"></i>{{ t('tune.cam.redo') }}</button>
       </div>
     </template>
 

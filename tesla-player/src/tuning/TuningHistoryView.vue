@@ -11,6 +11,7 @@ import TapRulerChart from './TapRulerChart.vue';
 import { formatTurns, type Trial, type TuningRecord } from './api';
 import { bestTrial } from './suggest';
 import { weatherFamily, weatherIcon } from './weather';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The History tab: every saved tuning, across coils, with a coil filter and a
@@ -99,7 +100,7 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
               </td>
               <td class="hist-actions" @click.stop>
                 <div class="hist-actions__inner">
-                  <button class="btn btn--ghost btn--xs" type="button" @click="emit('recall', it)"><span class="icon"><i class="fas fa-crosshairs"></i></span>{{ t('tune.recall') }}</button>
+                  <button class="btn btn--ghost btn--xs" type="button" @click="emit('recall', it)"><span class="icon"><i class="fas" :class="ICONS.recall"></i></span>{{ t('tune.recall') }}</button>
                   <button class="icon-btn icon-btn--sm" type="button" :title="t('label.delete')" @click="emit('delete', it)"><i class="fas fa-trash"></i></button>
                   <i class="fas hist-chevron" :class="openId === it.id ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
                 </div>

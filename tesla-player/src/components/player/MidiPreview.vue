@@ -6,6 +6,7 @@ import { MAX_RATIO, effectiveRatio, levelSamples } from '@/midi/automation';
 import type { CoilConfig, CoilEvent, CoilParam, SongStereo } from '@/types/domain';
 import type { MidiAnalysis } from '@/midi/analyze';
 import { noteCoilVolumes } from '@/midi/stereo';
+import { ICONS } from '@/ui/icons';
 
 const props = withDefaults(defineProps<{
   analysis: MidiAnalysis | null;
@@ -321,7 +322,7 @@ watch(() => props.playheadMs, () => {
             <div v-for="(lane, i) in railLanes" :key="i" class="preview__rail-lane"
               :style="{ height: laneH + 'px', '--c': lane.color }">
               <span class="preview__rail-dot"></span>
-              <span v-if="lane.speaker" class="preview__rail-id"><i class="fas fa-volume-high"></i></span>
+              <span v-if="lane.speaker" class="preview__rail-id"><i class="fas" :class="ICONS.speakers"></i></span>
               <template v-else-if="compact">
                 <span class="preview__rail-cnum">{{ lane.num }}</span>
                 <span class="preview__rail-csub">{{ lane.sub }}</span>

@@ -10,6 +10,7 @@ import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
+import { ICONS } from '@/ui/icons';
 
 const midiStore = useMidiStore();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
@@ -152,7 +153,7 @@ onBeforeUnmount(() => { if (running.value) stop(); });
     <section class="fixed-section">
       <header class="fixed-section__head">
         <span class="fixed-section__title">
-          <span class="icon"><i class="fas fa-wave-square"></i></span>{{ $t('label.fixedOutput') }}
+          <span class="icon"><i class="fas" :class="ICONS.fixedMode"></i></span>{{ $t('label.fixedOutput') }}
         </span>
         <segmented-control v-model="cfg.coilCount" pressed :aria-label="$t('label.coilCount')"
           :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />

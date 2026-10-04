@@ -1,0 +1,118 @@
+// ===========================================================================
+//  APP ICONS
+// ===========================================================================
+// The glyphs Font Awesome has none for (the coil, the primary, the interrupter…),
+// drawn on its 512 grid at its Solid weight. A `tp-…` name goes wherever a Font
+// Awesome one does (`<i class="fas tp-coil">`, `icon: 'tp-coil'`); ui/icons.ts
+// gives each notion of the app its icon. The glyph is a mask in the text colour,
+// in the box Font Awesome gives its own (1.25em wide, the glyph 1em high).
+// Not drawn here: tp-usb is Font Awesome Free's brand "usb" (CC BY 4.0), out of
+// its brand font; tp-midi-port, tp-speaker-wireless, tp-piano, tp-chip,
+// tp-restart-off, tp-tablet, tp-camera-retake and tp-vector-square-edit are
+// Material Design Icons' glyphs of those names (Apache 2.0,
+// https://github.com/Templarian/MaterialDesign).
+
+[class^="tp-"],
+[class*=" tp-"] {
+    display: inline-block;
+    width: var(--fa-width, 1.25em);
+    height: 1em;
+    vertical-align: -0.125em;
+    background-color: currentColor;
+    -webkit-mask: var(--tp-icon) center / contain no-repeat;
+    mask: var(--tp-icon) center / contain no-repeat;
+}
+
+// the parts of a Font Awesome glyph that would draw over it
+[class^="tp-"]::before,
+[class*=" tp-"]::before {
+    content: none;
+}
+
+.tp-coil {
+    --tp-icon: #{svg-url('<path fill-rule="evenodd" fill="currentColor" d="M46 112a150 54 0 1 0 300 0a150 54 0 1 0 -300 0ZM142 105.5a54 16.2 0 1 0 108 0a54 16.2 0 1 0 -108 0Z"/><rect x="154" y="182" width="84" height="38" rx="12.7" fill="currentColor"/><rect x="154" y="232" width="84" height="38" rx="12.7" fill="currentColor"/><rect x="154" y="282" width="84" height="38" rx="12.7" fill="currentColor"/><rect x="154" y="332" width="84" height="38" rx="12.7" fill="currentColor"/><rect x="80" y="404" width="232" height="62" rx="18" fill="currentColor"/><polyline points="346,116 404,128 392,196 450,212 436,280 476,316" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="50"/>', 512, 512)};
+}
+
+.tp-primary {
+    --tp-icon: #{svg-url('<polyline points="286,256 287.2,259.8 287.8,263.8 288,268 287.5,272.4 286.5,276.8 284.8,281.2 282.5,285.5 279.5,289.6 276,293.4 271.9,296.8 267.2,299.8 262.1,302.2 256.5,303.9 250.6,305 244.5,305.4 238.2,304.9 231.8,303.7 225.5,301.6 219.4,298.7 213.5,294.9 208.1,290.3 203.1,285 198.7,279 195,272.3 192.1,265.1 190.1,257.4 189.1,249.4 189,241.1 190,232.8 192,224.4 195.1,216.2 199.2,208.3 204.4,200.9 210.5,194 217.6,187.8 225.5,182.4 234.2,177.9 243.5,174.5 253.3,172.2 263.5,171.1 273.8,171.3 284.3,172.7 294.7,175.5 304.8,179.5 314.5,184.8 323.6,191.4 331.9,199.1 339.4,207.9 345.8,217.7 351.1,228.3 355,239.7 357.7,251.6 358.8,263.9 358.5,276.4 356.6,289 353.2,301.4 348.2,313.4 341.8,324.9 333.9,335.7 324.6,345.5 314.1,354.3 302.5,361.8 289.9,367.9 276.5,372.5 262.5,375.5 248,376.8 233.4,376.3 218.7,374.1 204.3,370 190.3,364.2 176.9,356.6 164.5,347.4 153.1,336.7 143,324.5 134.4,311 127.3,296.5 122.1,281 118.6,264.9 117.2,248.3 117.7,231.5 120.4,214.7 125,198.3 131.7,182.3 140.3,167.1 150.8,152.9 163,140 176.9,128.5 192.1,118.7 208.6,110.7 226,104.7 244.3,100.9 263,99.2 281.9,99.8 300.8,102.7 319.4,107.9 337.4,115.4 354.4,125 370.4,136.7 384.9,150.4 397.8,165.9 408.8,182.9 417.7,201.3 424.5,220.7 428.9,241 430.8,261.9 430.2,283 427.1,304 421.3,324.7 413.1,344.6 402.5,363.6 389.6,381.3 374.5,397.5 357.5,411.8 338.7,424.1 318.4,434.1 297,441.6 274.6,446.6 251.6,448.8 228.4,448.2 205.2,444.9 182.4,438.7 160.4,429.8 139.5,418.2 120,404.1 102.2,387.7 86.4,369.1 72.8,348.6 61.7,326.5 53.4,303 47.8,278.6" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="50"/><line x1="131.5" y1="412.9" x2="496" y2="412.9" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="34"/><circle cx="131.5" cy="412.9" r="46" fill="currentColor"/>', 512, 512)};
+}
+
+.tp-tuning {
+    --tp-icon: #{svg-url('<line x1="36" y1="456" x2="476" y2="456" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="54"/><polyline points="52,391.2 60,389.6 68,387.8 76,385.7 84,383.5 92,380.9 100,378 108,374.6 116,370.8 124,366.4 132,361.3 140,355.4 148,348.4 156,340.2 164,330.5 172,319 180,305.3 188,289 196,269.7 204,247 212,220.9 220,191.8 228,161.4 236,132.4 244,109 252,95.7 260,95.7 268,109 276,132.4 284,161.4 292,191.8 300,220.9 308,247 316,269.7 324,289 332,305.3 340,319 348,330.5 356,340.2 364,348.4 372,355.4 380,361.3 388,366.4 396,370.8 404,374.6 412,378 420,380.9 428,383.5 436,385.7 444,387.8 452,389.6 460,391.2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="54"/><line x1="256" y1="160" x2="256" y2="400" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="30" stroke-dasharray="30 34"/>', 512, 512)};
+}
+
+.tp-arc-meter {
+    --tp-icon: #{svg-url('<line x1="36" y1="186" x2="140" y2="186" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="60"/><circle cx="146" cy="186" r="42" fill="currentColor"/><polyline points="146,186 214,154 248,234 314,202 350,286 432,258" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="52"/><line x1="146" y1="430" x2="432" y2="430" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="52"/><line x1="146" y1="376" x2="146" y2="484" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="52"/><line x1="432" y1="376" x2="432" y2="484" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="52"/>', 512, 512)};
+}
+
+.tp-interrupter {
+    --tp-icon: #{svg-url('<mask id="m"><rect width="512" height="512" fill="white"/><polyline points="82,322 118,322 118,196 160,196 160,322 222,322 222,196 264,196 264,322 290,322" stroke="black" fill="none" stroke-width="36" stroke-linecap="round" stroke-linejoin="round"/></mask><rect x="34" y="110" width="300" height="292" rx="46" fill="currentColor" mask="url(#m)"/><line x1="334" y1="176" x2="416" y2="176" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="44"/><circle cx="454" cy="176" r="36" fill="currentColor"/><line x1="334" y1="256" x2="416" y2="256" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="44"/><circle cx="454" cy="256" r="36" fill="currentColor"/><line x1="334" y1="336" x2="416" y2="336" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="44"/><circle cx="454" cy="336" r="36" fill="currentColor"/>', 512, 512)};
+}
+
+.tp-fiber {
+    --tp-icon: #{svg-url('<path d="M52 460C150 460 214 386 250 306" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="56"/><line x1="250" y1="306" x2="330" y2="172" stroke="currentColor" stroke-width="96"/><line x1="330" y1="172" x2="356" y2="128" stroke="currentColor" stroke-width="44"/><line x1="394" y1="80" x2="440" y2="24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="40"/><line x1="412" y1="112" x2="484" y2="88" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="40"/><line x1="372" y1="66" x2="380" y2="14" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="40"/>', 512, 512)};
+}
+
+.tp-pulses {
+    --tp-icon: #{svg-url('<polyline points="28,404 100,404 100,112 180,112 180,404 332,404 332,112 412,112 412,404 484,404" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="54"/>', 512, 512)};
+}
+
+.tp-envelope {
+    --tp-icon: #{svg-url('<polyline points="44,448 148,78 236,238 372,238 468,448" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="60"/><circle cx="148" cy="78" r="42" fill="currentColor"/><circle cx="236" cy="238" r="42" fill="currentColor"/><circle cx="372" cy="238" r="42" fill="currentColor"/>', 512, 512)};
+}
+
+.tp-piano-roll {
+    --tp-icon: #{svg-url('<rect x="40" y="60" width="104" height="392" rx="24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/><line x1="66" y1="158" x2="118" y2="158" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="30"/><line x1="66" y1="256" x2="118" y2="256" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="30"/><line x1="66" y1="354" x2="118" y2="354" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="30"/><rect x="192" y="84" width="154" height="78" rx="24" fill="currentColor"/><rect x="292" y="212" width="192" height="78" rx="24" fill="currentColor"/><rect x="208" y="340" width="134" height="78" rx="24" fill="currentColor"/>', 512, 512)};
+}
+
+.tp-pulses-rising {
+    --tp-icon: #{svg-url('<polyline points="24,440 40,440 40,330 116,330 116,440 196,440 196,210 272,210 272,440 352,440 352,80 428,80 428,440 488,440" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="52"/>', 512, 512)};
+}
+
+.tp-velocity {
+    --tp-icon: #{svg-url('<line x1="36" y1="462" x2="476" y2="462" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/><line x1="86" y1="440" x2="86" y2="272" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="50"/><circle cx="86" cy="272" r="54" fill="currentColor"/><line x1="196" y1="440" x2="196" y2="118" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="50"/><circle cx="196" cy="118" r="54" fill="currentColor"/><line x1="306" y1="440" x2="306" y2="330" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="50"/><circle cx="306" cy="330" r="54" fill="currentColor"/><line x1="416" y1="440" x2="416" y2="190" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="50"/><circle cx="416" cy="190" r="54" fill="currentColor"/>', 512, 512)};
+}
+
+.tp-stereo {
+    --tp-icon: #{svg-url('<line x1="70" y1="306" x2="442" y2="306" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/><polyline points="124,238 52,306 124,374" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/><polyline points="388,238 460,306 388,374" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="48"/><circle cx="112" cy="146" r="54" fill="currentColor"/><line x1="112" y1="196" x2="112" y2="258" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/><circle cx="256" cy="146" r="54" fill="currentColor"/><line x1="256" y1="196" x2="256" y2="258" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/><circle cx="400" cy="146" r="54" fill="currentColor"/><line x1="400" y1="196" x2="400" y2="258" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/>', 512, 512)};
+}
+
+.tp-pitch-pan {
+    --tp-icon: #{svg-url('<ellipse cx="96" cy="432" rx="68" ry="50" transform="rotate(-24 96 432)" fill="currentColor"/><line x1="154" y1="414" x2="154" y2="228" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/><ellipse cx="252" cy="330" rx="68" ry="50" transform="rotate(-24 252 330)" fill="currentColor"/><line x1="310" y1="312" x2="310" y2="126" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/><ellipse cx="408" cy="228" rx="68" ry="50" transform="rotate(-24 408 228)" fill="currentColor"/><line x1="466" y1="210" x2="466" y2="24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="38"/>', 512, 512)};
+}
+
+.tp-usb {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M633.5 256c0 3.1-1.7 6.1-4.5 7.5L539.9 317c-1.4 .8-2.8 1.4-4.5 1.4-1.4 0-3.1-.3-4.5-1.1-2.8-1.7-4.5-4.5-4.5-7.8l0-35.6-230.7 0c25.3 39.6 40.5 106.9 69.6 106.9l26.7 0 0-26.8c0-5 3.9-8.9 8.9-8.9l89.1 0c5 0 8.9 3.9 8.9 8.9l0 89.1c0 5-3.9 8.9-8.9 8.9l-89.1 0c-5 0-8.9-3.9-8.9-8.9l0-26.7-26.7 0c-75.4 0-81.1-142.5-124.7-142.5l-100.3 0c-8.1 30.6-35.9 53.5-69 53.5-39.3-.1-71.3-32.1-71.3-71.4s32-71.3 71.3-71.3c33.1 0 61 22.8 69 53.5 39.1 0 43.9 9.5 74.6-60.4 40.1-89.1 58.1-82.1 108.9-82.1 7.5-20.9 27-35.6 50.4-35.6 29.5 0 53.5 23.9 53.5 53.5s-23.9 53.5-53.5 53.5c-23.4 0-42.9-14.8-50.4-35.6l-29.8 0c-29.1 0-44.3 67.4-69.6 106.9l302.1 0 0-35.6c0-3.3 1.7-6.1 4.5-7.8s6.4-1.4 8.9 .3L629 248.8c2.8 1.1 4.5 4.1 4.5 7.2z"/>', 640, 512)};
+}
+
+.tp-midi-port {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22A10,10 0 0,1 2,12A10,10 0 0,1 12,2M20.18,12C20.18,8.18 17.55,4.96 14,4.07V6H10V4.07C6.45,4.96 3.82,8.18 3.82,12A8.18,8.18 0 0,0 12,20.18A8.18,8.18 0 0,0 20.18,12M7,10.64A1.36,1.36 0 0,1 8.36,12A1.36,1.36 0 0,1 7,13.36C6.25,13.36 5.64,12.75 5.64,12C5.64,11.25 6.25,10.64 7,10.64M17,10.64A1.36,1.36 0 0,1 18.36,12A1.36,1.36 0 0,1 17,13.36A1.36,1.36 0 0,1 15.64,12A1.36,1.36 0 0,1 17,10.64M8.36,14.27A1.37,1.37 0 0,1 9.73,15.64C9.73,16.39 9.12,17 8.36,17A1.36,1.36 0 0,1 7,15.64C7,14.88 7.61,14.27 8.36,14.27M15.64,14.27C16.39,14.27 17,14.88 17,15.64A1.36,1.36 0 0,1 15.64,17C14.88,17 14.27,16.39 14.27,15.64A1.37,1.37 0 0,1 15.64,14.27M12,15.64A1.36,1.36 0 0,1 13.36,17A1.36,1.36 0 0,1 12,18.36A1.36,1.36 0 0,1 10.64,17A1.36,1.36 0 0,1 12,15.64Z"/>', 24, 24)};
+}
+
+.tp-speaker-wireless {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M20.07,19.07L18.66,17.66C20.11,16.22 21,14.21 21,12C21,9.78 20.11,7.78 18.66,6.34L20.07,4.93C21.88,6.74 23,9.24 23,12C23,14.76 21.88,17.26 20.07,19.07M17.24,16.24L15.83,14.83C16.55,14.11 17,13.11 17,12C17,10.89 16.55,9.89 15.83,9.17L17.24,7.76C18.33,8.85 19,10.35 19,12C19,13.65 18.33,15.15 17.24,16.24M4,3H12A2,2 0 0,1 14,5V19A2,2 0 0,1 12,21H4A2,2 0 0,1 2,19V5A2,2 0 0,1 4,3M8,5A2,2 0 0,0 6,7A2,2 0 0,0 8,9A2,2 0 0,0 10,7A2,2 0 0,0 8,5M8,11A4,4 0 0,0 4,15A4,4 0 0,0 8,19A4,4 0 0,0 12,15A4,4 0 0,0 8,11M8,13A2,2 0 0,1 10,15A2,2 0 0,1 8,17A2,2 0 0,1 6,15A2,2 0 0,1 8,13Z"/>', 24, 24)};
+}
+
+.tp-piano {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M20 2H4C2.9 2 2 2.9 2 4V20C2 21.11 2.9 22 4 22H20C21.11 22 22 21.11 22 20V4C22 2.9 21.11 2 20 2M14.74 14H15V20H9V14H9.31C9.86 14 10.3 13.56 10.3 13V4H13.75V13C13.75 13.56 14.19 14 14.74 14M4 4H6.8V13C6.8 13.56 7.24 14 7.79 14H8V20H4V4M20 20H16V14H16.26C16.81 14 17.25 13.56 17.25 13V4H20V20Z"/>', 24, 24)};
+}
+
+.tp-chip {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M6,4H18V5H21V7H18V9H21V11H18V13H21V15H18V17H21V19H18V20H6V19H3V17H6V15H3V13H6V11H3V9H6V7H3V5H6V4M11,15V18H12V15H11M13,15V18H14V15H13M15,15V18H16V15H15Z"/>', 24, 24)};
+}
+
+.tp-restart-off {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M20.8,22.7L16.6,18.5C14.9,19.7 12.9,20.2 10.9,19.9L11.4,17.9C12.7,18 14,17.7 15.1,17L1.1,3L2.4,1.7L16.5,15.8L17.9,17.2L22.1,21.4L20.8,22.7M12,6C13.5,6 15.1,6.6 16.2,7.8C18,9.6 18.4,12.2 17.5,14.4L19,15.9C20.7,12.9 20.2,9 17.6,6.4C16.1,4.8 14,4 12,4V0.7L7.9,4.7L12,8.8V6M6.6,9.4L5.1,7.9C3.3,11 3.7,15 6.3,17.7C7.1,18.4 8,19 9,19.4L9.5,17.4C8.9,17.1 8.3,16.7 7.7,16.2C5.9,14.4 5.5,11.6 6.6,9.4Z"/>', 24, 24)};
+}
+
+.tp-tablet {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M19,18H5V6H19M21,4H3C1.89,4 1,4.89 1,6V18A2,2 0 0,0 3,20H21A2,2 0 0,0 23,18V6C23,4.89 22.1,4 21,4Z"/>', 24, 24)};
+}
+
+.tp-camera-retake {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M20,5H17L15,3H9L7,5H4A2,2 0 0,0 2,7V19A2,2 0 0,0 4,21H20A2,2 0 0,0 22,19V7A2,2 0 0,0 20,5M12,18C10.92,18 9.86,17.65 9,17L10.44,15.56C10.91,15.85 11.45,16 12,16A3,3 0 0,0 15,13A3,3 0 0,0 12,10C10.74,10 9.6,10.8 9.18,12H11L8,15L5,12H7.1C7.65,9.29 10.29,7.55 13,8.1C15.7,8.65 17.45,11.29 16.9,14C16.42,16.33 14.38,18 12,18Z"/>', 24, 24)};
+}
+
+.tp-vector-square-edit {
+    --tp-icon: #{svg-url('<path fill="currentColor" d="M22.7 14.4L21.7 15.4L19.6 13.3L20.6 12.3C20.8 12.1 21.2 12.1 21.4 12.3L22.7 13.6C22.9 13.8 22.9 14.1 22.7 14.4M13 19.9L19.1 13.8L21.2 15.9L15.1 22H13V19.9M11 19.9V19.1L11.6 18.5L12.1 18H8V16H6V8H8V6H16V8H18V12.1L19.1 11L19.3 10.8C19.5 10.6 19.8 10.4 20.1 10.3V8H22.1V2H16.1V4H8V2H2V8H4V16H2V22H8V20L11 19.9M18 4H20V6H18V4M4 4H6V6H4V4M6 20H4V18H6V20Z"/>', 24, 24)};
+}

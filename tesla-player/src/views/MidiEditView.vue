@@ -18,6 +18,7 @@ import SelectionBar from '@/components/midi-editor/SelectionBar.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The MIDI file editor: select notes in bulk and change their channel (so their
@@ -180,7 +181,7 @@ const report = computed(() => {
     if (!n0 && n1) changes.push({ icon: 'fa-plus', text: t('midiEditor.saveChannelAdded', { ch, program: label(p1 ?? 0), n: n1 }, n1) });
     else if (n0 && !n1) changes.push({ icon: 'fa-minus', text: t('midiEditor.saveChannelEmptied', { ch, n: n0 }, n0) });
     else if (n1 && p0 !== undefined && p1 !== undefined && p0 !== p1) {
-      changes.push({ icon: 'fa-guitar', text: t('midiEditor.saveProgram', { ch, before: label(p0), after: label(p1) }) });
+      changes.push({ icon: ICONS.instrument, text: t('midiEditor.saveProgram', { ch, before: label(p0), after: label(p1) }) });
     }
     const lost = c.programChangesLost[ch];
     if (lost) {

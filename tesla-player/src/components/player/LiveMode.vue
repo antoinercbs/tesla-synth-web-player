@@ -15,6 +15,7 @@ import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
+import { ICONS } from '@/ui/icons';
 
 const midiStore = useMidiStore();
 const { t } = useI18n();
@@ -77,7 +78,7 @@ watch(source, (s) => {
   bindInput();
 });
 const sourceOptions = computed(() => [
-  { value: 'midi' as LiveSource, label: t('label.liveSourceMidi'), icon: 'fa-plug' },
+  { value: 'midi' as LiveSource, label: t('label.liveSourceMidi'), icon: ICONS.midi },
   { value: 'pc' as LiveSource, label: t('label.liveSourcePc'), icon: 'fa-keyboard' },
 ]);
 
@@ -337,7 +338,7 @@ onBeforeUnmount(() => {
       <header class="live-console__head">
         <segmented-control v-model="source" class="live-source" pressed :aria-label="$t('label.liveSource')"
           :options="sourceOptions" />
-        <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{
+        <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas" :class="ICONS.synth"></i>{{
           $t('label.synthActive') }}</span>
         <div class="live-console__run">
           <span class="live-status" :class="{ 'is-live': running }">
@@ -412,7 +413,7 @@ onBeforeUnmount(() => {
     <section class="live-section">
       <header class="live-section__head">
         <span class="live-section__title">
-          <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('label.coilMapping') }}
+          <span class="icon"><i class="fas" :class="ICONS.coil"></i></span>{{ $t('label.coilMapping') }}
         </span>
         <segmented-control v-model="cfg.coilCount" pressed :aria-label="$t('label.coilCount')"
           :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />

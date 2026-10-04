@@ -134,3 +134,26 @@
     border: 1px dashed var(--line-strong);
     border-radius: var(--radius);
 }
+
+.sg-icons {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+    gap: var(--sp-3);
+}
+
+.sg-icon {
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-1);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+// the icon at text size, in the app's .icon box, and beside a Font Awesome glyph for its weight
+.sg-icon__glyphs {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-2);
+    font-size: var(--fs-2xl);
+    color: var(--text);
+}

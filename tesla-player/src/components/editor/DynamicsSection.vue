@@ -8,6 +8,7 @@ import { SONG_WIDE, type CoilEvent, type CoilParam } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import DynamicsTracks from '@/components/editor/DynamicsTracks.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * A song's power over time: the song-wide curve (every coil), and optionally
@@ -160,7 +161,7 @@ const paramOptions = computed(() => [
   <section class="editor-section dyn">
     <div class="dyn__head">
       <h2 class="editor-section__title">
-        <span class="icon"><i class="fas fa-chart-area"></i></span>{{ $t('dynamics.title') }}
+        <span class="icon"><i class="fas" :class="ICONS.dynamics"></i></span>{{ $t('dynamics.title') }}
       </h2>
       <label class="switch">
         <input type="checkbox" :checked="enabled" @change="toggle(($event.target as HTMLInputElement).checked)" />

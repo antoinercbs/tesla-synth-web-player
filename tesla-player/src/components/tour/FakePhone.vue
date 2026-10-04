@@ -11,6 +11,7 @@ import {
   DRAW_SCALE, GEOMETRY, GROUND_Y, PIN, phoneAdjustZone, phoneStartCamera, phoneTapBreakout, phoneValidateZone, phoneView as view,
   type ZoneKey,
 } from '@/tour/demo/fake-camera';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The tuning tour's phone: TuneCameraView's screen as the fake phone
@@ -297,7 +298,7 @@ onBeforeUnmount(() => {
       <div class="fphone__stage">
         <canvas ref="canvas" class="fphone__canvas"></canvas>
         <header class="fphone__head">
-          <span class="fphone__title"><i class="fas fa-bullseye"></i>{{ t('tune.cam.title') }}</span>
+          <span class="fphone__title"><i class="fas" :class="ICONS.tuning"></i>{{ t('tune.cam.title') }}</span>
           <span class="fphone__link">{{ t('tune.cam.linkOk') }}</span>
         </header>
         <template v-if="view.step === 'setup'">

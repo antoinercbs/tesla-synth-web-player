@@ -25,6 +25,7 @@ import { ToneRunner, toneDurationMs } from '@/tuning/tone-runner';
 import { createTuning, deleteTuning, formatTurns, listTunings, type Trial, type TrialNote, type TuningDraft, type TuningRecord } from '@/tuning/api';
 import { bestTrial, snap, suggestNextTap } from '@/tuning/suggest';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * Camera-assisted primary tuning ("accord"), as a guided session:
@@ -45,7 +46,7 @@ const MODE_KEY = 'tuneMode';
 const mode = ref<TuneMode>(localStorage.getItem(MODE_KEY) === 'history' ? 'history' : 'tune');
 watch(mode, (m) => localStorage.setItem(MODE_KEY, m));
 const modeOptions = computed(() => [
-  { value: 'tune' as TuneMode, label: t('tune.modeTune'), icon: 'fa-bullseye' },
+  { value: 'tune' as TuneMode, label: t('tune.modeTune'), icon: ICONS.tuning },
   { value: 'history' as TuneMode, label: t('tune.modeHistory'), icon: 'fa-clock-rotate-left' },
 ]);
 
@@ -54,7 +55,7 @@ type StepId = 'settings' | 'camera' | 'trials' | 'save' | 'done';
 const STEPS: StepId[] = ['settings', 'camera', 'trials', 'save'];
 const step = ref<StepId>('settings');
 const stepIndex = computed(() => STEPS.indexOf(step.value));
-const STEP_ICONS: Record<StepId, string> = { settings: 'fa-sliders', camera: 'fa-camera', trials: 'fa-bolt', save: 'fa-floppy-disk', done: 'fa-check' };
+const STEP_ICONS: Record<StepId, string> = { settings: 'fa-sliders', camera: 'fa-camera', trials: ICONS.trial, save: 'fa-floppy-disk', done: 'fa-check' };
 function stepState(s: StepId): 'done' | 'current' | 'todo' {
   if (step.value === 'done') return 'done';
   const i = STEPS.indexOf(s);
@@ -228,7 +229,7 @@ watch(cameraReady, (ready, was) => { if (ready && !was && step.value === 'camera
 type Stage = 'primary' | 'camera';
 const stage = ref<Stage>('primary');
 const stageOptions = computed(() => [
-  { value: 'primary' as Stage, label: t('tune.primary'), icon: 'fa-rotate' },
+  { value: 'primary' as Stage, label: t('tune.primary'), icon: ICONS.primary },
   { value: 'camera' as Stage, label: t('tune.camera'), icon: 'fa-camera' },
 ]);
 watch([running, cameraReady], ([r, ready]) => { stage.value = r || !ready ? 'camera' : 'primary'; });
@@ -440,7 +441,7 @@ onBeforeUnmount(() => { void endSession(); });
       <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="tune-live-dot"></span>{{ phaseLabel }}</span></h1>
       <div class="tune-head-actions">
         <router-link class="btn btn--ghost" :to="{ name: 'arc-meter' }" :title="t('tune.meter.openHint')">
-          <span class="icon"><i class="fas fa-ruler"></i></span>{{ t('tune.meter.open') }}
+          <span class="icon"><i class="fas" :class="ICONS.arcMeter"></i></span>{{ t('tune.meter.open') }}
         </router-link>
         <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="modeOptions" />
       </div>
@@ -467,7 +468,7 @@ onBeforeUnmount(() => { void endSession(); });
         <p v-if="settingsLocked" class="tune-note-line is-lock"><i class="fas fa-lock"></i><span>{{ t('tune.settingsLocked') }}</span></p>
         <div class="wiz-grid three">
           <article class="tune-panel">
-            <h2 class="tune-panel__title"><span class="icon"><i class="fas fa-bolt"></i></span>{{ t('tune.coil') }}</h2>
+            <h2 class="tune-panel__title"><span class="icon"><i class="fas" :class="ICONS.coil"></i></span>{{ t('tune.coil') }}</h2>
             <div class="tune-coil-row">
               <label class="tune-field"><span class="tf-label">{{ t('tune.coilName') }}</span>
                 <div class="select-field">
@@ -476,7 +477,7 @@ onBeforeUnmount(() => { void endSession(); });
                   </select>
                 </div>
               </label>
-              <label class="tune-field" :title="t('tune.fiberHint')"><span class="tf-label">{{ t('tune.fiber') }}</span>
+              <label class="tune-field" :title="t('tune.fiberHint')"><span class="tf-label"><i class="fas" :class="ICONS.fiber"></i> {{ t('tune.fiber') }}</span>
                 <div class="select-field"><select v-model.number="setup.fiberIndex" :disabled="running || settingsLocked"><option v-for="o in fiberOptions" :key="o.value" :value="o.value">{{ o.label }}</option></select></div>
               </label>
             </div>
@@ -515,7 +516,7 @@ onBeforeUnmount(() => { void endSession(); });
           </article>
 
           <article class="tune-panel">
-            <h2 class="tune-panel__title"><span class="icon"><i class="fas fa-rotate"></i></span>{{ t('tune.primary') }}</h2>
+            <h2 class="tune-panel__title"><span class="icon"><i class="fas" :class="ICONS.primary"></i></span>{{ t('tune.primary') }}</h2>
             <div class="tune-grid3">
               <label class="tune-field"><span class="tf-label">{{ t('tune.turns') }}</span><input class="text-field" type="number" min="1" max="40" step="0.5" v-model.number="setup.primaryTurns" :disabled="running" /></label>
               <label class="tune-field"><span class="tf-label">{{ t('tune.rangeMin') }}</span><input class="text-field" type="number" min="0" step="0.5" v-model.number="setup.tapMin" :disabled="running" /></label>
@@ -563,7 +564,7 @@ onBeforeUnmount(() => { void endSession(); });
             <!-- what is under test, in one strip -->
             <div class="tune-facts">
               <span class="fact"><span class="tune-coil-dot" :style="{ '--c': coilColor(setup.coilIndex) }"></span><b>{{ coilLabel }}</b></span>
-              <span class="fact" :title="t('tune.fiberHint')"><span class="fact__k">{{ t('tune.fiber') }}</span><b class="mono">{{ setup.fiberIndex }}</b></span>
+              <span class="fact" :title="t('tune.fiberHint')"><span class="fact__k"><i class="fas" :class="ICONS.fiber"></i>{{ t('tune.fiber') }}</span><b class="mono">{{ setup.fiberIndex }}</b></span>
               <span class="fact"><span class="fact__k">{{ t('label.ontime') }}</span><b class="mono">{{ setup.ontimeUs }} µs</b></span>
               <span class="fact"><span class="fact__k">{{ t('label.duty') }}</span><b class="mono">{{ dutyPct }} %</b></span>
               <span class="fact"><span class="fact__k">{{ t('tune.tone') }}</span><b class="mono">{{ setup.notes.map((n) => noteName(n)).join(' ') }} · {{ (setup.holdMs / 1000).toFixed(0) }} s</b></span>
@@ -611,7 +612,7 @@ onBeforeUnmount(() => { void endSession(); });
               @connect="connectCamera" @stop="stopAll('user')" @end="endSession" />
             <article v-else class="tune-panel tune-run tune-side__card">
             <header class="tune-panel__head">
-              <h2 class="tune-panel__title"><span class="icon"><i class="fas fa-rotate"></i></span>{{ t('tune.primary') }}</h2>
+              <h2 class="tune-panel__title"><span class="icon"><i class="fas" :class="ICONS.primary"></i></span>{{ t('tune.primary') }}</h2>
               <button class="tune-summary" type="button" :disabled="running" :title="t('tune.primaryEdit')" @click="primaryOpen = true">
                 <span class="mono">{{ t('tune.primarySummary', { turns: setup.primaryTurns, min: formatTurns(setup.tapMin, setup.tapStep), max: formatTurns(setup.tapMax, setup.tapStep), step: stepLabel }) }}</span>
                 <i class="fas fa-gear"></i>
@@ -715,7 +716,7 @@ onBeforeUnmount(() => { void endSession(); });
       </section>
     </div>
 
-    <base-modal :open="primaryOpen" :title="t('tune.primaryEdit')" icon="fa-rotate" :close-label="t('label.close')" @close="primaryOpen = false">
+    <base-modal :open="primaryOpen" :title="t('tune.primaryEdit')" :icon="ICONS.primary" :close-label="t('label.close')" @close="primaryOpen = false">
       <div class="tune-primary-form">
         <div class="tune-grid3">
           <label class="tune-field"><span class="tf-label">{{ t('tune.turns') }}</span><input class="text-field" type="number" min="1" max="40" step="0.5" v-model.number="setup.primaryTurns" :disabled="running" /></label>

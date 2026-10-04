@@ -1,6 +1,7 @@
 import type { TourId } from './tour';
 import { DEMO_ENVELOPE_PROGRAM, DEMO_FILE_ID, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from './demo/data';
 import { joinFakePhone } from './demo/fake-camera';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The guided tours: the app's (MAIN_STEPS, how the pages fit together, one step
@@ -74,23 +75,23 @@ const vizTab = (n: number): string => `.player-viz__tabs button:nth-of-type(${n}
 const playMode = (n: number): string => `.screen-head .mode-switch button:nth-of-type(${n}):not(.is-active)`;
 
 export const MAIN_STEPS: TourStep[] = [
-  { id: 'welcome', icon: 'fa-bolt', points: ['fa-gear', 'fa-play', 'fa-folder-open', 'fa-pencil', 'fa-list-ul', 'fa-bullseye'], tiles: true, note: 'tip', noteIcon: 'fa-flask', route: PLAY },
-  { id: 'nav', icon: 'fa-compass', points: ['fa-music', 'fa-microchip'], route: PLAY, target: '.nav', placement: 'right' },
+  { id: 'welcome', icon: ICONS.welcome, points: ['fa-gear', 'fa-play', 'fa-folder-open', 'fa-pencil', 'fa-list-ul', ICONS.coil], tiles: true, note: 'tip', noteIcon: 'fa-flask', route: PLAY },
+  { id: 'nav', icon: 'fa-compass', points: ['fa-music', ICONS.coil], route: PLAY, target: '.nav', placement: 'right' },
   // the menu opens beside the sidebar; the next step closes it
   { id: 'settings', icon: 'fa-gear', points: ['fa-tags', 'fa-palette'], route: PLAY, target: '.sidebar-menu', placement: 'right', click: '.sidebar-more:not(.is-open)' },
-  { id: 'output', wide: true, icon: 'fa-plug', points: ['fa-wave-square', 'fa-diagram-project', 'fa-plug'], route: PLAY, target: '.sidebar-section:not(:has(.sidebar-coils))', placement: 'right', click: '.sidebar-more.is-open' },
+  { id: 'output', wide: true, icon: 'fa-plug', points: [ICONS.synth, ICONS.midi, ICONS.serial], route: PLAY, target: '.sidebar-section:not(:has(.sidebar-coils))', placement: 'right', click: '.sidebar-more.is-open' },
   { id: 'coils', wide: true, icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
   // the path of a song, from the stage back to its file
-  { id: 'pathPlay', icon: 'fa-play', points: ['fa-gauge-high', 'fa-keyboard'], route: PLAY, target: '.source-panel', placement: 'right' },
+  { id: 'pathPlay', icon: 'fa-play', points: [ICONS.power, ICONS.live], route: PLAY, target: '.source-panel', placement: 'right' },
   { id: 'pathMidi', icon: 'fa-folder-open', points: ['fa-layer-group', 'fa-pen-to-square'], route: MIDI, target: '.midi-lib__table', placement: 'top' },
-  { id: 'pathSong', icon: 'fa-pencil', points: ['fa-bolt', 'fa-left-right', 'fa-chart-area'], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
+  { id: 'pathSong', icon: 'fa-pencil', points: [ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'pathPlaylist', icon: 'fa-list-ul', route: DEMO_PLAYLIST, target: '.pl-panes', placement: 'top' },
   // the hardware
-  { id: 'pathTune', wide: true, icon: 'fa-bullseye', route: TUNE, target: '.stepper', placement: 'bottom' },
+  { id: 'pathTune', wide: true, icon: ICONS.tuning, route: TUNE, target: '.stepper', placement: 'bottom' },
   // the demo's device (demo/fake-device.ts) opens this page even with nothing plugged in
-  { id: 'pathSyntherrupter', wide: true, icon: 'fa-microchip', note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
+  { id: 'pathSyntherrupter', wide: true, icon: ICONS.interrupter, note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
   // advanced: in passing
-  { id: 'pathEnvelopes', wide: true, icon: 'fa-chart-line', note: 'tip', route: DEMO_ENVELOPE, target: '.env-lib', placement: 'right' },
+  { id: 'pathEnvelopes', wide: true, icon: ICONS.envelope, note: 'tip', route: DEMO_ENVELOPE, target: '.env-lib', placement: 'right' },
   { id: 'pageTours', icon: 'fa-circle-question', points: ['fa-wand-magic-sparkles', 'fa-play'], route: PLAY, target: '.page-tour', placement: 'bottom' },
   { id: 'done', icon: 'fa-flag-checkered', note: 'tip', route: PLAY },
 ];
@@ -99,25 +100,25 @@ export const MAIN_STEPS: TourStep[] = [
 // A song's ▶ in the list only loads it; Play, when it shows Play, starts it
 const PLAY_BUTTON = '.player-transport .btn--volt:not(:disabled):has(.fa-play)';
 const PLAY_STEPS: TourStep[] = [
-  { id: 'modes', wide: true, icon: 'fa-sliders', points: ['fa-play', 'fa-keyboard', 'fa-wave-square'], route: PLAY, target: '.screen-head .mode-switch', placement: 'bottom', click: playMode(1) },
-  { id: 'live', wide: true, icon: 'fa-tower-broadcast', points: ['fa-keyboard', 'fa-layer-group'], route: PLAY, target: '.live', placement: 'top', click: playMode(2) },
+  { id: 'modes', wide: true, icon: 'fa-sliders', points: ['fa-play', ICONS.live, ICONS.fixedMode], route: PLAY, target: '.screen-head .mode-switch', placement: 'bottom', click: playMode(1) },
+  { id: 'live', wide: true, icon: ICONS.live, points: ['fa-keyboard', 'fa-layer-group'], route: PLAY, target: '.live', placement: 'top', click: playMode(2) },
   { id: 'songs', icon: 'fa-music', points: ['fa-play', 'fa-pencil', 'fa-list-ul'], route: PLAY, target: '.source-panel', placement: 'right', click: playMode(1) },
   { id: 'transport', icon: 'fa-circle-play', points: ['fa-play', 'fa-wrench'], note: 'warn', noteIcon: 'fa-bell-slash', route: PLAY, target: '.player-transport', placement: 'left', click: [playMode(1), '.play-row:not(.is-current) .row-btn--play', PLAY_BUTTON], plays: true, once: true },
   { id: 'vizVu', icon: 'fa-chart-simple', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(1) },
-  { id: 'vizScore', icon: 'fa-music', note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(2) },
-  { id: 'vizLanes', icon: 'fa-bars-staggered', note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(3) },
+  { id: 'vizScore', icon: ICONS.pianoRoll, note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(2) },
+  { id: 'vizLanes', icon: ICONS.coil, note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(3) },
   { id: 'vizCombined', icon: 'fa-layer-group', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(4) },
   { id: 'vizParam', icon: 'fa-toggle-on', note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: [vizTab(3), paramTab(2)] },
-  { id: 'power', icon: 'fa-gauge-high', note: 'warn', route: PLAY, target: '.player-power', placement: 'left' },
+  { id: 'power', icon: ICONS.power, note: 'warn', route: PLAY, target: '.player-power', placement: 'left' },
   { id: 'playDone', icon: 'fa-flag-checkered', note: 'tip', route: PLAY },
 ];
 
 const EDIT_STEPS: TourStep[] = [
   { id: 'editor', icon: 'fa-pencil', points: ['fa-file-circle-plus', 'fa-tags'], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'editFile', icon: 'fa-file-audio', points: ['fa-pen-to-square', 'fa-folder-open'], note: 'warn', route: DEMO_SONG, target: '.midi-field', placement: 'bottom' },
-  { id: 'coilCards', icon: 'fa-bolt', points: ['fa-layer-group', 'fa-gauge'], route: DEMO_SONG, target: '.coils-grid', placement: 'top' },
-  { id: 'stereo', wide: true, icon: 'fa-left-right', points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top' },
-  { id: 'dynamics', wide: true, icon: 'fa-chart-area', points: ['fa-circle-dot', 'fa-bolt'], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top' },
+  { id: 'coilCards', icon: ICONS.coil, points: ['fa-layer-group', ICONS.power], route: DEMO_SONG, target: '.coils-grid', placement: 'top' },
+  { id: 'stereo', wide: true, icon: ICONS.stereo, points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top' },
+  { id: 'dynamics', wide: true, icon: ICONS.dynamics, points: ['fa-circle-dot', ICONS.coil], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top' },
   { id: 'editPlayer', wide: true, icon: 'fa-play', route: DEMO_SONG, target: '.edit-body__dock', placement: 'left' },
   { id: 'editDone', icon: 'fa-floppy-disk', note: 'tip', route: DEMO_SONG, target: '.editor-footer', placement: 'top' },
 ];
@@ -140,20 +141,20 @@ const MIDI_STEPS: TourStep[] = [
 const MIDI_EDIT_STEPS: TourStep[] = [
   { id: 'meIntro', icon: 'fa-pen-to-square', points: ['fa-shuffle', 'fa-arrows-up-down', 'fa-pencil'], note: 'tip', noteIcon: 'fa-flask', route: DEMO_FILE },
   { id: 'meChannels', icon: 'fa-layer-group', points: ['fa-eye', 'fa-arrow-pointer'], route: DEMO_FILE, target: '.me-chans', placement: 'right' },
-  { id: 'meRoll', icon: 'fa-table-cells', points: ['fa-arrow-pointer', 'fa-up-down-left-right', 'fa-plus', 'fa-left-right'], route: DEMO_FILE, target: '.roll__area', placement: 'left' },
+  { id: 'meRoll', icon: ICONS.pianoRoll, points: ['fa-arrow-pointer', 'fa-up-down-left-right', 'fa-plus', 'fa-left-right'], route: DEMO_FILE, target: '.roll__area', placement: 'left' },
   { id: 'meSelect', icon: 'fa-filter', points: ['fa-stopwatch', 'fa-arrows-up-down', 'fa-layer-group'], note: 'tip', route: DEMO_FILE, target: '.me-pop', placement: 'right', click: '.me-pop-wrap > .btn[aria-expanded="false"]' },
-  { id: 'meSelBar', icon: 'fa-object-group', points: ['fa-shuffle', 'fa-arrows-up-down', 'fa-signal'], route: DEMO_FILE, target: '.me-selbar', placement: 'top', click: ['.me-pop-wrap > .btn[aria-expanded="true"]', '.me-chan__name'] },
-  { id: 'meVelocity', icon: 'fa-signal', note: 'tip', route: DEMO_FILE, target: '.roll__vel', placement: 'top' },
+  { id: 'meSelBar', icon: 'fa-object-group', points: ['fa-shuffle', 'fa-arrows-up-down', ICONS.velocity], route: DEMO_FILE, target: '.me-selbar', placement: 'top', click: ['.me-pop-wrap > .btn[aria-expanded="true"]', '.me-chan__name'] },
+  { id: 'meVelocity', icon: ICONS.velocity, note: 'tip', route: DEMO_FILE, target: '.roll__vel', placement: 'top' },
   { id: 'meListen', icon: 'fa-headphones', note: 'tip', route: DEMO_FILE, target: '.me-transport', placement: 'bottom' },
   { id: 'meDone', icon: 'fa-floppy-disk', points: ['fa-list-check'], note: 'warn', route: DEMO_FILE, target: '.me-head', placement: 'bottom' },
 ];
 
 const ENVELOPE_STEPS: TourStep[] = [
   { id: 'envLibrary', icon: 'fa-swatchbook', points: ['fa-pen', 'fa-lock'], route: DEMO_ENVELOPE, target: '.env-lib', placement: 'right' },
-  { id: 'envIdent', icon: 'fa-hashtag', points: ['fa-memory', 'fa-file-audio'], note: 'tip', route: DEMO_ENVELOPE, target: '.env-ident', placement: 'bottom' },
-  { id: 'envGraph', icon: 'fa-chart-line', points: ['fa-hand-pointer', 'fa-plus'], note: 'tip', route: DEMO_ENVELOPE, target: '.env-graph-card', placement: 'bottom' },
+  { id: 'envIdent', icon: 'fa-hashtag', points: [ICONS.eeprom, 'fa-file-audio'], note: 'tip', route: DEMO_ENVELOPE, target: '.env-ident', placement: 'bottom' },
+  { id: 'envGraph', icon: ICONS.envelope, points: ['fa-hand-pointer', 'fa-plus'], note: 'tip', route: DEMO_ENVELOPE, target: '.env-graph-card', placement: 'bottom' },
   { id: 'envSteps', icon: 'fa-table', points: ['fa-rotate', 'fa-arrow-right-to-bracket'], route: DEMO_ENVELOPE, target: '.env-steps-card', placement: 'top' },
-  { id: 'envTest', icon: 'fa-headphones', points: ['fa-play', 'fa-bolt'], route: DEMO_ENVELOPE, target: '.env-test', placement: 'bottom' },
+  { id: 'envTest', icon: 'fa-headphones', points: [ICONS.synth, ICONS.trial], route: DEMO_ENVELOPE, target: '.env-test', placement: 'bottom' },
   { id: 'envDone', icon: 'fa-floppy-disk', note: 'tip', route: DEMO_ENVELOPE },
 ];
 
@@ -171,21 +172,21 @@ const PHONE = '.fphone__device';
 const zoneGrip = (key: string): string => `.fphone__handle[data-k="${key}"]`;
 
 const TUNE_STEPS: TourStep[] = [
-  { id: 'tuneIntro', icon: 'fa-bullseye', points: ['fa-mobile-screen', 'fa-music', 'fa-chart-line'], note: 'tip', noteIcon: 'fa-flask', route: TUNE },
-  { id: 'tuneCoil', icon: 'fa-bolt', note: 'tip', route: TUNE, target: settingsPanel(1), placement: 'right', click: wizardStep(1) },
+  { id: 'tuneIntro', icon: ICONS.tuning, points: ['fa-mobile-screen', 'fa-music', 'fa-chart-line'], note: 'tip', noteIcon: 'fa-flask', route: TUNE },
+  { id: 'tuneCoil', icon: ICONS.coil, note: 'tip', route: TUNE, target: settingsPanel(1), placement: 'right', click: wizardStep(1) },
   { id: 'tuneTone', icon: 'fa-music', note: 'tip', route: TUNE, target: settingsPanel(2), placement: 'right', click: wizardStep(1) },
-  { id: 'tunePrimary', icon: 'fa-rotate', note: 'tip', route: TUNE, target: settingsPanel(3), placement: 'left', click: wizardStep(1) },
+  { id: 'tunePrimary', icon: ICONS.primary, note: 'tip', route: TUNE, target: settingsPanel(3), placement: 'left', click: wizardStep(1) },
   { id: 'tuneCamera', icon: 'fa-camera', points: ['fa-mobile-screen', 'fa-laptop'], note: 'warn', route: TUNE, target: '.cam-card', placement: 'right', click: ['.wiz:has(.wiz-grid.three) .wiz-next:not(:disabled)', wizardStep(2)] },
   { id: 'tuneConnect', icon: 'fa-qrcode', note: 'tip', route: TUNE, target: '.cam-card', placement: 'right', click: [wizardStep(2), '.cam-connect:not(:disabled)'] },
   // on the phone: it opens the QR code's page, then the tour's pointer does its setup;
   // once the zone is validated the computer moves to the trials by itself
   { id: 'tunePhoneOpen', icon: 'fa-mobile-screen', points: ['fa-crop-simple', 'fa-video'], route: TUNE, target: PHONE, placement: 'right', enter: joinFakePhone, click: '.fphone__start', phone: true },
   { id: 'tuneBreakout', icon: 'fa-hand-pointer', route: TUNE, target: PHONE, placement: 'right', click: '.fphone__spot', phone: true },
-  { id: 'tuneZone', icon: 'fa-draw-polygon', points: ['fa-grip-lines-vertical', 'fa-grip-lines', 'fa-arrow-right-arrow-left'], route: TUNE, target: PHONE, placement: 'right', click: zoneGrip('floorBelow'), phone: true },
+  { id: 'tuneZone', icon: ICONS.editZone, points: ['fa-grip-lines-vertical', 'fa-grip-lines', 'fa-arrow-right-arrow-left'], route: TUNE, target: PHONE, placement: 'right', click: zoneGrip('floorBelow'), phone: true },
   { id: 'tuneZoneOk', icon: 'fa-circle-check', note: 'warn', route: TUNE, target: PHONE, placement: 'right', click: ['.fphone__validate:not(:disabled)', wizardStep(3)], until: '.tune-side', phone: true },
   { id: 'tuneTap', icon: 'fa-hand', note: 'tip', route: TUNE, target: '.tune-run', placement: 'left', click: [wizardStep(3), sideTab(1)], phone: true },
   { id: 'tuneRun', icon: 'fa-play', points: ['fa-image', 'fa-music', 'fa-eye'], note: 'tip', noteIcon: 'fa-flask', route: TUNE, target: '.tune-side', placement: 'left', click: RUN, plays: true, once: true, until: RUN_DONE, phone: true },
-  { id: 'tuneResult', icon: 'fa-ruler', points: ['fa-chart-line', 'fa-table'], route: TUNE, target: '.tune-col', placement: 'right', phone: true },
+  { id: 'tuneResult', icon: ICONS.arcMeter, points: ['fa-chart-line', 'fa-table'], route: TUNE, target: '.tune-col', placement: 'right', phone: true },
   { id: 'tuneSuggest', icon: 'fa-wand-magic-sparkles', note: 'tip', route: TUNE, target: '.tune-side', placement: 'left', click: ['.tune-sug .btn:not(:disabled)', ...RUN], plays: true, once: true, until: RUN_DONE, phone: true },
   { id: 'tunePhoneTrial', icon: 'fa-mobile-screen', note: 'warn', noteIcon: 'fa-hand', route: TUNE, target: PHONE, placement: 'right', phone: true },
   { id: 'tuneCompare', icon: 'fa-code-compare', route: TUNE, target: '.tune-side', placement: 'left', click: [wizardStep(3), sideTab(2)], phone: true },
@@ -194,12 +195,12 @@ const TUNE_STEPS: TourStep[] = [
   { id: 'tuneForm', icon: 'fa-cloud-sun', points: ['fa-house', 'fa-pen'], route: TUNE, target: '.tune-panel:has(.save-grid)', placement: 'top', click: wizardStep(4) },
   { id: 'tuneSaved', icon: 'fa-floppy-disk', note: 'tip', route: TUNE, target: '.tune-done', placement: 'right', click: '.wiz:has(.tune-recap) .wiz-next:not(:disabled)', once: true },
   { id: 'tuneHistory', icon: 'fa-clock-rotate-left', note: 'tip', route: TUNE, target: '.hist-view', placement: 'top', click: ['.tune-done__actions .btn--ghost', modeTab(2)] },
-  { id: 'tuneDone', icon: 'fa-flag-checkered', points: ['fa-plug', 'fa-mobile-screen', 'fa-shield-halved'], note: 'tip', route: TUNE },
+  { id: 'tuneDone', icon: 'fa-flag-checkered', points: [ICONS.midi, 'fa-mobile-screen', 'fa-shield-halved'], note: 'tip', route: TUNE },
 ];
 
 const SYNTHERRUPTER_STEPS: TourStep[] = [
-  { id: 'syntherrupter', icon: 'fa-microchip', points: ['fa-shield-halved', 'fa-lock'], note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
-  { id: 'syntherrupterBar', icon: 'fa-floppy-disk', points: ['fa-paper-plane', 'fa-memory', 'fa-rotate'], route: SYNTHERRUPTER, target: '.sy-bar', placement: 'top' },
+  { id: 'syntherrupter', icon: ICONS.interrupter, points: ['fa-shield-halved', 'fa-lock'], note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
+  { id: 'syntherrupterBar', icon: 'fa-floppy-disk', points: ['fa-paper-plane', ICONS.eeprom, 'fa-rotate'], route: SYNTHERRUPTER, target: '.sy-bar', placement: 'top' },
   { id: 'syDone', icon: 'fa-flag-checkered', note: 'tip', route: SYNTHERRUPTER },
 ];
 
@@ -211,9 +212,9 @@ export const TOUR_ICONS: Record<TourId, string> = {
   playlists: 'fa-list-ul',
   midi: 'fa-folder-open',
   midiEdit: 'fa-pen-to-square',
-  envelopes: 'fa-chart-line',
-  tune: 'fa-bullseye',
-  syntherrupter: 'fa-microchip',
+  envelopes: ICONS.envelope,
+  tune: ICONS.tuning,
+  syntherrupter: ICONS.interrupter,
 };
 
 export const TOURS: Record<TourId, TourStep[]> = {

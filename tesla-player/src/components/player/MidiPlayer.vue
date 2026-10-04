@@ -24,6 +24,7 @@ import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
+import { ICONS } from '@/ui/icons';
 
 const emit = defineEmits<{
   (e: 'songFinished'): void;
@@ -675,9 +676,9 @@ defineExpose({ loadSong, playSong, stop });
 <template>
   <article class="player-panel">
     <header class="player-panel__head">
-      <span class="player-panel__title"><span class="icon"><i class="fas fa-compact-disc"></i></span>{{
+      <span class="player-panel__title"><span class="icon"><i class="fas" :class="ICONS.player"></i></span>{{
         $t('title.player') }}</span>
-      <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas fa-wave-square"></i>{{
+      <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas" :class="ICONS.synth"></i>{{
         $t('label.synthActive') }}</span>
       <label v-if="props.showAutoplay" class="switch player-panel__autoplay">
         <input type="checkbox" :checked="midiStore.autoplay" @change="onAutoplayToggle" />
@@ -727,7 +728,7 @@ defineExpose({ loadSong, playSong, stop });
     <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
     <div v-if="song && envelopesInUse.length" class="vu-legend">
       <span class="vu-legend__label">
-        <span class="icon"><i class="fas fa-guitar"></i></span>
+        <span class="icon"><i class="fas" :class="ICONS.instrument"></i></span>
         <span class="vu-legend__label-text">{{ $t('label.instruments') }}</span>
       </span>
       <span v-for="e in envelopesInUse" :key="e.program" class="env-chip"

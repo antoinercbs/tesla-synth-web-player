@@ -5,6 +5,7 @@ import type { CoilConfig, CoilEvent, CoilParam, SongStereo } from '@/types/domai
 import type { MidiAnalysis } from '@/midi/analyze';
 import MidiPreview from '@/components/player/MidiPreview.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The visualisation block: the VU / score / coils / combined tab switch, the
@@ -46,8 +47,8 @@ const previewView = computed<'roll' | 'lanes' | 'combined'>(() => {
   <div class="player-viz">
     <segmented-control v-model="viz" class="player-viz__tabs" tabs label-class="player-viz__label" :options="[
       { value: 'vu', label: $t('label.viewVu'), icon: 'fa-chart-simple', title: $t('label.viewVu') },
-      { value: 'roll', label: $t('label.viewScore'), icon: 'fa-music', title: $t('label.viewScore') },
-      { value: 'lanes', label: $t('label.viewCoils'), icon: 'fa-bolt', title: $t('label.viewCoils') },
+      { value: 'roll', label: $t('label.viewScore'), icon: ICONS.pianoRoll, title: $t('label.viewScore') },
+      { value: 'lanes', label: $t('label.viewCoils'), icon: ICONS.coil, title: $t('label.viewCoils') },
       { value: 'combined', label: $t('label.viewCombined'), icon: 'fa-layer-group', title: $t('label.viewCombined') },
     ]" />
 

@@ -61,6 +61,11 @@ CSS by itself.
   (`.me-chan__name`, `.tour__card`), and a partial only styles its own prefix.
 - A canvas reads its colours and fonts from the tokens (`getComputedStyle`), never
   from constants of its own (the tour phone's painted scene is a picture, not the UI).
+- A notion of the app (the coil, the primary, the interrupter…) takes its icon from
+  `ui/icons.ts`, never a Font Awesome name picked on the spot, so it looks the same
+  everywhere and an icon keeps one meaning. What Font Awesome has no glyph for is a
+  `tp-…` icon (`components/_app-icon.scss`): drawn on its 512 grid at its Solid
+  weight, used like one of its names.
 
 ## A new look
 

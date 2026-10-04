@@ -10,6 +10,7 @@ import { SessionLink } from '@/tuning/session-link';
 import { isEvent, type CameraStatus, type SessionEvent, type TrialBegin, type TrialDone } from '@/tuning/protocol';
 import { noteHzLabel, noteName } from '@/ui/piano-layout';
 import { currentPosition } from '@/tuning/weather';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The phone side of a tuning session. Opened from the QR code, it runs the arc
@@ -237,7 +238,7 @@ onBeforeUnmount(() => {
       <p v-else class="cam__hint dim"><i class="fas fa-hourglass-half"></i>{{ t('tune.cam.waitingTrial') }}</p>
 
       <p class="cam__hint dim">{{ t('tune.cam.keepStill') }}</p>
-      <button class="cam-btn" type="button" @click="redoZone"><i class="fas fa-crosshairs"></i>{{ t('tune.cam.redo') }}</button>
+      <button class="cam-btn" type="button" @click="redoZone"><i class="fas" :class="ICONS.editZone"></i>{{ t('tune.cam.redo') }}</button>
     </template>
   </arc-camera>
 </template>

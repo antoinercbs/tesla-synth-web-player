@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { CoilParam } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * Live-power controls: a GLOBAL ⇄ ADVANCED toggle. Global = one "Power" fader
@@ -51,7 +52,7 @@ function cappedValue(e: Event): number {
 <template>
   <div class="player-power" :class="{ 'is-capped': capped }">
     <div class="power-head">
-      <span class="power-head__key" :title="$t('label.power')"><span class="icon"><i class="fas fa-gauge-high"></i></span>
+      <span class="power-head__key" :title="$t('label.power')"><span class="icon"><i class="fas" :class="ICONS.power"></i></span>
         <span class="power-head__key-text">{{ $t('label.power') }}</span></span>
       <segmented-control class="power-scope" :model-value="scope" @update:model-value="emit('set-scope', $event)"
         :options="[

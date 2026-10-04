@@ -9,6 +9,7 @@ import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/for
 import { notify } from '@/utils/toast';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { Playlist, Song } from '@/types/domain';
+import { ICONS } from '@/ui/icons';
 
 const props = defineProps<{ playlists: Playlist[]; playlistId: string | null }>();
 const emit = defineEmits<{
@@ -187,7 +188,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
           </div>
           <button class="coil-filter-toggle" type="button" :class="{ 'is-active': onlyCompatible }"
             :title="$t('label.onlyMatchingCoils')" @click="onlyCompatible = !onlyCompatible">
-            <span class="icon"><i class="fas fa-bolt"></i></span>{{ draft.coilCount }}
+            <span class="icon"><i class="fas" :class="ICONS.coil"></i></span>{{ draft.coilCount }}
           </button>
         </div>
         <ul class="pl-list">

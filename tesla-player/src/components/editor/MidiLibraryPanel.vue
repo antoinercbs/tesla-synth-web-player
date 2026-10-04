@@ -8,6 +8,7 @@ import type { MidiFile, Song } from "@/types/domain";
 import { RouterLink } from "vue-router";
 import EmptyState from "@/components/ui/EmptyState.vue";
 import { useDropdown } from "@/components/editor/dropdown";
+import { ICONS } from "@/ui/icons";
 
 /**
  * The MIDI file manager interface: import (button or drop anywhere on it), searchable table,
@@ -372,7 +373,7 @@ function alignDropdown(wrapper: HTMLElement): void {
                                 :to="`/edit/${s.id}`">
                                 <span class="midi-lib__usage-title">{{ s.name }}</span>
                                 <span class="midi-lib__usage-coils">
-                                    &middot; {{ s.coilCount }} <i class="fas fa-bolt"></i>
+                                    &middot; {{ s.coilCount }} <i class="fas" :class="ICONS.coil"></i>
                                 </span>
                             </RouterLink>
                         </div>

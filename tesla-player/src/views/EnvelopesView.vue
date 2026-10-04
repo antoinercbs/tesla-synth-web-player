@@ -26,6 +26,7 @@ import EnvelopeThumb from '@/envelopes/EnvelopeThumb.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
+import { ICONS } from '@/ui/icons';
 
 /**
  * The envelope library: the user's envelopes (programs 20-63), editable, and
@@ -379,7 +380,7 @@ onBeforeUnmount(() => {
             </select>
           </div>
           <span class="env-slot" :class="'is-' + slotKind" :title="$t('envelopes.slot.' + slotKind + 'Hint')">
-            <i class="fas" :class="{ firmware: 'fa-lock', eeprom: 'fa-memory', volatile: 'fa-rotate' }[slotKind]"></i>{{
+            <i class="fas" :class="{ firmware: 'fa-lock', eeprom: ICONS.eeprom, volatile: ICONS.volatile }[slotKind]"></i>{{
               $t('envelopes.slot.' + slotKind) }}
           </span>
           <span class="env-ident__sep" aria-hidden="true"></span>
@@ -426,7 +427,7 @@ onBeforeUnmount(() => {
                   :disabled="!coilOutput && !coilRunner"
                   :title="coilOutput ? $t('envelopes.listenCoilHint') : $t('envelopes.coilNeedsOutput')"
                   @click="coilRunner ? toggleCoil() : (coilMenu = !coilMenu)">
-                  <span class="icon"><i class="fas" :class="coilRunner ? 'fa-stop' : 'fa-bolt'"></i></span>{{ coilRunner
+                  <span class="icon"><i class="fas" :class="coilRunner ? 'fa-stop' : ICONS.trial"></i></span>{{ coilRunner
                     ? $t('label.stop') : $t('envelopes.listenCoil') }}
                 </button>
                 <div v-if="coilMenu && !coilRunner" class="env-coil__menu">
@@ -447,7 +448,7 @@ onBeforeUnmount(() => {
                   <p class="env-coil__hint">{{ $t('envelopes.coilTestHint') }}</p>
                   <button class="btn btn--volt env-coil__play" type="button" :disabled="!(testOntime > 0)"
                     @click="coilMenu = false; toggleCoil()">
-                    <span class="icon"><i class="fas fa-bolt"></i></span>{{ $t('envelopes.coilTestPlay') }}
+                    <span class="icon"><i class="fas" :class="ICONS.trial"></i></span>{{ $t('envelopes.coilTestPlay') }}
                   </button>
                 </div>
               </div>

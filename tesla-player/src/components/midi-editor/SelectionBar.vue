@@ -5,6 +5,7 @@ import { notify } from '@/utils/toast';
 import { envelope } from '@/sysex/envelopes';
 import { noteName } from '@/ui/piano-layout';
 import { CHANNEL_COUNT, type MidiEditor } from '@/midi/edit/editor';
+import { ICONS } from '@/ui/icons';
 
 /**
  * What to do with the selected notes, shown only while there are some: change
@@ -103,7 +104,7 @@ defineExpose({ close: () => { velOpen.value = false; }, isOpen: () => velOpen.va
     </span>
     <div ref="velRoot" class="me-selbar__vel">
       <button class="btn" type="button" :aria-expanded="velOpen" @click="velOpen = !velOpen">
-        <span class="icon"><i class="fas fa-signal"></i></span>{{ $t('midiEditor.velocity') }}<i class="fas fa-chevron-up me-caret"></i>
+        <span class="icon"><i class="fas" :class="ICONS.velocity"></i></span>{{ $t('midiEditor.velocity') }}<i class="fas fa-chevron-up me-caret"></i>
       </button>
       <div v-if="velOpen" class="me-velpop">
         <label class="me-velpop__line">
