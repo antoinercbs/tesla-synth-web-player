@@ -12,7 +12,6 @@ The server has **no authentication by default**, anyone who can reach it can rea
 - [Keycloak setup](#keycloak-setup)
 - ["Edited by" attribution](#edited-by-attribution)
 - [Restricting to a role](#restricting-to-a-role)
-- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -20,7 +19,8 @@ The server has **no authentication by default**, anyone who can reach it can rea
 
 Set **`OIDC_ISSUER`** and the API becomes an OpenID Connect **resource server**:
 
-- **Every** `/api` route then requires a valid Bearer access token (reads included). Only `GET /api/ping`, the public `GET /api/auth/config`, and the static front-end stay open.
+- **Every** `/api` route then requires a valid Bearer access token (reads included). Only `GET /api/ping`, the public `GET /api/auth/config`, what the home page shows a visitor (`GET /api/instance`, the desktop downloads), the tuning phone's session routes and the static front-end stay open.
+- A visitor who isn't signed in lands on the project's **home page** (features, documentation, desktop download) with a **Sign in** button, which goes to your IdP and back to the page they asked for. `INSTANCE_NAME` and `INSTANCE_TAGLINE` put your server's name on that page (see [Deployment → Configuration](./deployment.md#configuration-environment)).
 - The web app and desktop app **discover** the configuration from `GET /api/auth/config` and run the login themselves (**Authorization Code + PKCE**). The web app stores the token in memory and renews it silently on demand; the desktop app uses the system browser (RFC 8252 loopback) and keeps tokens in the main process.
 - When `OIDC_ISSUER` is **unset**, the app behaves exactly as before — no login, no UI change.
 

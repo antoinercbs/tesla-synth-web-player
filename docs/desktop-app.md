@@ -22,10 +22,11 @@ The desktop app is a standalone build (Linux & Windows) that runs the whole play
 
 ## Installing
 
-Get the binary in one of two ways:
+Get the binary in one of three ways:
 
-- **From your server**: if your team's web app offers it, the sidebar has a **Download desktop app** button listing the available platforms.
-- **Build it yourself** — see [Development → Desktop binaries](./development.md#desktop-binaries).
+- **From the project's site**: its [Download page](https://antoinercbs.github.io/tesla-synth-web-player/download) offers the latest release for your system (all of them on the [GitHub releases page](https://github.com/antoinercbs/tesla-synth-web-player/releases)).
+- **From your server**: if your team's server offers it, its home page and the sidebar's **Download desktop app** button list the available platforms.
+- **Build it yourself**: see [Development → Desktop binaries](./development.md#desktop-binaries).
 
 Then:
 

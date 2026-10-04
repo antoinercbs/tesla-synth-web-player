@@ -1,0 +1,63 @@
+name: Publish the site (GitHub Pages)
+
+# The project's site, https://antoinercbs.github.io/tesla-synth-web-player/: the
+# app's own pages (tesla-player/src/views/site) built on their own with the docs
+# (`npm run build:site`, see docs/development.md#the-projects-site).
+#
+# One-time setting: Settings → Pages → Source: "GitHub Actions".
+# The Download page reads the latest release from GitHub's API as it loads: a new
+# release needs no rebuild.
+
+on:
+  push:
+    branches: [main]
+    paths: ['tesla-player/**', 'docs/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# one deployment at a time; a newer push replaces a pending one
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tesla-player/package-lock.json
+
+      - name: Install
+        working-directory: tesla-player
+        run: npm ci --legacy-peer-deps
+
+      - name: Build the site
+        working-directory: tesla-player
+        run: npm run build:site
+
+      - name: Upload
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: tesla-player/dist-site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

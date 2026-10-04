@@ -20,7 +20,7 @@ How to play music on your Tesla coils and configure each song. This covers the w
 
 ## The interface at a glance
 
-- **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, language, desktop download / sync).
+- **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, and the **…** menu: language, look, desktop download / sync, the guided tour, and **About Tesla Player**, the project's pages and credits).
 - **Main area**: the current screen (Play, Edit, ...)
 - **Guided tours**: the app tour (offered on the first visit, then in the **⋯** menu) shows how the pages fit together; the **?** beside each page's title runs that page's own, detailed tour. Both run on demo data: nothing is saved and nothing reaches the coils.
 - **On a phone or a tablet** (a window under 1000 px wide), the sidebar becomes a bottom bar with the show-time pages only: **Play**, a simplified **Edit** (name, file, tags, coils; the spatialisation and the power over time stay as they are, to edit on a large screen), **Playlists** and the **MIDI files** (without the MIDI editor). **More** opens the **⋯** menu. The other pages stay reachable by their address.

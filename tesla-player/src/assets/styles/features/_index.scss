@@ -11,7 +11,6 @@
 @import "desktop/server-config-modal";
 @import "desktop/sync-modal";
 @import "desktop/download-modal";
-@import "settings/credits-modal";
 @import "settings/theme-picker";
 @import "settings/skin-picker";
 @import "tour/fake-phone";
@@ -61,3 +60,8 @@
 @import "syntherrupter/syntherrupter-view";
 @import "tuning/tune-camera-view";
 @import "tuning/tune-view";
+
+// the project's site (views/site): last, it lays out the app's own pieces
+@import "site/credits";
+@import "site/site";
+@import "site/site-docs";

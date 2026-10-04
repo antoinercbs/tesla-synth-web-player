@@ -13,6 +13,7 @@ Running the Tesla Player server (the web app + API) for your team. The whole thi
 - [Authentication](#authentication)
 - [Offering the desktop downloads](#offering-the-desktop-downloads)
 - [Updating](#updating)
+- [Building & publishing the image (GitHub Actions)](#building--publishing-the-image-github-actions)
 
 ---
 
@@ -80,6 +81,10 @@ On first boot the container creates the database from the baseline schema; on ev
 | `DATA_ROOT` | `/data` | base folder for the database, uploads and desktop binaries |
 | `HOST` | `0.0.0.0` | bind address |
 | `OIDC_*` | — | optional login, see **[Authentication](./authentication.md)** |
+| `INSTANCE_NAME` | — | your server's name (e.g. your club), shown on the home page to a visitor who isn't signed in |
+| `INSTANCE_TAGLINE` | — | a line beside that name (e.g. "members only") |
+
+With login enabled, a visitor who isn't signed in lands on the project's **home page** (the same pages as the [project's site](https://antoinercbs.github.io/tesla-synth-web-player/)), with a **Sign in** button and the desktop download. Signed-in users reach those pages from the sidebar's **…** menu → **About Tesla Player**.
 
 ## Behind a reverse proxy
 
@@ -96,12 +101,12 @@ The API has **no authentication by default**. For a networked deployment, enable
 
 ## Offering the desktop downloads
 
-To let users download the [desktop app](./desktop-app.md) from the web UI, drop the built artifacts into **`{DATA_ROOT}/electron/`** (i.e. `./data/electron/` with the volume above):
+To let users download the [desktop app](./desktop-app.md) from your server, drop the built artifacts into **`{DATA_ROOT}/electron/`** (i.e. `./data/electron/` with the volume above):
 
 - `*.AppImage` → offered as the **Linux** build
 - `*.exe` → offered as the **Windows** build
 
-The sidebar's **Download desktop app** button then lists whichever platforms are present (a missing one is simply hidden). The binaries are built separately (see [Development → Desktop binaries](./development.md#desktop-binaries)) — they're **not** built inside the Docker image.
+The sidebar's **Download desktop app** button and the **Download** page then offer whichever platforms are present (a missing one is simply hidden); with none, the Download page offers the latest [GitHub release](https://github.com/antoinercbs/tesla-synth-web-player/releases) instead. The downloads are **public**, even with login enabled: the home page offers them to visitors not signed in yet, and they are the project's open-source builds. The binaries are built separately (see [Development → Desktop binaries](./development.md#desktop-binaries)), or taken from a GitHub release; they're **not** built inside the Docker image.
 
 ## Updating
 
@@ -113,3 +118,17 @@ docker pull ghcr.io/antoinercbs/tesla-synth-web-player:latest && \
 ```
 
 Your `/data` volume is untouched; migrations run on start.
+
+## Building & publishing the image (GitHub Actions)
+
+Three workflows live in `.github/workflows/`:
+
+| Workflow | When | What |
+| --- | --- | --- |
+| `docker-publish.yml` | push to `main`, a `vX.Y.Z` tag, a pull request (build only) | builds the image and pushes it to `ghcr.io/antoinercbs/tesla-synth-web-player`: `latest`, `main` and `sha-…` from `main`, `X.Y.Z` and `X.Y` from a tag |
+| `desktop-release.yml` | a `vX.Y.Z` tag | builds the desktop app for Linux (`.AppImage`) and Windows (`.exe`) and attaches them to that tag's GitHub release |
+| `pages.yml` | push to `main` touching the front or the docs | builds the project's site (`npm run build:site`) and publishes it on GitHub Pages |
+
+They use the built-in `GITHUB_TOKEN`: no secret to add. Two one-time settings in the repository: make the image's package **public** (*Packages → tesla-synth-web-player → Package settings → Visibility*) so anyone can `docker pull` it, and set **Settings → Pages → Source** to **GitHub Actions**.
+
+To release, bump the version in `tesla-player/`, `nest-backend/` and `electron/package.json`, then push a tag: `git tag v2.1.0 && git push origin v2.1.0`.

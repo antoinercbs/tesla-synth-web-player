@@ -8,6 +8,9 @@ WORKDIR /front
 COPY tesla-player/package*.json ./
 RUN npm ci --legacy-peer-deps
 COPY tesla-player/ ./
+# the documentation, which the front renders as its Documentation pages
+# (src/site/docs.ts reads it at ../docs, beside the front, as in the repository)
+COPY docs/ /docs/
 RUN printf 'VITE_BASE_URL=\n' > .env.production
 RUN npm run build
 

@@ -21,7 +21,9 @@ export default [
       sourceType: 'module',
       globals: {
         ...globals.browser,
-        ...globals.node
+        ...globals.node,
+        // package.json's version, set by vite.config.js
+        __APP_VERSION__: 'readonly'
       }
     },
     rules: {

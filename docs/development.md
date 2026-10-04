@@ -12,6 +12,7 @@ For contributors: running the project locally, the stack, building, packaging th
 - [Checks](#checks)
 - [Build the production image](#build-the-production-image)
 - [Desktop binaries](#desktop-binaries)
+- [The project's site](#the-projects-site)
 - [Internationalization](#internationalization)
 - [Contributing](#contributing)
 
@@ -76,6 +77,7 @@ npx vue-tsc --noEmit     # type-check
 npx eslint src           # lint
 npx vitest run           # unit tests
 VITE_BASE_URL= npx vite build   # production build
+npm run build:site       # the project's site (GitHub Pages), in dist-site/
 
 # back-end (in nest-backend/)
 npm run build            # compile
@@ -101,9 +103,26 @@ npm run build:electron      # builds front + back, rebuilds sqlite3 for Electron
 
 Artifacts land in `electron/dist-electron/`: a Linux `*.AppImage` and a Windows `*.exe`. Building the **Windows** `.exe` from Linux requires **Wine**; without it, only the Linux AppImage is produced. To offer these for download from a server, drop them in the server's `data/electron/` folder. See [Deployment → Offering the desktop downloads](./deployment.md#offering-the-desktop-downloads).
 
+## The project's site
+
+The pages of [the project's site](https://antoinercbs.github.io/tesla-synth-web-player/) (home, features, demos, download, documentation, credits) are views of the app itself (`tesla-player/src/views/site/`, `src/site/`). They serve twice:
+
+- **in the app**, under `/about`: a server's home page for a visitor who isn't signed in, and the sidebar's **…** → **About Tesla Player**;
+- **on GitHub Pages**, built on their own:
+
+```bash
+cd tesla-player
+npm run build:site       # → dist-site/ (one index.html copy per page, so direct links answer)
+npm run preview:site     # serve it at http://localhost:4173/tesla-synth-web-player/
+```
+
+- **Documentation**: the pages render `docs/*.md` (this folder), the one source, still read as-is on GitHub. Links between guides become site pages; `src/site/docs.spec.ts` checks every anchor a guide links to exists.
+- **Demo videos**: unlisted YouTube videos, listed in `src/site/demos.ts` (an id per video; one without an id yet only shows while developing).
+- **Screenshots**: `src/assets/site/shots/<language>/`, taken on the guided tour's sample library (public-domain tunes): never on a real library, whose titles may not be public. With both dev servers running, `npm run shots` retakes them all in English and French with the Chrome installed on this computer (`npm run shots -- --locale fr` for one language). Run it before a release when the interface changed.
+
 ## Internationalization
 
-The app ships **English** and **French**. All strings live in a single file, `tesla-player/src/assets/translations.js`, as an `{ en: { … }, fr: { … } }` object with nested keys. To add a language, copy one locale block, translate the values, and add it to that object. **No programming required**. Contributions of new languages are very welcome.
+The app ships **English** and **French**. The strings live in `tesla-player/src/assets/translations/`, one file per language (`en.js`, `fr.js`) with the same nested keys (a test checks both have the same ones). To add a language, copy `en.js`, translate the values and add it to `index.js`. **No programming required**. Contributions of new languages are very welcome.
 
 ## Contributing
 

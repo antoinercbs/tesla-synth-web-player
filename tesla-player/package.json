@@ -12,7 +12,10 @@
     "lint": "eslint src",
     "type-check": "vue-tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "shots": "node scripts/site-shots.mjs",
+    "build:site": "vite build --mode site",
+    "preview:site": "vite preview --mode site --outDir dist-site"
   },
   "dependencies": {
     "@fontsource/arimo": "^5.3.0",
@@ -50,6 +53,7 @@
     "axios": "^1.13.2",
     "jzz": "^1.9.6",
     "leaflet": "^1.9.4",
+    "marked": "^16.4.2",
     "midi-file": "^1.2.4",
     "oidc-client-ts": "^3.5.0",
     "pinia": "^3.0.4",
@@ -70,6 +74,7 @@
     "eslint": "^9.39.1",
     "eslint-plugin-vue": "^10.6.0",
     "globals": "^16.5.0",
+    "playwright-core": "^1.63.0",
     "sass": "^1.95.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.0",

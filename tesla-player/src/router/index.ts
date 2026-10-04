@@ -3,10 +3,19 @@ import {
   createWebHistory,
   type RouteRecordRaw,
 } from "vue-router";
+import { siteRoutes } from "@/site/routes";
 import { useAuthStore } from "@/stores/auth";
 
 const routes: RouteRecordRaw[] = [
-  { path: "/", redirect: "/play" },
+  // a visitor who isn't signed in to a server that requires it lands on the
+  // project's home; anyone else goes straight to the player
+  {
+    path: "/",
+    redirect: () => {
+      const auth = useAuthStore();
+      return auth.enabled && !auth.authenticated ? { name: "site-home" } : "/play";
+    },
+  },
   {
     path: "/play",
     name: "play",
@@ -78,6 +87,8 @@ const routes: RouteRecordRaw[] = [
     name: "auth-callback",
     component: () => import("@/views/AuthCallbackView.vue"),
   },
+  // The project's pages (the GitHub Pages site, the same views): public, no sidebar.
+  siteRoutes("/about"),
   // Dev-only reference sheet of the tokens + shared pieces (dropped from builds).
   ...(import.meta.env.DEV
     ? [{ path: "/styleguide", name: "styleguide", component: () => import("@/views/StyleGuideView.vue") }]
@@ -92,14 +103,13 @@ const router = createRouter({
 });
 
 // Auth gate: when the server requires login, every route needs an authenticated
-// user except the login + callback pages. Fully inert when auth is disabled
-// (the common case) — identical to before. Registered first so it runs before
-// the firstNav rewrite below.
+// user except the public ones (the site, the phone's camera page) and the login
+// + callback pages. Fully inert when auth is disabled (the common case).
 //
-// Unauthenticated → redirect STRAIGHT to the IdP (no intermediate sign-in page).
-// The manual /login page is only a fallback when the automatic redirect declines
-// (anti-loop guard tripped, or the IdP was unreachable).
-router.beforeEach(async (to) => {
+// Unauthenticated → the project's home, whose "Sign in" goes to the IdP and back
+// to the page asked for (?redirect=). The manual /login page stays for the
+// access-denied wall and for a sign-in the IdP round-trip couldn't complete.
+router.beforeEach((to) => {
   const auth = useAuthStore();
   if (!auth.enabled) return true;
   if (to.name === "login" || to.name === "auth-callback" || to.meta.public) return true;
@@ -107,10 +117,7 @@ router.beforeEach(async (to) => {
     // Authenticated but the API refused (missing role) → access-denied wall.
     return auth.accessDenied ? { name: "login" } : true;
   }
-  const redirected = await auth.requestLogin(to.fullPath);
-  return redirected
-    ? false
-    : { name: "login", query: { redirect: to.fullPath } };
+  return { name: "site-home", query: to.fullPath === "/play" ? {} : { redirect: to.fullPath } };
 });
 
 export default router;

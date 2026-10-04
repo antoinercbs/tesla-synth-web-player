@@ -2,9 +2,11 @@
 
 A browser-based MIDI player for **musical Tesla coils** driven by [MMMZZZZ's Syntherrupter](https://github.com/MMMZZZZ/Syntherrupter), a polyphonic, multi-coil interrupter. Compose a per-song, per-coil configuration once (MIDI-channel → coil mapping, on-times, duty-cycles), then play your library on the coils during a show, with live power control.
 
+**[Website](https://antoinercbs.github.io/tesla-synth-web-player/)** · **[Download](https://antoinercbs.github.io/tesla-synth-web-player/download)** · **[Documentation](https://antoinercbs.github.io/tesla-synth-web-player/docs)**
+
 It was built for the high-voltage team of the [Clubelek](https://clubelek.fr) (the electronics & robotics club of INSA Lyon) and its three Tesla coils, to replace fiddly MIDI editors and scattered SysEx commands/touchscreen operations with one centralized, fast, show-ready interface.
 
-![Tesla Player interface](./illustrations/interface.png "Tesla Player interface")
+![Tesla Player interface](./tesla-player/src/assets/site/shots/en/play.webp "The Play page, on the guided tour's sample library")
 
 ## What it does
 
@@ -22,7 +24,7 @@ It was built for the high-voltage team of the [Clubelek](https://clubelek.fr) (t
 
 ## Standalone desktop app
 
-Go to the releases page and download the latest desktop build for your OS.
+Download the latest build for your system from the [site's Download page](https://antoinercbs.github.io/tesla-synth-web-player/download), or any version from the [releases page](https://github.com/antoinercbs/tesla-synth-web-player/releases). See [Desktop app](./docs/desktop-app.md).
 
 ## Server/Web version: Quick start (Docker)
 

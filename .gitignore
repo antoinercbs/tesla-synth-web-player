@@ -4,6 +4,7 @@ uploads
 /data
 node_modules
 dist
+dist-site
 *.zip
 .env.production
 .env.local

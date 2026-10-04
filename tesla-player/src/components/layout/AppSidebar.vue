@@ -175,8 +175,8 @@
       <button class="sidebar-menu__item" type="button" role="menuitem" @click="startTourFromMenu">
         <span class="icon"><i class="fas fa-route"></i></span>{{ $t('tour.start') }}
       </button>
-      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('creditsOpen')">
-        <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('credits.title') }}
+      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openAbout">
+        <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('nav.about') }}
       </button>
       <template v-if="showUser">
         <div class="sidebar-menu__sep"></div>
@@ -287,7 +287,6 @@
   <server-config-modal v-if="isElectron" :open="serverOpen" @close="serverOpen = false" @saved="onServerSaved" />
   <sync-modal v-if="isElectron" :open="syncOpen" @close="syncOpen = false" @applied="onSyncApplied" />
   <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
-  <credits-modal :open="creditsOpen" @close="creditsOpen = false" />
 </template>
 
 <script>
@@ -311,7 +310,6 @@ import TagsModal from '@/components/settings/TagsModal.vue'
 import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
 import SyncModal from '@/components/desktop/SyncModal.vue'
 import DownloadModal from '@/components/desktop/DownloadModal.vue'
-import CreditsModal from '@/components/layout/CreditsModal.vue'
 import LocalePicker from '@/components/settings/LocalePicker.vue'
 import ThemePicker from '@/components/settings/ThemePicker.vue'
 import SkinPicker from '@/components/settings/SkinPicker.vue'
@@ -320,14 +318,14 @@ import SkinPicker from '@/components/settings/SkinPicker.vue'
  * The application sidebar: brand, navigation, the collapse/compact toggle, MIDI
  * output selection (incl. the built-in synth + WebMIDI device resolution), the
  * coil legend (which opens the coils' settings), and a footer (account / connection
- * status + a menu holding the language, look, tags, desktop sync/server, download and
- * credits actions). Owns the WebMIDI lifecycle + output resolution (it IS the
+ * status + a menu holding the language, look, tags, desktop sync/server, download, the
+ * tour and the project's pages). Owns the WebMIDI lifecycle + output resolution (it IS the
  * output picker) and the connection ping. App.vue stays a thin shell.
  */
 export default {
   name: 'AppSidebar',
   components: {
-    CoilsModal, TagsModal, ServerConfigModal, SyncModal, DownloadModal, CreditsModal, LocalePicker, ThemePicker, SkinPicker,
+    CoilsModal, TagsModal, ServerConfigModal, SyncModal, DownloadModal, LocalePicker, ThemePicker, SkinPicker,
   },
   data() {
     return {
@@ -368,7 +366,6 @@ export default {
       outMenuStyle: {},
       // narrow icon-rail sidebar (persisted); nav stays, the verbose cards collapse
       sidebarCompact: localStorage.getItem('sidebarCompact') === '1',
-      creditsOpen: false,
       menuOpen: false,
       menuStyle: {},
       menuWidth: 0
@@ -683,6 +680,11 @@ export default {
       if (this.selectedOutput2Id) localStorage.setItem('midiOutput2Id', this.selectedOutput2Id)
       else localStorage.removeItem('midiOutput2Id')
       this.midiStore.setMidiOutput2(this.outputs.find(o => o.id === this.selectedOutput2Id) || null)
+    },
+    // the project's pages (views/site), with the way back to the app
+    openAbout() {
+      this.menuOpen = false
+      this.$router.push({ name: 'site-home', query: { redirect: this.$route.fullPath } })
     },
     startTourFromMenu() {
       this.menuOpen = false

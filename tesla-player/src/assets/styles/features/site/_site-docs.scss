@@ -1,0 +1,286 @@
+// ===========================================================================
+//  THE SITE: DOCUMENTATION (views/site/SiteDocsView.vue)
+// ===========================================================================
+// docs/*.md rendered: the table of every guide beside it, the prose in the
+// look's type. .site-doc also dresses a release's notes (the download page).
+
+.site-docs {
+    display: grid;
+    grid-template-columns: 15.5rem minmax(0, 1fr);
+    gap: 1.6rem;
+    align-items: start;
+    padding-top: 2rem;
+}
+
+.site-toc {
+    position: sticky;
+    top: 5.2rem;
+    max-height: calc(100dvh - 6rem);
+    padding: 0.9rem 0.6rem;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+
+.site-toc .sidebar-section__title {
+    margin: 0.9rem 0.6rem 0.3rem;
+}
+
+.site-toc .sidebar-section__title:first-child {
+    margin-top: 0.2rem;
+}
+
+.site-toc .nav-item {
+    padding: 0.4rem 0.7rem;
+    font-size: var(--fs-md);
+}
+
+// the sidebar's mark of the current page, on the current guide only (a router
+// link is active on every guide, the docs' route being one)
+.site-toc .nav-item.router-link-active:not(.is-current) {
+    background: none;
+    box-shadow: none;
+    color: var(--text-dim);
+}
+
+.site-toc .nav-item.router-link-active:not(.is-current)::before {
+    display: none;
+}
+
+.site-toc__sub {
+    display: flex;
+    flex-direction: column;
+    margin: 0.1rem 0 0.4rem 2.2rem;
+    border-left: var(--border-w) solid var(--line);
+}
+
+.site-toc__sub a {
+    padding: 0.18rem 0 0.18rem 0.7rem;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.site-toc__sub a:hover {
+    color: var(--text-strong);
+}
+
+.site-docs__page {
+    min-width: 0;
+}
+
+.site-docs__lang {
+    margin: 1rem 1.8rem 0;
+}
+
+.site-docs__loading {
+    padding: 1.4rem 1.8rem;
+}
+
+.site-docs__foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.8rem 1.4rem;
+    border-top: var(--border-w) solid var(--line);
+    font-size: var(--fs-md);
+}
+
+.site-doc {
+    padding: 1.4rem 1.8rem 2rem;
+    color: var(--text);
+    font-size: var(--fs-lg);
+    line-height: 1.65;
+}
+
+.site-doc--notes {
+    padding: 0;
+}
+
+.site-doc h1 {
+    margin: 0 0 1rem;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-2xl);
+}
+
+.site-doc h2 {
+    margin: 2.2rem 0 0.7rem;
+    padding-top: 1.2rem;
+    border-top: var(--border-w) solid var(--line);
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-doc h3 {
+    margin: 1.6rem 0 0.4rem;
+    color: var(--text-strong);
+    font-weight: 600;
+    font-size: var(--fs-lg);
+}
+
+.site-doc p,
+.site-doc ul,
+.site-doc ol {
+    margin: 0 0 0.9rem;
+}
+
+.site-doc ul,
+.site-doc ol {
+    padding-left: 1.3rem;
+}
+
+// the reset takes the lists' markers away: prose wants them back
+.site-doc ul {
+    list-style: disc;
+}
+
+.site-doc ol {
+    list-style: decimal;
+}
+
+.site-doc li {
+    margin: 0.2rem 0;
+}
+
+.site-doc li::marker {
+    color: var(--text-mute);
+}
+
+.site-doc li > ul,
+.site-doc li > ol {
+    margin: 0.2rem 0 0;
+}
+
+.site-doc strong {
+    color: var(--text-strong);
+}
+
+.site-doc a:hover {
+    text-decoration: underline;
+}
+
+.site-doc code {
+    padding: 0.05em 0.35em;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-xs);
+    background: var(--bg-2);
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+}
+
+.site-doc pre {
+    margin: 0 0 1rem;
+    padding: 0.8rem 1rem;
+    overflow-x: auto;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+}
+
+.site-doc pre code {
+    padding: 0;
+    border: 0;
+    background: none;
+    font-size: var(--fs-sm);
+}
+
+.site-doc blockquote {
+    margin: 0 0 1rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: var(--hint-radius, var(--radius-md));
+    background: var(--hint-bg, var(--volt-08));
+    color: var(--hint-color, var(--text-dim));
+}
+
+.site-doc blockquote p {
+    margin: 0;
+}
+
+.site-doc__table {
+    margin: 0 0 1rem;
+    overflow-x: auto;
+}
+
+.site-doc table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-md);
+}
+
+.site-doc th,
+.site-doc td {
+    padding: 0.5rem 0.7rem;
+    border-bottom: var(--border-w) solid var(--line);
+    text-align: left;
+    vertical-align: top;
+}
+
+.site-doc th {
+    border-bottom-color: var(--line-strong);
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+.site-doc img {
+    max-width: 100%;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius);
+}
+
+.site-doc hr {
+    margin: 1.4rem 0;
+    border: 0;
+    border-top: var(--border-w) solid var(--line);
+}
+
+@media (max-width: 1000px) {
+    .site-docs {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    // the guides in a row of chips above the page (the app's phone rules make
+    // its nav items bottom-bar tabs)
+    .site-toc {
+        position: static;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.2rem;
+        max-height: none;
+        padding: 0.4rem;
+        overflow-x: auto;
+    }
+
+    .site-toc .sidebar-section__title,
+    .site-toc__sub {
+        display: none;
+    }
+
+    .site-toc a.nav-item {
+        flex: none;
+        flex-direction: row;
+        min-height: 0;
+        padding: 0.35rem 0.65rem;
+        border-radius: var(--radius);
+        font-size: var(--fs-sm);
+        white-space: nowrap;
+    }
+
+    .site-toc .nav-item.router-link-active.is-current {
+        background: var(--volt-10);
+    }
+
+    .site-toc .nav-item.router-link-active::before {
+        display: none;
+    }
+
+    .site-doc,
+    .site-docs__foot {
+        padding-right: 1rem;
+        padding-left: 1rem;
+    }
+
+    .site-docs__lang {
+        margin: 1rem 1rem 0;
+    }
+}

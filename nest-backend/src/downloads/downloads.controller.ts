@@ -5,6 +5,7 @@ import {
   Param,
   StreamableFile,
 } from '@nestjs/common';
+import { Public } from '../auth/public.decorator';
 import {
   DownloadOs,
   DownloadsManifest,
@@ -13,6 +14,9 @@ import {
 
 const VALID_OS: DownloadOs[] = ['linux', 'windows'];
 
+// Public: the home page offers the desktop app to a visitor not signed in yet
+// (the binaries are the open-source releases, nothing of the team's).
+@Public()
 @Controller('downloads')
 export class DownloadsController {
   constructor(private readonly downloadsService: DownloadsService) {}

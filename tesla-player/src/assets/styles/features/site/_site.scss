@@ -1,0 +1,807 @@
+// ===========================================================================
+//  THE SITE (views/site, components/site)
+// ===========================================================================
+// The project's pages: GitHub Pages, a server's home for a visitor who isn't
+// signed in, the app's "About". They wear the look like the app: its panels,
+// buttons, badges, pills and hints; what is here is their layout only.
+
+.site {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.site__page {
+    flex: 1 0 auto;
+}
+
+.site-wrap {
+    max-width: 74rem;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.site-narrow {
+    max-width: 50rem;
+}
+
+// a page's sections are linked to: below the bar when scrolled to
+.site [id] {
+    scroll-margin-top: 6rem;
+}
+
+.site-lead {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--text-dim);
+    font-size: var(--fs-lg);
+}
+
+.site-mute {
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.site-small {
+    display: block;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.site-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.site-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+}
+
+.site-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.1rem;
+    margin: 0.9rem 0 0;
+    font-size: var(--fs-sm);
+}
+
+.site-links a:hover,
+.site-more:hover {
+    text-decoration: underline;
+}
+
+.site-more {
+    font-size: var(--fs-md);
+    white-space: nowrap;
+}
+
+.site-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.9rem;
+    margin: 0;
+    color: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+// ---- the bar: the app's brand lockup and nav items, in a row ----
+.site-top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: var(--border-w) solid var(--line);
+    background: var(--scrim-62);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.site-top__bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 4.2rem;
+}
+
+.site-top .brand {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.site-top__nav {
+    position: relative;
+    flex-direction: row;
+    align-self: stretch;
+    align-items: center;
+    gap: 0.1rem;
+    margin: 0;
+}
+
+.site-top .nav-item {
+    padding: 0.45rem 0.65rem;
+    font-size: var(--fs-md);
+}
+
+// the current page is the site's own mark (the micro-arc), not the sidebar's: a
+// router link is "active" on every page below its own (the home's, all of them)
+.site-top .nav-item.router-link-active {
+    background: none;
+    box-shadow: none;
+    color: var(--text-dim);
+}
+
+.site-top .nav-item.router-link-active::before {
+    display: none;
+}
+
+.site-top .nav-item.is-current {
+    color: var(--text-strong);
+}
+
+.site-top__arc {
+    bottom: 0.55rem;
+}
+
+.site-top__end {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.site-top__lang button {
+    padding: 0.2rem 0.5rem;
+    font-size: var(--fs-xs);
+}
+
+.site-top__pages {
+    display: none;
+    overflow-x: auto;
+    border-top: var(--border-w) solid var(--line);
+    scrollbar-width: none;
+}
+
+.site-top__pages .site-wrap {
+    display: flex;
+    gap: 0.2rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+.site-top__pages .nav-item {
+    padding: 0.35rem 0.6rem;
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.site-top__pages .nav-item.is-current {
+    color: var(--text-strong);
+    background: var(--volt-10);
+}
+
+// ---- hero ----
+.site-hero {
+    padding: 3rem 0 2.5rem;
+}
+
+.site-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+    gap: 2.5rem;
+    align-items: center;
+}
+
+.site-hero__title {
+    margin: 0.9rem 0 0.8rem;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: 2.6rem;
+    line-height: 1.1;
+}
+
+.site-hero .player-hint {
+    margin: 1rem 0 0;
+}
+
+.site-hero .site-hero__instance {
+    margin: 0;
+}
+
+// ---- video: a poster until clicked ----
+.site-video {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+    box-shadow: var(--shadow-panel);
+}
+
+.site-video__poster,
+.site-video__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-video__scrim {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--scrim-45);
+}
+
+.site-video__cap {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.7rem;
+    left: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.site-video__dur {
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--radius-xs);
+    background: var(--scrim-62);
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+// ---- the four facts under the hero ----
+.site-facts {
+    border-top: var(--border-w) solid var(--line);
+    border-bottom: var(--border-w) solid var(--line);
+}
+
+.site-facts__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.site-fact {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.site-fact .icon {
+    flex: none;
+    width: 2.6rem;
+    height: 2.6rem;
+    color: var(--volt);
+    font-size: 1.6rem;
+}
+
+.site-fact b {
+    display: block;
+    color: var(--text-strong);
+    font-size: var(--fs-md);
+    font-weight: 600;
+}
+
+// ---- sections, cards ----
+.site-page-head {
+    padding: 2.6rem 0 1.4rem;
+}
+
+.site-page-head .view-head__title {
+    margin: 0 0 0.7rem;
+    font-size: 2.1rem;
+}
+
+.site-section {
+    padding: 2.8rem 0 0;
+}
+
+.site-section__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.site-section__head .view-head__title {
+    margin: 0 0 0.4rem;
+}
+
+.site-sub {
+    margin: 0 0 0.9rem;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+}
+
+.site-cards--3 {
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.site-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.1rem 1.2rem;
+    color: inherit;
+}
+
+.site-card > .icon {
+    margin-bottom: 0.3rem;
+    color: var(--volt);
+    font-size: var(--fs-xl);
+}
+
+.site-card b {
+    color: var(--text-strong);
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+}
+
+.site-card p,
+.site-card__body > span {
+    margin: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+}
+
+.site-card .credits__links,
+.site-card__end {
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+.site-card--shot {
+    padding: 0;
+    overflow: hidden;
+    transition: border-color var(--dur-fast);
+}
+
+.site-card--shot:hover {
+    border-color: var(--line-strong);
+}
+
+.site-card--shot img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border-bottom: var(--border-w) solid var(--line);
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-card__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.9rem 1.1rem 1.1rem;
+}
+
+// ---- features ----
+.site-feat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 2.5rem;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.site-feat--flip {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.site-feat--flip .site-feat__text {
+    order: 2;
+}
+
+.site-feat h2 {
+    margin: 0 0 0.5rem;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-ticks {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-md);
+}
+
+.site-ticks li {
+    display: flex;
+    gap: 0.55rem;
+}
+
+.site-ticks i {
+    margin-top: 0.3rem;
+    color: var(--volt);
+    font-size: var(--fs-xs);
+}
+
+.site-looks {
+    display: flex;
+    gap: 0.9rem;
+    overflow-x: auto;
+    padding-bottom: 0.6rem;
+    scroll-snap-type: x mandatory;
+    scrollbar-color: var(--line-strong) transparent;
+    scrollbar-width: thin;
+}
+
+.site-look {
+    flex: 0 0 16rem;
+    margin: 0;
+    scroll-snap-align: start;
+}
+
+.site-look img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-look figcaption {
+    margin-top: 0.4rem;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+// ---- demos ----
+.site-demos {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: 1.1rem;
+    align-items: start;
+}
+
+.site-vlist {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.site-vgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem;
+}
+
+.site-vcard {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0.6rem;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.site-vcard:hover,
+.site-vcard.is-current {
+    border-color: var(--line-strong);
+}
+
+.site-vcard.is-current .row-btn--play {
+    border-color: transparent;
+    background: var(--grad);
+    color: var(--on-grad);
+}
+
+.site-vcard b {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--text-strong);
+    font-size: var(--fs-lg);
+}
+
+.site-vcard__thumb {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+}
+
+.site-vcard__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0.55;
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-vcard__thumb .row-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.site-vcard__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.site-vgrid .site-vcard {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.site-vgrid .site-vcard__thumb {
+    border-radius: 0;
+}
+
+.site-vgrid .site-vcard__text {
+    padding: 0.7rem 0.9rem 0.9rem;
+}
+
+// ---- download: one column of sections ----
+.site-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1.8rem 0;
+    border-top: var(--border-w) solid var(--line);
+}
+
+.site-dl__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-dl__title .icon {
+    color: var(--volt);
+}
+
+.site-dl .player-hint,
+.site-dl .site-links,
+.site-dl .dl-modal__options,
+.site-dl .dl-modal__note {
+    margin: 0;
+}
+
+.site-dl__big {
+    align-self: flex-start;
+    padding: 0.8rem 1rem;
+}
+
+.site-dl__big small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.site-dl__sync {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.site-code {
+    position: relative;
+}
+
+.site-code__text {
+    margin: 0;
+    padding: 0.7rem 2.8rem 0.7rem 0.8rem;
+    overflow-x: auto;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    white-space: pre;
+}
+
+.site-code__copy {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+}
+
+// ---- credits ----
+.site-lead-credit {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 2rem;
+    padding: 1.6rem;
+}
+
+.site-lead-credit .credits__item {
+    gap: 0.5rem;
+}
+
+.site-lead-credit .credits__item p {
+    color: var(--text-dim);
+}
+
+.site-lead-credit .dl-modal__options {
+    margin: 0;
+}
+
+.site-lead-credit__kicker {
+    color: var(--volt);
+}
+
+.site-lead-credit__name {
+    margin: 0.3rem 0 0;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-2xl);
+}
+
+.site-credits {
+    margin-top: 1rem;
+}
+
+.site-credits__license {
+    margin-top: 1rem;
+}
+
+// ---- footer ----
+.site-foot {
+    margin-top: 3.5rem;
+    padding: 1.6rem 0 2.5rem;
+    border-top: var(--border-w) solid var(--line);
+}
+
+.site-foot__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+}
+
+.site-foot__text {
+    margin: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.site-foot__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-size: var(--fs-sm);
+}
+
+.site-foot__links a {
+    color: var(--text-dim);
+}
+
+// ---- narrower screens ----
+@media (max-width: 1100px) {
+    .site-top__nav,
+    .site-top__lang {
+        display: none;
+    }
+
+    .site-top__pages {
+        display: block;
+    }
+}
+
+@media (max-width: 1000px) {
+    .site-wrap {
+        padding: 0 1rem;
+    }
+
+    // the app turns its sidebar into a bottom bar here: the site's brand and nav
+    // items are its own
+    .site-top .brand {
+        display: flex;
+    }
+
+    .site-top__pages a.nav-item {
+        flex: none;
+        flex-direction: row;
+        min-height: 0;
+        border-radius: var(--radius);
+    }
+
+    .site-hero {
+        padding-top: 1.5rem;
+    }
+
+    .site-hero__grid,
+    .site-demos,
+    .site-lead-credit,
+    .site-feat,
+    .site-feat--flip {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .site-feat {
+        gap: 1rem;
+    }
+
+    .site-feat--flip .site-feat__text {
+        order: 0;
+    }
+
+    .site-facts__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .site-lead-credit {
+        padding: 1.1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .site-hero__title {
+        font-size: 2rem;
+    }
+
+    .site-section__head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-top .brand__sep,
+    .site-top .brand__text,
+    .site-top__gh {
+        display: none;
+    }
+}
