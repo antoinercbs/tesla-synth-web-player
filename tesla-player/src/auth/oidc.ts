@@ -13,7 +13,7 @@
  * API base) because in dev the SPA (:8080) and API (:5000) differ.
  */
 import axios from "axios";
-import { User, UserManager, WebStorageStateStore } from "oidc-client-ts";
+import { ErrorResponse, User, UserManager, WebStorageStateStore } from "oidc-client-ts";
 
 export interface AuthRuntimeConfig {
   enabled: boolean;
@@ -25,6 +25,8 @@ export interface AuthRuntimeConfig {
 let userManager: UserManager | null = null;
 let currentUser: User | null = null;
 let enabled = false;
+/** This browser kept a session from an earlier visit (even an expired one). */
+let hadSession = false;
 const listeners = new Set<(user: User | null) => void>();
 
 // Anti-loop guard for the automatic (no-button) redirect: if we initiated an IdP
@@ -34,12 +36,23 @@ const listeners = new Set<(user: User | null) => void>();
 const REDIRECT_FLAG = "tp_auth_redirect_at";
 const LOOP_WINDOW_MS = 12000;
 
+// The silent check with the IdP (checkSso): once per tab, and its "no session"
+// answers, which mean "show the home page", not "sign-in failed".
+const SSO_FLAG = "tp_auth_sso_at";
+const NO_SESSION = new Set([
+  "login_required",
+  "interaction_required",
+  "consent_required",
+  "account_selection_required",
+]);
+
 function emit(user: User | null): void {
   currentUser = user;
-  // A usable session arrived → clear the anti-loop marker.
+  // A usable session arrived → clear the anti-loop markers.
   if (user) {
     try {
       sessionStorage.removeItem(REDIRECT_FLAG);
+      sessionStorage.removeItem(SSO_FLAG);
     } catch {
       /* sessionStorage unavailable — ignore */
     }
@@ -100,7 +113,40 @@ export async function initOidc(cfg: AuthRuntimeConfig): Promise<void> {
   userManager.events.addUserLoaded((u) => emit(u));
   userManager.events.addUserUnloaded(() => emit(null));
   const existing = await userManager.getUser();
-  emit(existing && !existing.expired ? existing : null);
+  hadSession = existing != null;
+  if (existing && !existing.expired) {
+    emit(existing);
+    return;
+  }
+  emit(null);
+  // The access token lives minutes, the IdP session hours: a session kept from
+  // an earlier visit is renewed now, or the app greets a signed-in operator as
+  // a visitor.
+  if (existing?.refresh_token) await tryRenew();
+}
+
+/**
+ * Asks the IdP, without showing any page of its own (prompt=none), whether its
+ * session is still open: a browser that signed in before then lands back in
+ * the app even once its refresh token is gone (the IdP session outlives it
+ * when another app keeps it going). Only for such a browser, once per tab; the
+ * answer comes back to /auth/callback (completeLogin). Resolves false when it
+ * did not leave the page.
+ */
+export async function checkSso(returnTo: string): Promise<boolean> {
+  if (!userManager || !hadSession) return false;
+  try {
+    if (sessionStorage.getItem(SSO_FLAG)) return false;
+    sessionStorage.setItem(SSO_FLAG, String(Date.now()));
+  } catch {
+    return false;
+  }
+  try {
+    await userManager.signinRedirect({ prompt: "none", state: returnTo });
+    return true;
+  } catch {
+    return false; // IdP unreachable: the home page, as without the check
+  }
 }
 
 export function isAuthEnabled(): boolean {
@@ -200,12 +246,25 @@ export async function login(
   }
 }
 
-/** Processes the IdP redirect back to /auth/callback. Returns the path to resume. */
+/**
+ * Processes the IdP redirect back to /auth/callback. Returns the path to resume.
+ * The silent check's "no session" is no failure: the old session is forgotten
+ * (no more checks) and the path resumes, which the router turns into the home
+ * page.
+ */
 export async function completeLogin(): Promise<string> {
   if (!userManager) return "/";
-  const user = await userManager.signinRedirectCallback();
-  emit(user && !user.expired ? user : null);
-  return typeof user.state === "string" ? user.state : "/";
+  try {
+    const user = await userManager.signinRedirectCallback();
+    emit(user && !user.expired ? user : null);
+    return typeof user.state === "string" ? user.state : "/";
+  } catch (err) {
+    if (!(err instanceof ErrorResponse) || !NO_SESSION.has(err.error ?? "")) throw err;
+    hadSession = false;
+    await userManager.removeUser();
+    emit(null);
+    return typeof err.state === "string" ? err.state : "/";
+  }
 }
 
 /** Clears the local session and (best-effort) the IdP SSO session. */

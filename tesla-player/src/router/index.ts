@@ -109,7 +109,7 @@ const router = createRouter({
 // Unauthenticated → the project's home, whose "Sign in" goes to the IdP and back
 // to the page asked for (?redirect=). The manual /login page stays for the
 // access-denied wall and for a sign-in the IdP round-trip couldn't complete.
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const auth = useAuthStore();
   if (!auth.enabled) return true;
   if (to.name === "login" || to.name === "auth-callback" || to.meta.public) return true;
@@ -117,6 +117,8 @@ router.beforeEach((to) => {
     // Authenticated but the API refused (missing role) → access-denied wall.
     return auth.accessDenied ? { name: "login" } : true;
   }
+  // signed in on this browser before: the IdP may still hold the session
+  if (await auth.checkSso(to.fullPath)) return false;
   return { name: "site-home", query: to.fullPath === "/play" ? {} : { redirect: to.fullPath } };
 });
 

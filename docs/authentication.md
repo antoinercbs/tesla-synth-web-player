@@ -21,6 +21,7 @@ Set **`OIDC_ISSUER`** and the API becomes an OpenID Connect **resource server**:
 
 - **Every** `/api` route then requires a valid Bearer access token (reads included). Only `GET /api/ping`, the public `GET /api/auth/config`, the desktop downloads (offered to visitors not signed in yet), the tuning phone's session routes and the static front-end stay open.
 - A visitor who isn't signed in lands on a **welcome screen**: a large **Sign in** button, which goes to your IdP and back to the page they asked for, and the desktop app's download. Scrolling down shows the rest of the project's home page, and its bar leads to the other pages (features, documentation…).
+- A browser that signed in before goes straight to the app while its IdP session lasts: on opening, the web app renews an expired access token with its refresh token, and if that one is gone too, asks the IdP once, without showing any page (`prompt=none`), whether its session is still open. Only when it is not does the welcome screen show.
 - The web app and desktop app **discover** the configuration from `GET /api/auth/config` and run the login themselves (**Authorization Code + PKCE**). The web app stores the token in memory and renews it silently on demand; the desktop app uses the system browser (RFC 8252 loopback) and keeps tokens in the main process.
 - When `OIDC_ISSUER` is **unset**, the app behaves exactly as before — no login, no UI change.
 

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import {
+  checkSso,
   completeLogin,
   displayNameOf,
   fetchAuthConfig,
@@ -68,6 +69,10 @@ export const useAuthStore = defineStore('auth', {
     async requestLogin(returnTo?: string): Promise<boolean> {
       this.accessDenied = false;
       return login(returnTo, false);
+    },
+    /** Whether the IdP still holds a session for this browser (leaves the page if it may). */
+    async checkSso(returnTo: string): Promise<boolean> {
+      return checkSso(returnTo);
     },
     async completeLogin(): Promise<string> {
       const returnTo = await completeLogin();
