@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { fakeDeviceLink } from './fake-device';
+import { BOARD_PN, boardState, decodeBoardStatus, statusEvents } from '@/sysex/board';
 
 describe("the tour's Syntherrupter", () => {
   it('answers the coil discovery with one reply per coil', async () => {
@@ -14,5 +15,15 @@ describe("the tour's Syntherrupter", () => {
     const user = await fakeDeviceLink.read(0x240, 2, 0x244);
     expect(user.find((f) => f.pnFull === 0x244)?.valueInt).toBe(2000);
     expect(user.some((f) => f.pnFull === 0x240)).toBe(false); // names have no read-back
+  });
+
+  it('says all is well to a subscription to its status', async () => {
+    const got: number[] = [];
+    const off = fakeDeviceLink.onParam((f) => { if (f.pnFull === BOARD_PN.STATUS) got.push(f.valueInt); });
+    fakeDeviceLink.send(statusEvents(true));
+    await new Promise((r) => setTimeout(r, 50));
+    off();
+    expect(got).toHaveLength(1);
+    expect(boardState(decodeBoardStatus(got[0]))).toBe('ok');
   });
 });

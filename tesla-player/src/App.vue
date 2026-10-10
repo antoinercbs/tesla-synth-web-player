@@ -20,6 +20,7 @@ import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppToaster from '@/components/ui/AppToaster.vue'
 import TourOverlay from '@/components/tour/TourOverlay.vue'
 import { tour } from '@/tour/tour'
+import { startBoardMonitor } from '@/devices/board-monitor'
 
 export default {
   name: 'App',
@@ -55,6 +56,9 @@ export default {
     'authStore.authenticated'(isAuth) {
       if (isAuth) this.loadBootData()
     }
+  },
+  created() {
+    startBoardMonitor()
   },
   mounted() {
     // Only fetch when allowed: auth off (always), or auth on AND authenticated.

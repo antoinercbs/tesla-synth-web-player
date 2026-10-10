@@ -1,8 +1,8 @@
 import { getTeslaSynth, type MidiSink } from '@/audio/tesla-synth';
+import type { DeviceDriver } from '@/devices/driver';
 import { RELEASE_STEP, programSteps, type EnvStep } from '@/sysex/envelopes';
 import { ToneRunner } from '@/tuning/tone-runner';
 import { sendSysex, type SysexOutput } from '@/utils/live-sysex-helper';
-import { MAX_COILS } from '@/types/domain';
 
 /** One note played through an envelope, as the editor shows it. */
 export interface Audition {
@@ -20,10 +20,10 @@ const MAX_TAIL_MS = 5000;
  * On the emulated synth, whichever output is selected. The synth is sent the
  * envelope exactly as a device would be, so a draft sounds before it is saved.
  */
-export function auditionOnSynth(a: Audition, onDone: () => void): ToneRunner {
+export function auditionOnSynth(a: Audition, driver: DeviceDriver, onDone: () => void): ToneRunner {
   const synth = getTeslaSynth();
   // ontime × duty only sets the synth's loudness
-  return run(synth, (f) => sendSysex(synth as SysexOutput, f), a, 0, 40, 0.05, onDone);
+  return run(synth, (f) => sendSysex(synth as SysexOutput, f), driver, a, 0, 40, 0.05, onDone);
 }
 
 /**
@@ -34,17 +34,19 @@ export function auditionOnSynth(a: Audition, onDone: () => void): ToneRunner {
 export function auditionOnCoil(
   out: MidiSink,
   send: (frame: number[]) => void,
+  driver: DeviceDriver,
   a: Audition,
   coilIndex: number,
   ontimeUs: number,
   onDone: () => void,
 ): ToneRunner {
-  return run(out, send, a, coilIndex, ontimeUs, 0, onDone);
+  return run(out, send, driver, a, coilIndex, ontimeUs, 0, onDone);
 }
 
 function run(
   primary: MidiSink,
   send: (frame: number[]) => void,
+  driver: DeviceDriver,
   a: Audition,
   coilIndex: number,
   ontimeUs: number,
@@ -53,7 +55,7 @@ function run(
 ): ToneRunner {
   const releaseMs = (a.steps ?? programSteps(a.program))[RELEASE_STEP].durMs;
   const runner = new ToneRunner(
-    { primary, secondary: null, sendSysex: send },
+    { primary, secondary: null, sendSysex: send, driver },
     {
       notes: [a.note],
       holdMs: a.noteMs,
@@ -66,7 +68,7 @@ function run(
       duty,
       program: a.program,
       envelope: a.steps,
-      coilCount: MAX_COILS,
+      coilCount: driver.profile.coils,
     },
     { onDone },
   );

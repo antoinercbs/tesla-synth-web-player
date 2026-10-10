@@ -70,6 +70,7 @@ Everything mutable lives under **`/data`** (`DATA_ROOT`), which you must persist
 | `/data/database.db` | SQLite database (songs, playlists, settings) |
 | `/data/uploads/` | uploaded MIDI files |
 | `/data/electron/` | desktop binaries you offer for download (see below) |
+| `/data/firmware/` | board firmwares the app can flash over USB (see below) |
 
 On first boot the container creates the database from the baseline schema; on every start, TypeORM migrations run automatically, so upgrading the image just works.
 
@@ -81,6 +82,8 @@ On first boot the container creates the database from the baseline schema; on ev
 | `DATA_ROOT` | `/data` | base folder for the database, uploads and desktop binaries |
 | `HOST` | `0.0.0.0` | bind address |
 | `OIDC_*` | — | optional login, see **[Authentication](./authentication.md)** |
+| `FIRMWARE_GITHUB_REPO` | — | `owner/name` of a GitHub repository whose releases carry board firmwares (see below) |
+| `FIRMWARE_GITHUB_TOKEN` | — | a token reading that repository: needed if it is private, else it only raises GitHub's rate limit |
 
 With login enabled, a visitor who isn't signed in lands on a **welcome screen**: a large **Sign in** button and the desktop download, the rest of the home page a scroll below. Its bar leads to the project's pages, the same as the [project's site](https://antoinercbs.github.io/tesla-synth-web-player/); signed-in users reach them from the sidebar's **…** menu → **About Tesla Player**.
 
@@ -105,6 +108,15 @@ To let users download the [desktop app](./desktop-app.md) from your server, drop
 - `*.exe` → offered as the **Windows** build
 
 The sidebar's **Download desktop app** button and the **Download** page then offer whichever platforms are present (a missing one is simply hidden); with none, the Download page offers the latest [GitHub release](https://github.com/antoinercbs/tesla-synth-web-player/releases) instead. The downloads are **public**, even with login enabled: the home page offers them to visitors not signed in yet, and they are the project's open-source builds. The binaries are built separately (see [Development → Desktop binaries](./development.md#desktop-binaries)), or taken from a GitHub release; they're **not** built inside the Docker image.
+
+## Offering board firmwares
+
+The app can update the firmware of an ESP32 Syntherrupter over its USB cable (the board's **Syntherrupter** page offers it when a newer version is available). It finds the firmwares in two places, both optional:
+
+- **`{DATA_ROOT}/firmware/`**: one folder per version, as written by `tools/package_release.py` of the firmware repository (`manifest.json` and the three `.bin` images). The folder's name does not matter.
+- **The releases of a GitHub repository** named by `FIRMWARE_GITHUB_REPO`: each release whose assets hold a `manifest.json` and its images (the firmware's CI publishes exactly that for a tag `v<version>`). The server fetches them, so a private repository works with `FIRMWARE_GITHUB_TOKEN`.
+
+A version present in both comes from the folder. The list and the files are behind the login when there is one.
 
 ## Updating
 

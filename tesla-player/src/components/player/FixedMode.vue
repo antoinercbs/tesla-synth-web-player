@@ -1,19 +1,22 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
 import { useMidiStore } from '@/stores/midi';
-import { compileSimpleConfig, compileSimpleStop } from '@/sysex/syntherrupter';
 import { sendSysex, type SysexOutput } from '@/utils/live-sysex-helper';
 import { coilColor } from '@/ui/coil-colors';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { SimpleCoil } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import BoardAlert from '@/components/player/BoardAlert.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
 import { ICONS } from '@/ui/icons';
 
 const midiStore = useMidiStore();
-const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
+// the board's outputs: a coil past them would not sound
+const coilRange = computed(() =>
+  Array.from({ length: midiStore.deviceProfile.coils - MIN_COILS + 1 }, (_, i) => MIN_COILS + i),
+);
 
 /** A fixed-mode coil plus an individual on/off switch (off = ontime forced to 0). */
 interface FixedCoil extends SimpleCoil { enabled: boolean }
@@ -69,6 +72,9 @@ watch(() => cfg.coilCount, (n) => {
   for (let i = 0; i < n; i++) next.push(cfg.coils[i] ?? defaultCoil(i));
   cfg.coils = next;
 });
+watch(() => midiStore.deviceProfile.coils, (max) => {
+  if (cfg.coilCount > max) cfg.coilCount = max;
+}, { immediate: true });
 watch(cfg, () => {
   localStorage.setItem(STORE_KEY, JSON.stringify({ coilCount: cfg.coilCount, coils: cfg.coils }));
   if (running.value) scheduleResend(); // coalesce keystrokes → no intermediate over-power
@@ -76,11 +82,11 @@ watch(cfg, () => {
 
 /* -------- run engine -------- */
 const running = ref(false);
-const canRun = computed(() => !!midiStore.midiOutput);
+const canRun = computed(() => !!midiStore.midiOutput && !midiStore.boardLatched);
 let resendTimer: ReturnType<typeof setTimeout> | null = null;
 
 function sendConfig(): void {
-  for (const frame of compileSimpleConfig(effectiveCoils.value)) midiStore.sendSysex(frame);
+  for (const frame of midiStore.driver.simpleStart(effectiveCoils.value)) midiStore.sendSysex(frame);
 }
 // debounce live edits so a burst of keystrokes settles before re-arming coils
 function scheduleResend(): void {
@@ -94,7 +100,7 @@ function start(): void {
 }
 function stop(): void {
   if (resendTimer) { clearTimeout(resendTimer); resendTimer = null; }
-  for (const frame of compileSimpleStop(cfg.coils)) midiStore.sendSysex(frame); // zero coils, then disable
+  for (const frame of midiStore.driver.simpleStop(cfg.coils)) midiStore.sendSysex(frame); // zero coils, then disable
   midiStore.midiOutput?.sendAllSoundOff();
   midiStore.midiOutput2?.sendAllSoundOff();
   running.value = false;
@@ -105,7 +111,7 @@ watch(() => midiStore.midiOutput, (out, prev) => {
   if (!running.value) return;
   if (prev && prev !== out) {
     try {
-      for (const frame of compileSimpleStop(cfg.coils)) sendSysex(prev as SysexOutput, frame);
+      for (const frame of midiStore.driverOf(prev).simpleStop(cfg.coils)) sendSysex(prev as SysexOutput, frame);
     } catch { /* unplugged */ }
     midiStore.silenceCoils(prev);
   }
@@ -148,6 +154,7 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.selectOutputHint') }}
       </p>
     </article>
+    <board-alert />
 
     <!-- per-coil fixed output -->
     <section class="fixed-section">

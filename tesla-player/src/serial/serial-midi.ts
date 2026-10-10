@@ -13,18 +13,22 @@ import { buildRead, decodeFrame, type DecodedFrame } from '@/sysex/syntherrupter
 import { openSerialLink, DEFAULT_SERIAL_BAUD, type SerialLink } from '@/serial/web-serial';
 import { logTx, logRx, logSerial } from '@/serial/serial-log';
 import { READ_TIMEOUT_MS, type DeviceLink } from '@/serial/device-link';
+import type { UsbId } from '@/devices/types';
 
 export const SERIAL_OUTPUT_ID = '__serial__';
 
 export class SerialMidiOutput implements MidiSink, DeviceLink {
   readonly id = SERIAL_OUTPUT_ID;
   readonly name: string;
+  /** USB ids of the port, when it is a USB one: they tell which board it is. */
+  readonly usb: UsbId | null;
   private link: SerialLink | null = null;
   private listeners = new Set<(f: DecodedFrame) => void>();
   private onClosedCb: () => void;
 
-  private constructor(name: string, onClosed: () => void) {
+  private constructor(name: string, usb: UsbId | null, onClosed: () => void) {
     this.name = name;
+    this.usb = usb;
     this.onClosedCb = onClosed;
   }
 
@@ -35,7 +39,9 @@ export class SerialMidiOutput implements MidiSink, DeviceLink {
     onClosed: () => void,
     baud = DEFAULT_SERIAL_BAUD,
   ): Promise<SerialMidiOutput> {
-    const out = new SerialMidiOutput(label, onClosed);
+    const info = port.getInfo?.();
+    const usb = info?.usbVendorId != null ? { vendorId: info.usbVendorId, productId: info.usbProductId } : null;
+    const out = new SerialMidiOutput(label, usb, onClosed);
     out.link = await openSerialLink(
       port,
       baud,

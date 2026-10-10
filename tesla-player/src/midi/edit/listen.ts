@@ -1,6 +1,6 @@
 import { getTeslaSynth } from '@/audio/tesla-synth';
+import type { DeviceDriver } from '@/devices/driver';
 import { CUSTOM_PROGRAM_MIN, programChange } from '@/sysex/envelopes';
-import { compileCoilConfig, compileCustomEnvelopes, compileStereo } from '@/sysex/syntherrupter';
 import { sendSysex, type SysexOutput } from '@/utils/live-sysex-helper';
 import type { MidiEditor } from './editor';
 
@@ -28,16 +28,20 @@ export class EditorListener {
   private lastMs = 0;
   private onEnd: (() => void) | null = null;
 
+  /** `driver`: of the board the synth stands for, read at each setup (it can change). */
+  constructor(private readonly driver: () => DeviceDriver) {}
+
   get playing(): boolean { return this.timer != null; }
 
   private setup(ed: MidiEditor): void {
     const synth = this.synth as SysexOutput;
+    const driver = this.driver();
     const coil = { coilIndex: 0, channelMask: 0xffff, ontimeUs: 40, duty: 0.05, program: null };
-    for (const f of compileCoilConfig([coil], 'midi')) sendSysex(synth, f);
-    for (const f of compileStereo(null, 0)) sendSysex(synth, f);
+    for (const f of driver.coilConfig([coil], 'midi')) sendSysex(synth, f);
+    for (const f of driver.stereo(null, 0)) sendSysex(synth, f);
     const channels = ed.channels();
     const custom = channels.map((ch) => ed.programOf(ch)).filter((p) => p >= CUSTOM_PROGRAM_MIN);
-    for (const f of compileCustomEnvelopes(custom)) sendSysex(synth, f);
+    for (const f of driver.libraryEnvelopes(custom)) sendSysex(synth, f);
     for (const ch of channels) this.synth.send(programChange(ch, ed.programOf(ch)));
   }
 

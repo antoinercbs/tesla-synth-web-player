@@ -44,3 +44,10 @@ export const PUBLIC_DIR = process.env.PUBLIC_DIR
  * download endpoint hides any OS whose artifact is absent.
  */
 export const ELECTRON_DIR = fromRoot(process.env.ELECTRON_DIR, 'electron');
+
+/**
+ * Board firmwares the app can flash over USB: one folder per version, holding
+ * the manifest.json and the images that the firmware's tools/package_release.py
+ * writes. Populated by the operator, like ELECTRON_DIR.
+ */
+export const FIRMWARE_DIR = fromRoot(process.env.FIRMWARE_DIR, 'firmware');

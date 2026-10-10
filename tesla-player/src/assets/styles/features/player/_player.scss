@@ -73,6 +73,89 @@
     color: inherit;
 }
 
+// the board's own word (BoardAlert): its protection tripped, with what to do about it
+.player-alert--board {
+    align-items: flex-start;
+    padding: 0.7rem 0.8rem;
+}
+
+.player-alert--board > .icon {
+    margin-top: 0.1rem;
+}
+
+.player-alert--board .player-alert__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    color: var(--text);
+    line-height: 1.45;
+}
+
+.player-alert__title {
+    color: var(--danger-text);
+    font-size: var(--fs-md);
+}
+
+.player-alert__coils {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.player-alert__acts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.player-alert__acts .btn {
+    padding: 0.35rem 0.8rem;
+    font-size: var(--fs-xs);
+}
+
+// the board warns, nothing is broken: on STOP, or not answering
+.player-alert--warn {
+    border-color: rgb(var(--amber-rgb) / 0.5);
+    background: rgb(var(--amber-rgb) / 0.1);
+    color: var(--text);
+}
+
+.player-alert--warn .icon {
+    color: var(--amber);
+}
+
+.board-coil {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.05rem 0.55rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--panel-2);
+    font-size: var(--fs-xs);
+}
+
+.board-coil__dot {
+    width: 4px;
+    height: 11px;
+    border-radius: var(--radius-2xs);
+    background: var(--c);
+}
+
+// a song's coils past the board's outputs
+.player-muted {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.1rem 0.6rem;
+    border: 1px solid rgb(var(--amber-rgb) / 0.5);
+    border-radius: var(--radius-pill);
+    color: var(--amber);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+}
+
 // autoplay toggle pinned right
 
 .player-song {

@@ -8,13 +8,15 @@ import type { SynthParam } from '@/sysex/syntherrupter-params';
  * highlight when it differs from the device. Numbers use the same in-field unit
  * suffix as the editor's coil cards (.readout__field). When `unread` (the device
  * gave no value), the control is disabled and an orange warning is shown instead
- * of a misleading default. Used in table cells and, wrapped by ParamRow, in the
- * vertical System card.
+ * of a misleading default. `warn` (its reason) marks a value the board may not
+ * take well, without stopping it. Used in table cells and, wrapped by ParamRow,
+ * in the vertical System card.
  */
 const props = defineProps<{
   param: SynthParam;
   deviceValue?: number | string | boolean;
   unread?: boolean;
+  warn?: string;
 }>();
 const model = defineModel<number | string | boolean>();
 
@@ -24,7 +26,7 @@ const dirty = computed(
 </script>
 
 <template>
-  <span class="param-cell" :class="{ 'is-dirty': dirty, 'is-unread': unread }">
+  <span class="param-cell" :class="{ 'is-dirty': dirty, 'is-unread': unread, 'is-near': !!warn }">
     <span v-if="param.readOnly" class="param-cell__ro">{{ model ?? '—' }}</span>
 
     <label v-else-if="param.kind === 'bool'" class="switch param-cell__switch">
@@ -43,5 +45,6 @@ const dirty = computed(
     </label>
 
     <i v-if="unread" class="param-cell__warn fas fa-triangle-exclamation" :title="$t('sp.unreadHint')"></i>
+    <i v-else-if="warn" class="param-cell__warn fas fa-triangle-exclamation" :title="warn" role="img" :aria-label="warn"></i>
   </span>
 </template>

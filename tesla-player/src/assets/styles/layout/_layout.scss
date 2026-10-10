@@ -432,6 +432,39 @@
     background: var(--amber);
 }
 
+// the board's protection tripped: nothing plays until it is re-armed
+.sidebar .sidebar-out.is-alarm {
+    border-color: rgb(var(--danger-rgb) / 0.7);
+    background: rgb(var(--danger-rgb) / 0.08);
+}
+
+.sidebar-out.is-alarm .sidebar-out__icon {
+    color: var(--danger);
+}
+
+.sidebar-out.is-alarm .sidebar-out__sub {
+    font-weight: 600;
+    opacity: 1;
+    white-space: normal;
+}
+
+.sidebar-out.is-alarm .sidebar-out__dot {
+    background: var(--danger);
+    animation: sidebar-alarm 1.2s infinite;
+}
+
+@keyframes sidebar-alarm {
+    50% {
+        opacity: 0.25;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-out.is-alarm .sidebar-out__dot {
+        animation: none;
+    }
+}
+
 .sidebar-coils {
     list-style: none;
     margin: 0;
@@ -714,6 +747,83 @@
     color: var(--text-mute);
 }
 
+// the coils' menu opens on what the board says of itself
+.sidebar-board {
+    margin: 0.2rem 0.2rem 0.35rem;
+    padding: 0.55rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    font-size: var(--fs-xs);
+}
+
+.sidebar-board.is-alarm {
+    border-color: rgb(var(--danger-rgb) / 0.55);
+    background: rgb(var(--danger-rgb) / 0.1);
+}
+
+.sidebar-board__title {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.sidebar-board.is-alarm .sidebar-board__title {
+    color: var(--danger-text);
+}
+
+.sidebar-board__text {
+    margin: 0.35rem 0 0.5rem;
+    color: var(--text);
+    line-height: 1.45;
+}
+
+.sidebar-board__lines {
+    list-style: none;
+    margin: 0.4rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    color: var(--text-dim);
+}
+
+.sidebar-board__lines li {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.sidebar-board__dot {
+    flex: 0 0 auto;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--ok);
+}
+
+.sidebar-board__dot.is-warn {
+    background: var(--amber);
+}
+
+.sidebar-board__dot.is-off {
+    background: var(--text-mute);
+}
+
+.sidebar-board__acts {
+    display: flex;
+    gap: 0.4rem;
+}
+
+.sidebar-board__acts .btn {
+    padding: 0.3rem 0.7rem;
+    font-size: var(--fs-xs);
+}
+
 // what belongs to the item above it: the synth's timbre, the speakers' offset
 .sidebar-menu__sub {
     padding: 0.1rem 0.4rem 0.45rem 2.4rem;
@@ -887,6 +997,11 @@
 .cstat.is-warn {
     border-color: rgb(var(--amber-rgb) / 0.65);
     color: var(--amber);
+}
+
+.cstat.is-alarm {
+    border-color: rgb(var(--danger-rgb) / 0.7);
+    color: var(--danger);
 }
 
 .cstat-conn {

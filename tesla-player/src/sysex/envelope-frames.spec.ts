@@ -11,6 +11,8 @@ import {
   type EnvStep,
 } from './envelopes';
 import { ToneRunner, type ToneConfig } from '@/tuning/tone-runner';
+import { driverFor } from '@/devices/driver';
+import { SYNTHERRUPTER_TIVA } from '@/devices/profiles/syntherrupter-tiva';
 import type { CustomEnvelope } from '@/types/domain';
 
 const step = (amp: number, durMs: number, next: number, ntau = 1): EnvStep => ({ amp, durMs, next, ntau });
@@ -104,10 +106,11 @@ describe('ToneRunner.envelopeFrames', () => {
     notes: [60], holdMs: 500, gapMs: 0, velocity: 127, channel: 0, coilIndex: 0,
     ontimeUs: 30, duty: 0, program: null, coilCount: 6, ...over,
   });
+  const driver = driverFor(SYNTHERRUPTER_TIVA);
 
   it('writes the draft into its slot before the tone', () => {
     const draft = STEPS.map((s) => ({ ...s, amp: 0.5 }));
-    const frames = ToneRunner.envelopeFrames(cfg({ program: 45, envelope: draft }));
+    const frames = ToneRunner.envelopeFrames(cfg({ program: 45, envelope: draft }), driver);
     expect(frames).toHaveLength(32);
     expect(decodeFrame(frames[0]).valueInt).toBe(500);
     expect(frames[0][9]).toBe(45);
@@ -115,8 +118,8 @@ describe('ToneRunner.envelopeFrames', () => {
 
   it('falls back to the library, and leaves the firmware programs alone', () => {
     setCustomEnvelopes([lib(21, 'Pulse')]);
-    expect(ToneRunner.envelopeFrames(cfg({ program: 21 }))).toHaveLength(32);
-    expect(ToneRunner.envelopeFrames(cfg({ program: 8 }))).toHaveLength(0);
-    expect(ToneRunner.envelopeFrames(cfg({ program: null }))).toHaveLength(0);
+    expect(ToneRunner.envelopeFrames(cfg({ program: 21 }), driver)).toHaveLength(32);
+    expect(ToneRunner.envelopeFrames(cfg({ program: 8 }), driver)).toHaveLength(0);
+    expect(ToneRunner.envelopeFrames(cfg({ program: null }), driver)).toHaveLength(0);
   });
 });

@@ -86,6 +86,7 @@ function applyEnv(opts: EmbeddedOptions): void {
   process.env.DATABASE_PATH = join(opts.dataRoot, 'database.db');
   process.env.UPLOADS_DIR = join(opts.dataRoot, 'uploads');
   process.env.ELECTRON_DIR = join(opts.dataRoot, 'electron');
+  process.env.FIRMWARE_DIR = join(opts.dataRoot, 'firmware');
   // Lets Nest's ServeStaticModule serve the SPA over the LAN tuning server (the
   // app:// protocol serves it from disk itself and ignores this).
   if (opts.publicDir) process.env.PUBLIC_DIR = opts.publicDir;

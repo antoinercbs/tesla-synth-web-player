@@ -3,7 +3,6 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { useI18n } from 'vue-i18n';
 import { WebMidi, type Input } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
-import { compileCoilConfig, compileCustomEnvelopes, compileStereo } from '@/sysex/syntherrupter';
 import { customEnvelope, programChange } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_NOTE_COUNT } from '@/ui/piano-layout';
@@ -11,6 +10,7 @@ import { MAX_COILS, MIN_COILS, MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig } from '@/types/domain';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import PianoKeyboard from '@/components/player/PianoKeyboard.vue';
+import BoardAlert from '@/components/player/BoardAlert.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
@@ -19,7 +19,10 @@ import { ICONS } from '@/ui/icons';
 
 const midiStore = useMidiStore();
 const { t } = useI18n();
-const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
+// the board's outputs: a coil past them would not sound
+const coilRange = computed(() =>
+  Array.from({ length: midiStore.deviceProfile.coils - MIN_COILS + 1 }, (_, i) => MIN_COILS + i),
+);
 
 function defaultCoil(index: number): CoilConfig {
   return { coilIndex: index, channelMask: 0, ontimeUs: 40, duty: 0.05, program: null };
@@ -58,6 +61,9 @@ watch(() => cfg.coilCount, (n) => {
   for (let i = 0; i < n; i++) next.push(cfg.coils[i] ?? defaultCoil(i));
   cfg.coils = next;
 });
+watch(() => midiStore.deviceProfile.coils, (max) => {
+  if (cfg.coilCount > max) cfg.coilCount = max;
+}, { immediate: true });
 watch(cfg, () => {
   localStorage.setItem(STORE_KEY, JSON.stringify({ coilCount: cfg.coilCount, coils: cfg.coils }));
   if (running.value) scheduleResend(); // coalesce a burst of edits into one push
@@ -116,7 +122,9 @@ watch(selectedInput, (input, prev) => {
 /* ---------------------------- passthrough engine -------------------------- */
 const running = ref(false);
 // an output, plus a controller when relaying one
-const canRun = computed(() => !!midiStore.midiOutput && (source.value === 'pc' || !!selectedInput.value));
+const canRun = computed(
+  () => !!midiStore.midiOutput && !midiStore.boardLatched && (source.value === 'pc' || !!selectedInput.value),
+);
 let resendTimer: ReturnType<typeof setTimeout> | null = null;
 
 // channel -> forced envelope program, derived from the per-coil overrides
@@ -136,14 +144,15 @@ const channelOverride = computed(() => {
 const writtenEnvelopes = new Set<number>();
 function writeEnvelopes(programs: Iterable<number>): void {
   const fresh = [...programs].filter((p) => !writtenEnvelopes.has(p) && customEnvelope(p));
-  for (const frame of compileCustomEnvelopes(fresh)) midiStore.sendSysex(frame);
+  for (const frame of midiStore.driver.libraryEnvelopes(fresh)) midiStore.sendSysex(frame);
   for (const p of fresh) writtenEnvelopes.add(p);
 }
 
 function sendConfig(): void {
-  for (const frame of compileCoilConfig(cfg.coils, 'midi')) midiStore.sendSysex(frame);
+  const driver = midiStore.driver;
+  for (const frame of driver.coilConfig(cfg.coils, 'midi')) midiStore.sendSysex(frame);
   // live mode has no spatialisation: undo the last song's, or it would move the notes played here
-  for (const frame of compileStereo(null, 0)) midiStore.sendSysex(frame);
+  for (const frame of driver.stereo(null, 0)) midiStore.sendSysex(frame);
   writeEnvelopes(channelOverride.value.values());
   // force the chosen envelope on each overridden channel (Program Change)
   for (const [ch, program] of channelOverride.value) midiStore.midiOutput?.send(programChange(ch, program));
@@ -359,6 +368,7 @@ onBeforeUnmount(() => {
       <p v-if="!midiStore.midiOutput" class="player-hint live-console__hint">
         <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.selectOutputHint') }}
       </p>
+      <board-alert />
 
       <!-- MIDI: the keyboard mirrors the controller (before Start too: "is it talking?"); PC: it plays -->
       <piano-keyboard v-model:start-note="pianoStart" :held="noteChannels" :color-of="noteColor"

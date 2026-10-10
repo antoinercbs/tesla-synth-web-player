@@ -89,7 +89,7 @@ export const MAIN_STEPS: TourStep[] = [
   // the hardware
   { id: 'pathTune', wide: true, icon: ICONS.tuning, route: TUNE, target: '.stepper', placement: 'bottom' },
   // the demo's device (demo/fake-device.ts) opens this page even with nothing plugged in
-  { id: 'pathSyntherrupter', wide: true, icon: ICONS.interrupter, note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
+  { id: 'pathSyntherrupter', wide: true, icon: ICONS.interrupter, note: 'tip', route: SYNTHERRUPTER, target: '.sy-block--coils', placement: 'bottom' },
   // advanced: in passing
   { id: 'pathEnvelopes', wide: true, icon: ICONS.envelope, note: 'tip', route: DEMO_ENVELOPE, target: '.env-lib', placement: 'right' },
   { id: 'pageTours', icon: 'fa-circle-question', points: ['fa-wand-magic-sparkles', 'fa-play'], route: PLAY, target: '.page-tour', placement: 'bottom' },
@@ -199,7 +199,7 @@ const TUNE_STEPS: TourStep[] = [
 ];
 
 const SYNTHERRUPTER_STEPS: TourStep[] = [
-  { id: 'syntherrupter', icon: ICONS.interrupter, points: ['fa-shield-halved', 'fa-lock'], note: 'tip', route: SYNTHERRUPTER, target: '.sy-block', placement: 'bottom' },
+  { id: 'syntherrupter', icon: ICONS.interrupter, points: ['fa-shield-halved', 'fa-lock'], note: 'tip', route: SYNTHERRUPTER, target: '.sy-block--coils', placement: 'bottom' },
   { id: 'syntherrupterBar', icon: 'fa-floppy-disk', points: ['fa-paper-plane', ICONS.eeprom, 'fa-rotate'], route: SYNTHERRUPTER, target: '.sy-bar', placement: 'top' },
   { id: 'syDone', icon: 'fa-flag-checkered', note: 'tip', route: SYNTHERRUPTER },
 ];

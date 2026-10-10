@@ -22,6 +22,8 @@
 /** The Syntherrupter exposes 3 user accounts (0–2). */
 export const USER_COUNT = 3;
 
+import type { DeviceProfile } from '@/devices/types';
+
 export type ParamScope = 'coil' | 'system' | 'user';
 export type ParamKind = 'number' | 'bool' | 'string';
 
@@ -55,6 +57,8 @@ export interface SynthParam {
   maxChars?: number;
   /** Sensitive (password) → render masked. */
   secret?: boolean;
+  /** Only on boards that have this feature (devices/profiles). */
+  feature?: keyof DeviceProfile['features'];
 }
 
 /** Per-coil static hardware envelope (TG = coil index). */
@@ -64,22 +68,22 @@ export const COIL_PARAMS: SynthParam[] = [
   { pn: 0x262, key: 'minOntime', scope: 'coil', kind: 'number', unit: 'µs', min: 0, step: 1, eeprom: true },
   { pn: 0x263, key: 'minOfftime', scope: 'coil', kind: 'number', unit: 'µs', min: 0, step: 1, safety: true, eeprom: true },
   { pn: 0x264, key: 'maxVoices', scope: 'coil', kind: 'number', min: 0, max: 16, step: 1, eeprom: true },
-  { pn: 0x265, key: 'outputInvert', scope: 'coil', kind: 'bool', safety: true, critical: true, eeprom: true },
+  { pn: 0x265, key: 'outputInvert', scope: 'coil', kind: 'bool', safety: true, critical: true, eeprom: true, feature: 'outputInvert' },
 ];
 
 /** Device / system parameters (TG unused → 0). */
 export const SYSTEM_PARAMS: SynthParam[] = [
   { pn: 0x201, key: 'deviceId', scope: 'system', kind: 'number', min: 0, max: 126, step: 1, eeprom: true },
   // 0x223 bit 0 = background shutdown (safety auto-off). Not [EE] → resets on power-cycle.
-  { pn: 0x223, key: 'backgroundShutdown', scope: 'system', kind: 'bool', safety: true },
+  { pn: 0x223, key: 'backgroundShutdown', scope: 'system', kind: 'bool', safety: true, feature: 'touchscreen' },
   { pn: 0x266, key: 'bufferDuration', scope: 'system', kind: 'number', unit: 'µs', min: 1000, max: 100000, step: 100, eeprom: true },
 ];
 
 /** Touchscreen / UI behaviour of the device's own display (0x22x range). */
 export const UI_PARAMS: SynthParam[] = [
-  { pn: 0x220, key: 'displayBrightness', scope: 'system', kind: 'number', unit: '%', min: 0, max: 100, step: 1, eeprom: true },
-  { pn: 0x221, key: 'standby', scope: 'system', kind: 'number', unit: 's', min: 0, max: 3600, step: 1, eeprom: true },
-  { pn: 0x222, key: 'buttonHold', scope: 'system', kind: 'number', unit: 'ms', min: 50, max: 9999, step: 1, eeprom: true },
+  { pn: 0x220, key: 'displayBrightness', scope: 'system', kind: 'number', unit: '%', min: 0, max: 100, step: 1, eeprom: true, feature: 'touchscreen' },
+  { pn: 0x221, key: 'standby', scope: 'system', kind: 'number', unit: 's', min: 0, max: 3600, step: 1, eeprom: true, feature: 'touchscreen' },
+  { pn: 0x222, key: 'buttonHold', scope: 'system', kind: 'number', unit: 'ms', min: 50, max: 9999, step: 1, eeprom: true, feature: 'touchscreen' },
 ];
 
 /** Global read-only device info. */
@@ -93,11 +97,11 @@ export const SYSTEM_INFO: SynthParam[] = [
  * three limits cap what a user may drive (within the coil's hardware envelope).
  */
 export const USER_PARAMS: SynthParam[] = [
-  { pn: 0x240, key: 'userName', scope: 'user', kind: 'string', maxChars: 16, eeprom: true, writeOnly: true },
-  { pn: 0x241, key: 'userPassword', scope: 'user', kind: 'string', maxChars: 16, secret: true, eeprom: true, writeOnly: true },
-  { pn: 0x242, key: 'userMaxOntime', scope: 'user', kind: 'number', unit: 'µs', min: 0, step: 1, eeprom: true },
-  { pn: 0x243, key: 'userMaxDuty', scope: 'user', kind: 'number', unit: '%', min: 0, max: 100, step: 0.1, displayScale: 0.1, eeprom: true },
-  { pn: 0x244, key: 'userMaxBps', scope: 'user', kind: 'number', unit: 'Hz', min: 0, step: 1, eeprom: true },
+  { pn: 0x240, key: 'userName', scope: 'user', kind: 'string', maxChars: 16, eeprom: true, writeOnly: true, feature: 'users' },
+  { pn: 0x241, key: 'userPassword', scope: 'user', kind: 'string', maxChars: 16, secret: true, eeprom: true, writeOnly: true, feature: 'users' },
+  { pn: 0x242, key: 'userMaxOntime', scope: 'user', kind: 'number', unit: 'µs', min: 0, step: 1, eeprom: true, feature: 'users' },
+  { pn: 0x243, key: 'userMaxDuty', scope: 'user', kind: 'number', unit: '%', min: 0, max: 100, step: 0.1, displayScale: 0.1, eeprom: true, feature: 'users' },
+  { pn: 0x244, key: 'userMaxBps', scope: 'user', kind: 'number', unit: 'Hz', min: 0, step: 1, eeprom: true, feature: 'users' },
 ];
 
 /** Action parameters (write-only commands triggered by buttons). */

@@ -2,10 +2,13 @@ import { defineStore } from 'pinia';
 import type { Output } from 'webmidi';
 import { sendSysex as helperSendSysex, type SysexOutput } from '@/utils/live-sysex-helper';
 import { SYNTH_OUTPUT_ID, type MidiSink } from '@/audio/tesla-synth';
-import { SERIAL_OUTPUT_ID } from '@/serial/serial-midi';
+import { SERIAL_OUTPUT_ID, type SerialMidiOutput } from '@/serial/serial-midi';
 import type { DeviceLink } from '@/serial/device-link';
 import { setCustomEnvelopes } from '@/sysex/envelopes';
-import { encodeEnable, MODE_BYTE } from '@/sysex/syntherrupter';
+import { driverFor, type DeviceDriver } from '@/devices/driver';
+import { DEFAULT_DEVICE_ID, detectProfile, profileById, resolveProfile, type OutputIdentity } from '@/devices/registry';
+import type { DeviceId, DeviceProfile } from '@/devices/types';
+import type { BoardStatus } from '@/sysex/board';
 import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
 
 interface MidiState {
@@ -42,11 +45,28 @@ interface MidiState {
   /** Name of the coil output that went away (unplugged, link dropped) and was
    *  replaced by the built-in synth; null once it is back or another is chosen. */
   outputLost: string | null;
+  /** The board this machine drives when the output does not say which one
+   *  (the built-in synth, a MIDI interface…). Per machine (persisted). */
+  boardId: DeviceId;
+  /** What the board behind output 1 last said of itself (devices/board-monitor.ts);
+   *  null when it cannot tell, or has not yet. */
+  boardStatus: BoardStatus | null;
+  /** Protection trips per coil since the board started, read on a trip. */
+  boardTrips: number[];
+  /** The board stopped answering its heartbeat. */
+  boardSilent: boolean;
 }
 
 /** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
 function clampOffset(ms: number): number {
   return Number.isFinite(ms) ? Math.max(-200, Math.min(200, Math.round(ms))) : 0;
+}
+
+/** What a coil output tells of its board: nothing for the built-in synth. */
+function outputIdentity(sink: MidiSink | null): OutputIdentity | null {
+  if (!sink || sink.id === SYNTH_OUTPUT_ID) return null;
+  if (sink.id === SERIAL_OUTPUT_ID) return { usb: (sink as SerialMidiOutput).usb ?? undefined };
+  return { midiName: sink.name };
 }
 
 export const useMidiStore = defineStore('midi', {
@@ -67,6 +87,10 @@ export const useMidiStore = defineStore('midi', {
     deviceLink: null,
     panicRev: 0,
     outputLost: null,
+    boardId: profileById(localStorage.getItem('boardId') ?? DEFAULT_DEVICE_ID).id,
+    boardStatus: null,
+    boardTrips: [],
+    boardSilent: false,
   }),
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
@@ -75,6 +99,19 @@ export const useMidiStore = defineStore('midi', {
     isSynthOutput: (state): boolean => state.midiOutput?.id === SYNTH_OUTPUT_ID,
     /** True when output 1 is the bidirectional serial Syntherrupter link. */
     isSerialOutput: (state): boolean => state.midiOutput?.id === SERIAL_OUTPUT_ID,
+    /** The board behind output 1: recognised on it, else this machine's. */
+    deviceProfile: (state): DeviceProfile => resolveProfile(outputIdentity(state.midiOutput), state.boardId),
+    /** Output 1 says which board it is (else the board is this machine's choice). */
+    deviceDetected: (state): boolean => detectProfile(outputIdentity(state.midiOutput)) != null,
+    /** How to talk to the board behind output 1. */
+    driver: (state): DeviceDriver => driverFor(resolveProfile(outputIdentity(state.midiOutput), state.boardId)),
+    /** How to talk to the board behind `sink`, e.g. an output just left. */
+    driverOf: (state) => (sink: MidiSink | null): DeviceDriver =>
+      driverFor(resolveProfile(outputIdentity(sink), state.boardId)),
+    /** The board the built-in synth stands for, whatever output 1 is. */
+    emulatorDriver: (state): DeviceDriver => driverFor(profileById(state.boardId)),
+    /** The board's protection is latched: nothing can play until it is cleared. */
+    boardLatched: (state): boolean => state.boardStatus?.latched ?? false,
   },
   actions: {
     /** Signal that server-side data may have changed (e.g. after a sync). */
@@ -102,6 +139,19 @@ export const useMidiStore = defineStore('midi', {
     /** Set the read-back link used by the config page (pass a markRaw'd object). */
     setDeviceLink(link: DeviceLink | null) {
       this.deviceLink = link;
+    },
+    setBoardId(id: DeviceId) {
+      this.boardId = profileById(id).id;
+      localStorage.setItem('boardId', this.boardId);
+    },
+    setBoardStatus(status: BoardStatus | null) {
+      this.boardStatus = status;
+    },
+    setBoardTrips(trips: number[]) {
+      this.boardTrips = trips;
+    },
+    setBoardSilent(silent: boolean) {
+      this.boardSilent = silent;
     },
     setMidiOutput2(output: Output | null) {
       this.midiOutput2 = output;
@@ -169,8 +219,7 @@ export const useMidiStore = defineStore('midi', {
       const out = sink === undefined ? this.midiOutput : sink;
       if (!out) return;
       try {
-        helperSendSysex(out as SysexOutput, encodeEnable(MODE_BYTE.midi, false));
-        helperSendSysex(out as SysexOutput, encodeEnable(MODE_BYTE.simple, false));
+        for (const frame of this.driverOf(out).silence()) helperSendSysex(out as SysexOutput, frame);
         out.sendAllSoundOff();
       } catch {
         /* an output unplugged meanwhile: nothing left to silence */

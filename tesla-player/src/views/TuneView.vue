@@ -10,6 +10,7 @@ import { noteHzLabel, noteName } from '@/ui/piano-layout';
 import { MAX_COILS } from '@/types/domain';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import BoardAlert from '@/components/player/BoardAlert.vue';
 import EnvelopeSelect from '@/envelopes/EnvelopeSelect.vue';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import TapRulerChart from '@/tuning/TapRulerChart.vue';
@@ -115,7 +116,9 @@ const coilOptions = computed(() => {
 });
 const coilLabel = computed(() => midiStore.coilName(setup.coilIndex) || `${t('tune.coilN')} ${setup.coilIndex + 1}`);
 const coilCount = computed(() => Math.max(coilOptions.value.length, setup.coilIndex + 1, setup.fiberIndex + 1));
-const fiberOptions = Array.from({ length: MAX_COILS }, (_, i) => ({ value: i, label: String(i) }));
+// the board's outputs
+const fiberOptions = computed(() => Array.from({ length: midiStore.deviceProfile.coils }, (_, i) => ({ value: i, label: String(i) })));
+watch(() => midiStore.deviceProfile.coils, (n) => { if (setup.fiberIndex >= n) setup.fiberIndex = n - 1; }, { immediate: true });
 const dutyPct = computed({ get: () => Math.round(setup.duty * 1e4) / 100, set: (v: number) => { setup.duty = Math.min(1, Math.max(0, (v || 0) / 100)); } });
 const stepOptions = [{ value: 0.125, label: '1/8' }, { value: 0.25, label: '1/4' }, { value: 0.5, label: '1/2' }];
 const stepLabel = computed(() => stepOptions.find((o) => o.value === setup.tapStep)?.label ?? String(setup.tapStep));
@@ -217,9 +220,9 @@ const confirmRun = ref(false);
 let runner: ToneRunner | null = null;
 const running = computed(() => phase.value !== 'idle');
 // the fibre follows the coil unless the operator overrides it for this session
-watch(() => setup.coilIndex, (i) => { if (!running.value) setup.fiberIndex = i; });
-const canRun = computed(() => !!midiStore.midiOutput && cameraReady.value && settingsOk.value && !running.value);
-const canTestTone = computed(() => !!midiStore.midiOutput && !running.value && setup.notes.length > 0);
+watch(() => setup.coilIndex, (i) => { if (!running.value) setup.fiberIndex = Math.min(i, midiStore.deviceProfile.coils - 1); });
+const canRun = computed(() => !!midiStore.midiOutput && !midiStore.boardLatched && cameraReady.value && settingsOk.value && !running.value);
+const canTestTone = computed(() => !!midiStore.midiOutput && !midiStore.boardLatched && !running.value && setup.notes.length > 0);
 
 /* step 2 → 3 by itself the moment the phone is set up (coming back by hand stays possible) */
 watch(cameraReady, (ready, was) => { if (ready && !was && step.value === 'camera') step.value = 'trials'; });
@@ -236,7 +239,7 @@ watch([running, cameraReady], ([r, ready]) => { stage.value = r || !ready ? 'cam
 
 function makeRunner(cb: { onNoteStart?: (i: number, n: number) => void; onNoteEnd?: (i: number, n: number) => void; onDone?: (ok: boolean) => void }): ToneRunner {
   return new ToneRunner(
-    { primary: midiStore.midiOutput, secondary: midiStore.midiOutput2, sendSysex: (f) => midiStore.sendSysex(f) },
+    { primary: midiStore.midiOutput, secondary: midiStore.midiOutput2, sendSysex: (f) => midiStore.sendSysex(f), driver: midiStore.driver },
     { notes: [...setup.notes], holdMs: setup.holdMs, gapMs: setup.gapMs, velocity: 100, channel: 0, coilIndex: setup.fiberIndex, ontimeUs: setup.ontimeUs, duty: setup.duty, program: setup.program, coilCount: coilCount.value },
     cb,
   );
@@ -318,6 +321,7 @@ function stopAll(reason: 'user' | 'timeout' | 'error' = 'user'): void {
   phaseNote.value = null;
 }
 watch(() => midiStore.midiOutput, (o) => { if (!o && running.value) stopAll('error'); });
+watch(() => midiStore.panicRev, () => { if (runner) stopAll('error'); });
 
 /* ----------------------------------------------------------- abandon / new */
 const confirmAbandon = ref(false);
@@ -462,6 +466,7 @@ onBeforeUnmount(() => { void endSession(); });
           </button>
         </li>
       </ol>
+      <board-alert />
 
       <!-- ---------------------------------------------------------- 1. settings -->
       <section v-if="step === 'settings'" class="wiz">

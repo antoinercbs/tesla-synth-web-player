@@ -81,6 +81,11 @@
     opacity: 0.5;
 }
 
+// a value the board may cut on its own: told, never refused
+.param-cell.is-near .param-cell__box {
+    border-color: var(--warn);
+}
+
 .param-cell.is-unread .switch {
     opacity: 0.5;
 }

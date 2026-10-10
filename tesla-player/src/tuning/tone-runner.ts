@@ -1,8 +1,7 @@
 import type { MidiSink } from '@/audio/tesla-synth';
+import type { DeviceDriver } from '@/devices/driver';
 import { programChange, type EnvStep } from '@/sysex/envelopes';
-import { compileCoilConfig, compileCustomEnvelopes, compileEnvelope, compileStereo } from '@/sysex/syntherrupter';
 import type { CoilConfig } from '@/types/domain';
-import { MAX_COILS } from '@/types/domain';
 
 /**
  * The test tone of a tuning trial: a few MIDI notes held one after the other on
@@ -38,6 +37,8 @@ export interface ToneOutputs {
   secondary: MidiSink | null;
   /** Sends a SysEx frame to the coils (store.sendSysex). */
   sendSysex(frame: number[]): void;
+  /** Of the board behind `primary`. */
+  driver: DeviceDriver;
 }
 
 export interface ToneCallbacks {
@@ -64,8 +65,8 @@ export class ToneRunner {
   get running(): boolean { return this._state === 'running'; }
 
   /** Coil configuration frames: the coil under test on the tone channel, the rest muted. */
-  static coilFrames(cfg: ToneConfig): number[][] {
-    const count = Math.min(MAX_COILS, Math.max(cfg.coilCount, cfg.coilIndex + 1));
+  static coilFrames(cfg: ToneConfig, driver: DeviceDriver): number[][] {
+    const count = Math.min(driver.profile.coils, Math.max(cfg.coilCount, cfg.coilIndex + 1));
     const coils: CoilConfig[] = [];
     for (let i = 0; i < count; i++) {
       coils.push(
@@ -74,12 +75,12 @@ export class ToneRunner {
           : { coilIndex: i, channelMask: 0, ontimeUs: 0, duty: 0, program: null },
       );
     }
-    return compileCoilConfig(coils, 'midi');
+    return driver.coilConfig(coils, 'midi');
   }
 
-  static envelopeFrames(cfg: ToneConfig): number[][] {
+  static envelopeFrames(cfg: ToneConfig, driver: DeviceDriver): number[][] {
     if (cfg.program == null) return [];
-    return cfg.envelope ? compileEnvelope(cfg.program, cfg.envelope) : compileCustomEnvelopes([cfg.program]);
+    return cfg.envelope ? driver.envelope(cfg.program, cfg.envelope) : driver.libraryEnvelopes([cfg.program]);
   }
 
   start(): void {
@@ -87,10 +88,11 @@ export class ToneRunner {
     if (!this.out.primary) throw new Error('No MIDI output');
     this._state = 'running';
     this.out.primary.resume?.(); // built-in synth: unlock audio from the click
-    for (const f of ToneRunner.coilFrames(this.cfg)) this.out.sendSysex(f);
+    const { driver } = this.out;
+    for (const f of ToneRunner.coilFrames(this.cfg, driver)) this.out.sendSysex(f);
     // a pan left by the last song could turn the coil under test down, or off
-    for (const f of compileStereo(null, 0)) this.out.sendSysex(f);
-    for (const f of ToneRunner.envelopeFrames(this.cfg)) this.out.sendSysex(f);
+    for (const f of driver.stereo(null, 0)) this.out.sendSysex(f);
+    for (const f of ToneRunner.envelopeFrames(this.cfg, driver)) this.out.sendSysex(f);
     if (this.cfg.program != null) this.send(programChange(this.cfg.channel, this.cfg.program));
     // let the SysEx settle before the first note
     this.timer = setTimeout(() => this.playNote(0), 150);

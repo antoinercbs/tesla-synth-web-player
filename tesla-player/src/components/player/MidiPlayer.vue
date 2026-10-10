@@ -1,15 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import {
-  compileCoilConfig,
-  compileCustomEnvelopes,
-  compileStereo,
-  coilEventFrame,
-  maskToChannels,
-  stereoChannelMessages,
-} from '@/sysex/syntherrupter';
+import { maskToChannels } from '@/sysex/syntherrupter';
 import { envelope, envelopeAmplitude } from '@/sysex/envelopes';
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { coilLevelAt, effectiveRatio } from '@/midi/automation';
@@ -19,6 +13,7 @@ import type { CoilConfig, CoilParam, Song } from '@/types/domain';
 import CoilLegend from '@/components/player/CoilLegend.vue';
 import VizTabs from '@/components/player/VizTabs.vue';
 import PowerControlPanel from '@/components/player/PowerControlPanel.vue';
+import BoardAlert from '@/components/player/BoardAlert.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
@@ -172,7 +167,15 @@ let pendingAutoplay = false;
 
 // `paused` = frozen at a position (cued), not sounding. `isPlaying` = actively sounding.
 const paused = ref(false);
-const canTransport = computed(() => !!parsedMidiFile.value && !!midiStore.midiOutput);
+const canTransport = computed(() => !!parsedMidiFile.value && !!midiStore.midiOutput && !midiStore.boardLatched);
+// the song's coils past the board's outputs (the built-in synth plays them all)
+const { t } = useI18n();
+const mutedCoils = computed(() => {
+  if (!song.value || midiStore.isSynthOutput) return '';
+  const outputs = midiStore.deviceProfile.coils;
+  const muted = Array.from({ length: Math.max(0, song.value.coilCount - outputs) }, (_, i) => outputs + i);
+  return muted.length ? t('board.mutedCoils', { list: muted.join(', ') }, muted.length) : '';
+});
 const canStop = computed(() => isPlaying.value || paused.value);
 const canPanic = computed(() => !!midiStore.midiOutput);
 const canSysex = computed(() => !!song.value && !!midiStore.midiOutput);
@@ -325,14 +328,15 @@ function playSong(s: Song): void {
 
 function executeConfig(): void {
   if (!song.value) return;
+  const driver = midiStore.driver;
   // the device may lack the file's library envelopes, or hold another version
-  for (const frame of compileCustomEnvelopes(analysis.value?.programs ?? [])) midiStore.sendSysex(frame);
-  for (const frame of compileCoilConfig(song.value.coils ?? [], song.value.mode ?? 'midi')) {
+  for (const frame of driver.libraryEnvelopes(analysis.value?.programs ?? [])) midiStore.sendSysex(frame);
+  for (const frame of driver.coilConfig(song.value.coils ?? [], song.value.mode ?? 'midi')) {
     midiStore.sendSysex(frame);
   }
   // sent even when the song has none: the coils would keep the previous song's places
-  for (const frame of compileStereo(song.value.stereo, song.value.coilCount)) midiStore.sendSysex(frame);
-  for (const message of stereoChannelMessages(song.value.stereo)) midiStore.midiOutput?.send(message);
+  for (const frame of driver.stereo(song.value.stereo, song.value.coilCount)) midiStore.sendSysex(frame);
+  for (const message of driver.stereoChannels(song.value.stereo)) midiStore.midiOutput?.send(message);
 }
 
 /*
@@ -363,12 +367,13 @@ const DUTY_STEPS = 2000; // 0.05 % of duty
 function sendCoilLevels(ms: number, force = false): void {
   const out = midiStore.midiOutput;
   if (!out || !song.value) return;
+  const driver = midiStore.driver;
   for (const coil of song.value.coils ?? []) {
     const lvl = coilLevelAt(song.value.events ?? [], coil, ms, effRatioOntime(coil.coilIndex), effRatioDuty(coil.coilIndex));
     const dutyKey = Math.round(lvl.duty * DUTY_STEPS);
     const last = sentLevels.get(coil.coilIndex);
-    if (force || last?.ontimeUs !== lvl.ontimeUs) out.send(coilEventFrame(coil.coilIndex, 'ontime', lvl.ontimeUs));
-    if (force || last?.dutyKey !== dutyKey) out.send(coilEventFrame(coil.coilIndex, 'duty', lvl.duty));
+    if (force || last?.ontimeUs !== lvl.ontimeUs) out.send(driver.coilLevel(coil.coilIndex, 'ontime', lvl.ontimeUs));
+    if (force || last?.dutyKey !== dutyKey) out.send(driver.coilLevel(coil.coilIndex, 'duty', lvl.duty));
     sentLevels.set(coil.coilIndex, { ontimeUs: lvl.ontimeUs, dutyKey });
   }
 }
@@ -693,6 +698,7 @@ defineExpose({ loadSong, playSong, stop });
       <button class="icon-btn player-alert__x" type="button" :aria-label="$t('player.dismiss')"
         :title="$t('player.dismiss')" @click="midiStore.setOutputLost(null)"><i class="fas fa-xmark"></i></button>
     </p>
+    <board-alert />
 
     <div class="player-song">
       <span class="icon"><i class="fas fa-music"></i></span>
@@ -701,6 +707,9 @@ defineExpose({ loadSong, playSong, stop });
       <!-- per-coil legend (colour + ontime + duty): same line as the name if it
            fits, otherwise wraps full-width onto the line below -->
       <coil-legend v-if="song" :rows="legendRows" />
+      <span v-if="mutedCoils" class="player-muted" :title="$t('board.mutedHint', { n: midiStore.deviceProfile.coils })">
+        <i class="fas fa-volume-xmark"></i>{{ mutedCoils }}
+      </span>
     </div>
 
     <!-- playback progress (click / drag to seek), right under the song title -->

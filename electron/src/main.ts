@@ -127,6 +127,16 @@ interface SerialPortInfo {
   productId?: string;
 }
 
+// a USB id as Electron spells it (hex or decimal), against the number it should be
+function usbIdIs(value: string | undefined, id: number): boolean {
+  return !!value && (parseInt(value, 16) === id || parseInt(value, 10) === id);
+}
+
+/** An ESP32 board in its ROM download mode (USB-Serial-JTAG), for a firmware update. */
+function isEsp32Rom(p: SerialPortInfo): boolean {
+  return usbIdIs(p.vendorId, 0x303a) && usbIdIs(p.productId, 0x1001);
+}
+
 /** Human-readable label for the serial chooser: friendly name + USB ids. */
 function serialPortLabel(p: SerialPortInfo): string {
   const name = p.displayName || p.portName || p.portId;
@@ -180,6 +190,11 @@ function createWindow(): void {
     };
     if (!portList.length) {
       choose('');
+      return;
+    }
+    // the firmware update asks for that port alone: no menu for a single, certain answer
+    if (portList.length === 1 && isEsp32Rom(portList[0])) {
+      choose(portList[0].portId);
       return;
     }
     const menu = Menu.buildFromTemplate([

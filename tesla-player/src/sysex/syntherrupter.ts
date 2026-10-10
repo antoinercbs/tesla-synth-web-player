@@ -353,16 +353,20 @@ export const PAN_PN = {
 } as const;
 
 /**
- * The coils' places for a song, and "no place" for every other coil (all of
- * them when `stereo` is null): the device keeps the previous song's otherwise.
- * Then the channels' note pan mappings (NRPs) are reset, for the same reason;
- * {@link stereoChannelMessages} sets this song's afterwards. Position and reach
- * go as floats: the firmware never divides the integer reach (0x64) by 127, so
- * any value but 0 or 1 would be dropped.
+ * The coils' places for a song, and "no place" for every other one of the
+ * device's `outputs` (all of them when `stereo` is null): the device keeps the
+ * previous song's otherwise. Then the channels' note pan mappings (NRPs) are
+ * reset, for the same reason; {@link stereoChannelMessages} sets this song's
+ * afterwards. Position and reach go as floats: the firmware never divides the
+ * integer reach (0x64) by 127, so any value but 0 or 1 would be dropped.
  */
-export function compileStereo(stereo: SongStereo | null | undefined, coilCount: number): number[][] {
+export function compileStereo(
+  stereo: SongStereo | null | undefined,
+  coilCount: number,
+  outputs: number = MAX_COILS,
+): number[][] {
   const frames: number[][] = [];
-  for (let coil = 0; coil < MAX_COILS; coil++) {
+  for (let coil = 0; coil < outputs; coil++) {
     const placed = stereo && coil < coilCount ? stereo.coils[coil] : undefined;
     frames.push(buildCommand({ pn: PAN_PN.CONFIG, target: coil, value: stereo?.blend === 'single' ? 0 : 1 }));
     frames.push(buildCommand({ pn: PAN_PN.POSITION, target: coil, value: placed ? placed.position : -1, isFloat: true }));

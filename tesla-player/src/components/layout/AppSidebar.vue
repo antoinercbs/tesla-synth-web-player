@@ -102,7 +102,7 @@
 
     <!-- Compact rail keeps the essentials visible: selected output(s) + connection. -->
     <div v-if="sidebarCompact" class="sidebar-cstatus">
-      <span class="cstat" :class="{ 'is-synth': midiStore.isSynthOutput || midiStore.isSerialOutput, 'is-warn': coilsOut.state === 'warn' }"
+      <span class="cstat" :class="{ 'is-synth': midiStore.isSynthOutput || midiStore.isSerialOutput, 'is-warn': coilsOut.state === 'warn', 'is-alarm': coilsOut.state === 'alarm' }"
         :title="`${$t('output.coils')} · ${coilsOut.name}`">
         <i class="fas" :class="output1Icon"></i>
       </span>
@@ -192,6 +192,24 @@
     <div v-if="outMenu" ref="outMenu" class="sidebar-menu sidebar-menu--output" :style="outMenuStyle" role="menu"
       :aria-label="outMenu === 'coils' ? $t('output.coils') : $t('output.speakers')" @keydown="onOutMenuKey">
       <template v-if="outMenu === 'coils'">
+        <!-- what the board says of itself, when it says something -->
+        <div v-if="boardBlock" class="sidebar-board" :class="{ 'is-alarm': boardBlock.alarm }">
+          <template v-if="boardBlock.alarm">
+            <p class="sidebar-board__title"><i class="fas fa-triangle-exclamation"></i>{{ $t('board.stateLatched') }}</p>
+            <p class="sidebar-board__text">{{ boardBlock.coils }}</p>
+            <div class="sidebar-board__acts">
+              <button class="btn btn--danger" type="button" :disabled="latchBusy" @click="askClearFromMenu">{{
+                $t('board.clear') }}</button>
+              <button class="btn btn--ghost" type="button" @click="seeLimitsFromMenu">{{ $t('board.seeLimits') }}</button>
+            </div>
+          </template>
+          <template v-else>
+            <p class="sidebar-board__title"><i class="fas" :class="ICONS.interrupter"></i>{{ midiStore.deviceProfile.label }}</p>
+            <ul class="sidebar-board__lines">
+              <li v-for="l in boardBlock.lines" :key="l.text"><span class="sidebar-board__dot" :class="`is-${l.tone}`"></span>{{ l.text }}</li>
+            </ul>
+          </template>
+        </div>
         <p class="sidebar-menu__group">{{ $t('output.groupEmulation') }}</p>
         <button class="sidebar-menu__item" :class="{ 'is-current': coilsOn === 'synth' }" type="button"
           role="menuitemradio" :aria-checked="coilsOn === 'synth'" @click="pickSynth">
@@ -208,6 +226,26 @@
             </select>
           </div>
         </div>
+        <!-- the board the synth stands for: per machine, the one a plain interface leads to as well -->
+        <div v-if="boardChoiceAt === 'synth'" class="sidebar-menu__row sidebar-menu__row--sub">
+          <label for="board-synth">{{ $t('output.board') }}</label>
+          <div class="select-field">
+            <select id="board-synth" :value="midiStore.boardId" @change="midiStore.setBoardId($event.target.value)">
+              <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.label }}</option>
+            </select>
+          </div>
+        </div>
+        <template v-if="boardOutputs.length">
+          <div class="sidebar-menu__sep"></div>
+          <p class="sidebar-menu__group">{{ $t('output.groupBoards') }}</p>
+          <button v-for="o in boardOutputs" :key="o.id" class="sidebar-menu__item"
+            :class="{ 'is-current': coilsOn === 'midi' && selectedOutputId === o.id }" type="button" role="menuitemradio"
+            :aria-checked="coilsOn === 'midi' && selectedOutputId === o.id" @click="pickMidi(o)">
+            <span class="sidebar-menu__check"><i v-if="coilsOn === 'midi' && selectedOutputId === o.id"
+                class="fas fa-check"></i></span>
+            <span class="icon"><i class="fas" :class="ICONS.interrupter"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
+          </button>
+        </template>
         <div class="sidebar-menu__sep"></div>
         <p class="sidebar-menu__group">{{ $t('output.groupMidi') }}</p>
         <button v-if="coilsOn === 'missing'" class="sidebar-menu__item is-current" type="button" role="menuitemradio"
@@ -215,14 +253,28 @@
           <span class="sidebar-menu__check"><i class="fas fa-check"></i></span>
           <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('output.missing', { name: coilsOut.name }) }}
         </button>
-        <button v-for="o in outputs" :key="o.id" class="sidebar-menu__item"
-          :class="{ 'is-current': coilsOn === 'midi' && selectedOutputId === o.id }" type="button" role="menuitemradio"
-          :aria-checked="coilsOn === 'midi' && selectedOutputId === o.id" @click="pickMidi(o)">
-          <span class="sidebar-menu__check"><i v-if="coilsOn === 'midi' && selectedOutputId === o.id"
-              class="fas fa-check"></i></span>
-          <span class="icon"><i class="fas" :class="ICONS.midi"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
-        </button>
-        <p v-if="!outputs.length" class="sidebar-menu__note">{{ $t('output.noInterface') }}</p>
+        <template v-for="o in interfaceOutputs" :key="o.id">
+          <button class="sidebar-menu__item"
+            :class="{ 'is-current': coilsOn === 'midi' && selectedOutputId === o.id }" type="button" role="menuitemradio"
+            :aria-checked="coilsOn === 'midi' && selectedOutputId === o.id" @click="pickMidi(o)">
+            <span class="sidebar-menu__check"><i v-if="coilsOn === 'midi' && selectedOutputId === o.id"
+                class="fas fa-check"></i></span>
+            <span class="icon"><i class="fas" :class="ICONS.midi"></i></span><span class="sidebar-menu__name">{{ o.name }}</span>
+          </button>
+          <!-- an interface does not say what it leads to -->
+          <template v-if="boardChoiceAt === 'midi' && selectedOutputId === o.id">
+            <div class="sidebar-menu__row sidebar-menu__row--sub">
+              <label for="board-midi">{{ $t('output.boardFor') }}</label>
+              <div class="select-field">
+                <select id="board-midi" :value="midiStore.boardId" @change="midiStore.setBoardId($event.target.value)">
+                  <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.label }}</option>
+                </select>
+              </div>
+            </div>
+            <p class="sidebar-menu__note">{{ $t('output.noReadBack') }}</p>
+          </template>
+        </template>
+        <p v-if="!interfaceOutputs.length" class="sidebar-menu__note">{{ $t('output.noInterface') }}</p>
         <div class="sidebar-menu__sep"></div>
         <p class="sidebar-menu__group">{{ $t('output.groupSerial') }}</p>
         <template v-if="midiStore.serialConnected">
@@ -232,6 +284,14 @@
             <span class="icon"><i class="fas" :class="ICONS.serial"></i></span><span class="sidebar-menu__name">{{
               midiStore.serialPortLabel }}</span>
           </button>
+          <div v-if="boardChoiceAt === 'serial'" class="sidebar-menu__row sidebar-menu__row--sub">
+            <label for="board-serial">{{ $t('output.boardFor') }}</label>
+            <div class="select-field">
+              <select id="board-serial" :value="midiStore.boardId" @change="midiStore.setBoardId($event.target.value)">
+                <option v-for="p in profiles" :key="p.id" :value="p.id">{{ p.label }}</option>
+              </select>
+            </div>
+          </div>
           <button class="sidebar-menu__item" type="button" role="menuitem" @click="disconnectSerial">
             <span class="sidebar-menu__check"></span>
             <span class="icon"><i class="fas fa-plug-circle-xmark"></i></span>{{ $t('output.disconnect') }}
@@ -287,6 +347,9 @@
   <server-config-modal v-if="isElectron" :open="serverOpen" @close="serverOpen = false" @saved="onServerSaved" />
   <sync-modal v-if="isElectron" :open="syncOpen" @close="syncOpen = false" @applied="onSyncApplied" />
   <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
+  <confirm-modal :open="latchAsking" :title="$t('board.clearTitle')" :message="$t('board.clearMsg')"
+    :confirm-label="$t('board.clearConfirm')" :cancel-label="$t('label.cancel')" @confirm="confirmClear"
+    @close="cancelClear" />
 </template>
 
 <script>
@@ -305,6 +368,11 @@ import { mobileLayout } from '@/ui/viewport'
 import { getTeslaSynth, SYNTH_MODELS, SYNTH_OUTPUT_ID } from '@/audio/tesla-synth'
 import { SERIAL_OUTPUT_ID, SerialMidiOutput } from '@/serial/serial-midi'
 import { WebMidiLink } from '@/serial/webmidi-link'
+import { DEVICE_PROFILES, detectProfile } from '@/devices/registry'
+import { useClearLatch } from '@/devices/use-clear-latch'
+import { boardState } from '@/sysex/board'
+import { isRomPort } from '@/firmware/flash'
+import ConfirmModal from '@/components/ui/ConfirmModal.vue'
 import CoilsModal from '@/components/settings/CoilsModal.vue'
 import TagsModal from '@/components/settings/TagsModal.vue'
 import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
@@ -326,11 +394,17 @@ export default {
   name: 'AppSidebar',
   components: {
     CoilsModal, TagsModal, ServerConfigModal, SyncModal, DownloadModal, LocalePicker, ThemePicker, SkinPicker,
+    ConfirmModal,
+  },
+  setup() {
+    const { asking, busy, ask, cancel, confirm } = useClearLatch()
+    return { latchAsking: asking, latchBusy: busy, askClear: ask, cancelClear: cancel, confirmClear: confirm }
   },
   data() {
     return {
       labelSrc,
       ICONS,
+      profiles: DEVICE_PROFILES,
       // output-1 transport mode: 'synth' | 'midi' | 'serial' (persisted). Defaults
       // from the legacy persisted device id (synth vs a real MIDI output).
       output1Mode: localStorage.getItem('output1Mode')
@@ -381,6 +455,45 @@ export default {
     outputs() {
       return this.midiStore.midiOutputList || []
     },
+    // the ports that name their board come first, apart from the plain interfaces
+    boardOutputs() {
+      return this.outputs.filter(o => detectProfile({ midiName: o.name }))
+    },
+    interfaceOutputs() {
+      return this.outputs.filter(o => !detectProfile({ midiName: o.name }))
+    },
+    // where the menu asks which board this is: under the output in use, when it cannot say
+    boardChoiceAt() {
+      if (this.coilsOn === 'synth') return 'synth'
+      if (this.midiStore.deviceDetected) return null
+      if (this.coilsOn === 'midi') return 'midi'
+      if (this.coilsOn === 'serialOn') return 'serial'
+      return null
+    },
+    boardBlock() {
+      const t = this.$t
+      const s = this.midiStore.boardStatus
+      if (this.midiStore.boardSilent) return { alarm: false, lines: [{ tone: 'warn', text: t('board.lineSilent') }] }
+      if (!s) return null
+      if (s.latched) {
+        const coils = s.latchCoils.map(i => {
+          const name = this.midiStore.coilName(i) || t('board.coilN', { n: i })
+          const n = this.midiStore.boardTrips[i]
+          return n ? `${name} · ${t('board.trips', { n }, n)}` : name
+        })
+        return { alarm: true, coils: coils.join(', ') }
+      }
+      const state = boardState(s)
+      const lines = [
+        state === 'stop' ? { tone: 'warn', text: t('board.lineStop') }
+          : state === 'disarmed' ? { tone: 'warn', text: t('board.lineDisarmed') }
+            : { tone: 'ok', text: t('board.lineArmed') },
+        s.monitored ? { tone: 'ok', text: t('board.lineMonitored') } : { tone: 'warn', text: t('board.lineUnmonitored') },
+        s.outputError ? { tone: 'warn', text: t('board.lineOutputError') }
+          : { tone: 'off', text: t('board.outputs', { n: this.midiStore.deviceProfile.coils }) },
+      ]
+      return { alarm: false, lines }
+    },
     // false while output 1 is still the synth fallback (no device picked yet)
     selectedOutputListed() {
       return this.outputs.some(o => o.id === this.selectedOutputId)
@@ -429,17 +542,26 @@ export default {
       const t = this.$t
       const midiName = this.savedOutput1Name || t('output.midiSub')
       switch (this.coilsOn) {
-        case 'serialOn':
-          return { icon: ICONS.serial, name: this.midiStore.serialPortLabel, sub: t('output.serialSub'), state: 'ok' }
+        case 'serialOn': {
+          const known = this.midiStore.deviceDetected
+          return this.withBoard({
+            icon: ICONS.serial,
+            name: known ? this.midiStore.deviceProfile.label : this.midiStore.serialPortLabel,
+            sub: known ? t('output.serialLink') : t('output.serialSub'),
+            state: 'ok',
+          })
+        }
         case 'serial':
           return this.serialRestoring
             ? { icon: ICONS.serial, name: t('output.serialName'), sub: t('output.serialSub'), state: 'idle' }
             : { icon: 'fa-plug-circle-xmark', name: t('output.serialName'), sub: t('output.disconnected'), state: 'warn' }
-        case 'midi':
-          return {
-            icon: ICONS.midi, name: this.outputs.find(o => o.id === this.selectedOutputId).name,
-            sub: t('output.midiSub'), state: 'ok',
-          }
+        case 'midi': {
+          const known = this.midiStore.deviceDetected
+          return this.withBoard({
+            icon: known ? ICONS.interrupter : ICONS.midi, name: this.outputs.find(o => o.id === this.selectedOutputId).name,
+            sub: known ? t('output.usbMidi') : t('output.midiTo', { board: this.midiStore.deviceProfile.label }), state: 'ok',
+          })
+        }
         case 'missing':
           return this.midiReady
             ? { icon: 'fa-plug-circle-xmark', name: midiName, sub: t('output.unplugged'), state: 'warn' }
@@ -486,6 +608,29 @@ export default {
   },
   methods: {
     coilColor,
+    // the board's own word over the output's line: the state it is in comes first
+    withBoard(row) {
+      const t = this.$t
+      if (this.midiStore.boardSilent) return { ...row, icon: 'fa-plug-circle-exclamation', sub: t('board.stateSilent'), state: 'warn' }
+      const s = this.midiStore.boardStatus
+      if (!s) return row
+      switch (boardState(s)) {
+        case 'latched': return { ...row, icon: 'fa-triangle-exclamation', sub: t('board.stateLatched'), state: 'alarm' }
+        case 'outputError': return { ...row, icon: 'fa-triangle-exclamation', sub: t('board.stateOutputError'), state: 'warn' }
+        case 'stop': return { ...row, icon: ICONS.fiber, sub: t('board.stateStop'), state: 'warn' }
+        case 'disarmed': return { ...row, sub: t('board.stateDisarmed'), state: 'warn' }
+        case 'unmonitored': return { ...row, sub: `${row.sub} · ${t('board.stateUnmonitored')}` }
+        default: return { ...row, sub: `${row.sub} · ${t('board.stateOk')}` }
+      }
+    },
+    askClearFromMenu() {
+      this.closeOutMenu(true)
+      this.askClear()
+    },
+    seeLimitsFromMenu() {
+      this.closeOutMenu(true)
+      this.$router.push({ name: 'syntherrupter' })
+    },
     // on failure the modal stays open with what was typed
     async saveCoils(config) {
       try {
@@ -665,7 +810,7 @@ export default {
     // A port this app was allowed before, plugged back (or the device rebooted, from
     // its config page): reopen it without the picker, as at startup.
     onSerialPortConnect(e) {
-      if (this.output1Mode !== 'serial' || this.midiStore.serialConnected || !e.target) return
+      if (this.output1Mode !== 'serial' || this.midiStore.serialConnected || !e.target || isRomPort(e.target)) return
       this.openSerial(e.target).catch(err => console.error('Serial reconnect failed', err))
     },
     portLabel(port) {
@@ -825,7 +970,10 @@ export default {
     // Serial mode persisted → silently reopen a previously-authorized port (no prompt).
     if (this.output1Mode === 'serial' && this.serialSupported) {
       navigator.serial.getPorts()
-        .then(ports => (ports[0] ? this.openSerial(ports[0]) : undefined))
+        .then(ports => {
+          const port = ports.find(p => !isRomPort(p))
+          return port ? this.openSerial(port) : undefined
+        })
         .catch(() => { })
         .finally(() => { this.serialRestoring = false })
     }

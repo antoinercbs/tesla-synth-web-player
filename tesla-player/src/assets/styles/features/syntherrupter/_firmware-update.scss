@@ -1,0 +1,154 @@
+// ===========================================================================
+//  FIRMWARE UPDATE
+// ===========================================================================
+// components/settings/FirmwareUpdateModal.vue
+
+.fw-modal {
+    max-width: 34rem;
+}
+
+.fw-vers {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0.2rem 0 0.9rem;
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+}
+
+.fw-vers__to {
+    font-weight: 600;
+    color: var(--volt);
+}
+
+.fw-vers__beta {
+    padding: 0 0.5rem;
+    border: 1px solid rgb(var(--amber-rgb) / 0.5);
+    border-radius: var(--radius-pill);
+    font-family: var(--font-body);
+    font-size: var(--fs-xs);
+    color: var(--amber);
+}
+
+.fw-intro {
+    margin: 0 0 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+.fw-steps {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.fw-step {
+    display: grid;
+    grid-template-columns: 1.6rem 1fr;
+    align-items: center;
+    gap: 0.2rem 0.6rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-md);
+    color: var(--text-mute);
+}
+
+.fw-step__ic {
+    display: grid;
+    place-items: center;
+    width: 1.4rem;
+    height: 1.4rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 50%;
+    font-size: var(--fs-xs);
+}
+
+.fw-step.is-done {
+    color: var(--text-dim);
+}
+
+.fw-step.is-done .fw-step__ic {
+    border-color: rgb(var(--ok-rgb) / 0.5);
+    background: rgb(var(--ok-rgb) / 0.15);
+    color: var(--ok);
+}
+
+.fw-step.is-now {
+    background: var(--volt-06);
+    color: var(--text-strong);
+}
+
+.fw-step.is-now .fw-step__ic {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+.fw-step.is-error .fw-step__ic {
+    border-color: rgb(var(--danger-rgb) / 0.6);
+    color: var(--danger);
+}
+
+.fw-step.is-skip {
+    opacity: 0.55;
+}
+
+.fw-step__body {
+    grid-column: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+    color: var(--text-dim);
+}
+
+.fw-bar {
+    align-self: stretch;
+    height: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--line);
+    overflow: hidden;
+}
+
+.fw-bar__fill {
+    display: block;
+    height: 100%;
+    border-radius: var(--radius-pill);
+    background: linear-gradient(90deg, var(--arc-mid), var(--arc-deep));
+    transition: width 0.2s ease;
+}
+
+.fw-result {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.9rem 0 0;
+    font-weight: 600;
+}
+
+.fw-result.is-ok {
+    color: var(--ok);
+}
+
+.fw-result.is-error {
+    color: var(--danger-text);
+}
+
+.fw-help {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.9rem 0 0;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--line);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+    color: var(--text-mute);
+}
+
+.fw-help i {
+    margin-top: 0.15rem;
+    color: var(--volt);
+}

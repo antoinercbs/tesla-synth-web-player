@@ -6,6 +6,7 @@ import { PUBLIC_DIR, UPLOADS_DIR_ABS } from './config/paths';
 import { dataSourceOptions } from './database/data-source';
 import { DownloadsModule } from './downloads/downloads.module';
 import { EnvelopesModule } from './envelopes/envelopes.module';
+import { FirmwareModule } from './firmware/firmware.module';
 import { HealthModule } from './health/health.module';
 import { MidiModule } from './midi/midi.module';
 import { PlaylistsModule } from './playlists/playlists.module';
@@ -48,6 +49,7 @@ import { TuningModule } from './tuning/tuning.module';
     SettingsModule,
     SyncModule,
     DownloadsModule,
+    FirmwareModule,
     TuningModule,
     EnvelopesModule,
   ],

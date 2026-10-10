@@ -16,14 +16,113 @@
     gap: 1.7rem;
 }
 
+// which board, which version, through which port
+.sy-head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.6rem 1rem;
+    margin-left: auto;
+}
+
+.sy-dev {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.sy-dev i {
+    color: var(--volt);
+}
+
+.sy-dev__ver {
+    font-family: var(--font-mono);
+    color: var(--text-mute);
+}
+
 .sy-port {
     display: inline-flex;
     align-items: center;
     gap: 0.45rem;
-    margin-left: auto;
     font-family: var(--font-mono);
     font-size: var(--fs-sm);
     color: var(--volt);
+}
+
+// the board's own status (boards that report one)
+.sy-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+    gap: 0.8rem;
+}
+
+.sy-tile {
+    display: flex;
+    gap: 0.7rem;
+    padding: 0.85rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+}
+
+.sy-tile__icon {
+    padding-top: 0.1rem;
+    font-size: var(--fs-md);
+    color: var(--ok);
+}
+
+.sy-tile.is-warn {
+    border-color: rgb(var(--amber-rgb) / 0.5);
+}
+
+.sy-tile.is-warn .sy-tile__icon {
+    color: var(--amber);
+}
+
+.sy-tile.is-alarm {
+    border-color: rgb(var(--danger-rgb) / 0.55);
+    background: rgb(var(--danger-rgb) / 0.08);
+}
+
+.sy-tile.is-alarm .sy-tile__icon {
+    color: var(--danger);
+}
+
+.sy-tile__k {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+}
+
+.sy-tile__v {
+    margin-top: 0.15rem;
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--text-strong);
+}
+
+.sy-tile__s {
+    margin-top: 0.15rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+// protection trips per coil since the board started
+.sy-trips {
+    font-family: var(--font-mono);
+    color: var(--text-mute);
+}
+
+.sy-trips.is-hot {
+    font-weight: 600;
+    color: var(--danger-text);
 }
 
 .sy-port .conn__dot {

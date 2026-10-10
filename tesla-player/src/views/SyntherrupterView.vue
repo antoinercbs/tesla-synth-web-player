@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, ref, watch, onMounted } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useMidiStore } from '@/stores/midi';
@@ -11,9 +11,14 @@ import {
   type SynthParam,
 } from '@/sysex/syntherrupter-params';
 import type { DeviceLink } from '@/serial/device-link';
+import { readTrips } from '@/devices/board-watch';
+import { boardState } from '@/sysex/board';
 import ParamRow from '@/components/settings/ParamRow.vue';
 import ParamCell from '@/components/settings/ParamCell.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import FirmwareUpdateModal from '@/components/settings/FirmwareUpdateModal.vue';
+import { listFirmware, newestFor, type FirmwareRelease } from '@/firmware/api';
+import { boardVersion, formatVersion, versionNumber } from '@/firmware/version';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
 import { ICONS } from '@/ui/icons';
@@ -54,29 +59,97 @@ const info = ref<SynthParam | null>(null);
 function showInfo(p: SynthParam): void { info.value = p; }
 
 const link = (): DeviceLink | null => midiStore.deviceLink;
+const profile = computed(() => midiStore.deviceProfile);
+/** The parameters the board has: the Tiva's touchscreen and accounts, say, are not everywhere. */
+const onBoard = (p: SynthParam): boolean => !p.feature || profile.value.features[p.feature];
+const coilParams = computed(() => COIL_PARAMS.filter(onBoard));
+const userParams = computed(() => USER_PARAMS.filter(onBoard));
 
 const coilKey = (c: number, pn: number): string => `c${c}:${pn}`;
 const sysKey = (pn: number): string => `s${pn}`;
 const userKey = (u: number, pn: number): string => `u${u}:${pn}`;
 
-const coilEntries = (c: number): Entry[] => COIL_PARAMS.map((p) => ({ p, target: c, key: coilKey(c, p.pn) }));
-const sysEntries: Entry[] = [...SYSTEM_PARAMS, ...SYSTEM_INFO].map((p) => ({ p, target: 0, key: sysKey(p.pn) }));
-const uiEntries: Entry[] = UI_PARAMS.map((p) => ({ p, target: 0, key: sysKey(p.pn) }));
-const userEntries = (u: number): Entry[] => USER_PARAMS.map((p) => ({ p, target: u, key: userKey(u, p.pn) }));
-const users = Array.from({ length: USER_COUNT }, (_, u) => u);
+const coilEntries = (c: number): Entry[] => coilParams.value.map((p) => ({ p, target: c, key: coilKey(c, p.pn) }));
+const sysEntries = computed<Entry[]>(() =>
+  [...SYSTEM_PARAMS, ...SYSTEM_INFO].filter(onBoard).map((p) => ({ p, target: 0, key: sysKey(p.pn) })),
+);
+const uiEntries = computed<Entry[]>(() => UI_PARAMS.filter(onBoard).map((p) => ({ p, target: 0, key: sysKey(p.pn) })));
+const userEntries = (u: number): Entry[] => userParams.value.map((p) => ({ p, target: u, key: userKey(u, p.pn) }));
+const users = computed(() => (profile.value.features.users ? Array.from({ length: USER_COUNT }, (_, u) => u) : []));
 
-/** Decode the firmware-version bitfield (0x204): [0-7] beta (255 = release),
- *  [8-15] bugfix, [16-23] sub, [24-31] main → e.g. "v4.2.2" / "v4.2.0-beta.26". */
-function formatFwVersion(n: number): string {
-  const beta = n & 0xff;
-  const bugfix = (n >>> 8) & 0xff;
-  const sub = (n >>> 16) & 0xff;
-  const main = (n >>> 24) & 0xff;
-  return `v${main}.${sub}.${bugfix}` + (beta === 255 ? '' : `-beta.${beta}`);
+/** What the board says of itself (devices/board-monitor.ts keeps it up to date). */
+const boardTiles = computed(() => {
+  const s = midiStore.boardStatus;
+  if (!s) return [];
+  const trips = midiStore.boardTrips.reduce((sum, n) => sum + n, 0);
+  const state = boardState(s);
+  return [
+    {
+      key: 'protection', icon: 'fa-shield-halved', tone: s.latched ? 'alarm' : s.monitored ? 'ok' : 'warn',
+      title: t('board.protection'),
+      value: t(s.latched ? 'board.protectionLatched' : s.monitored ? 'board.protectionOk' : 'board.protectionNone'),
+      sub: s.monitored ? t('board.tripsSince', { n: trips }, trips) : t('board.unmonitoredSub'),
+    },
+    {
+      key: 'arming', icon: 'fa-bolt', tone: state === 'stop' || !s.armed ? 'warn' : 'ok',
+      title: t('board.arming'),
+      value: t(state === 'stop' ? 'board.stop' : s.armed ? 'board.armed' : 'board.disarmed'),
+      sub: t(!s.supplySensed ? 'board.supplyUnknown' : s.supplyOn ? 'board.supplyOn' : 'board.supplyOff'),
+    },
+    {
+      key: 'outputs', icon: ICONS.fiber, tone: s.outputError ? 'warn' : 'ok',
+      title: t('board.outputsTitle'),
+      value: s.outputError ? t('board.outputsError') : t('board.outputsReady', { n: profile.value.coils }),
+      sub: t(s.outputError ? 'board.outputsErrorSub' : 'board.noError'),
+    },
+  ];
+});
+
+// the board's thresholds are typical values, each channel measured at bring-up: warn a bit below
+const NEAR_LIMIT = 0.9;
+function nearLimit(c: number, p: SynthParam): string {
+  const hw = profile.value.hardwareLimits;
+  const v = Number(edited[coilKey(c, p.pn)]);
+  if (!hw || !Number.isFinite(v)) return '';
+  if (p.pn === 0x260 && v >= hw.ontimeUs * NEAR_LIMIT) return t('board.nearLimit', { limit: `${hw.ontimeUs} µs` });
+  if (p.pn === 0x261 && v >= hw.duty * 100 * NEAR_LIMIT) return t('board.nearLimit', { limit: `${hw.duty * 100} %` });
+  return '';
+}
+const flash = computed(() => profile.value.settingsMemory === 'flash');
+
+/* ------------------------------------------------- firmware update (ESP32) */
+const firmwares = ref<FirmwareRelease[]>([]);
+const runningVersion = ref<number | null>(null); // 0x204 as read
+const firmwareOpen = ref(false);
+// what the dialog installs: the board reading its new version must not take it away
+const firmwareTarget = ref<FirmwareRelease | null>(null);
+const firmwareFrom = ref<number | null>(null);
+const updating = ref(false);
+const serialSupported = typeof navigator !== 'undefined' && 'serial' in navigator;
+/** A newer firmware for this board than the one it runs. */
+const update = computed(() => {
+  if (!profile.value.features.firmwareUpdate || !serialSupported || runningVersion.value == null) return null;
+  const newest = newestFor(profile.value.id, firmwares.value);
+  return newest && versionNumber(newest.version) > runningVersion.value ? newest : null;
+});
+function loadFirmwares(): void {
+  if (!profile.value.features.firmwareUpdate) return;
+  listFirmware()
+    .then((list) => { firmwares.value = list; })
+    .catch((err) => console.error('Firmware list failed', err));
+}
+function openUpdate(): void {
+  firmwareTarget.value = update.value;
+  firmwareFrom.value = runningVersion.value;
+  firmwareOpen.value = true;
+}
+function onUpdated(): void {
+  notify('fw.updated');
+  void loadAll();
 }
 
 function toDisplay(p: SynthParam, f: DecodedFrame): Val {
-  if (p.key === 'firmwareVersion') return formatFwVersion(f.valueInt);
+  if (p.key === 'firmwareVersion') return formatVersion(boardVersion(f.valueInt));
   if (p.kind === 'bool') return f.valueInt !== 0;
   const raw = p.isFloat ? f.valueFloat : f.valueInt;
   return Math.round(raw * (p.displayScale ?? 1) * 1000) / 1000;
@@ -126,7 +199,7 @@ async function loadAll(): Promise<void> {
       ? discovered
       : Array.from({ length: midiStore.appConfig.defaultCoilCount }, (_, i) => i);
     // one read per coil + one for system + one per user → drives the progress bar
-    const total = coils.value.length + 1 + users.length;
+    const total = coils.value.length + 1 + users.value.length;
     let done = 0;
     const step = (label: string): void => {
       loadLabel.value = label;
@@ -137,7 +210,7 @@ async function loadAll(): Promise<void> {
     for (const c of coils.value) {
       step(t('sp.loadCoil', { n: c }));
       const rest = await out.read(0x261, c, 0x265);
-      for (const p of COIL_PARAMS) {
+      for (const p of coilParams.value) {
         const f =
           p.pn === 0x260
             ? probe.find((fr) => fr.pnFull === 0x260 && (fr.target & 0xff) === c)
@@ -149,15 +222,18 @@ async function loadAll(): Promise<void> {
     // system settings: one GET over 0x201..0x266
     step(t('sp.loadSystem'));
     const sysFrames = await out.read(0x201, 0, 0x266);
-    for (const p of [...SYSTEM_PARAMS, ...UI_PARAMS, ...SYSTEM_INFO]) {
+    const version = sysFrames.find((fr) => fr.pnFull === 0x204);
+    runningVersion.value = version ? boardVersion(version.valueInt) : null;
+    for (const p of [...SYSTEM_PARAMS, ...UI_PARAMS, ...SYSTEM_INFO].filter(onBoard)) {
       seedRead(sysKey(p.pn), p, sysFrames.find((fr) => fr.pnFull === p.pn));
     }
+    if (profile.value.features.boardStatus) midiStore.setBoardTrips(await readTrips(out));
     done++;
     // users: one GET per user over 0x240..0x244 (name/password = char-group frames)
-    for (const u of users) {
+    for (const u of users.value) {
       step(t('sp.loadUser', { n: u }));
       const uf = await out.read(0x240, u, 0x244);
-      for (const p of USER_PARAMS) {
+      for (const p of userParams.value) {
         if (p.kind === 'string') {
           const groups = uf.filter((fr) => fr.pnFull === p.pn);
           unread[userKey(u, p.pn)] = false; // names/passwords stay editable (empty = unset)
@@ -242,28 +318,50 @@ function applySection(entries: Entry[]): void {
 
 // the device saves the values it runs on: an edit not applied yet is not among them
 function saveEeprom(): void {
-  const pending = [...coils.value.flatMap(coilEntries), ...sysEntries, ...uiEntries, ...users.flatMap(userEntries)]
+  const pending = [...coils.value.flatMap(coilEntries), ...sysEntries.value, ...uiEntries.value, ...users.value.flatMap(userEntries)]
     .filter(isDirty).length;
+  const msg = t(flash.value ? 'sp.flashMsg' : 'sp.eepromMsg');
   confirm.value = {
-    title: t('sp.eepromTitle'),
-    message: pending ? `${t('sp.eepromMsg')} ${t('sp.eepromPending', { n: pending }, pending)}` : t('sp.eepromMsg'),
+    title: t(flash.value ? 'sp.flashTitle' : 'sp.eepromTitle'),
+    message: pending ? `${msg} ${t('sp.eepromPending', { n: pending }, pending)}` : msg,
     label: t('sp.save'),
     action: () => {
       const out = link();
       if (!out) return;
       out.send(buildCommand({ pn: ACTION_PN.EEPROM_UPDATE, value: 1 }));
-      notify('sp.savedEeprom');
+      notify(flash.value ? 'sp.savedFlash' : 'sp.savedEeprom');
     },
   };
 }
+// a board that leaves USB while it reboots: the page waits for it instead of closing
+const REBOOT_WAIT_MS = 20000;
+const rebooting = ref(false);
+let rebootGone = false;
+let rebootTimer: ReturnType<typeof setTimeout> | null = null;
+function endReboot(): void {
+  rebooting.value = false;
+  rebootGone = false;
+  if (rebootTimer) clearTimeout(rebootTimer);
+  rebootTimer = null;
+}
 function reboot(): void {
+  const dropsUsb = profile.value.quirks.rebootDropsUsb;
   confirm.value = {
     title: t('sp.rebootTitle'),
-    message: t('sp.rebootMsg'),
+    message: t(dropsUsb ? 'sp.rebootMsgUsb' : 'sp.rebootMsg'),
     label: t('sp.reboot'),
     action: () => {
       link()?.send(buildCommand({ pn: ACTION_PN.RESET, value: ACTION_PN.RESET_MAGIC }));
-      notify('sp.rebooting');
+      if (!dropsUsb) {
+        notify('sp.rebooting');
+        return;
+      }
+      rebooting.value = true;
+      rebootTimer = setTimeout(() => {
+        endReboot();
+        notify('sp.rebootLost', 'error');
+        if (!midiStore.deviceLink) router.replace({ name: 'play' });
+      }, REBOOT_WAIT_MS);
     },
   };
 }
@@ -275,11 +373,26 @@ function runConfirm(): void {
 
 // losing the link (unplug / reboot / output change) closes the page — there's
 // nothing to configure
-watch(() => midiStore.deviceLink, (l) => { if (!l) router.replace({ name: 'play' }); });
+watch(() => midiStore.deviceLink, (l) => {
+  // a firmware update takes the board away, the update dialog waits for it
+  if (updating.value) return;
+  if (rebooting.value) {
+    if (!l) rebootGone = true;
+    else if (rebootGone) {
+      endReboot();
+      notify('sp.rebootBack');
+      void loadAll();
+    }
+    return;
+  }
+  if (!l) router.replace({ name: 'play' });
+});
+onBeforeUnmount(endReboot);
 
 onMounted(() => {
   if (!midiStore.deviceLink) { router.replace({ name: 'play' }); return; }
   void loadAll();
+  loadFirmwares();
 });
 </script>
 
@@ -287,11 +400,22 @@ onMounted(() => {
   <div class="screen">
     <header class="screen-head">
       <h1 class="view-head__title">{{ $t('nav.syntherrupter') }}<page-tour-button id="syntherrupter" /></h1>
-      <span class="sy-port"><span class="conn__dot"></span>{{ midiStore.serialPortLabel }}</span>
+      <div class="sy-head">
+        <span class="sy-dev"><i class="fas" :class="ICONS.interrupter"></i>{{ profile.label }}<span
+            v-if="device[sysKey(0x204)]" class="sy-dev__ver">{{ device[sysKey(0x204)] }}</span></span>
+        <button v-if="update" class="btn btn--volt btn--xs" type="button" @click="openUpdate">
+          <span class="icon"><i class="fas fa-download"></i></span>{{ $t('fw.available', { version: `v${update.version}` })
+          }}<template v-if="update.prerelease"> ({{ $t('fw.beta') }})</template>
+        </button>
+        <span class="sy-port"><span class="conn__dot"></span>{{ midiStore.serialPortLabel || midiStore.deviceLink?.name }}</span>
+      </div>
     </header>
 
     <div class="screen-body sy">
-      <div v-if="loading" class="sy-load">
+      <div v-if="rebooting" class="sy-load">
+        <div class="sy-load__title">{{ $t('sp.rebootWait') }}</div>
+      </div>
+      <div v-else-if="loading" class="sy-load">
         <div class="sy-load__title">{{ $t('sp.loading') }}…</div>
         <div class="sy-load__bar"><div class="sy-load__fill" :style="{ width: loadPct + '%' }"></div></div>
         <div class="sy-load__sub">
@@ -304,8 +428,26 @@ onMounted(() => {
       </p>
 
       <div v-else class="sy-content">
+        <!-- BOARD — what it says of itself, on the boards that tell -->
+        <section v-if="profile.features.boardStatus" class="sy-block">
+          <header class="sy-block__head">
+            <h2 class="sy-block__title"><i class="fas fa-microchip"></i>{{ $t('board.title') }}</h2>
+            <p class="sy-block__hint">{{ midiStore.boardSilent ? $t('board.silentAlert') : $t('board.hint') }}</p>
+          </header>
+          <div v-if="boardTiles.length" class="sy-board">
+            <div v-for="tile in boardTiles" :key="tile.key" class="sy-tile" :class="`is-${tile.tone}`">
+              <span class="sy-tile__icon"><i class="fas" :class="tile.icon"></i></span>
+              <div>
+                <div class="sy-tile__k">{{ tile.title }}</div>
+                <div class="sy-tile__v">{{ tile.value }}</div>
+                <div class="sy-tile__s">{{ tile.sub }}</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- COILS — one row per coil, columns = the physical safety envelope -->
-        <section class="sy-block">
+        <section class="sy-block sy-block--coils">
           <header class="sy-block__head">
             <h2 class="sy-block__title"><i class="fas" :class="ICONS.coil"></i>{{ $t('sp.coilsTitle') }}</h2>
             <p class="sy-block__hint">{{ $t('sp.coilsHint') }}</p>
@@ -315,19 +457,24 @@ onMounted(() => {
               <thead>
                 <tr>
                   <th scope="col" class="sy-tbl__rowhead">{{ $t('sp.coil') }}</th>
-                  <th scope="col" v-for="p in COIL_PARAMS" :key="p.pn">
+                  <th scope="col" v-for="p in coilParams" :key="p.pn">
                     {{ $t('sp.' + p.key) }}
                     <span v-if="p.safety" class="sy-tbl__flag is-safety" :title="$t('sp.safetyHint')"><i class="fas fa-triangle-exclamation"></i></span>
                     <button type="button" class="sy-info" :title="$t('label.info')" @click="showInfo(p)"><i class="fas fa-circle-info"></i></button>
                   </th>
+                  <th v-if="profile.features.boardStatus" scope="col" :title="$t('board.tripsHint')">{{ $t('board.tripsColumn') }}</th>
                   <th scope="col" class="sy-tbl__act"></th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="c in coils" :key="c">
                   <th scope="row" class="sy-tbl__rowhead"><span class="sy-dot" :style="{ '--c': coilColor(c) }"></span>{{ c }}</th>
-                  <td v-for="p in COIL_PARAMS" :key="p.pn">
-                    <param-cell :param="p" :device-value="device[coilKey(c, p.pn)]" :unread="unread[coilKey(c, p.pn)]" v-model="edited[coilKey(c, p.pn)]" />
+                  <td v-for="p in coilParams" :key="p.pn">
+                    <param-cell :param="p" :device-value="device[coilKey(c, p.pn)]" :unread="unread[coilKey(c, p.pn)]"
+                      :warn="nearLimit(c, p)" v-model="edited[coilKey(c, p.pn)]" />
+                  </td>
+                  <td v-if="profile.features.boardStatus">
+                    <span class="sy-trips" :class="{ 'is-hot': midiStore.boardTrips[c] }">{{ midiStore.boardTrips[c] ?? 0 }}</span>
                   </td>
                   <td class="sy-tbl__act">
                     <button class="btn btn--volt sy-tbl__apply" type="button"
@@ -359,7 +506,7 @@ onMounted(() => {
         </section>
 
         <!-- DISPLAY — the device's own touchscreen -->
-        <section class="sy-block">
+        <section v-if="uiEntries.length" class="sy-block">
           <header class="sy-block__head">
             <h2 class="sy-block__title"><i class="fas" :class="ICONS.deviceScreen"></i>{{ $t('sp.displayTitle') }}</h2>
             <p class="sy-block__hint">{{ $t('sp.displayHint') }}</p>
@@ -378,7 +525,7 @@ onMounted(() => {
         </section>
 
         <!-- USERS — one row per account, columns = permission limits -->
-        <section class="sy-block">
+        <section v-if="users.length" class="sy-block">
           <header class="sy-block__head">
             <h2 class="sy-block__title"><i class="fas fa-users"></i>{{ $t('sp.usersTitle') }}</h2>
             <p class="sy-block__hint">{{ $t('sp.usersHint') }}</p>
@@ -388,7 +535,7 @@ onMounted(() => {
               <thead>
                 <tr>
                   <th scope="col" class="sy-tbl__rowhead">{{ $t('sp.user') }}</th>
-                  <th scope="col" v-for="p in USER_PARAMS" :key="p.pn">
+                  <th scope="col" v-for="p in userParams" :key="p.pn">
                     {{ $t('sp.' + p.key) }}
                     <button type="button" class="sy-info" :title="$t('label.info')" @click="showInfo(p)"><i class="fas fa-circle-info"></i></button>
                   </th>
@@ -398,7 +545,7 @@ onMounted(() => {
               <tbody>
                 <tr v-for="u in users" :key="u">
                   <th scope="row" class="sy-tbl__rowhead"><span class="icon sy-tbl__usericon"><i class="fas fa-user"></i></span>{{ u }}</th>
-                  <td v-for="p in USER_PARAMS" :key="p.pn">
+                  <td v-for="p in userParams" :key="p.pn">
                     <param-cell :param="p" :device-value="device[userKey(u, p.pn)]" :unread="unread[userKey(u, p.pn)]" v-model="edited[userKey(u, p.pn)]" />
                   </td>
                   <td class="sy-tbl__act">
@@ -414,9 +561,9 @@ onMounted(() => {
     </div>
 
     <!-- sticky global action bar -->
-    <footer v-if="!loading && !errored" class="sy-bar">
+    <footer v-if="!loading && !errored && !rebooting" class="sy-bar">
       <button class="btn btn--volt" type="button" @click="saveEeprom">
-        <span class="icon"><i class="fas fa-floppy-disk"></i></span>{{ $t('sp.saveEeprom') }}
+        <span class="icon"><i class="fas fa-floppy-disk"></i></span>{{ $t(flash ? 'sp.saveFlash' : 'sp.saveEeprom') }}
       </button>
       <button class="btn" type="button" @click="loadAll">
         <span class="icon"><i class="fas fa-rotate-left"></i></span>{{ $t('sp.reload') }}
@@ -425,6 +572,9 @@ onMounted(() => {
         <span class="icon"><i class="fas fa-power-off"></i></span>{{ $t('sp.reboot') }}
       </button>
     </footer>
+
+    <firmware-update-modal :open="firmwareOpen" :release="firmwareTarget" :current="firmwareFrom"
+      @running="updating = $event" @done="onUpdated" @close="firmwareOpen = false" />
 
     <confirm-modal :open="!!confirm" :title="confirm?.title ?? ''" :message="confirm?.message ?? ''"
       :confirm-label="confirm?.label ?? $t('sp.apply')" :cancel-label="$t('label.cancel')"

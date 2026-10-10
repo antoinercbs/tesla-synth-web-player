@@ -266,27 +266,30 @@ function stopAll(): void {
   synthRunner.value?.stop();
   coilRunner.value?.stop();
 }
+watch(() => midiStore.panicRev, stopAll);
 function toggleSynth(): void {
   if (synthRunner.value) { synthRunner.value.stop(); return; }
   stopAll();
-  synthRunner.value = auditionOnSynth(audition(), () => { synthRunner.value = null; });
+  synthRunner.value = auditionOnSynth(audition(), midiStore.emulatorDriver, () => { synthRunner.value = null; });
 }
 
 const coilMenu = ref(false);
 const testCoil = ref(Math.min(MAX_COILS - 1, stored('envelopeTestCoil', 0, 0, MAX_COILS - 1)));
 const testOntime = ref(stored('envelopeTestOntime', 30, 0, 1000));
 watch(testCoil, (v) => remember('envelopeTestCoil', v));
+watch(() => midiStore.deviceProfile.coils, (n) => { if (testCoil.value >= n) testCoil.value = n - 1; }, { immediate: true });
 watch(testOntime, (v) => { if (Number.isFinite(v)) remember('envelopeTestOntime', v); });
 const coilOutput = computed(() => (midiStore.midiOutput && !midiStore.isSynthOutput ? midiStore.midiOutput : null));
+// up to the board's outputs
 const coilOptions = computed(() =>
-  Array.from({ length: Math.max(midiStore.appConfig.defaultCoilCount, testCoil.value + 1) }, (_, i) => i),
+  Array.from({ length: Math.min(midiStore.deviceProfile.coils, Math.max(midiStore.appConfig.defaultCoilCount, testCoil.value + 1)) }, (_, i) => i),
 );
 function toggleCoil(): void {
   if (coilRunner.value) { coilRunner.value.stop(); return; }
   const out = coilOutput.value;
   if (!out || !(testOntime.value > 0)) return;
   stopAll();
-  coilRunner.value = auditionOnCoil(out, (f) => midiStore.sendSysex(f), audition(), testCoil.value,
+  coilRunner.value = auditionOnCoil(out, (f) => midiStore.sendSysex(f), midiStore.driver, audition(), testCoil.value,
     Math.round(testOntime.value), () => { coilRunner.value = null; });
 }
 const coilMenuEl = ref<HTMLElement | null>(null);

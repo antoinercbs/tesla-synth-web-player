@@ -105,7 +105,7 @@ const selectMenu = ref<InstanceType<typeof SelectMenu> | null>(null);
 const selectionBar = ref<InstanceType<typeof SelectionBar> | null>(null);
 
 /* ------------------------------ listening --------------------------------- */
-const listener = new EditorListener();
+const listener = new EditorListener(() => midiStore.emulatorDriver);
 const playing = ref(false);
 const listenSelection = ref(false);
 const position = ref('');
