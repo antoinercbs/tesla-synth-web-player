@@ -17,8 +17,8 @@ const APP = process.env.APP_URL ?? 'http://localhost:8080';
 const OUT = new URL('../src/assets/site/shots/', import.meta.url);
 const arg = (name) => { const i = process.argv.indexOf(`--${name}`); return i > 0 ? process.argv[i + 1] : undefined; };
 const LOCALES = arg('locale') ? [arg('locale')] : ['fr', 'en'];
-// the looks of the features page's gallery
-const LOOKS = ['blueprint', 'circus', 'control', 'pcb', 'scope', 'steam', 'cork', 'gel', 'noel', 'blocks'];
+// the looks of the features page's gallery (SITE_LOOKS, src/site/shots.ts)
+const LOOKS = ['lab', 'control', 'v1', 'term', 'web1', 'scope', 'blueprint'];
 const ALL_TOURS = ['main', 'play', 'edit', 'playlists', 'midi', 'midiEdit', 'envelopes', 'tune', 'syntherrupter'];
 // the demo library's ids (src/tour/demo/data.ts)
 const SONG = 9001, FILE = 9201, ENVELOPE = 20;
@@ -129,12 +129,22 @@ async function tuningTrial(locale) {
   await wait(1500);
 }
 
-// --tune-only: that shot alone (it is the longest to set up)
+// --tune-only: that shot alone (it is the longest to set up); --looks-only: the gallery's
 const TUNE_ONLY = process.argv.includes('--tune-only');
+const LOOKS_ONLY = process.argv.includes('--looks-only');
 for (const locale of LOCALES) {
   console.log(`[${locale}]`);
   if (TUNE_ONLY) {
     await tuningTrial(locale);
+    continue;
+  }
+  if (LOOKS_ONLY) {
+    for (const skin of LOOKS) {
+      await start(locale, skin);
+      await playFirstSong();
+      await save(await page.screenshot(), locale, `look-${skin}`);
+      await panic();
+    }
     continue;
   }
   await start(locale);

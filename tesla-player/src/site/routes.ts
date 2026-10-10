@@ -12,7 +12,6 @@ export function siteRoutes(base: string): RouteRecordRaw {
     meta: { bare: true, public: true },
     children: [
       { path: '', name: 'site-home', component: () => import('@/views/site/SiteHomeView.vue') },
-      { path: 'features', name: 'site-features', component: () => import('@/views/site/SiteFeaturesView.vue') },
       { path: 'demos', name: 'site-demos', component: () => import('@/views/site/SiteDemosView.vue') },
       { path: 'download', name: 'site-download', component: () => import('@/views/site/SiteDownloadView.vue') },
       { path: 'docs/:page?', name: 'site-docs', component: () => import('@/views/site/SiteDocsView.vue') },
@@ -21,11 +20,18 @@ export function siteRoutes(base: string): RouteRecordRaw {
   };
 }
 
-/** The menu's pages, in its order (a page's label under site.nav). */
-export const SITE_PAGES = [
-  { name: 'site-features', label: 'features' },
+/** A page of the menu: its label under site.nav; a hash, a section of that page. */
+export interface SitePage {
+  name: string;
+  label: string;
+  hash?: string;
+}
+
+/** The menu's pages, in its order. The features are the home page's section, not a page of their own. */
+export const SITE_PAGES: readonly SitePage[] = [
+  { name: 'site-home', hash: '#features', label: 'features' },
   { name: 'site-demos', label: 'demos' },
   { name: 'site-download', label: 'download' },
   { name: 'site-docs', label: 'docs' },
   { name: 'site-credits', label: 'credits' },
-] as const;
+];

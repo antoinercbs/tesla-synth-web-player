@@ -22,7 +22,7 @@ function sitePages() {
       const guides = readdirSync(DOCS)
         .filter((f) => f.endsWith('.md') && f !== 'README.md')
         .map((f) => `docs/${f.slice(0, -3)}`)
-      for (const page of ['features', 'demos', 'download', 'docs', 'credits', ...guides]) {
+      for (const page of ['demos', 'download', 'docs', 'credits', ...guides]) {
         mkdirSync(`${out}${page}`, { recursive: true })
         copyFileSync(`${out}index.html`, `${out}${page}/index.html`)
       }

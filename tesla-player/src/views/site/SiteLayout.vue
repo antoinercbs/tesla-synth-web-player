@@ -15,7 +15,6 @@ const { t, locale } = useI18n();
 const root = ref<HTMLElement | null>(null);
 
 const TITLES: Record<string, string> = {
-  'site-features': 'site.nav.features',
   'site-demos': 'site.nav.demos',
   'site-download': 'site.nav.download',
   'site-docs': 'site.nav.docs',

@@ -7,7 +7,6 @@ import { dataSourceOptions } from './database/data-source';
 import { DownloadsModule } from './downloads/downloads.module';
 import { EnvelopesModule } from './envelopes/envelopes.module';
 import { HealthModule } from './health/health.module';
-import { InstanceModule } from './instance/instance.module';
 import { MidiModule } from './midi/midi.module';
 import { PlaylistsModule } from './playlists/playlists.module';
 import { SettingsModule } from './settings/settings.module';
@@ -42,7 +41,6 @@ import { TuningModule } from './tuning/tuning.module';
     // set), so it must be present for every other module's routes to be gated.
     AuthModule,
     HealthModule,
-    InstanceModule,
     SongsModule,
     TagsModule,
     MidiModule,

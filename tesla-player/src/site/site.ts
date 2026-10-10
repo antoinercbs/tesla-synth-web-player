@@ -1,7 +1,7 @@
-import axios from 'axios';
-import { computed, ref, type ComputedRef, type Ref } from 'vue';
+import { computed, ref, type ComputedRef } from 'vue';
 import type { RouteLocationNormalizedLoaded } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
+import { detectOs, type Os } from './os';
 
 /**
  * The showcase site: the same pages serve two uses. Built on their own
@@ -25,8 +25,31 @@ export const DOCKER_IMAGE = 'ghcr.io/antoinercbs/tesla-synth-web-player';
  */
 export type SiteContext = 'site' | 'instance' | 'about';
 
+/**
+ * While developing the site, its variants on demand: ?ctx=site|instance|about,
+ * ?os=windows|linux|macos|mobile, ?demos=hidden (as built, the unfilmed videos
+ * out). Kept for the tab (sessionStorage); an empty value (?ctx=) lets go.
+ * Inert in a build.
+ */
+export function devVariant(key: 'ctx' | 'os' | 'demos', allowed: readonly string[]): string | null {
+  if (!import.meta.env.DEV) return null;
+  try {
+    const asked = new URLSearchParams(window.location.search).get(key);
+    if (asked !== null) {
+      if (allowed.includes(asked)) sessionStorage.setItem(`siteVariant.${key}`, asked);
+      else sessionStorage.removeItem(`siteVariant.${key}`);
+    }
+    const v = sessionStorage.getItem(`siteVariant.${key}`);
+    return v && allowed.includes(v) ? v : null;
+  } catch {
+    return null;
+  }
+}
+
 export function useSiteContext(): ComputedRef<SiteContext> {
   if (SITE_BUILD) return computed(() => 'site');
+  const forced = devVariant('ctx', ['site', 'instance', 'about']) as SiteContext | null;
+  if (forced) return computed(() => forced);
   const auth = useAuthStore();
   return computed(() => (auth.enabled && !auth.authenticated ? 'instance' : 'about'));
 }
@@ -41,26 +64,19 @@ export function appTarget(route: RouteLocationNormalizedLoaded): string {
   return typeof r === 'string' && r.startsWith('/') && !r.startsWith('//') ? r : '/play';
 }
 
-export interface InstanceInfo {
-  name: string | null;
-  tagline: string | null;
-}
-
-let instance: Promise<InstanceInfo | null> | null = null;
-
-/** The server's own name and line (INSTANCE_NAME, INSTANCE_TAGLINE), when it sets them: shown to a visitor not signed in. */
-export function useInstanceInfo(wanted: boolean): Ref<InstanceInfo | null> {
-  const info = ref<InstanceInfo | null>(null);
-  if (SITE_BUILD || !wanted) return info;
-  instance ??= axios.get<InstanceInfo>('/api/instance').then((r) => r.data, () => null);
-  void instance.then((i) => (info.value = i && (i.name || i.tagline) ? i : null));
-  return info;
-}
+/** The welcome screen's buttons on screen: the bar's Sign in stays out of the way meanwhile. */
+export const welcomeCtaInView = ref(false);
+/** The welcome screen is the page: the footer stays pinned at the window's foot. */
+export const welcomeShown = ref(false);
+/** The welcome screen spreads wider than the site (the app's preview beside it): the bar and footer follow, its title under the logo. */
+export const welcomeWide = ref(false);
+/** The home's features fill the window: the menu's "Features" is the current one. */
+export const featuresInView = ref(false);
 
 /** Brings a page's #section into view (the pages scroll inside .app-main, which the router's scrollBehavior doesn't reach). */
-export function scrollToHash(hash: string): void {
+export function scrollToHash(hash: string, smooth = false): void {
   if (!hash) return;
-  document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ block: 'start' });
+  document.getElementById(decodeURIComponent(hash.slice(1)))?.scrollIntoView({ block: 'start', behavior: smooth ? 'smooth' : 'auto' });
 }
 
 /** A row of chips that scrolls sideways (the phone's pages, its guides): its current one into view, the page left where it is. */
@@ -68,6 +84,11 @@ export function centerInRow(row: HTMLElement | null | undefined): void {
   const current = row?.querySelector<HTMLElement>('.is-current');
   if (!row || !current || row.scrollWidth <= row.clientWidth) return;
   row.scrollTo({ left: current.offsetLeft - (row.clientWidth - current.offsetWidth) / 2 });
+}
+
+/** The visitor's system (or the one a developer asks for, devVariant). */
+export function visitorOs(): Os {
+  return (devVariant('os', ['windows', 'linux', 'macos', 'mobile', 'other']) as Os | null) ?? detectOs();
 }
 
 /** The desktop app's bridge: present only there (no server of its own to download from). */

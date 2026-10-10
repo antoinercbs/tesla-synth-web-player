@@ -98,10 +98,22 @@ axios.interceptors.response.use(
 // Composition API mode: legacy mode is deprecated in vue-i18n 11, and views
 // that call useI18n() (SyntherrupterView) need it. globalInjection keeps $t and
 // $i18n.locale working in the Options API components and templates.
+// the language picked on this device, else the browser's (a first visitor, often
+// on the signed-out welcome screen, hasn't picked one)
+function firstLocale() {
+  try {
+    const stored = localStorage.getItem('locale')
+    if (stored) return stored
+  } catch {
+    /* storage blocked */
+  }
+  return navigator.language?.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+}
+
 const i18n = createI18n({
   legacy: false,
   globalInjection: true,
-  locale: localStorage.getItem('locale') || 'en',
+  locale: firstLocale(),
   fallbackLocale: 'en',
   messages
 })

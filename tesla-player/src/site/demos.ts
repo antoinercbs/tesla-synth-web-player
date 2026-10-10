@@ -1,3 +1,5 @@
+import { devVariant } from './site';
+
 /**
  * The demo videos: unlisted YouTube videos, loaded only on a click
  * (youtube-nocookie). One not filmed yet has no id: it shows as "to film" while
@@ -29,7 +31,8 @@ export const DEMOS: readonly Demo[] = [
   { key: 'sync', youtube: '', shot: 'playlists', tag: 'desktop' },
 ];
 
-export const filmed = (d: Demo): boolean => Boolean(d.youtube) || import.meta.env.DEV;
+export const filmed = (d: Demo): boolean =>
+  Boolean(d.youtube) || (import.meta.env.DEV && devVariant('demos', ['hidden']) === null);
 
 /** The demos the site shows. */
 export const shownDemos = (): Demo[] => DEMOS.filter(filmed);

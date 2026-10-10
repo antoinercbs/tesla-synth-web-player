@@ -63,8 +63,11 @@
     color: var(--text-strong);
 }
 
+// a guide's lines stay readable, however wide the screen (the table of guides
+// stays lined up with the bar)
 .site-docs__page {
     min-width: 0;
+    max-width: 59rem;
 }
 
 .site-docs__lang {

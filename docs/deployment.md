@@ -81,10 +81,8 @@ On first boot the container creates the database from the baseline schema; on ev
 | `DATA_ROOT` | `/data` | base folder for the database, uploads and desktop binaries |
 | `HOST` | `0.0.0.0` | bind address |
 | `OIDC_*` | — | optional login, see **[Authentication](./authentication.md)** |
-| `INSTANCE_NAME` | — | your server's name (e.g. your club), shown on the home page to a visitor who isn't signed in |
-| `INSTANCE_TAGLINE` | — | a line beside that name (e.g. "members only") |
 
-With login enabled, a visitor who isn't signed in lands on the project's **home page** (the same pages as the [project's site](https://antoinercbs.github.io/tesla-synth-web-player/)), with a **Sign in** button and the desktop download. Signed-in users reach those pages from the sidebar's **…** menu → **About Tesla Player**.
+With login enabled, a visitor who isn't signed in lands on a **welcome screen**: a large **Sign in** button and the desktop download, the rest of the home page a scroll below. Its bar leads to the project's pages, the same as the [project's site](https://antoinercbs.github.io/tesla-synth-web-player/); signed-in users reach them from the sidebar's **…** menu → **About Tesla Player**.
 
 ## Behind a reverse proxy
 

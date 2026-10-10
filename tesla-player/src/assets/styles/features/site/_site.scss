@@ -6,6 +6,7 @@
 // buttons, badges, pills and hints; what is here is their layout only.
 
 .site {
+    flex: 1 0 auto;
     min-height: 100%;
     display: flex;
     flex-direction: column;
@@ -16,9 +17,15 @@
 }
 
 .site-wrap {
-    max-width: 74rem;
+    // wider on a wide screen, so the page doesn't sit small in the middle of it
+    max-width: clamp(74rem, 72vw, 96rem);
     margin: 0 auto;
     padding: 0 2rem;
+}
+
+// the home's first screen, its preview large (and the bar and footer around it)
+.site-wrap--wide {
+    max-width: 150rem;
 }
 
 .site-narrow {
@@ -185,32 +192,140 @@
     background: var(--volt-10);
 }
 
-// ---- hero ----
-.site-hero {
-    padding: 3rem 0 2.5rem;
+// ---- the home's first screen: one window, its way in first, the rest below ----
+.site-welcome {
+    // the window between the bar and the pinned footer (both measured by their
+    // components): the rest of the home is a scroll away
+    position: relative;
+    min-height: calc(100dvh - var(--site-top-h, 4.2rem) - var(--site-foot-h, 3.5rem));
+    display: flex;
+    align-items: center;
+    // below: the room "Learn more" sits in
+    padding: 3rem 0 5.5rem;
+    text-align: center;
 }
 
-.site-hero__grid {
+.site-welcome__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.site-welcome__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.site-welcome .player-hint {
+    margin: 0;
+}
+
+// beside the app's preview (the site, "About"): the text on the left
+.site-welcome--split {
+    text-align: left;
+}
+
+.site-welcome--split .site-welcome__inner {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
-    gap: 2.5rem;
+    // the preview (in time the demo video) large enough to see the app in it:
+    // this screen spreads beyond the site's width (.site-wrap--wide), the text a
+    // narrow column
+    grid-template-columns: minmax(22rem, 0.85fr) minmax(0, 1.6fr);
+    gap: clamp(2rem, 3vw, 4.5rem);
     align-items: center;
 }
 
-.site-hero__title {
-    margin: 0.9rem 0 0.8rem;
+.site-welcome--split .site-welcome__text {
+    align-items: flex-start;
+}
+
+.site-welcome--split .site-welcome__cta {
+    justify-content: flex-start;
+}
+
+.site-welcome--split .site-welcome__title {
+    font-size: clamp(2.8rem, 1.6vw + 1.5rem, 4rem);
+}
+
+.site-welcome__title {
+    margin: 0;
     color: var(--text-strong);
     font-weight: 700;
-    font-size: 2.6rem;
-    line-height: 1.1;
+    font-size: clamp(3rem, 1.8vw + 1.6rem, 4.4rem);
+    line-height: 1.08;
 }
 
-.site-hero .player-hint {
-    margin: 1rem 0 0;
+.site-welcome .site-lead {
+    font-size: clamp(var(--fs-lg), 0.4vw + 0.75rem, 1.2rem);
 }
 
-.site-hero .site-hero__instance {
-    margin: 0;
+.site-welcome__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0 0.2rem;
+}
+
+// what "Learn more" scrolls to stops below the bar, not under it (over .site [id])
+.site .site-welcome + * {
+    scroll-margin-top: var(--site-top-h, 4.2rem);
+}
+
+// the rest of the page is below: said, and a click away
+.site-welcome__more {
+    position: absolute;
+    bottom: 1.2rem;
+    left: 50%;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: var(--cursor-pointer, pointer);
+    transform: translateX(-50%);
+}
+
+.site-welcome__more:hover {
+    color: var(--text-strong);
+}
+
+.site-welcome__more i {
+    color: var(--volt);
+    font-size: var(--fs-lg);
+    animation: site-nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes site-nudge {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(0.35rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-welcome__more i {
+        animation: none;
+    }
+}
+
+// the way in, well ahead of the other one
+.site-welcome__primary {
+    padding: 1.05rem 2.6rem;
+    font-size: clamp(1.3rem, 0.5vw + 1rem, 1.6rem);
 }
 
 // ---- video: a poster until clicked ----
@@ -260,43 +375,6 @@
     color: var(--text-strong);
     font-family: var(--font-mono);
     font-size: var(--fs-xs);
-}
-
-// ---- the four facts under the hero ----
-.site-facts {
-    border-top: var(--border-w) solid var(--line);
-    border-bottom: var(--border-w) solid var(--line);
-}
-
-.site-facts__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-    padding-top: 1rem;
-    padding-bottom: 1rem;
-}
-
-.site-fact {
-    display: flex;
-    align-items: center;
-    gap: 0.7rem;
-    color: var(--text-mute);
-    font-size: var(--fs-sm);
-}
-
-.site-fact .icon {
-    flex: none;
-    width: 2.6rem;
-    height: 2.6rem;
-    color: var(--volt);
-    font-size: 1.6rem;
-}
-
-.site-fact b {
-    display: block;
-    color: var(--text-strong);
-    font-size: var(--fs-md);
-    font-weight: 600;
 }
 
 // ---- sections, cards ----
@@ -362,8 +440,7 @@
     font-size: var(--fs-lg);
 }
 
-.site-card p,
-.site-card__body > span {
+.site-card p {
     margin: 0;
     color: var(--text-mute);
     font-size: var(--fs-md);
@@ -374,32 +451,6 @@
     flex-wrap: wrap;
     margin-top: auto;
     padding-top: 0.5rem;
-}
-
-.site-card--shot {
-    padding: 0;
-    overflow: hidden;
-    transition: border-color var(--dur-fast);
-}
-
-.site-card--shot:hover {
-    border-color: var(--line-strong);
-}
-
-.site-card--shot img {
-    display: block;
-    width: 100%;
-    aspect-ratio: 16 / 9;
-    border-bottom: var(--border-w) solid var(--line);
-    object-fit: cover;
-    object-position: left top;
-}
-
-.site-card__body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.9rem 1.1rem 1.1rem;
 }
 
 // ---- features ----
@@ -419,7 +470,7 @@
     order: 2;
 }
 
-.site-feat h2 {
+.site-feat__title {
     margin: 0 0 0.5rem;
     color: var(--text-strong);
     font-weight: 700;
@@ -459,19 +510,13 @@
 }
 
 .site-looks {
-    display: flex;
-    gap: 0.9rem;
-    overflow-x: auto;
-    padding-bottom: 0.6rem;
-    scroll-snap-type: x mandatory;
-    scrollbar-color: var(--line-strong) transparent;
-    scrollbar-width: thin;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.2rem 1rem;
 }
 
 .site-look {
-    flex: 0 0 16rem;
     margin: 0;
-    scroll-snap-align: start;
 }
 
 .site-look img {
@@ -482,6 +527,26 @@
     border-radius: var(--radius-md);
     object-fit: cover;
     object-position: left top;
+}
+
+.site-look__more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    aspect-ratio: 16 / 10;
+    padding: 1rem;
+    border: var(--border-w) dashed var(--line-strong);
+    border-radius: var(--radius-md);
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+    text-align: center;
+}
+
+.site-look__more i {
+    color: var(--volt);
+    font-size: var(--fs-2xl);
 }
 
 .site-look figcaption {
@@ -652,6 +717,8 @@
 }
 
 .site-code__copy {
+    // over the command's end (it scrolls under): opaque, not showing it through
+    --icon-btn-bg: var(--bg-2);
     position: absolute;
     top: 0.4rem;
     right: 0.4rem;
@@ -662,6 +729,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
     gap: 2rem;
+    align-items: center;
     padding: 1.6rem;
 }
 
@@ -701,6 +769,16 @@
     margin-top: 3.5rem;
     padding: 1.6rem 0 2.5rem;
     border-top: var(--border-w) solid var(--line);
+}
+
+// under the welcome screen: pinned at the window's foot while the page scrolls
+.site-foot--pinned {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    padding: 0.9rem 0;
+    // opaque: the page scrolls right under it
+    background: var(--bg);
 }
 
 .site-foot__inner {
@@ -758,11 +836,7 @@
         border-radius: var(--radius);
     }
 
-    .site-hero {
-        padding-top: 1.5rem;
-    }
-
-    .site-hero__grid,
+    .site-welcome--split .site-welcome__inner,
     .site-demos,
     .site-lead-credit,
     .site-feat,
@@ -778,23 +852,79 @@
         order: 0;
     }
 
-    .site-facts__grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
     .site-lead-credit {
         padding: 1.1rem;
+    }
+
+    .site-looks {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
 @media (max-width: 600px) {
-    .site-hero__title {
-        font-size: 2rem;
+    .site-welcome__title,
+    .site-welcome--split .site-welcome__title {
+        font-size: 2.3rem;
+    }
+
+    // a phone can't run the app: its preview would only push the way in down
+    .site-welcome__preview {
+        display: none;
+    }
+
+    .site-welcome__cta {
+        flex-direction: column;
+        align-self: stretch;
+    }
+
+    .site-welcome__cta .btn {
+        justify-content: center;
+    }
+
+    .site-welcome__primary {
+        align-self: stretch;
+    }
+
+    .site-welcome--split .site-welcome__text {
+        align-items: stretch;
     }
 
     .site-section__head {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    // a phone's screen is too short to give the footer a strip of it for good:
+    // it waits at the end of the page
+    .site-foot--pinned {
+        position: static;
+        padding: 1.6rem 0 2.5rem;
+    }
+
+    .site-welcome {
+        min-height: calc(100dvh - var(--site-top-h, 4.2rem));
+    }
+}
+
+// a short window (a laptop): the first screen's text a size down, to keep it on screen
+@media (max-height: 780px) and (min-width: 601px) {
+    .site-welcome {
+        padding-top: 2rem;
+    }
+
+    .site-welcome__title,
+    .site-welcome--split .site-welcome__title {
+        font-size: 2.5rem;
+    }
+
+    .site-welcome__primary {
+        padding: 0.85rem 2rem;
+        font-size: 1.2rem;
+    }
+
+    // the pinned footer credits Max Zuidberg already
+    .site-welcome__credit {
+        display: none;
     }
 }
 

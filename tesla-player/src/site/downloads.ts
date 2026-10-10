@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { computed, ref, type ComputedRef, type Ref } from 'vue';
-import { detectOs, type Os } from './os';
-import { inDesktopApp, RELEASES_URL, SITE_BUILD } from './site';
+import type { Os } from './os';
+import { inDesktopApp, RELEASES_URL, SITE_BUILD, visitorOs } from './site';
 
 export type BuildOs = 'windows' | 'linux';
 export interface Build {
@@ -131,7 +131,7 @@ export function useDesktopOffer(): {
   mine: ComputedRef<Build | null>;
   others: ComputedRef<Build[]>;
 } {
-  const os = detectOs();
+  const os = visitorOs();
   const { release, loading } = useRelease(!SITE_BUILD && !inDesktopApp());
   const mine = computed(() => release.value?.builds.find((b) => b.os === os) ?? null);
   const others = computed(() => release.value?.builds.filter((b) => b.os !== os) ?? []);
