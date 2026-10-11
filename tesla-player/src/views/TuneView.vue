@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { useRoute, useRouter } from 'vue-router';
 import { useMidiStore } from '@/stores/midi';
 import { notify } from '@/utils/toast';
 import { useLeaveGuard } from '@/utils/leave-guard';
@@ -35,21 +36,22 @@ import { ICONS } from '@/ui/icons';
  *   3. trials (move the tap by hand, run, compare, repeat),
  *   4. save (place, conditions, comment) — every session ends with a record,
  *   5. done.
- * The History tab lists the saved records. See docs/tuning.md.
+ * The page opens on a choice: a new tuning (or the one under way), the free
+ * meter (its own page), the history of the saved records. See docs/tuning.md.
  */
 const { t, locale } = useI18n();
 const midiStore = useMidiStore();
 const isElectron = !!window.teslaElectron;
 
-/* --------------------------------------------------------------- tabs */
-type TuneMode = 'tune' | 'history';
-const MODE_KEY = 'tuneMode';
-const mode = ref<TuneMode>(localStorage.getItem(MODE_KEY) === 'history' ? 'history' : 'tune');
-watch(mode, (m) => localStorage.setItem(MODE_KEY, m));
-const modeOptions = computed(() => [
-  { value: 'tune' as TuneMode, label: t('tune.modeTune'), icon: ICONS.tuning },
-  { value: 'history' as TuneMode, label: t('tune.modeHistory'), icon: 'fa-clock-rotate-left' },
-]);
+/* -------------------------------------------------------------- views */
+// The session and the history are ?view= of this page, not paths of their own:
+// going between them and the choice keeps the session (the leave guard only
+// asks when the path changes).
+type TuneView = 'intro' | 'session' | 'history';
+const route = useRoute();
+const router = useRouter();
+const view = computed<TuneView>(() => (route.query.view === 'session' || route.query.view === 'history' ? route.query.view : 'intro'));
+const viewRoute = (v: Exclude<TuneView, 'intro'>) => ({ name: 'tune', query: { view: v } });
 
 /* -------------------------------------------------------------- wizard */
 type StepId = 'settings' | 'camera' | 'trials' | 'save' | 'done';
@@ -338,6 +340,15 @@ function newSession(): void {
   saved.value = null;
   step.value = cameraReady.value ? 'trials' : 'settings';
 }
+/** Trials not saved yet, or the phone still linked: the choice offers to resume rather than start over. */
+const inProgress = computed(() => step.value !== 'done' && (trials.value.length > 0 || !!session.value));
+function onNewTuning(): void {
+  if (inProgress.value) return;
+  trials.value = [];
+  cam.heat = null;
+  saved.value = null;
+  step.value = 'settings';
+}
 
 // leaving ends the session (onBeforeUnmount): the trials not saved and the phone's link go with
 // it; the tour's are demo ones
@@ -397,7 +408,7 @@ function recall(item: TuningRecord): void {
     if (item.tapStep) setup.tapStep = item.tapStep;
   }
   tap.value = snap(item.tapTurns, setup.tapStep, setup.tapMin, setup.tapMax);
-  mode.value = 'tune';
+  void router.push(viewRoute('session'));
   if (step.value === 'done') newSession();
   notify('tune.recalled', 'info');
 }
@@ -440,19 +451,42 @@ onBeforeUnmount(() => { void endSession(); });
 </script>
 
 <template>
-  <div class="screen tune">
-    <header class="screen-head">
-      <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="tune-live-dot"></span>{{ phaseLabel }}</span></h1>
-      <div class="tune-head-actions">
-        <router-link class="btn btn--ghost" :to="{ name: 'arc-meter' }" :title="t('tune.meter.openHint')">
-          <span class="icon"><i class="fas" :class="ICONS.arcMeter"></i></span>{{ t('tune.meter.open') }}
+  <!-- ================================================================== the choice -->
+  <div v-if="view === 'intro'" class="edit-chooser tune-intro">
+    <div class="edit-chooser__card tune-intro__card">
+      <h1 class="view-head__title">{{ t('tune.title') }}<page-tour-button v-if="!session && !trials.length" id="tune" /></h1>
+      <p class="edit-chooser__hint">{{ t('tune.intro.hint') }}</p>
+      <nav class="tune-intro__choices" :aria-label="t('tune.title')">
+        <router-link class="tune-choice" :to="viewRoute('session')" @click="onNewTuning">
+          <span class="tune-choice__icon"><i class="fas" :class="ICONS.tuning"></i></span>
+          <span class="tune-choice__title">{{ inProgress ? t('tune.intro.resume') : t('tune.intro.new') }}</span>
+          <span class="tune-choice__text">{{ inProgress ? t('tune.intro.resumeText', { n: trials.length }, trials.length) : t('tune.intro.newText') }}</span>
         </router-link>
-        <segmented-control v-model="mode" class="mode-switch" label-class="mode-switch__label" :options="modeOptions" />
-      </div>
+        <router-link class="tune-choice" :to="{ name: 'arc-meter' }">
+          <span class="tune-choice__icon"><i class="fas" :class="ICONS.arcMeter"></i></span>
+          <span class="tune-choice__title">{{ t('tune.meter.open') }}</span>
+          <span class="tune-choice__text">{{ t('tune.meter.openHint') }}</span>
+        </router-link>
+        <router-link class="tune-choice" :to="viewRoute('history')">
+          <span class="tune-choice__icon"><i class="fas fa-clock-rotate-left"></i></span>
+          <span class="tune-choice__title">{{ t('tune.modeHistory') }}</span>
+          <span class="tune-choice__text">{{ t('tune.intro.historyText') }}</span>
+          <span v-if="!historyLoading" class="tune-choice__meta mono">{{ t('tune.intro.historyCount', historyAll.length) }}</span>
+        </router-link>
+      </nav>
+    </div>
+  </div>
+
+  <div v-else class="screen tune">
+    <header class="screen-head">
+      <h1 class="view-head__title">{{ view === 'history' ? t('tune.modeHistory') : t('tune.title') }}<page-tour-button v-if="view === 'session' && !session && !trials.length" id="tune" /><span v-if="running" class="tune-running"><span class="tune-live-dot"></span>{{ phaseLabel }}</span></h1>
+      <router-link class="icon-btn" :to="{ name: 'tune' }" :title="t('tune.intro.back')" :aria-label="t('tune.intro.back')">
+        <i class="fas fa-xmark"></i>
+      </router-link>
     </header>
 
-    <!-- ================================================================ History tab -->
-    <div v-if="mode === 'history'" class="screen-body">
+    <!-- ================================================================ History -->
+    <div v-if="view === 'history'" class="screen-body">
       <tuning-history-view :items="historyAll" :loading="historyLoading" @recall="recall" @delete="toDelete = $event" />
     </div>
 
@@ -715,34 +749,35 @@ onBeforeUnmount(() => { void endSession(); });
           <arc-heatmap :heat="best?.heat ?? null" :width="260" :overlay="true" />
           <div class="tune-done__actions">
             <button class="btn btn--volt" type="button" @click="newSession"><span class="icon"><i class="fas fa-rotate-right"></i></span>{{ t('tune.newSession') }}</button>
-            <button class="btn btn--ghost" type="button" @click="mode = 'history'"><span class="icon"><i class="fas fa-clock-rotate-left"></i></span>{{ t('tune.viewHistory') }}</button>
+            <router-link class="btn btn--ghost" :to="viewRoute('history')"><span class="icon"><i class="fas fa-clock-rotate-left"></i></span>{{ t('tune.viewHistory') }}</router-link>
           </div>
         </article>
       </section>
     </div>
-
-    <base-modal :open="primaryOpen" :title="t('tune.primaryEdit')" :icon="ICONS.primary" :close-label="t('label.close')" @close="primaryOpen = false">
-      <div class="tune-primary-form">
-        <div class="tune-grid3">
-          <label class="tune-field"><span class="tf-label">{{ t('tune.turns') }}</span><input class="text-field" type="number" min="1" max="40" step="0.5" v-model.number="setup.primaryTurns" :disabled="running" /></label>
-          <label class="tune-field"><span class="tf-label">{{ t('tune.rangeMin') }}</span><input class="text-field" type="number" min="0" step="0.5" v-model.number="setup.tapMin" :disabled="running" /></label>
-          <label class="tune-field"><span class="tf-label">{{ t('tune.rangeMax') }}</span><input class="text-field" type="number" min="0" step="0.5" v-model.number="setup.tapMax" :disabled="running" /></label>
-        </div>
-        <div class="tune-field">
-          <span class="tf-label">{{ t('tune.step') }}</span>
-          <segmented-control v-model="setup.tapStep" pressed fill :options="stepOptions.map((o) => ({ ...o, disabled: running }))" />
-        </div>
-        <p v-if="!tapMinOk" class="tune-warn"><i class="fas fa-triangle-exclamation"></i>{{ t('tune.rangeInvalid') }}</p>
-      </div>
-      <template #actions>
-        <button class="btn btn--volt" type="button" @click="primaryOpen = false">{{ t('label.close') }}</button>
-      </template>
-    </base-modal>
-    <confirm-modal :open="confirmRun" :title="t('tune.runTrial')" :message="t('tune.confirmRun', { tap: formatTurns(tap, setup.tapStep), s: toneSeconds })"
-      :confirm-label="t('tune.runTrial')" :cancel-label="t('label.cancel')" @confirm="runTrial" @close="confirmRun = false" />
-    <confirm-modal :open="confirmAbandon" :title="t('tune.abandon')" :message="t('tune.confirmAbandon', { n: trials.length })"
-      :confirm-label="t('tune.abandon')" :cancel-label="t('label.cancel')" @confirm="abandon" @close="confirmAbandon = false" />
-    <confirm-modal :open="!!toDelete" :title="t('label.delete')" :message="t('tune.confirmDelete')" :confirm-label="t('label.delete')" :cancel-label="t('label.cancel')" @confirm="confirmDelete" @close="toDelete = null" />
-    <confirm-modal :open="leaving" :title="t('tune.leaveTitle')" :message="leaveMessage" :confirm-label="t('tune.leave')" :cancel-label="t('label.cancel')" @confirm="answerLeave(true)" @close="answerLeave(false)" />
   </div>
+
+  <!-- teleported: they also answer on the choice (leaving a session under way from there) -->
+  <base-modal :open="primaryOpen" :title="t('tune.primaryEdit')" :icon="ICONS.primary" :close-label="t('label.close')" @close="primaryOpen = false">
+    <div class="tune-primary-form">
+      <div class="tune-grid3">
+        <label class="tune-field"><span class="tf-label">{{ t('tune.turns') }}</span><input class="text-field" type="number" min="1" max="40" step="0.5" v-model.number="setup.primaryTurns" :disabled="running" /></label>
+        <label class="tune-field"><span class="tf-label">{{ t('tune.rangeMin') }}</span><input class="text-field" type="number" min="0" step="0.5" v-model.number="setup.tapMin" :disabled="running" /></label>
+        <label class="tune-field"><span class="tf-label">{{ t('tune.rangeMax') }}</span><input class="text-field" type="number" min="0" step="0.5" v-model.number="setup.tapMax" :disabled="running" /></label>
+      </div>
+      <div class="tune-field">
+        <span class="tf-label">{{ t('tune.step') }}</span>
+        <segmented-control v-model="setup.tapStep" pressed fill :options="stepOptions.map((o) => ({ ...o, disabled: running }))" />
+      </div>
+      <p v-if="!tapMinOk" class="tune-warn"><i class="fas fa-triangle-exclamation"></i>{{ t('tune.rangeInvalid') }}</p>
+    </div>
+    <template #actions>
+      <button class="btn btn--volt" type="button" @click="primaryOpen = false">{{ t('label.close') }}</button>
+    </template>
+  </base-modal>
+  <confirm-modal :open="confirmRun" :title="t('tune.runTrial')" :message="t('tune.confirmRun', { tap: formatTurns(tap, setup.tapStep), s: toneSeconds })"
+    :confirm-label="t('tune.runTrial')" :cancel-label="t('label.cancel')" @confirm="runTrial" @close="confirmRun = false" />
+  <confirm-modal :open="confirmAbandon" :title="t('tune.abandon')" :message="t('tune.confirmAbandon', { n: trials.length })"
+    :confirm-label="t('tune.abandon')" :cancel-label="t('label.cancel')" @confirm="abandon" @close="confirmAbandon = false" />
+  <confirm-modal :open="!!toDelete" :title="t('label.delete')" :message="t('tune.confirmDelete')" :confirm-label="t('label.delete')" :cancel-label="t('label.cancel')" @confirm="confirmDelete" @close="toDelete = null" />
+  <confirm-modal :open="leaving" :title="t('tune.leaveTitle')" :message="leaveMessage" :confirm-label="t('tune.leave')" :cancel-label="t('label.cancel')" @confirm="answerLeave(true)" @close="answerLeave(false)" />
 </template>

@@ -4,7 +4,7 @@
 
 Tuning ("accord") a Tesla coil means moving the **primary tap** until the primary resonates with the secondary *as loaded by its arcs*, which is a little off the no-load resonance. The usual way is to play a note, look at the arcs, cut the power, move the tap by an eighth of a turn, and repeat, judging by eye. The **Tuning** screen replaces the eye with a phone camera and remembers the result.
 
-It runs as a guided session in four steps — **settings → camera → trials → save** — and every session ends with a saved record. To simply measure arcs, whatever drives the coil and without saving anything, use the [free arc meter](#free-arc-meter).
+The screen opens on a choice: **New tuning**, **Free measurement** or **History**. A new tuning runs as a guided session in four steps — **settings → camera → trials → save** — and every session ends with a saved record. Back on the choice while a session is under way, the first card resumes it instead. To simply measure arcs, whatever drives the coil and without saving anything, use the [free arc meter](#free-arc-meter).
 
 **Contents**
 
@@ -70,7 +70,7 @@ Saving is the last step of every session, not an afterthought: *Finish and save*
 - the **conditions**: indoor / outdoor, temperature, humidity and pressure (fetched from Open‑Meteo for the position, or typed in), dry / wet ground, and a free comment;
 - the tone, the primary geometry and the whole trial series.
 
-The **History** tab (switch at the top right of the Tuning screen) lists every saved tuning across coils, with a coil filter and a place search. A row opens into the full record: map, the trial series drawn on the primary, arc silhouettes, tone and comment. *Use this position* brings the coil, primary settings and tap back into the Tuning tab. When the camera reports a position near a saved tuning, the tool also recalls it ("Last tuning near here").
+**History** (on the Tuning screen's opening choice) lists every saved tuning across coils, with a coil filter and a place search. A row opens into the full record: map, the trial series drawn on the primary, arc silhouettes, tone and comment. *Use this position* brings the coil, primary settings and tap back into the tuning session. When the camera reports a position near a saved tuning, the tool also recalls it ("Last tuning near here").
 
 ## Free arc meter
 

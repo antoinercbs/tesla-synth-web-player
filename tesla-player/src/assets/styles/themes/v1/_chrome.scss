@@ -127,14 +127,14 @@
         display: none;
     }
 
-    .midi-lib__head {
+    .data-table__head {
         @include heading-band;
 
         border-bottom: 0;
         font-size: var(--fs-md);
     }
 
-    .midi-lib__item {
+    .data-table__row {
         border-bottom-color: var(--v1-rule);
     }
 

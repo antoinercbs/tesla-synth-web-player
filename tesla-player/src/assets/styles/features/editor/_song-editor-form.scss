@@ -102,14 +102,14 @@
     white-space: nowrap;
 }
 
-.editor-tags .midi-lib__dropdown-menu {
+.editor-tags .dropdown__menu {
     right: auto;
     left: 0;
     width: 200px;
     max-width: 250px;
 }
 
-.editor-tags .midi-lib__dropdown-menu::before {
+.editor-tags .dropdown__menu::before {
     left: 0;
     right: 0;
 }

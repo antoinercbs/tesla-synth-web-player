@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
+import SearchField from '@/components/ui/SearchField.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import { notify } from '@/utils/toast';
@@ -143,7 +144,7 @@ function doDelete(): void {
   confirmDelete.value = false;
   if (!id) return;
   axios.delete(`/api/playlists/${id}`).then(() => {
-    baseline.value = snapshot(); // nothing left to keep: the way back to the chooser must not ask
+    baseline.value = snapshot(); // nothing left to keep: the way back to the list must not ask
     emit('deleted', id);
   });
 }
@@ -182,10 +183,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
           <span class="icon"><i class="fas fa-list-ul"></i></span>{{ $t('label.songLibrary') }}
         </header>
         <div class="pl-search">
-          <div class="pl-search__box">
-            <span class="pl-search__icon"><i class="fas fa-search"></i></span>
-            <input class="text-field" type="text" :placeholder="$t('label.search')" v-model="librarySearch">
-          </div>
+          <search-field v-model="librarySearch" :placeholder="$t('label.search')" />
           <button class="coil-filter-toggle" type="button" :class="{ 'is-active': onlyCompatible }"
             :title="$t('label.onlyMatchingCoils')" @click="onlyCompatible = !onlyCompatible">
             <span class="icon"><i class="fas" :class="ICONS.coil"></i></span>{{ draft.coilCount }}
@@ -212,7 +210,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
                   :class="draft.songIds.includes(s.id) ? 'fa-check' : 'fa-plus'"></i></span>
             </button>
           </li>
-          <li v-if="filteredLibrary.length === 0" class="pl-empty">{{ $t('label.noResults') }}</li>
+          <li v-if="filteredLibrary.length === 0" class="pl-empty">{{ $t('label.noSongFound') }}</li>
         </ul>
       </section>
 

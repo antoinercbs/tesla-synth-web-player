@@ -584,8 +584,8 @@ $cp-bar-top: 4px;
         border-radius: 0;
     }
 
-    // the MIDI files: the portal's table, its head indigo, its rows in turn
-    .midi-lib__head {
+    // the libraries (MIDI files, songs, playlists): the portal's table, its head indigo, its rows in turn
+    .data-table__head {
         border-bottom: 0;
         background: var(--cp-head);
         color: #ffffff;
@@ -593,11 +593,11 @@ $cp-bar-top: 4px;
         font-weight: 700;
     }
 
-    .midi-lib__item:nth-child(even of .midi-lib__item) {
+    .data-table__row:nth-child(even of .data-table__row) {
         background: var(--cp-zebra);
     }
 
-    .midi-lib__item:nth-child(3n of .midi-lib__item) {
+    .data-table__row:nth-child(3n of .data-table__row) {
         background: var(--cp-yellow);
     }
 

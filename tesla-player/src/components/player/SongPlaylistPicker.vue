@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
+import SearchField from '@/components/ui/SearchField.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration } from '@/utils/format';
 import type { Song, Playlist } from '@/types/domain';
@@ -110,10 +111,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
     <!-- songs library -->
     <template v-if="source === 'songs'">
       <div class="play-pick play-pick--row">
-        <div class="play-search">
-          <span class="play-search__icon"><i class="fas fa-search"></i></span>
-          <input class="text-field" type="text" :placeholder="$t('label.search')" v-model="search" />
-        </div>
+        <search-field v-model="search" :placeholder="$t('label.search')" />
         <div v-if="availableCoilCounts.length > 1" class="select-field coil-select">
           <select v-model="coilFilter">
             <option :value="null">⚡ {{ $t('label.allCoils') }}</option>
@@ -163,7 +161,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
             <span class="icon"><i class="fas fa-plus"></i></span>{{ $t('label.newSong') }}
           </RouterLink>
         </li>
-        <li v-else-if="filteredSongs.length === 0" class="play-empty">{{ $t('label.noResults') }}</li>
+        <li v-else-if="filteredSongs.length === 0" class="play-empty">{{ $t('label.noSongFound') }}</li>
       </ul>
     </template>
 

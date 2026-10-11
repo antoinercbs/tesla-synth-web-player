@@ -7,7 +7,7 @@ import type { AppTag, CoilConfig, CoilEvent, Song, SongStereo } from '@/types/do
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { notify } from '@/utils/toast';
 import { useLeaveGuard } from '@/utils/leave-guard';
-import { useDropdown } from '@/components/editor/dropdown';
+import { useDropdown } from '@/components/ui/dropdown';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 import SearchableSelect from '@/components/ui/SearchableSelect.vue';
@@ -243,7 +243,7 @@ function doDelete(): void {
   if (!id) return;
   axios.delete(`/api/songs/${id}`).then(() => {
     midiStore.deleteMidiSong(id);
-    markSaved(); // nothing left to keep: the way back to the chooser must not ask
+    markSaved(); // nothing left to keep: the way back to the list must not ask
     emit('deleted', id);
   });
 }
@@ -370,20 +370,20 @@ watch(draft, () => emitChange(), { deep: true });
             </span>
           </div>
 
-          <div class="midi-lib__dropdown" :class="{ 'is-open': openMenu === 'tags' }" @keydown="onMenuKey"
+          <div class="dropdown" :class="{ 'is-open': openMenu === 'tags' }" @keydown="onMenuKey"
             @focusin="onMenuFocusIn('tags', $event)" @focusout="onMenuFocusOut">
             <button class="editor-tags__add" type="button" :title="$t('label.addTag')" :aria-label="$t('label.addTag')"
               aria-haspopup="true" :aria-expanded="openMenu === 'tags'" @click="toggleMenu('tags', $event)">
               <i class="fas fa-plus"></i>
             </button>
-            <div class="midi-lib__dropdown-menu">
-              <div class="midi-lib__dropdown-header">{{ $t('label.addTag') }}</div>
-              <button v-for="t in availableTagsToAdd" :key="t.id" class="midi-lib__dropdown-item tag-dropdown-item"
+            <div class="dropdown__menu">
+              <div class="dropdown__header">{{ $t('label.addTag') }}</div>
+              <button v-for="t in availableTagsToAdd" :key="t.id" class="dropdown__item tag-dropdown-item"
                 type="button" @click="addTag(t)">
                 <span class="cfg-name-dot" :style="{ '--c': t.color }"></span>
                 <span class="tag-dropdown-name">{{ t.name }}</span>
               </button>
-              <div v-if="availableTagsToAdd.length" class="midi-lib__dropdown-divider"></div>
+              <div v-if="availableTagsToAdd.length" class="dropdown__divider"></div>
               <form class="tag-new" @submit.prevent="createTag">
                 <input v-model="newTagName" class="text-field tag-new__input" type="text" maxlength="24"
                   :placeholder="$t('label.newTag')" :aria-label="$t('label.newTag')">

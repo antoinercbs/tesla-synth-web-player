@@ -73,7 +73,7 @@ Live changes are sent to the coils as the fader moves and don't alter the saved 
 
 ## Editing a song
 
-Go to **Edit** and create or open a song. A song is a MIDI file plus a **per-coil configuration**.
+Go to **Edit**: it lists your songs the way the MIDI file manager lists files, with a search (name, tag or file), **New song**, and per song its file, length, coils and the playlists holding it. Click a song to open it; its **⋮** menu deletes it. A song is a MIDI file plus a **per-coil configuration**.
 
 - **Name** and **MIDI file**: choose the file this song plays (upload new ones from the MIDI file manager, reachable from the picker).
 - **Coil count**: how many physical coils this song targets (1–6).
@@ -115,7 +115,7 @@ In this 3-coil setup, **coils 0 and 1 play channel 1** and **coil 2 plays channe
 
 ## Playlists
 
-Go to **Playlists** to group songs into an ordered set for a show. A playlist targets a specific **coil count**; only songs authored for that count are meant to play. Reorder, add and remove songs, then play the playlist from the Play screen (with autoplay for a hands-off set).
+Go to **Playlists** to group songs into an ordered set for a show (the list works like the songs': search, **New playlist**, a click opens one). A playlist targets a specific **coil count**; only songs authored for that count are meant to play. Reorder, add and remove songs, then play the playlist from the Play screen (with autoplay for a hands-off set).
 
 ## MIDI files & the MIDI editor
 

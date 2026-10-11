@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { useMidiStore } from "@/stores/midi";
 import { formatDuration } from "@/utils/format";
@@ -7,13 +8,18 @@ import { envelope } from "@/sysex/envelopes";
 import type { MidiFile, Song } from "@/types/domain";
 import { RouterLink } from "vue-router";
 import EmptyState from "@/components/ui/EmptyState.vue";
-import { useDropdown } from "@/components/editor/dropdown";
-import { ICONS } from "@/ui/icons";
+import SearchField from "@/components/ui/SearchField.vue";
+import DataTable from "@/components/ui/DataTable.vue";
+import DropMenu from "@/components/ui/DropMenu.vue";
+import UsageMenu from "@/components/ui/UsageMenu.vue";
+import LibraryConfirm from "@/components/ui/LibraryConfirm.vue";
+import type { DataColumn, Usage } from "@/components/ui/data-table";
 
 /**
  * The MIDI file manager interface: import (button or drop anywhere on it), searchable table,
  * download, delete, and a link to the file's editor. Owns all its own UI state; talks to
- * the host only through `select` (a file to use).
+ * the host only through `select` (a file to use). Its library pieces are shared with the
+ * songs' and the playlists' (SongLibrary, PlaylistLibrary).
  *
  * Presentational + self-contained, so it can be hosted either inside a modal
  * (the editor's MidiLibraryModal) or directly on a page (MidiFilesView) without
@@ -28,6 +34,7 @@ const emit = defineEmits<{
     (e: "select", id: number | null): void;
 }>();
 
+const { t } = useI18n();
 const midiStore = useMidiStore();
 
 const fileInput = ref<HTMLInputElement | null>(null);
@@ -42,7 +49,8 @@ const replaceInput = ref<HTMLInputElement | null>(null);
 const targetReplaceId = ref<number | null>(null);
 const editingId = ref<number | null>(null);
 const editName = ref("");
-const editInputs = ref<HTMLInputElement[]>([]);
+// one name is edited at a time: a single input
+const editInput = ref<HTMLInputElement | null>(null);
 
 const filteredLibrary = computed(() => {
     const q = librarySearch.value.trim().toLowerCase();
@@ -169,13 +177,8 @@ function startEditName(f: MidiFile): void {
     editName.value = f.name;
 
     nextTick(() => {
-        const input = editInputs.value.find(
-            (el) => el && el.dataset.id === String(f.id),
-        );
-        if (input) {
-            input.focus();
-            input.select();
-        }
+        editInput.value?.focus();
+        editInput.value?.select();
     });
 }
 
@@ -235,8 +238,8 @@ const songsByMidi = computed(() => {
     }
     return map;
 });
-function usesOf(f: MidiFile): Song[] {
-    return songsByMidi.value.get(f.id) ?? [];
+function usesOf(f: MidiFile): Usage[] {
+    return (songsByMidi.value.get(f.id) ?? []).map((s) => ({ key: s.id, label: s.name, to: `/edit/${s.id}`, coils: s.coilCount }));
 }
 
 /** Distinct starting instruments, e.g. "P0 · P33 · P48"; the tooltip names them per channel. */
@@ -249,189 +252,103 @@ function programsTitle(f: MidiFile): string | undefined {
     return rows.length ? rows.join("\n") : undefined;
 }
 
-const {
-    open: openMenu,
-    toggle: toggleMenu,
-    close: closeMenu,
-    onKeydown: onMenuKey,
-    onFocusIn: onMenuFocusIn,
-    onFocusOut: onMenuFocusOut,
-} = useDropdown();
-function onMenuButton(key: string, e: MouseEvent): void {
-    const wrapper = (e.currentTarget as HTMLElement).closest<HTMLElement>(".midi-lib__dropdown");
-    toggleMenu(key, e);
-    if (openMenu.value === key && wrapper) alignDropdown(wrapper);
-}
-
-/** Flips the menu upwards when it would overflow the bottom of the list. */
-function alignDropdown(wrapper: HTMLElement): void {
-    const menu = wrapper.querySelector<HTMLElement>(".midi-lib__dropdown-menu");
-    const list = wrapper.closest<HTMLElement>(".midi-lib__list");
-    if (!menu || !list) return;
-
-    // Measured while forced visible, then restored: the menu is display:none
-    // until opened, and a hidden element has no height to measure.
-    const originalDisplay = menu.style.display;
-    menu.style.display = "flex";
-    const overflows =
-        wrapper.getBoundingClientRect().bottom + menu.offsetHeight + 10 >
-        list.getBoundingClientRect().bottom;
-    menu.style.display = originalDisplay;
-
-    menu.classList.toggle("is-dropup", overflows);
-}
+const columns = computed<DataColumn[]>(() => [
+    { key: "name", label: t("label.fileName"), width: "minmax(0, 1fr)" },
+    { key: "duration", label: t("label.duration"), width: "4.2rem", narrowWidth: "3.4rem", num: true },
+    { key: "channels", label: t("label.channels"), width: "4.2rem", num: true, hide: "narrow" },
+    { key: "programs", label: t("label.instruments"), width: "minmax(0, 10rem)", hide: "narrow" },
+    { key: "uses", label: t("label.usedBy"), width: "7.5rem", narrowWidth: "6rem" },
+]);
 </script>
 
 <template>
-    <div class="midi-lib" style="height: 100%" @dragenter="onDragEnter" @dragover="onDragOver"
+    <div class="lib midi-lib" style="height: 100%" @dragenter="onDragEnter" @dragover="onDragOver"
         @dragleave="onDragLeave" @drop="onDrop">
         <input ref="fileInput" type="file" accept=".mid,.midi" style="display: none" @change="onFileChosen" />
         <input ref="replaceInput" type="file" accept=".mid,.midi" style="display: none" @change="onReplaceFileChosen" />
 
-        <div class="midi-lib__bar">
-            <div class="midi-lib__search">
-                <span class="midi-lib__search-icon"><i class="fas fa-search"></i></span>
-                <input class="text-field" type="text" v-model="librarySearch" :placeholder="$t('label.searchFile')" />
-            </div>
+        <div class="lib__bar">
+            <search-field v-model="librarySearch" :placeholder="$t('label.searchFile')" />
             <button class="btn btn--volt" type="button" :disabled="uploading" @click="pickFile">
                 <span class="icon"><i class="fas" :class="uploading ? 'fa-spinner fa-spin' : 'fa-cloud-arrow-up'"></i></span>
                 <span>{{ $t("label.import") }}</span>
             </button>
         </div>
-        <p class="midi-lib__hint">{{ $t("label.dropMidiAnywhere") }}</p>
+        <p class="lib__hint">{{ $t("label.dropMidiAnywhere") }}</p>
 
-        <div v-if="uploadMsg && !pendingDelete" class="midi-lib__msg" :class="uploadMsg.type">
-            <i class="fas" :class="uploadMsg.type === 'success'
-                ? 'fa-circle-check'
-                : 'fa-circle-exclamation'
-                "></i>
+        <div v-if="uploadMsg && !pendingDelete" class="lib__msg" :class="`is-${uploadMsg.type}`">
+            <i class="fas" :class="uploadMsg.type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'"></i>
             <span v-if="uploadMsg.type === 'success'">{{ uploadMsg.name }} · {{ $t("label.uploaded") }}</span>
             <span v-else>{{ $t("label.uploadFailed") }}</span>
         </div>
 
-        <div v-if="pendingDelete" class="midi-lib__msg confirm">
-            <span class="midi-lib__confirm-text">
-                <i class="fas fa-triangle-exclamation"></i>
-                {{ $t("label.deleteQuestion") }} « {{ pendingDelete.name }} » ?
-            </span>
-            <span class="midi-lib__confirm-actions">
-                <button class="btn btn--danger" type="button" @click="confirmDelete">
-                    {{ $t("label.confirm") }}
-                </button>
-                <button class="btn btn--ghost" type="button" @click="cancelDelete">
-                    {{ $t("label.cancel") }}
-                </button>
-            </span>
-        </div>
+        <library-confirm v-if="pendingDelete" :name="pendingDelete.name" @confirm="confirmDelete" @cancel="cancelDelete" />
 
-        <div class="midi-lib__table">
-            <div class="midi-lib__list">
-                <div v-if="filteredLibrary.length" class="midi-lib__head">
-                    <span>{{ $t("label.fileName") }}</span>
-                    <span class="is-num">{{ $t("label.duration") }}</span>
-                    <span class="is-num midi-lib__col-ch">{{ $t("label.channels") }}</span>
-                    <span class="midi-lib__col-prog">{{ $t("label.instruments") }}</span>
-                    <span>{{ $t("label.usedBy") }}</span>
-                    <span></span>
-                </div>
-                <div v-for="f in filteredLibrary" :key="f.id" class="midi-lib__item"
-                    :class="{ 'is-current': f.id === currentId }">
-                    <span v-if="editingId === f.id" class="midi-lib__item-name-edit">
-                        <input type="text" v-model="editName" :data-id="f.id" ref="editInputs"
-                            @keyup.enter="saveEditName(f)" @keyup.esc="cancelEditName" @blur="saveEditName(f)" />
-                        <button type="button" class="midi-lib__edit-icon" :title="$t('label.confirm')"
-                            @mousedown.prevent="saveEditName(f)">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button type="button" class="midi-lib__edit-icon is-cancel" :title="$t('label.cancel')"
-                            @mousedown.prevent="cancelEditName">
-                            <i class="fas fa-xmark"></i>
-                        </button>
-                    </span>
-                    <span v-else class="midi-lib__item-name" @dblclick="startEditName(f)">
-                        {{ f.name }}
-                    </span>
-                    <span class="midi-lib__item-dur">{{ formatDuration(f.durationMs) }}</span>
-                    <span class="midi-lib__item-ch midi-lib__col-ch">{{ f.channels ?? "–" }}</span>
-                    <span class="midi-lib__item-prog midi-lib__col-prog" :title="programsTitle(f)">
-                        {{ programsLabel(f) }}
-                    </span>
-                    <!-- who depends on the file, before anyone deletes it -->
-                    <div class="midi-lib__usages midi-lib__dropdown" :class="{ 'is-open': openMenu === `uses-${f.id}` }"
-                        @mouseenter="alignDropdown($event.currentTarget as HTMLElement)" @keydown="onMenuKey"
-                        @focusin="onMenuFocusIn(`uses-${f.id}`, $event)" @focusout="onMenuFocusOut">
-                        <button v-if="usesOf(f).length" class="midi-lib__usages-text" type="button" aria-haspopup="true"
-                            :aria-expanded="openMenu === `uses-${f.id}`" @click="onMenuButton(`uses-${f.id}`, $event)">
-                            {{ $t("label.songsCount", usesOf(f).length) }}
-                        </button>
-                        <span v-else class="midi-lib__usages-text is-none">—</span>
-                        <div v-if="usesOf(f).length" class="midi-lib__dropdown-menu is-usages" @click="closeMenu()">
-                            <div class="midi-lib__dropdown-header">
-                                {{ $t("label.usedFor") }}
-                            </div>
-                            <RouterLink v-for="s in usesOf(f)" :key="s.id" class="midi-lib__dropdown-item"
-                                :to="`/edit/${s.id}`">
-                                <span class="midi-lib__usage-title">{{ s.name }}</span>
-                                <span class="midi-lib__usage-coils">
-                                    &middot; {{ s.coilCount }} <i class="fas" :class="ICONS.coil"></i>
-                                </span>
-                            </RouterLink>
-                        </div>
-                    </div>
-                    <div class="midi-lib__item-actions">
-                        <RouterLink class="midi-lib__dl" :to="{ name: 'midi-edit', params: { id: f.id } }"
-                            :title="$t('midiEditor.open')" :aria-label="$t('midiEditor.open')">
-                            <i class="fas fa-pen-to-square"></i>
-                        </RouterLink>
-                        <div class="midi-lib__dropdown" :class="{ 'is-open': openMenu === `actions-${f.id}` }"
-                            @mouseenter="alignDropdown($event.currentTarget as HTMLElement)" @keydown="onMenuKey"
-                            @focusin="onMenuFocusIn(`actions-${f.id}`, $event)" @focusout="onMenuFocusOut">
-                            <button class="midi-lib__action" type="button" :aria-label="$t('label.moreOptions')"
-                                aria-haspopup="true" :aria-expanded="openMenu === `actions-${f.id}`"
-                                @click="onMenuButton(`actions-${f.id}`, $event)">
-                                <i class="fas fa-ellipsis-vertical"></i>
-                            </button>
-                            <div class="midi-lib__dropdown-menu" @click="closeMenu(true)">
-                                <button class="midi-lib__dropdown-item" type="button" @click="startEditName(f)">
-                                    <i class="fa-solid fa-pen"></i>
-                                    <span>{{ $t("label.rename") }}</span>
-                                </button>
-                                <button class="midi-lib__dropdown-item" type="button" @click="triggerReplace(f)">
-                                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                                    <span>{{ $t("label.replaceFile") }}</span>
-                                </button>
-                                <button class="midi-lib__dropdown-item" type="button" @click="downloadFile(f)">
-                                    <i class="fas fa-download"></i>
-                                    <span>{{ $t("label.download") }}</span>
-                                </button>
-
-                                <div class="midi-lib__dropdown-divider"></div>
-
-                                <button class="midi-lib__dropdown-item is-danger" type="button"
-                                    @click="requestDelete(f)">
-                                    <i class="fas fa-trash"></i>
-                                    <span>{{ $t("label.delete") }}</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div v-if="midiStore.midiFileList.length === 0" class="midi-lib__empty">
+        <data-table :columns="columns" :rows="filteredLibrary" :row-key="(f) => f.id" :current="currentId">
+            <template #cell-name="{ row: f }">
+                <span v-if="editingId === f.id" class="midi-lib__name-edit">
+                    <input type="text" v-model="editName" ref="editInput"
+                        @keyup.enter="saveEditName(f)" @keyup.esc="cancelEditName" @blur="saveEditName(f)" />
+                    <button type="button" class="midi-lib__edit-icon" :title="$t('label.confirm')"
+                        @mousedown.prevent="saveEditName(f)">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button type="button" class="midi-lib__edit-icon is-cancel" :title="$t('label.cancel')"
+                        @mousedown.prevent="cancelEditName">
+                        <i class="fas fa-xmark"></i>
+                    </button>
+                </span>
+                <span v-else class="data-table__name" @dblclick="startEditName(f)">{{ f.name }}</span>
+            </template>
+            <template #cell-duration="{ row: f }">{{ formatDuration(f.durationMs) }}</template>
+            <template #cell-channels="{ row: f }">{{ f.channels ?? "–" }}</template>
+            <template #cell-programs="{ row: f }">
+                <span class="data-table__text mono" :title="programsTitle(f)">{{ programsLabel(f) }}</span>
+            </template>
+            <!-- who depends on the file, before anyone deletes it -->
+            <template #cell-uses="{ row: f }">
+                <usage-menu :items="usesOf(f)" :count="$t('label.songsCount', usesOf(f).length)" :header="$t('label.usedFor')" />
+            </template>
+            <template #actions="{ row: f }">
+                <RouterLink class="data-table__btn midi-lib__edit-link" :to="{ name: 'midi-edit', params: { id: f.id } }"
+                    :title="$t('midiEditor.open')" :aria-label="$t('midiEditor.open')">
+                    <i class="fas fa-pen-to-square"></i>
+                </RouterLink>
+                <drop-menu>
+                    <button class="dropdown__item" type="button" @click="startEditName(f)">
+                        <i class="fa-solid fa-pen"></i>
+                        <span>{{ $t("label.rename") }}</span>
+                    </button>
+                    <button class="dropdown__item" type="button" @click="triggerReplace(f)">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <span>{{ $t("label.replaceFile") }}</span>
+                    </button>
+                    <button class="dropdown__item" type="button" @click="downloadFile(f)">
+                        <i class="fas fa-download"></i>
+                        <span>{{ $t("label.download") }}</span>
+                    </button>
+                    <div class="dropdown__divider"></div>
+                    <button class="dropdown__item is-danger" type="button" @click="requestDelete(f)">
+                        <i class="fas fa-trash"></i>
+                        <span>{{ $t("label.delete") }}</span>
+                    </button>
+                </drop-menu>
+            </template>
+            <template #empty>
+                <template v-if="midiStore.midiFileList.length === 0">
                     <empty-state variant="stub" icon="fa-folder-open">{{ $t("label.noMidiFilesYet") }}</empty-state>
                     <button class="btn btn--volt" type="button" @click="pickFile">
                         <span class="icon"><i class="fas fa-cloud-arrow-up"></i></span>
                         <span>{{ $t("label.import") }}</span>
                     </button>
-                </div>
-                <div v-else-if="filteredLibrary.length === 0" class="midi-lib__empty">
-                    {{ $t("label.noResults") }}
-                </div>
-            </div>
-        </div>
+                </template>
+                <template v-else>{{ $t("label.noResults") }}</template>
+            </template>
+        </data-table>
 
         <!-- only while files are dragged over; pointer-events: none keeps the drag depth count on the rows below -->
-        <div v-if="dragActive" class="midi-lib__drop">
-            <span class="midi-lib__drop-icon"><i class="fas fa-cloud-arrow-up"></i></span>
+        <div v-if="dragActive" class="lib__drop">
+            <span class="lib__drop-icon"><i class="fas fa-cloud-arrow-up"></i></span>
             <span>{{ $t("label.dropToImport") }}</span>
         </div>
     </div>

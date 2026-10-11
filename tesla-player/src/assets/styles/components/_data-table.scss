@@ -1,0 +1,228 @@
+// ===========================================================================
+//  DATA TABLE
+// ===========================================================================
+// The libraries' tables (ui/DataTable.vue): the MIDI files, the songs, the
+// playlists. The component writes the columns: --dt-cols, --dt-cols-narrow (the
+// columns a narrow table keeps) and --dt-actions (the actions column). A phone's
+// table turns each row into two lines: the first column, then the others, the
+// actions on the right.
+//   --dt-max-h  how tall the rows may grow before they scroll (a page of its
+//               own lets them fill it: .lib-page)
+
+// hugs its rows; only scrolls once they outgrow the space
+.data-table {
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    overflow: hidden;
+    container-type: inline-size;
+}
+
+.data-table__scroll {
+    --dt-grid: var(--dt-cols);
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: var(--dt-max-h, 42vh);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.data-table__head,
+.data-table__row {
+    display: grid;
+    grid-template-columns: var(--dt-grid);
+    gap: var(--sp-3);
+    align-items: center;
+    padding-inline: var(--sp-3);
+}
+
+.data-table__head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding-block: 0.55rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-mute);
+}
+
+.data-table__th.is-num {
+    text-align: right;
+}
+
+.data-table__row {
+    position: relative;
+    min-height: 2.9rem;
+    padding-block: 0.3rem;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.13s;
+}
+
+.data-table__row:hover {
+    background: var(--line-005);
+}
+
+// the whole row opens the item; its name is the link the keyboard reaches
+.data-table__row.is-link {
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.data-table__row.is-link:hover .data-table__name {
+    color: var(--volt);
+}
+
+/* the item in use: same micro-arc edge as the song on air */
+.data-table__row.is-current {
+    background: var(--volt-08);
+}
+
+.data-table__row.is-current::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+    mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+}
+
+// no overflow here: a cell may hold a menu
+.data-table__cell {
+    min-width: 0;
+}
+
+.data-table__cell.is-num {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+.data-table__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+
+.data-table__name {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    color: var(--text-strong);
+    text-decoration: none;
+    transition: color 0.13s;
+}
+
+a.data-table__name:focus-visible {
+    color: var(--volt);
+}
+
+// a secondary fact: a file name, a list of instruments
+.data-table__text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+// a row of chips (a song's tags), cut at the column's edge
+.data-table__chips {
+    display: flex;
+    gap: 0.35rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+// a bare icon button or link among the actions
+.data-table__btn {
+    background: none;
+    border: 0;
+    cursor: var(--cursor-pointer, pointer);
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    display: grid;
+    place-items: center;
+}
+
+.data-table__btn:hover {
+    color: var(--volt);
+}
+
+.data-table__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-3) var(--sp-5);
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+    text-align: center;
+}
+
+@container (max-width: 540px) {
+    .data-table__scroll {
+        --dt-grid: var(--dt-cols-narrow);
+    }
+
+    .data-table__th.is-hide-narrow,
+    .data-table__cell.is-hide-narrow {
+        display: none;
+    }
+}
+
+/* phones: two-line rows (the first column, then the others) instead of starving the first column */
+@container (max-width: 420px) {
+    .data-table__head {
+        display: none;
+    }
+
+    .data-table__row {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--sp-3);
+        row-gap: 0;
+        padding-block: 0.45rem;
+        padding-right: calc(var(--dt-actions) + var(--sp-3) * 2);
+    }
+
+    .data-table__cell {
+        flex: 0 0 auto;
+    }
+
+    .data-table__cell.is-main {
+        flex-basis: 100%;
+    }
+
+    .data-table__cell.is-num {
+        text-align: left;
+    }
+
+    .data-table__cell.is-hide-phone {
+        display: none;
+    }
+
+    // no transform to centre it: that would make each row's menu a layer under the next row
+    .data-table__actions {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: var(--sp-3);
+    }
+}

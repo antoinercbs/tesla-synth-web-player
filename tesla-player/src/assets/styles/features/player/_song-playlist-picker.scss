@@ -88,27 +88,6 @@
     flex: 0 0 auto;
 }
 
-.play-search {
-    position: relative;
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.play-search .text-field {
-    width: 100%;
-    padding-left: 2.2rem;
-}
-
-.play-search__icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-mute);
-    pointer-events: none;
-    font-size: var(--fs-md);
-}
-
 .coil-select {
     flex: 0 0 auto;
     width: auto;

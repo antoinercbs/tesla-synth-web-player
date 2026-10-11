@@ -3,6 +3,11 @@ import { ref } from 'vue';
 import { notify } from '@/utils/toast';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
+import SearchField from '@/components/ui/SearchField.vue';
+import DataTable from '@/components/ui/DataTable.vue';
+import DropMenu from '@/components/ui/DropMenu.vue';
+import UsageMenu from '@/components/ui/UsageMenu.vue';
+import type { DataColumn } from '@/components/ui/data-table';
 import { ICONS } from '@/ui/icons';
 
 /**
@@ -23,6 +28,18 @@ const tab = ref('a');
 const mode = ref('one');
 const text = ref('');
 const on = ref(true);
+const search = ref('');
+const COLUMNS: DataColumn[] = [
+  { key: 'name', label: 'Name', width: 'minmax(0, 1fr)' },
+  { key: 'duration', label: 'Length', width: '4.2rem', num: true },
+  { key: 'note', label: 'Dropped when narrow', width: 'minmax(0, 10rem)', hide: 'narrow' },
+  { key: 'uses', label: 'Used by', width: '7.5rem' },
+];
+const ROWS = [
+  { id: 1, name: 'Korobeiniki', duration: '1:17', note: 'P0 · P33' },
+  { id: 2, name: 'Ode to Joy (current row)', duration: '0:52', note: 'P0' },
+];
+const USES = [{ key: 1, label: 'Korobeiniki (Tetris)', to: '/edit', coils: 3 }];
 </script>
 
 <template>
@@ -111,6 +128,28 @@ const on = ref(true);
             <span class="switch__track"></span>
             <span class="switch__text">Switch</span>
           </label>
+        </div>
+      </section>
+
+      <section class="sg-block">
+        <h2 class="sg-title">Library — search, main action, table (MIDI files, songs, playlists)</h2>
+        <div class="lib">
+          <div class="lib__bar">
+            <search-field v-model="search" placeholder="Search field" />
+            <button class="btn btn--volt" type="button"><span class="icon"><i class="fas fa-plus"></i></span>Main action</button>
+          </div>
+          <data-table :columns="COLUMNS" :rows="ROWS" :row-key="(r) => r.id" :current="2">
+            <template #cell-name="{ row }"><span class="data-table__name">{{ row.name }}</span></template>
+            <template #cell-note="{ row }"><span class="data-table__text mono">{{ row.note }}</span></template>
+            <template #cell-uses="{ row }"><usage-menu :items="row.id === 1 ? USES : []" count="1 song" header="Used for:" /></template>
+            <template #actions>
+              <drop-menu>
+                <button class="dropdown__item" type="button"><i class="fas fa-pen"></i><span>Rename</span></button>
+                <div class="dropdown__divider"></div>
+                <button class="dropdown__item is-danger" type="button"><i class="fas fa-trash"></i><span>Delete</span></button>
+              </drop-menu>
+            </template>
+          </data-table>
         </div>
       </section>
 

@@ -9,6 +9,71 @@
     gap: 1.1rem;
 }
 
+// the choice the page opens on (components/_chooser.scss lays it out): a new
+// tuning, the free meter, the history
+.tune-intro__card {
+    max-width: min(880px, 100%);
+}
+
+.tune-intro__choices {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    text-align: left;
+}
+
+.tune-choice {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 1.2rem 1.1rem 1.1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    color: var(--text-dim);
+    text-decoration: none;
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+}
+
+.tune-choice:hover,
+.tune-choice:focus-visible {
+    border-color: var(--volt);
+    background: var(--volt-08);
+}
+
+.tune-choice__icon {
+    margin-bottom: 0.3rem;
+    font-size: var(--fs-2xl);
+    color: var(--volt);
+}
+
+.tune-choice__title {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.tune-choice__text {
+    font-size: var(--fs-sm);
+    line-height: 1.45;
+}
+
+.tune-choice__meta {
+    margin-top: auto;
+    padding-top: 0.4rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+@media (max-width: 1000px) {
+    .tune-intro__choices {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
 // stepper
 .stepper {
     list-style: none;
@@ -604,12 +669,6 @@ label.tune-field:hover {
 .view-head__title .tune-running {
     margin-left: 1rem;
     font-weight: 500;
-}
-
-.tune-head-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
 }
 
 .tune-live-dot {

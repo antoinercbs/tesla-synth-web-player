@@ -1,18 +1,11 @@
 <template>
-  <!-- No song selected: a sober, centred chooser (pick existing OR create new) -->
-  <div v-if="isChooser" class="edit-chooser">
-    <div class="edit-chooser__card">
+  <!-- No song selected: the songs, listed like the MIDI files (search, new song, table) -->
+  <div v-if="isChooser" class="screen">
+    <header class="screen-head">
       <h1 class="view-head__title">{{ $t('nav.edit') }}<page-tour-button id="edit" /></h1>
-      <p class="edit-chooser__hint">{{ $t('label.chooseOrCreate') }}</p>
-      <div class="edit-chooser__actions">
-        <searchable-select class="edit-chooser__pick" v-model="chooserPick" :items="songItems"
-          :label="$t('label.selectSongToEdit')" :placeholder="$t('label.selectSongToEdit')" />
-        <span class="edit-chooser__or">{{ $t('label.or') }}</span>
-        <button class="btn btn--volt" type="button" @click="newSong">
-          <span class="icon"><i class="fas fa-file-circle-plus"></i></span>
-          {{ $t('label.newSong') }}
-        </button>
-      </div>
+    </header>
+    <div class="screen-body lib-page">
+      <song-library />
     </div>
   </div>
 
@@ -45,7 +38,7 @@ import { mapStores } from 'pinia'
 import { useMidiStore } from '@/stores/midi'
 import SongEditor from '@/components/editor/SongEditor.vue'
 import MidiPlayer from '@/components/player/MidiPlayer.vue'
-import SearchableSelect from '@/components/ui/SearchableSelect.vue'
+import SongLibrary from '@/components/editor/SongLibrary.vue'
 import ResizeHandle from '@/components/ui/ResizeHandle.vue'
 import PageTourButton from '@/components/tour/PageTourButton.vue'
 
@@ -54,7 +47,7 @@ const DOCK_MAX = 760
 
 export default {
   name: 'EditView',
-  components: { SongEditor, MidiPlayer, SearchableSelect, ResizeHandle, PageTourButton },
+  components: { SongEditor, MidiPlayer, SongLibrary, ResizeHandle, PageTourButton },
   data() {
     return {
       playing: false,
@@ -105,10 +98,7 @@ export default {
       return !list.some(s => s.id === Number(id))
     },
     isChooser() {
-      return this.routeId == null
-    },
-    songItems() {
-      return this.midiStore.midiSongList.map(s => ({ id: s.id, label: s.name ? `${s.name} ${s.tags.map((t) => " - " + t.name).join("")}  ·  ${s.coilCount}⚡` : `#${s.id}` }))
+      return !this.routeId
     },
     currentSong() {
       const id = Number(this.routeId)
@@ -117,10 +107,6 @@ export default {
     },
     headTitle() {
       return this.currentSong ? (this.currentSong.name || `#${this.currentSong.id}`) : this.$t('label.newSong')
-    },
-    chooserPick: {
-      get() { return null },
-      set(id) { if (id) this.$router.push({ name: 'edit', params: { id: String(id) } }) }
     },
     // editor : player = 2 : 1 by default; once dragged, editor fills the rest.
     editorStyle() {
@@ -147,9 +133,6 @@ export default {
     saveDockWidth() {
       if (this.dockWidth != null) localStorage.setItem('editDockWidth', String(this.dockWidth))
     },
-    newSong() {
-      this.$router.push({ name: 'edit', params: { id: 'new' } })
-    },
     onSaved(song) {
       if (String(song.id) !== String(this.routeId)) {
         this.$router.replace({ name: 'edit', params: { id: String(song.id) } })
@@ -159,7 +142,7 @@ export default {
       this.$refs.player?.loadSong(song)
     },
     onDeleted() {
-      // song removed from the store by the editor → back to the chooser
+      // song removed from the store by the editor → back to the songs
       this.$router.push({ name: 'edit', params: {} })
     },
     onScroll() {

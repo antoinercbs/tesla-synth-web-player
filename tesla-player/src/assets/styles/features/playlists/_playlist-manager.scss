@@ -109,27 +109,6 @@
     border-bottom: 1px solid var(--line);
 }
 
-.pl-search__box {
-    position: relative;
-    flex: 1 1 auto;
-    min-width: 0;
-}
-
-.pl-search__box .text-field {
-    width: 100%;
-    padding-left: 2.2rem;
-}
-
-.pl-search__icon {
-    position: absolute;
-    left: 0.75rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-mute);
-    pointer-events: none;
-    font-size: var(--fs-md);
-}
-
 .coil-filter-toggle {
     display: inline-flex;
     align-items: center;

@@ -3,8 +3,8 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import PlaylistManager from '@/components/playlists/PlaylistManager.vue';
+import PlaylistLibrary from '@/components/playlists/PlaylistLibrary.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
 import type { Playlist } from '@/types/domain';
 
@@ -12,12 +12,10 @@ const route = useRoute();
 const router = useRouter();
 const midiStore = useMidiStore();
 const playlists = ref<Playlist[]>([]);
+const loading = ref(true);
 
 const routeId = computed(() => route.params.id as string | undefined);
-const isChooser = computed(() => routeId.value == null);
-const playlistItems = computed(() =>
-  playlists.value.map((p) => ({ id: p.id, label: `${p.name} · ${p.coilCount}⚡` })),
-);
+const isChooser = computed(() => !routeId.value);
 const headTitle = computed(() => {
   if (routeId.value === 'new' || routeId.value == null) return '';
   const p = playlists.value.find((x) => x.id === Number(routeId.value));
@@ -31,7 +29,7 @@ function loadPlaylists(): void {
       songIds: (p.songIds ?? []).filter((id) => id != null),
     }));
     checkValidId();
-  });
+  }).finally(() => { loading.value = false; });
 }
 loadPlaylists();
 // Re-read after a desktop sync may have changed playlists locally.
@@ -51,12 +49,6 @@ watch(routeId, () => {
   checkValidId();
 });
 
-// picking in the chooser navigates to the editor (getter stays null so it resets)
-const chooserPick = computed<number | null>({
-  get: () => null,
-  set: (id) => { if (id != null) router.push({ name: 'playlists', params: { id: String(id) } }); },
-});
-function newPlaylist(): void { router.push({ name: 'playlists', params: { id: 'new' } }); }
 
 function onSaved(p: Playlist): void {
   const i = playlists.value.findIndex((x) => x.id === p.id);
@@ -68,7 +60,7 @@ function onSaved(p: Playlist): void {
 }
 function onDeleted(id: number): void {
   playlists.value = playlists.value.filter((p) => p.id !== id);
-  router.push({ name: 'playlists', params: {} });
+  if (!isChooser.value) router.push({ name: 'playlists', params: {} });
 }
 const dirty = ref(false);
 
@@ -95,19 +87,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <!-- chooser: pick an existing playlist or create a new one -->
-  <div v-if="isChooser" class="edit-chooser">
-    <div class="edit-chooser__card">
+  <!-- no playlist open: the playlists, listed like the MIDI files (search, new playlist, table) -->
+  <div v-if="isChooser" class="screen">
+    <header class="screen-head">
       <h1 class="view-head__title">{{ $t('nav.playlists') }}<page-tour-button id="playlists" /></h1>
-      <p class="edit-chooser__hint">{{ $t('label.chooseOrCreatePlaylist') }}</p>
-      <div class="edit-chooser__actions">
-        <searchable-select class="edit-chooser__pick" v-model="chooserPick" :items="playlistItems"
-          :placeholder="$t('label.pickPlaylist')" />
-        <span class="edit-chooser__or">{{ $t('label.or') }}</span>
-        <button class="btn btn--volt" type="button" @click="newPlaylist">
-          <span class="icon"><i class="fas fa-plus"></i></span>{{ $t('label.newPlaylist') }}
-        </button>
-      </div>
+    </header>
+    <div class="screen-body lib-page">
+      <playlist-library :playlists="playlists" :loading="loading" @deleted="onDeleted" />
     </div>
   </div>
 

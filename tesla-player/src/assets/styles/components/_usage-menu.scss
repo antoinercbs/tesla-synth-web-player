@@ -1,0 +1,68 @@
+// ===========================================================================
+//  USAGE MENU
+// ===========================================================================
+// ui/UsageMenu.vue: who depends on an item (the songs playing a MIDI file, the
+// playlists holding a song), as a count that opens the list.
+
+.uses__count {
+    display: block;
+    padding: 0.3rem 0;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    white-space: nowrap;
+    cursor: var(--cursor-default, default);
+    transition: color 0.15s;
+}
+
+button.uses__count {
+    background: none;
+    border: 0;
+    font-family: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.uses__count.is-none {
+    color: var(--text-mute);
+}
+
+.uses:hover .uses__count,
+.uses.is-open .uses__count {
+    color: var(--volt);
+}
+
+/* opens leftwards, over the number columns: the table clips anything past its right edge */
+.uses__menu {
+    min-width: 200px;
+    width: auto;
+    max-width: 300px;
+}
+
+.uses__menu .dropdown__item {
+    justify-content: space-between;
+}
+
+.uses__title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+}
+
+.dropdown__item:hover .uses__title,
+.dropdown__item:focus-visible .uses__title {
+    text-decoration: underline;
+}
+
+.uses__coils {
+    color: var(--text-mute);
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-family: var(--font-mono);
+    padding-top: 2px;
+}
+
+.uses__coils i {
+    color: var(--volt);
+}

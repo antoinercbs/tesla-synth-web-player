@@ -1,17 +1,17 @@
 import { nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 
 /**
- * Opens the `.midi-lib__dropdown` menus on a click, a tap or Enter (a mouse
- * still opens them on hover, see _midi-library.scss): one at a time, keyed by
- * the caller, closed by a click elsewhere, by tabbing out, or by Esc, which
- * gives the focus back to the button.
+ * Opens the `.dropdown` menus on a click, a tap or Enter (a mouse still opens
+ * them on hover, see components/_dropdown.scss): one at a time, keyed by the
+ * caller, closed by a click elsewhere, by tabbing out, or by Esc, which gives
+ * the focus back to the button. DropMenu.vue wraps one menu in it.
  */
 export function useDropdown() {
   const open = ref<string | null>(null);
   let root: HTMLElement | null = null;
 
   const focusables = (): HTMLElement[] =>
-    [...(root?.querySelectorAll<HTMLElement>('.midi-lib__dropdown-menu :is(button, a, input):not(:disabled)') ?? [])];
+    [...(root?.querySelectorAll<HTMLElement>('.dropdown__menu :is(button, a, input):not(:disabled)') ?? [])];
 
   function close(refocus = false): void {
     if (refocus) root?.querySelector<HTMLElement>('[aria-haspopup]')?.focus();
@@ -24,7 +24,7 @@ export function useDropdown() {
       return;
     }
     open.value = key;
-    root = (e.currentTarget as HTMLElement).closest<HTMLElement>('.midi-lib__dropdown');
+    root = (e.currentTarget as HTMLElement).closest<HTMLElement>('.dropdown');
     // detail 0: pressed from the keyboard, whose user needs the focus in the menu
     if (e.detail === 0) nextTick(() => focusables()[0]?.focus());
   }
@@ -45,7 +45,7 @@ export function useDropdown() {
   }
   // into a menu shown by hover (its field typed in, an item tabbed to): it stays when the mouse leaves
   function onFocusIn(key: string, e: FocusEvent): void {
-    if (open.value === key || !(e.target as HTMLElement).closest('.midi-lib__dropdown-menu')) return;
+    if (open.value === key || !(e.target as HTMLElement).closest('.dropdown__menu')) return;
     open.value = key;
     root = e.currentTarget as HTMLElement;
   }

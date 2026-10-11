@@ -47,7 +47,7 @@ export interface TourStep {
   /** the note's icon, when not the kind's own */
   noteIcon?: string;
   tiles?: boolean;
-  route: { name: string; params?: Record<string, string> };
+  route: { name: string; params?: Record<string, string>; query?: Record<string, string> };
   target?: string;
   placement?: TourPlacement;
   click?: string | string[];
@@ -65,7 +65,10 @@ const DEMO_PLAYLIST = { name: 'playlists', params: { id: String(DEMO_PLAYLIST_ID
 const MIDI = { name: 'midi' };
 const DEMO_FILE = { name: 'midi-edit', params: { id: String(DEMO_FILE_ID) } };
 const DEMO_ENVELOPE = { name: 'envelopes', params: { program: String(DEMO_ENVELOPE_PROGRAM) } };
+// the tuning page opens on a choice; the session and the history are ?view= of it
 const TUNE = { name: 'tune' };
+const TUNE_SESSION = { name: 'tune', query: { view: 'session' } };
+const TUNE_HISTORY = { name: 'tune', query: { view: 'history' } };
 const SYNTHERRUPTER = { name: 'syntherrupter' };
 // the player's coil lanes: their setting tabs, in their order: ontime, duty
 const paramTab = (n: number): string => `.player-viz .preview__param button:nth-of-type(${n})`;
@@ -87,7 +90,7 @@ export const MAIN_STEPS: TourStep[] = [
   { id: 'pathSong', icon: 'fa-pencil', points: [ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'pathPlaylist', icon: 'fa-list-ul', route: DEMO_PLAYLIST, target: '.pl-panes', placement: 'top' },
   // the hardware
-  { id: 'pathTune', wide: true, icon: ICONS.tuning, route: TUNE, target: '.stepper', placement: 'bottom' },
+  { id: 'pathTune', wide: true, icon: ICONS.tuning, route: TUNE, target: '.tune-intro__choices', placement: 'bottom' },
   // the demo's device (demo/fake-device.ts) opens this page even with nothing plugged in
   { id: 'pathSyntherrupter', wide: true, icon: ICONS.interrupter, note: 'tip', route: SYNTHERRUPTER, target: '.sy-block--coils', placement: 'bottom' },
   // advanced: in passing
@@ -161,9 +164,8 @@ const ENVELOPE_STEPS: TourStep[] = [
 // the wizard's stepper (settings, camera, trials, save): enabled when reachable and not current
 const wizardStep = (n: number): string => `.stepper__item:nth-child(${n}) .stepper__btn:not(:disabled)`;
 const settingsPanel = (n: number): string => `.wiz-grid.three > .tune-panel:nth-child(${n})`;
-// the side column's switch (primary, camera) and the page's tabs (tuning, history), when not selected
+// the side column's switch (primary, camera), when not selected
 const sideTab = (n: number): string => `.tune-side__switch button:nth-of-type(${n}):not(.is-active)`;
-const modeTab = (n: number): string => `.mode-switch button:nth-of-type(${n}):not(.is-active)`;
 // Run trial, then its confirmation; the trial is over when Run is back and enabled
 const RUN = ['.tune-run__go:not(:disabled)', '.modal-card--confirm .btn--danger'];
 const RUN_DONE = '.tune-run__go:not(:disabled)';
@@ -172,29 +174,29 @@ const PHONE = '.fphone__device';
 const zoneGrip = (key: string): string => `.fphone__handle[data-k="${key}"]`;
 
 const TUNE_STEPS: TourStep[] = [
-  { id: 'tuneIntro', icon: ICONS.tuning, points: ['fa-mobile-screen', 'fa-music', 'fa-chart-line'], note: 'tip', noteIcon: 'fa-flask', route: TUNE },
-  { id: 'tuneCoil', icon: ICONS.coil, note: 'tip', route: TUNE, target: settingsPanel(1), placement: 'right', click: wizardStep(1) },
-  { id: 'tuneTone', icon: 'fa-music', note: 'tip', route: TUNE, target: settingsPanel(2), placement: 'right', click: wizardStep(1) },
-  { id: 'tunePrimary', icon: ICONS.primary, note: 'tip', route: TUNE, target: settingsPanel(3), placement: 'left', click: wizardStep(1) },
-  { id: 'tuneCamera', icon: 'fa-camera', points: ['fa-mobile-screen', 'fa-laptop'], note: 'warn', route: TUNE, target: '.cam-card', placement: 'right', click: ['.wiz:has(.wiz-grid.three) .wiz-next:not(:disabled)', wizardStep(2)] },
-  { id: 'tuneConnect', icon: 'fa-qrcode', note: 'tip', route: TUNE, target: '.cam-card', placement: 'right', click: [wizardStep(2), '.cam-connect:not(:disabled)'] },
+  { id: 'tuneIntro', icon: ICONS.tuning, points: ['fa-mobile-screen', 'fa-music', 'fa-chart-line'], note: 'tip', noteIcon: 'fa-flask', route: TUNE, target: '.tune-intro__choices', placement: 'bottom' },
+  { id: 'tuneCoil', icon: ICONS.coil, note: 'tip', route: TUNE_SESSION, target: settingsPanel(1), placement: 'right', click: wizardStep(1) },
+  { id: 'tuneTone', icon: 'fa-music', note: 'tip', route: TUNE_SESSION, target: settingsPanel(2), placement: 'right', click: wizardStep(1) },
+  { id: 'tunePrimary', icon: ICONS.primary, note: 'tip', route: TUNE_SESSION, target: settingsPanel(3), placement: 'left', click: wizardStep(1) },
+  { id: 'tuneCamera', icon: 'fa-camera', points: ['fa-mobile-screen', 'fa-laptop'], note: 'warn', route: TUNE_SESSION, target: '.cam-card', placement: 'right', click: ['.wiz:has(.wiz-grid.three) .wiz-next:not(:disabled)', wizardStep(2)] },
+  { id: 'tuneConnect', icon: 'fa-qrcode', note: 'tip', route: TUNE_SESSION, target: '.cam-card', placement: 'right', click: [wizardStep(2), '.cam-connect:not(:disabled)'] },
   // on the phone: it opens the QR code's page, then the tour's pointer does its setup;
   // once the zone is validated the computer moves to the trials by itself
-  { id: 'tunePhoneOpen', icon: 'fa-mobile-screen', points: ['fa-crop-simple', 'fa-video'], route: TUNE, target: PHONE, placement: 'right', enter: joinFakePhone, click: '.fphone__start', phone: true },
-  { id: 'tuneBreakout', icon: 'fa-hand-pointer', route: TUNE, target: PHONE, placement: 'right', click: '.fphone__spot', phone: true },
-  { id: 'tuneZone', icon: ICONS.editZone, points: ['fa-grip-lines-vertical', 'fa-grip-lines', 'fa-arrow-right-arrow-left'], route: TUNE, target: PHONE, placement: 'right', click: zoneGrip('floorBelow'), phone: true },
-  { id: 'tuneZoneOk', icon: 'fa-circle-check', note: 'warn', route: TUNE, target: PHONE, placement: 'right', click: ['.fphone__validate:not(:disabled)', wizardStep(3)], until: '.tune-side', phone: true },
-  { id: 'tuneTap', icon: 'fa-hand', note: 'tip', route: TUNE, target: '.tune-run', placement: 'left', click: [wizardStep(3), sideTab(1)], phone: true },
-  { id: 'tuneRun', icon: 'fa-play', points: ['fa-image', 'fa-music', 'fa-eye'], note: 'tip', noteIcon: 'fa-flask', route: TUNE, target: '.tune-side', placement: 'left', click: RUN, plays: true, once: true, until: RUN_DONE, phone: true },
-  { id: 'tuneResult', icon: ICONS.arcMeter, points: ['fa-chart-line', 'fa-table'], route: TUNE, target: '.tune-col', placement: 'right', phone: true },
-  { id: 'tuneSuggest', icon: 'fa-wand-magic-sparkles', note: 'tip', route: TUNE, target: '.tune-side', placement: 'left', click: ['.tune-sug .btn:not(:disabled)', ...RUN], plays: true, once: true, until: RUN_DONE, phone: true },
-  { id: 'tunePhoneTrial', icon: 'fa-mobile-screen', note: 'warn', noteIcon: 'fa-hand', route: TUNE, target: PHONE, placement: 'right', phone: true },
-  { id: 'tuneCompare', icon: 'fa-code-compare', route: TUNE, target: '.tune-side', placement: 'left', click: [wizardStep(3), sideTab(2)], phone: true },
+  { id: 'tunePhoneOpen', icon: 'fa-mobile-screen', points: ['fa-crop-simple', 'fa-video'], route: TUNE_SESSION, target: PHONE, placement: 'right', enter: joinFakePhone, click: '.fphone__start', phone: true },
+  { id: 'tuneBreakout', icon: 'fa-hand-pointer', route: TUNE_SESSION, target: PHONE, placement: 'right', click: '.fphone__spot', phone: true },
+  { id: 'tuneZone', icon: ICONS.editZone, points: ['fa-grip-lines-vertical', 'fa-grip-lines', 'fa-arrow-right-arrow-left'], route: TUNE_SESSION, target: PHONE, placement: 'right', click: zoneGrip('floorBelow'), phone: true },
+  { id: 'tuneZoneOk', icon: 'fa-circle-check', note: 'warn', route: TUNE_SESSION, target: PHONE, placement: 'right', click: ['.fphone__validate:not(:disabled)', wizardStep(3)], until: '.tune-side', phone: true },
+  { id: 'tuneTap', icon: 'fa-hand', note: 'tip', route: TUNE_SESSION, target: '.tune-run', placement: 'left', click: [wizardStep(3), sideTab(1)], phone: true },
+  { id: 'tuneRun', icon: 'fa-play', points: ['fa-image', 'fa-music', 'fa-eye'], note: 'tip', noteIcon: 'fa-flask', route: TUNE_SESSION, target: '.tune-side', placement: 'left', click: RUN, plays: true, once: true, until: RUN_DONE, phone: true },
+  { id: 'tuneResult', icon: ICONS.arcMeter, points: ['fa-chart-line', 'fa-table'], route: TUNE_SESSION, target: '.tune-col', placement: 'right', phone: true },
+  { id: 'tuneSuggest', icon: 'fa-wand-magic-sparkles', note: 'tip', route: TUNE_SESSION, target: '.tune-side', placement: 'left', click: ['.tune-sug .btn:not(:disabled)', ...RUN], plays: true, once: true, until: RUN_DONE, phone: true },
+  { id: 'tunePhoneTrial', icon: 'fa-mobile-screen', note: 'warn', noteIcon: 'fa-hand', route: TUNE_SESSION, target: PHONE, placement: 'right', phone: true },
+  { id: 'tuneCompare', icon: 'fa-code-compare', route: TUNE_SESSION, target: '.tune-side', placement: 'left', click: [wizardStep(3), sideTab(2)], phone: true },
   // the record: nothing reaches the server, the demo keeps it for the history step
-  { id: 'tuneSave', icon: 'fa-clipboard-list', points: ['fa-trophy'], route: TUNE, target: '.tune-recap', placement: 'bottom', click: ['.wiz:has(.wiz-grid.trials) .wiz-next:not(:disabled)', wizardStep(4)] },
-  { id: 'tuneForm', icon: 'fa-cloud-sun', points: ['fa-house', 'fa-pen'], route: TUNE, target: '.tune-panel:has(.save-grid)', placement: 'top', click: wizardStep(4) },
-  { id: 'tuneSaved', icon: 'fa-floppy-disk', note: 'tip', route: TUNE, target: '.tune-done', placement: 'right', click: '.wiz:has(.tune-recap) .wiz-next:not(:disabled)', once: true },
-  { id: 'tuneHistory', icon: 'fa-clock-rotate-left', note: 'tip', route: TUNE, target: '.hist-view', placement: 'top', click: ['.tune-done__actions .btn--ghost', modeTab(2)] },
+  { id: 'tuneSave', icon: 'fa-clipboard-list', points: ['fa-trophy'], route: TUNE_SESSION, target: '.tune-recap', placement: 'bottom', click: ['.wiz:has(.wiz-grid.trials) .wiz-next:not(:disabled)', wizardStep(4)] },
+  { id: 'tuneForm', icon: 'fa-cloud-sun', points: ['fa-house', 'fa-pen'], route: TUNE_SESSION, target: '.tune-panel:has(.save-grid)', placement: 'top', click: wizardStep(4) },
+  { id: 'tuneSaved', icon: 'fa-floppy-disk', note: 'tip', route: TUNE_SESSION, target: '.tune-done', placement: 'right', click: '.wiz:has(.tune-recap) .wiz-next:not(:disabled)', once: true },
+  { id: 'tuneHistory', icon: 'fa-clock-rotate-left', note: 'tip', route: TUNE_HISTORY, target: '.hist-view', placement: 'top' },
   { id: 'tuneDone', icon: 'fa-flag-checkered', points: [ICONS.midi, 'fa-mobile-screen', 'fa-shield-halved'], note: 'tip', route: TUNE },
 ];
 

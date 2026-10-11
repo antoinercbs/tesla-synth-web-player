@@ -50,7 +50,6 @@ function demoFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Respon
 const DEMO_STORAGE: Record<string, string> = {
   playerViz: 'lanes',
   playMode: 'playback',
-  tuneMode: 'tune',
   tuningSetup: JSON.stringify({
     coilIndex: 0, fiberIndex: 0, primaryTurns: 8, tapMin: 4, tapMax: 8, tapStep: 0.25,
     notes: [48, 60], holdMs: 2000, gapMs: 500, ontimeUs: 40, duty: 0.05, program: null,

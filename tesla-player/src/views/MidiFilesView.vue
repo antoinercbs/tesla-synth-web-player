@@ -16,10 +16,8 @@ import PageTourButton from '@/components/tour/PageTourButton.vue';
       <h1 class="view-head__title">{{ $t('title.midiFileManager') }}<page-tour-button id="midi" /></h1>
     </header>
 
-    <div class="screen-body midi-files">
-      <section class="midi-files__panel">
-        <midi-library-panel />
-      </section>
+    <div class="screen-body lib-page">
+      <midi-library-panel />
     </div>
 
   </div>
