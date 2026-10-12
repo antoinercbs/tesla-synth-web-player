@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, useId } from 'vue';
+import { search } from '@/utils/search';
 
 interface Item { id: number; label: string }
 
@@ -66,11 +67,7 @@ const selectedLabel = computed(() => {
   if (found) return found.label;
   return model.value != null ? `#${model.value}` : '';
 });
-const filtered = computed(() => {
-  const q = query.value.trim().toLowerCase();
-  if (!q) return props.items;
-  return props.items.filter((i) => i.label.toLowerCase().includes(q));
-});
+const filtered = computed(() => search(props.items, query.value, (i) => [i.label]));
 const activeId = computed(() =>
   activeIndex.value >= 0 && activeIndex.value < filtered.value.length
     ? `${uid}-opt-${activeIndex.value}`

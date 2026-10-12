@@ -1,0 +1,152 @@
+// ===========================================================================
+//  COLUMN FILTER
+// ===========================================================================
+// ui/ColumnFilter.vue: the funnel in a table header (lit while values are
+// picked, with how many) and its list of values, teleported to <body>.
+
+.col-filter {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    flex: 0 0 auto;
+    padding: 0.2rem 0.3rem;
+    background: none;
+    border: 0;
+    border-radius: var(--radius-xs);
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+    opacity: 0.6;
+    transition:
+        color 0.13s,
+        opacity 0.13s;
+}
+
+.col-filter:hover,
+.col-filter:focus-visible,
+.col-filter[aria-expanded="true"] {
+    color: var(--text);
+    opacity: 1;
+}
+
+.col-filter.is-active {
+    color: var(--volt);
+    opacity: 1;
+}
+
+.col-filter__count {
+    position: absolute;
+    top: -0.35rem;
+    right: -0.35rem;
+    min-width: 0.95rem;
+    padding: 0 0.2rem;
+    border-radius: var(--radius-pill);
+    background: var(--volt);
+    color: var(--on-grad);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    line-height: 0.95rem;
+    text-align: center;
+}
+
+.col-filter__panel {
+    position: fixed;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    padding: 0.3rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-pop);
+    animation: dropdownFadeDown 0.15s ease;
+}
+
+.col-filter__head {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 0.2rem;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.5px;
+    color: var(--text-mute);
+}
+
+.col-filter__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.col-filter__option {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.45rem 0.6rem;
+    border-radius: var(--radius-xs);
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.15s;
+}
+
+.col-filter__option:hover,
+.col-filter__option:focus-within {
+    background: var(--line-strong);
+    color: var(--text);
+}
+
+.col-filter__option input {
+    flex: 0 0 auto;
+    margin: 0;
+    accent-color: var(--volt);
+}
+
+.col-filter__dot {
+    flex: 0 0 auto;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.col-filter__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.col-filter__n {
+    flex: 0 0 auto;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.col-filter__none {
+    margin: 0;
+    padding: 0.5rem 0.6rem;
+    color: var(--text-mute);
+}
+
+.col-filter__clear {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.2rem;
+    padding: 0.5rem 0.6rem;
+    border: 0;
+    border-top: 1px solid var(--line-strong);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.col-filter__clear:hover,
+.col-filter__clear:focus-visible {
+    color: var(--volt);
+}

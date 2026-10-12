@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { formatDuration, hasUnknownDuration, totalDurationMs } from '@/utils/format';
+import { search as searchItems } from '@/utils/search';
 import { coilColor } from '@/ui/coil-colors';
 import type { Playlist, Song } from '@/types/domain';
 import EmptyState from '@/components/ui/EmptyState.vue';
@@ -27,13 +28,11 @@ const midiStore = useMidiStore();
 const search = ref('');
 const pendingDelete = ref<Playlist | null>(null);
 
-const filtered = computed<Playlist[]>(() => {
-  const q = search.value.trim().toLowerCase();
-  const list = [...props.playlists].sort((a, b) => a.name.localeCompare(b.name));
-  return q ? list.filter((p) => p.name.toLowerCase().includes(q)) : list;
-});
-
 const songsById = computed(() => new Map(midiStore.midiSongList.map((s) => [s.id, s])));
+// found by its name or a song's it holds
+const filtered = computed<Playlist[]>(() =>
+  searchItems(props.playlists, search.value, (p) => [p.name, ...p.songIds.map((id) => songsById.value.get(id)?.name)]),
+);
 // what "play all" plays, and so lasts: the player skips a song made for another coil count
 function playedSongs(p: Playlist): Song[] {
   return p.songIds.map((id) => songsById.value.get(id)).filter((s): s is Song => !!s && s.coilCount === p.coilCount);
@@ -44,11 +43,20 @@ function durationLabel(p: Playlist): string {
   return hasUnknownDuration(songs) ? `~${label}` : label;
 }
 
-const columns = computed<DataColumn[]>(() => [
-  { key: 'name', label: t('label.name'), width: 'minmax(0, 1fr)' },
-  { key: 'songs', label: t('label.sourceSongs'), width: '5.6rem', narrowWidth: '5rem', num: true },
-  { key: 'duration', label: t('label.duration'), width: '4.6rem', narrowWidth: '4rem', num: true },
-  { key: 'coils', label: t('label.coilsShort'), width: '4.6rem' },
+const coilOptions = computed(() =>
+  [...new Set(props.playlists.map((p) => p.coilCount))]
+    .sort((a, b) => a - b)
+    .map((n) => ({ value: n, label: t('label.coilsCount', n) })),
+);
+
+const columns = computed<DataColumn<Playlist>[]>(() => [
+  { key: 'name', label: t('label.name'), width: 'minmax(0, 1fr)', sort: (p) => p.name },
+  { key: 'songs', label: t('label.sourceSongs'), width: '6.4rem', narrowWidth: '5.6rem', num: true, sort: (p) => p.songIds.length },
+  { key: 'duration', label: t('label.duration'), width: '5rem', narrowWidth: '4.4rem', num: true, sort: (p) => totalDurationMs(playedSongs(p)) },
+  {
+    key: 'coils', label: t('label.coilsShort'), width: '6rem', sort: (p) => p.coilCount,
+    filter: { options: coilOptions.value, values: (p) => p.coilCount },
+  },
 ]);
 
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
@@ -79,7 +87,8 @@ async function confirmDelete(): Promise<void> {
 
     <library-confirm v-if="pendingDelete" :name="pendingDelete.name" @confirm="confirmDelete" @cancel="pendingDelete = null" />
 
-    <data-table :columns="columns" :rows="filtered" :row-key="(p) => p.id" :row-to="editRoute" actions-width="2rem">
+    <data-table :columns="columns" :rows="filtered" :row-key="(p) => p.id" :row-to="editRoute" actions-width="2rem"
+      :default-sort="{ key: 'name', dir: 'asc' }" storage-key="playlists">
       <template #cell-name="{ row: p }">
         <router-link class="data-table__name" :to="editRoute(p)">{{ p.name }}</router-link>
       </template>

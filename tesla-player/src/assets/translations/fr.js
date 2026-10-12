@@ -129,6 +129,13 @@ export default {
     userMaxBpsInfo:
       "La cadence de tir maximum que cet utilisateur peut régler. Pratique pour limiter le tir rapide des opérateurs moins expérimentés.",
   },
+  table: {
+    sortBy: "Trier par {col}",
+    filterBy: "Filtrer : {col}",
+    clearFilter: "Effacer le filtre",
+    clearFilters: "Effacer les filtres",
+    noMatch: "Aucune ligne ne correspond aux filtres.",
+  },
   title: {
     midiFileManager: "Gestionnaire de fichiers MIDI",
     ioConfiguration: "Configuration I/O MIDI",
@@ -336,6 +343,12 @@ export default {
     inPlaylists: "Playlists",
     inPlaylistsHeader: "Dans les playlists :",
     playlistsCount: "aucune playlist | 1 playlist | {n} playlists",
+    searchHelp:
+      "Les mots dans n'importe quel ordre, sans tenir compte des majuscules ni des accents. Entre guillemets pour une expression exacte, -mot pour exclure.",
+    inUse: "Utilisé",
+    notInUse: "Inutilisé",
+    noPlaylist: "Aucune playlist",
+    noTag: "Sans tag",
     uploaded: "ajouté",
     uploadFailed: "Échec de l'import",
     confirm: "Confirmer",

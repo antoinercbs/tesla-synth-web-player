@@ -7,6 +7,7 @@ import EmptyState from '@/components/ui/EmptyState.vue';
 import SearchField from '@/components/ui/SearchField.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration } from '@/utils/format';
+import { search as searchItems } from '@/utils/search';
 import type { Song, Playlist } from '@/types/domain';
 import { ICONS } from '@/ui/icons';
 
@@ -35,22 +36,14 @@ const coilFilter = ref<number | null>(null); // null = all counts
 const availableCoilCounts = computed(() =>
   [...new Set(songs.value.map((s) => s.coilCount))].sort((a, b) => a - b),
 );
-// A song matches on its name OR on any one of its tags — never on the two
-// concatenated, which would match across the seam ("abc" + "rock" ~ "crock").
-function matches(song: Song, q: string): boolean {
-  return (
-    song.name.toLowerCase().includes(q) ||
-    (song.tags ?? []).some((t) => t.name.toLowerCase().includes(q))
-  );
-}
-const filteredSongs = computed<Song[]>(() => {
-  const q = search.value.trim().toLowerCase();
-  return songs.value.filter(
-    (s) =>
-      (coilFilter.value == null || s.coilCount === coilFilter.value) &&
-      (q === '' || matches(s, q)),
-  );
-});
+// found by its name, its tags' or its file's (utils/search.ts)
+const filteredSongs = computed<Song[]>(() =>
+  searchItems(
+    songs.value.filter((s) => coilFilter.value == null || s.coilCount === coilFilter.value),
+    search.value,
+    (s) => [s.name, s.midiFile?.name, ...(s.tags ?? []).map((t) => t.name)],
+  ),
+);
 
 // playlists
 const playlists = ref<Playlist[]>([]);

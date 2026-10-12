@@ -5,11 +5,13 @@ import { useMidiStore } from '@/stores/midi';
 import { coilColor } from '@/ui/coil-colors';
 import { noteHzLabel, noteName } from '@/ui/piano-layout';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
+import SearchField from '@/components/ui/SearchField.vue';
 import ArcHeatmap from './ArcHeatmap.vue';
 import LocationMap from './LocationMap.vue';
 import TapRulerChart from './TapRulerChart.vue';
 import { formatTurns, type Trial, type TuningRecord } from './api';
 import { bestTrial } from './suggest';
+import { search as searchItems } from '@/utils/search';
 import { weatherFamily, weatherIcon } from './weather';
 import { ICONS } from '@/ui/icons';
 
@@ -34,13 +36,13 @@ const coilOptions = computed(() => {
   for (const i of [...present].sort((a, b) => a - b)) opts.push({ value: i, label: midiStore.coilName(i) || `${t('tune.coilN')} ${i + 1}` });
   return opts;
 });
-const filtered = computed(() => {
-  const q = search.value.trim().toLowerCase();
-  return props.items
-    .filter((i) => coilFilter.value < 0 || i.coilIndex === coilFilter.value)
-    .filter((i) => !q || (i.location ?? '').toLowerCase().includes(q) || (i.comment ?? '').toLowerCase().includes(q) || (i.coilName ?? '').toLowerCase().includes(q))
-    .sort((a, b) => b.createdAt - a.createdAt);
-});
+const filtered = computed(() =>
+  searchItems(
+    props.items.filter((i) => coilFilter.value < 0 || i.coilIndex === coilFilter.value),
+    search.value,
+    (i) => [i.location, i.comment, i.coilName, coilLabel(i)],
+  ).sort((a, b) => b.createdAt - a.createdAt),
+);
 function date(ms: number): string {
   return new Date(ms).toLocaleString(locale.value, { dateStyle: 'medium', timeStyle: 'short' });
 }
@@ -61,7 +63,7 @@ function toggle(i: TuningRecord): void { openId.value = openId.value === i.id ? 
   <div class="hist-view">
     <div class="hist-toolbar">
       <segmented-control v-model="coilFilter" pressed :options="coilOptions" :aria-label="t('tune.coil')" />
-      <input class="text-field hist-search" type="search" v-model="search" :placeholder="t('tune.hist.search')" />
+      <search-field v-model="search" class="hist-search" :placeholder="t('tune.hist.search')" />
       <span class="hist-dim mono">{{ t('tune.hist.count', { n: filtered.length }) }}</span>
       <span v-if="loading" class="arc-loader" role="status" :aria-label="t('label.loading')"></span>
     </div>

@@ -8,6 +8,7 @@ import SearchField from '@/components/ui/SearchField.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import { notify } from '@/utils/toast';
+import { search } from '@/utils/search';
 import { MAX_COILS, MIN_COILS } from '@/types/domain';
 import type { Playlist, Song } from '@/types/domain';
 import { ICONS } from '@/ui/icons';
@@ -74,11 +75,9 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
 
 // LEFT pane: the whole library, filtered by search and (optionally) coil count
 const filteredLibrary = computed(() => {
-  const q = librarySearch.value.trim().toLowerCase();
   let list = [...songs.value].sort((a, b) => a.name.localeCompare(b.name));
   if (onlyCompatible.value) list = list.filter((s) => s.coilCount === draft.value.coilCount);
-  if (q) list = list.filter((s) => s.name.toLowerCase().includes(q));
-  return list;
+  return search(list, librarySearch.value, (s) => [s.name, s.midiFile?.name, ...(s.tags ?? []).map((t) => t.name)]);
 });
 
 /* ----------------------------- mutate the draft --------------------------- */

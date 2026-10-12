@@ -5,7 +5,8 @@
 // playlists. The component writes the columns: --dt-cols, --dt-cols-narrow (the
 // columns a narrow table keeps) and --dt-actions (the actions column). A phone's
 // table turns each row into two lines: the first column, then the others, the
-// actions on the right.
+// actions on the right; its head keeps only the headers that sort or filter, in
+// a row. A column's filter is ui/ColumnFilter.vue (components/_column-filter.scss).
 //   --dt-max-h  how tall the rows may grow before they scroll (a page of its
 //               own lets them fill it: .lib-page)
 
@@ -52,8 +53,60 @@
     color: var(--text-mute);
 }
 
+.data-table__th {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
 .data-table__th.is-num {
+    justify-content: flex-end;
     text-align: right;
+}
+
+.data-table__label,
+.data-table__sort span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// a header that sorts: its arrow shows on hover, and stays on the column sorted
+.data-table__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+    padding: 0.15rem 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    cursor: var(--cursor-pointer, pointer);
+    transition: color 0.13s;
+}
+
+.data-table__sort i {
+    font-size: 0.85em;
+    opacity: 0;
+    transition: opacity 0.13s;
+}
+
+.data-table__sort:hover,
+.data-table__sort:focus-visible {
+    color: var(--text);
+}
+
+.data-table__sort:hover i,
+.data-table__sort:focus-visible i,
+.data-table__sort.is-sorted i {
+    opacity: 1;
+}
+
+.data-table__sort.is-sorted {
+    color: var(--volt);
 }
 
 .data-table__row {
@@ -189,8 +242,19 @@ a.data-table__name:focus-visible {
 
 /* phones: two-line rows (the first column, then the others) instead of starving the first column */
 @container (max-width: 420px) {
+    // the sorts and filters stay, those of the columns dropped too
     .data-table__head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.9rem;
+    }
+
+    .data-table__head > :not(.is-interactive) {
         display: none;
+    }
+
+    .data-table__th.is-interactive {
+        display: flex;
     }
 
     .data-table__row {

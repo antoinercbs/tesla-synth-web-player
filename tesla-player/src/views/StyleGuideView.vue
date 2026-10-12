@@ -29,15 +29,19 @@ const mode = ref('one');
 const text = ref('');
 const on = ref(true);
 const search = ref('');
-const COLUMNS: DataColumn[] = [
-  { key: 'name', label: 'Name', width: 'minmax(0, 1fr)' },
-  { key: 'duration', label: 'Length', width: '4.2rem', num: true },
-  { key: 'note', label: 'Dropped when narrow', width: 'minmax(0, 10rem)', hide: 'narrow' },
-  { key: 'uses', label: 'Used by', width: '7.5rem' },
-];
-const ROWS = [
+interface SampleRow { id: number; name: string; duration: string; note: string }
+const ROWS: SampleRow[] = [
   { id: 1, name: 'Korobeiniki', duration: '1:17', note: 'P0 · P33' },
   { id: 2, name: 'Ode to Joy (current row)', duration: '0:52', note: 'P0' },
+];
+const COLUMNS: DataColumn<SampleRow>[] = [
+  { key: 'name', label: 'Name (sorts)', width: 'minmax(0, 1fr)', sort: (r) => r.name },
+  { key: 'duration', label: 'Length', width: '5rem', num: true, sort: (r) => r.duration },
+  {
+    key: 'note', label: 'Filters, dropped when narrow', width: 'minmax(0, 12rem)', hide: 'narrow',
+    filter: { options: ['P0', 'P33'].map((p) => ({ value: p, label: p })), values: (r) => r.note.split(' · ') },
+  },
+  { key: 'uses', label: 'Used by', width: '7.5rem' },
 ];
 const USES = [{ key: 1, label: 'Korobeiniki (Tetris)', to: '/edit', coils: 3 }];
 </script>

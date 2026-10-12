@@ -127,6 +127,13 @@ export default {
     userMaxBpsInfo:
       "The highest firing rate this user can set. Useful to limit rapid fire for less experienced operators.",
   },
+  table: {
+    sortBy: "Sort by {col}",
+    filterBy: "Filter: {col}",
+    clearFilter: "Clear filter",
+    clearFilters: "Clear filters",
+    noMatch: "No row matches the filters.",
+  },
   title: {
     midiFileManager: "MIDI file manager",
     ioConfiguration: "MIDI I/O configuration",
@@ -333,6 +340,12 @@ export default {
     inPlaylists: "Playlists",
     inPlaylistsHeader: "In playlists:",
     playlistsCount: "no playlist | 1 playlist | {n} playlists",
+    searchHelp:
+      "Words in any order, ignoring case and accents. Quotes for an exact phrase, -word to leave out.",
+    inUse: "In use",
+    notInUse: "Unused",
+    noPlaylist: "No playlist",
+    noTag: "No tag",
     uploaded: "added",
     uploadFailed: "Upload failed",
     confirm: "Confirm",

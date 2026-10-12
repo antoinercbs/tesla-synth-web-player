@@ -4,6 +4,7 @@ import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { useMidiStore } from "@/stores/midi";
 import { formatDuration } from "@/utils/format";
+import { search } from "@/utils/search";
 import { envelope } from "@/sysex/envelopes";
 import type { MidiFile, Song } from "@/types/domain";
 import { RouterLink } from "vue-router";
@@ -52,11 +53,10 @@ const editName = ref("");
 // one name is edited at a time: a single input
 const editInput = ref<HTMLInputElement | null>(null);
 
+// newest first, so a freshly-uploaded file appears at the top of the list; a song's name finds its file
 const filteredLibrary = computed(() => {
-    const q = librarySearch.value.trim().toLowerCase();
-    // Newest first, so a freshly-uploaded file appears at the top of the list.
     const list = [...midiStore.midiFileList].sort((a, b) => b.id - a.id);
-    return q ? list.filter((f) => f.name.toLowerCase().includes(q)) : list;
+    return search(list, librarySearch.value, (f) => [f.name, ...(songsByMidi.value.get(f.id) ?? []).map((s) => s.name)]);
 });
 
 function pickFile(): void {
@@ -252,12 +252,31 @@ function programsTitle(f: MidiFile): string | undefined {
     return rows.length ? rows.join("\n") : undefined;
 }
 
-const columns = computed<DataColumn[]>(() => [
-    { key: "name", label: t("label.fileName"), width: "minmax(0, 1fr)" },
-    { key: "duration", label: t("label.duration"), width: "4.2rem", narrowWidth: "3.4rem", num: true },
-    { key: "channels", label: t("label.channels"), width: "4.2rem", num: true, hide: "narrow" },
-    { key: "programs", label: t("label.instruments"), width: "minmax(0, 10rem)", hide: "narrow" },
-    { key: "uses", label: t("label.usedBy"), width: "7.5rem", narrowWidth: "6rem" },
+function programsOf(f: MidiFile): number[] {
+    return [...new Set(Object.values(f.programs ?? {}))];
+}
+// the instruments the files start on, to filter on
+const programOptions = computed(() =>
+    [...new Set(midiStore.midiFileList.flatMap(programsOf))]
+        .sort((a, b) => a - b)
+        .map((p) => ({ value: p, label: `P${p} · ${envelope(p).name}` })),
+);
+
+const columns = computed<DataColumn<MidiFile>[]>(() => [
+    { key: "name", label: t("label.fileName"), width: "minmax(0, 1fr)", sort: (f) => f.name },
+    { key: "duration", label: t("label.duration"), width: "5rem", narrowWidth: "4.2rem", num: true, sort: (f) => f.durationMs },
+    { key: "channels", label: t("label.channels"), width: "5rem", num: true, hide: "narrow", sort: (f) => f.channels },
+    {
+        key: "programs", label: t("label.instruments"), width: "minmax(0, 10rem)", hide: "narrow",
+        filter: { options: programOptions.value, values: programsOf },
+    },
+    {
+        key: "uses", label: t("label.usedBy"), width: "8rem", narrowWidth: "6.6rem", sort: (f) => usesOf(f).length,
+        filter: {
+            options: [{ value: "used", label: t("label.inUse") }, { value: "unused", label: t("label.notInUse") }],
+            values: (f) => (usesOf(f).length ? "used" : "unused"),
+        },
+    },
 ]);
 </script>
 
@@ -284,7 +303,7 @@ const columns = computed<DataColumn[]>(() => [
 
         <library-confirm v-if="pendingDelete" :name="pendingDelete.name" @confirm="confirmDelete" @cancel="cancelDelete" />
 
-        <data-table :columns="columns" :rows="filteredLibrary" :row-key="(f) => f.id" :current="currentId">
+        <data-table :columns="columns" :rows="filteredLibrary" :row-key="(f) => f.id" :current="currentId" storage-key="midi">
             <template #cell-name="{ row: f }">
                 <span v-if="editingId === f.id" class="midi-lib__name-edit">
                     <input type="text" v-model="editName" ref="editInput"

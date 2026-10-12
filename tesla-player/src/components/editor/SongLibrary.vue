@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { formatDuration } from '@/utils/format';
+import { search as searchItems } from '@/utils/search';
 import { coilColor } from '@/ui/coil-colors';
 import { mobileLayout } from '@/ui/viewport';
 import { ICONS } from '@/ui/icons';
@@ -26,20 +27,15 @@ const midiStore = useMidiStore();
 const search = ref('');
 const pendingDelete = ref<Song | null>(null);
 
-// A song matches on its name, its file's, or any one of its tags — never on
-// them concatenated, which would match across the seam.
-function matches(s: Song, q: string): boolean {
-  return (
-    s.name.toLowerCase().includes(q) ||
-    (s.midiFile?.name ?? '').toLowerCase().includes(q) ||
-    (s.tags ?? []).some((tag) => tag.name.toLowerCase().includes(q))
-  );
-}
-const filtered = computed<Song[]>(() => {
-  const q = search.value.trim().toLowerCase();
-  const list = [...midiStore.midiSongList].sort((a, b) => a.name.localeCompare(b.name));
-  return q ? list.filter((s) => matches(s, q)) : list;
-});
+// found by its name, its file's, its tags' or its playlists'
+const filtered = computed<Song[]>(() =>
+  searchItems(midiStore.midiSongList, search.value, (s) => [
+    s.name,
+    s.midiFile?.name,
+    ...(s.tags ?? []).map((tag) => tag.name),
+    ...playlistsOf(s).map((p) => p.label),
+  ]),
+);
 
 // the playlists holding each song, before anyone deletes it
 const playlists = ref<Playlist[]>([]);
@@ -54,13 +50,42 @@ function playlistsOf(s: Song): Usage[] {
     .map((p) => ({ key: p.id, label: p.name, to: { name: 'playlists', params: { id: String(p.id) } }, coils: p.coilCount }));
 }
 
-const columns = computed<DataColumn[]>(() => [
-  { key: 'name', label: t('label.name'), width: 'minmax(0, 1fr)' },
-  { key: 'tags', label: t('label.tags'), width: 'minmax(0, 11rem)', hide: 'narrow' },
-  { key: 'file', label: t('label.midiFile'), width: 'minmax(0, 11rem)', hide: 'narrow' },
-  { key: 'duration', label: t('label.duration'), width: '4.2rem', narrowWidth: '3.4rem', num: true },
-  { key: 'coils', label: t('label.coilsShort'), width: '4.6rem' },
-  { key: 'playlists', label: t('label.inPlaylists'), width: '7.5rem', narrowWidth: '6rem' },
+const NONE = '__none';
+// the values to filter on, from the songs themselves
+const tagOptions = computed(() => {
+  const tags = new Map<string, string>();
+  for (const s of midiStore.midiSongList) for (const tag of s.tags ?? []) tags.set(tag.name, tag.color);
+  return [
+    ...[...tags].sort(([a], [b]) => a.localeCompare(b)).map(([name, color]) => ({ value: name, label: name, color })),
+    { value: NONE, label: t('label.noTag') },
+  ];
+});
+const coilOptions = computed(() =>
+  [...new Set(midiStore.midiSongList.map((s) => s.coilCount))]
+    .sort((a, b) => a - b)
+    .map((n) => ({ value: n, label: t('label.coilsCount', n) })),
+);
+const playlistOptions = computed(() => [
+  ...[...playlists.value].sort((a, b) => a.name.localeCompare(b.name)).map((p) => ({ value: p.id, label: p.name })),
+  { value: NONE, label: t('label.noPlaylist') },
+]);
+
+const columns = computed<DataColumn<Song>[]>(() => [
+  { key: 'name', label: t('label.name'), width: 'minmax(0, 1fr)', sort: (s) => s.name },
+  {
+    key: 'tags', label: t('label.tags'), width: 'minmax(0, 11rem)', hide: 'narrow',
+    filter: { options: tagOptions.value, values: (s) => (s.tags?.length ? s.tags.map((tag) => tag.name) : NONE) },
+  },
+  { key: 'file', label: t('label.midiFile'), width: 'minmax(0, 11rem)', hide: 'narrow', sort: (s) => s.midiFile?.name },
+  { key: 'duration', label: t('label.duration'), width: '5rem', narrowWidth: '4.2rem', num: true, sort: (s) => s.midiFile?.durationMs },
+  {
+    key: 'coils', label: t('label.coilsShort'), width: '6rem', sort: (s) => s.coilCount,
+    filter: { options: coilOptions.value, values: (s) => s.coilCount },
+  },
+  {
+    key: 'playlists', label: t('label.inPlaylists'), width: '8rem', narrowWidth: '6.8rem', sort: (s) => playlistsOf(s).length,
+    filter: { options: playlistOptions.value, values: (s) => (playlistsOf(s).length ? playlistsOf(s).map((p) => p.key) : NONE) },
+  },
 ]);
 
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
@@ -93,7 +118,8 @@ async function confirmDelete(): Promise<void> {
     <library-confirm v-if="pendingDelete" :name="pendingDelete.name || `#${pendingDelete.id}`" @confirm="confirmDelete"
       @cancel="pendingDelete = null" />
 
-    <data-table :columns="columns" :rows="filtered" :row-key="(s) => s.id" :row-to="editRoute" actions-width="2rem">
+    <data-table :columns="columns" :rows="filtered" :row-key="(s) => s.id" :row-to="editRoute" actions-width="2rem"
+      :default-sort="{ key: 'name', dir: 'asc' }" storage-key="songs">
       <template #cell-name="{ row: s }">
         <router-link class="data-table__name" :to="editRoute(s)">{{ s.name || `#${s.id}` }}</router-link>
       </template>
