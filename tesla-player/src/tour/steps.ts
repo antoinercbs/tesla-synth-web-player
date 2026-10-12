@@ -86,7 +86,7 @@ export const MAIN_STEPS: TourStep[] = [
   { id: 'coils', wide: true, icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
   // the path of a song, from the stage back to its file
   { id: 'pathPlay', icon: 'fa-play', points: [ICONS.power, ICONS.live], route: PLAY, target: '.source-panel', placement: 'right' },
-  { id: 'pathMidi', icon: 'fa-folder-open', points: ['fa-layer-group', 'fa-pen-to-square'], route: MIDI, target: '.midi-lib__table', placement: 'top' },
+  { id: 'pathMidi', icon: 'fa-folder-open', points: ['fa-layer-group', 'fa-pen-to-square'], route: MIDI, target: '.midi-lib .data-table', placement: 'top' },
   { id: 'pathSong', icon: 'fa-pencil', points: [ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'pathPlaylist', icon: 'fa-list-ul', route: DEMO_PLAYLIST, target: '.pl-panes', placement: 'top' },
   // the hardware
@@ -134,9 +134,9 @@ const PLAYLIST_STEPS: TourStep[] = [
 ];
 
 const MIDI_STEPS: TourStep[] = [
-  { id: 'midi', icon: 'fa-table-list', note: 'tip', route: MIDI, target: '.midi-lib__table', placement: 'top' },
-  { id: 'midiImport', icon: 'fa-cloud-arrow-up', points: ['fa-cloud-arrow-up', 'fa-magnifying-glass'], route: MIDI, target: '.midi-lib__bar', placement: 'bottom' },
-  { id: 'midiActions', icon: 'fa-pen-to-square', points: ['fa-pen-to-square', 'fa-ellipsis-vertical'], route: MIDI, target: '.midi-lib__item-actions', placement: 'left' },
+  { id: 'midi', icon: 'fa-table-list', note: 'tip', route: MIDI, target: '.midi-lib .data-table', placement: 'top' },
+  { id: 'midiImport', icon: 'fa-cloud-arrow-up', points: ['fa-cloud-arrow-up', 'fa-magnifying-glass'], route: MIDI, target: '.midi-lib .lib__bar', placement: 'bottom' },
+  { id: 'midiActions', icon: 'fa-pen-to-square', points: ['fa-pen-to-square', 'fa-ellipsis-vertical'], route: MIDI, target: '.midi-lib .data-table__actions', placement: 'left' },
   { id: 'midiDone', icon: 'fa-share-nodes', note: 'tip', route: MIDI },
 ];
 

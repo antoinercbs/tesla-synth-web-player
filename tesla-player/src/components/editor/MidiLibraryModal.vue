@@ -18,6 +18,6 @@ const emit = defineEmits<{
 <template>
   <BaseModal :open="open" :title="$t('title.midiFileManager')" icon="fa-folder-open"
     :close-label="$t('label.closeEditor')" @close="emit('close')">
-    <midi-library-panel :current-id="currentId" @select="emit('select', $event)" />
+    <midi-library-panel :current-id="currentId" :selectable="false" @select="emit('select', $event)" />
   </BaseModal>
 </template>

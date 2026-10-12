@@ -165,6 +165,9 @@
       <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('tagsOpen')">
         <span class="icon"><i class="fas fa-tags"></i></span>{{ $t('label.tags') }}
       </button>
+      <button class="sidebar-menu__item" type="button" role="menuitem" @click="openFromMenu('backupOpen')">
+        <span class="icon"><i class="fas fa-box-archive"></i></span>{{ $t('backup.title') }}
+      </button>
       <button v-if="isElectron" class="sidebar-menu__item" type="button" role="menuitem"
         @click="openFromMenu('serverOpen')">
         <span class="icon"><i class="fas fa-server"></i></span>{{ $t('desktop.serverConfig') }}
@@ -347,6 +350,7 @@
   <server-config-modal v-if="isElectron" :open="serverOpen" @close="serverOpen = false" @saved="onServerSaved" />
   <sync-modal v-if="isElectron" :open="syncOpen" @close="syncOpen = false" @applied="onSyncApplied" />
   <download-modal v-if="!isElectron" :open="downloadOpen" @close="downloadOpen = false" />
+  <backup-modal :open="backupOpen" @close="backupOpen = false" @restored="onRestored" />
   <confirm-modal :open="latchAsking" :title="$t('board.clearTitle')" :message="$t('board.clearMsg')"
     :confirm-label="$t('board.clearConfirm')" :cancel-label="$t('label.cancel')" @confirm="confirmClear"
     @close="cancelClear" />
@@ -378,6 +382,7 @@ import TagsModal from '@/components/settings/TagsModal.vue'
 import ServerConfigModal from '@/components/desktop/ServerConfigModal.vue'
 import SyncModal from '@/components/desktop/SyncModal.vue'
 import DownloadModal from '@/components/desktop/DownloadModal.vue'
+import BackupModal from '@/components/settings/BackupModal.vue'
 import LocalePicker from '@/components/settings/LocalePicker.vue'
 import ThemePicker from '@/components/settings/ThemePicker.vue'
 import SkinPicker from '@/components/settings/SkinPicker.vue'
@@ -393,7 +398,7 @@ import SkinPicker from '@/components/settings/SkinPicker.vue'
 export default {
   name: 'AppSidebar',
   components: {
-    CoilsModal, TagsModal, ServerConfigModal, SyncModal, DownloadModal, LocalePicker, ThemePicker, SkinPicker,
+    CoilsModal, TagsModal, ServerConfigModal, SyncModal, DownloadModal, BackupModal, LocalePicker, ThemePicker, SkinPicker,
     ConfirmModal,
   },
   setup() {
@@ -423,6 +428,7 @@ export default {
       isElectron: typeof window !== 'undefined' && window.teslaElectron?.isElectron === true,
       serverOpen: false,
       syncOpen: false,
+      backupOpen: false,
       // Electron: whether a remote server URL is set. Sync is meaningless (and
       // hidden) until one is configured.
       serverConfigured: false,
@@ -948,6 +954,12 @@ export default {
     onServerSaved() {
       notify('label.settingsSaved')
       this.refreshServerConfigured() // a URL may have just been added/removed
+    },
+    // a restore also brings tags and settings back
+    onRestored() {
+      this.onSyncApplied()
+      this.axios.get('/api/tags').then(r => this.midiStore.setTagList(r.data)).catch(() => { })
+      this.axios.get('/api/settings').then(r => this.midiStore.setAppConfig(r.data)).catch(() => { })
     },
     onSyncApplied() {
       // A pull may have changed the local DB — refresh the cached lists, and

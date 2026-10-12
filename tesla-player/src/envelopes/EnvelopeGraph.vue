@@ -216,7 +216,7 @@ function onDoubleClick(e: MouseEvent): void {
       <g v-if="noteOffX != null" class="env-graph__noteoff" @pointerdown="startDrag($event, { kind: 'noteOff' })">
         <line :x1="noteOffX" :x2="noteOffX" :y1="M.t" :y2="size.h - M.b" />
         <rect :x="noteOffX - 8" :y="M.t" width="16" :height="plotH" class="env-graph__hit" />
-        <text :x="noteOffX + 6" :y="M.t + 12">note-off</text>
+        <text :x="noteOffX + 6" :y="M.t + 12">{{ $t('envelopes.noteOff') }}</text>
       </g>
 
       <g v-for="h in handles" :key="h.step" class="env-graph__handle" :class="['is-' + h.role, {

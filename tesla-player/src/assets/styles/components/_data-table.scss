@@ -147,6 +147,23 @@
     mask: var(--micro-arc-v) center / 100% 100% no-repeat;
 }
 
+// the box ticking a row (selectable)
+.data-table__select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.data-table__select input {
+    margin: 0;
+    accent-color: var(--volt);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.data-table__row.is-selected {
+    background: var(--volt-08);
+}
+
 // no overflow here: a cell may hold a menu
 .data-table__cell {
     min-width: 0;
@@ -280,6 +297,17 @@ a.data-table__name:focus-visible {
 
     .data-table__cell.is-hide-phone {
         display: none;
+    }
+
+    .data-table.is-selectable .data-table__row {
+        padding-left: calc(var(--sp-3) * 2 + 1rem);
+    }
+
+    .data-table__row > .data-table__select {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--sp-3);
     }
 
     // no transform to centre it: that would make each row's menu a layer under the next row

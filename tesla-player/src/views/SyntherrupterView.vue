@@ -22,6 +22,7 @@ import { boardVersion, formatVersion, versionNumber } from '@/firmware/version';
 import BaseModal from '@/components/ui/BaseModal.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
 import { ICONS } from '@/ui/icons';
+import { dutyNearLimit, limitLabel, ontimeNearLimit } from '@/devices/limits';
 
 /**
  * Syntherrupter hardware config page (needs a link with read-back: Web Serial, or
@@ -105,14 +106,12 @@ const boardTiles = computed(() => {
   ];
 });
 
-// the board's thresholds are typical values, each channel measured at bring-up: warn a bit below
-const NEAR_LIMIT = 0.9;
 function nearLimit(c: number, p: SynthParam): string {
   const hw = profile.value.hardwareLimits;
   const v = Number(edited[coilKey(c, p.pn)]);
-  if (!hw || !Number.isFinite(v)) return '';
-  if (p.pn === 0x260 && v >= hw.ontimeUs * NEAR_LIMIT) return t('board.nearLimit', { limit: `${hw.ontimeUs} µs` });
-  if (p.pn === 0x261 && v >= hw.duty * 100 * NEAR_LIMIT) return t('board.nearLimit', { limit: `${hw.duty * 100} %` });
+  if (!hw) return '';
+  if (p.pn === 0x260 && ontimeNearLimit(hw, v)) return t('board.nearLimit', { limit: limitLabel(hw, 'ontime') });
+  if (p.pn === 0x261 && dutyNearLimit(hw, v / 100)) return t('board.nearLimit', { limit: limitLabel(hw, 'duty') });
   return '';
 }
 const flash = computed(() => profile.value.settingsMemory === 'flash');

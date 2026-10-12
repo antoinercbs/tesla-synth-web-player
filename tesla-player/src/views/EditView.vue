@@ -20,7 +20,8 @@
     </header>
     <div class="edit-body">
       <div class="edit-body__editor" :style="editorStyle">
-        <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" @saved="onSaved"
+        <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" :seed-file-id="seedFileId"
+          :seed-song="seedSong" @saved="onSaved"
           @change="onChange" @deleted="onDeleted" @dirty="dirty = $event" />
       </div>
       <resize-handle class="edit-body__split" @resize-start="onDockResizeStart" @resize="onDockResize"
@@ -104,6 +105,14 @@ export default {
       const id = Number(this.routeId)
       if (!id) return null
       return this.midiStore.midiSongList.find(s => s.id === id) || null
+    },
+    // /edit/new?file=<id> starts from a MIDI file, ?from=<id> from a copy of a song
+    seedFileId() {
+      return this.routeId === 'new' ? Number(this.$route.query.file) || null : null
+    },
+    seedSong() {
+      const from = Number(this.$route.query.from)
+      return this.routeId === 'new' && from ? this.midiStore.midiSongList.find(s => s.id === from) || null : null
     },
     headTitle() {
       return this.currentSong ? (this.currentSong.name || `#${this.currentSong.id}`) : this.$t('label.newSong')

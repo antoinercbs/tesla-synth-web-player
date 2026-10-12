@@ -15,6 +15,9 @@ import { countOptions, filterRows, nextSort, sortRows, type DataColumn, type Fil
  * A column with `sort` sorts the rows from its header, one with `filter`
  * filters them; the rows come in already searched, in the table's own order
  * (or `defaultSort`'s). With `storageKey` the sort picked is kept for next time.
+ * With `selectable`, a box ticks each row (v-model:selected, their keys; Shift
+ * ticks a run): only rows on screen stay ticked, an action never reaches a row
+ * the search or a filter hides.
  */
 const props = withDefaults(defineProps<{
   columns: DataColumn<T>[];
@@ -25,13 +28,16 @@ const props = withDefaults(defineProps<{
   actionsWidth?: string;
   defaultSort?: SortState | null;
   storageKey?: string;
+  selectable?: boolean;
 }>(), {
   current: null,
   rowTo: undefined,
   actionsWidth: '4.6rem',
   defaultSort: null,
   storageKey: undefined,
+  selectable: false,
 });
+const selected = defineModel<(number | string)[]>('selected', { default: () => [] });
 
 const slots = useSlots();
 const router = useRouter();
@@ -39,9 +45,10 @@ const { t, locale } = useI18n();
 
 const tracks = computed(() => {
   const actions = slots.actions ? [props.actionsWidth] : [];
+  const select = props.selectable ? ['1.4rem'] : [];
   return {
-    '--dt-cols': [...props.columns.map((c) => c.width), ...actions].join(' '),
-    '--dt-cols-narrow': [...props.columns.filter((c) => c.hide !== 'narrow').map((c) => c.narrowWidth ?? c.width), ...actions].join(' '),
+    '--dt-cols': [...select, ...props.columns.map((c) => c.width), ...actions].join(' '),
+    '--dt-cols-narrow': [...select, ...props.columns.filter((c) => c.hide !== 'narrow').map((c) => c.narrowWidth ?? c.width), ...actions].join(' '),
     '--dt-actions': slots.actions ? props.actionsWidth : '0px',
   };
 });
@@ -118,6 +125,38 @@ const shown = computed<T[]>(() => {
   return by ? sortRows(rows, by.sort!, sort.value!.dir, collator.value) : rows;
 });
 
+/* ------------------------------------------------------------- selection */
+const shownKeys = computed(() => shown.value.map((r) => props.rowKey(r)));
+// a row the search or a filter takes off the screen is no longer ticked
+watch(shownKeys, (keys) => {
+  if (!selected.value.length) return;
+  const on = new Set(keys);
+  const kept = selected.value.filter((k) => on.has(k));
+  if (kept.length !== selected.value.length) selected.value = kept;
+});
+const isSelected = (row: T): boolean => selected.value.includes(props.rowKey(row));
+const allSelected = computed(() => shownKeys.value.length > 0 && shownKeys.value.every((k) => selected.value.includes(k)));
+const someSelected = computed(() => selected.value.length > 0 && !allSelected.value);
+function toggleAll(): void {
+  selected.value = allSelected.value ? [] : [...shownKeys.value];
+}
+let lastTicked: number | string | null = null;
+function toggleRow(row: T, e: MouseEvent): void {
+  const key = props.rowKey(row);
+  const on = !selected.value.includes(key);
+  // Shift: the run from the last box ticked to this one takes this one's state
+  const from = lastTicked != null ? shownKeys.value.indexOf(lastTicked) : -1;
+  const to = shownKeys.value.indexOf(key);
+  const run = e.shiftKey && from >= 0 ? shownKeys.value.slice(Math.min(from, to), Math.max(from, to) + 1) : [key];
+  const set = new Set(selected.value);
+  for (const k of run) {
+    if (on) set.add(k);
+    else set.delete(k);
+  }
+  selected.value = shownKeys.value.filter((k) => set.has(k));
+  lastTicked = key;
+}
+
 // a control in the row keeps its click; text being selected isn't a click either
 function onRowClick(e: MouseEvent, row: T): void {
   if (!props.rowTo) return;
@@ -128,10 +167,14 @@ function onRowClick(e: MouseEvent, row: T): void {
 </script>
 
 <template>
-  <div class="data-table" :style="tracks">
+  <div class="data-table" :class="{ 'is-selectable': selectable }" :style="tracks">
     <div class="data-table__scroll">
       <div v-if="rows.length" class="data-table__grid" role="table">
         <div class="data-table__head" role="row">
+          <span v-if="selectable" class="data-table__select is-interactive" role="columnheader">
+            <input type="checkbox" :checked="allSelected" :indeterminate="someSelected" :aria-label="t('table.selectAll')"
+              :title="t('table.selectAll')" @change="toggleAll" />
+          </span>
           <div v-for="(c, i) in columns" :key="c.key" class="data-table__th" :class="mods(c, i)" role="columnheader"
             :aria-sort="ariaSort(c)">
             <button v-if="c.sort" class="data-table__sort" :class="{ 'is-sorted': sortedBy(c) }" type="button"
@@ -146,8 +189,11 @@ function onRowClick(e: MouseEvent, row: T): void {
           <span v-if="$slots.actions" role="columnheader"></span>
         </div>
         <div v-for="row in shown" :key="rowKey(row)" class="data-table__row" role="row"
-          :class="{ 'is-current': current != null && rowKey(row) === current, 'is-link': !!rowTo }"
-          @click="onRowClick($event, row)">
+          :class="{ 'is-current': current != null && rowKey(row) === current, 'is-link': !!rowTo, 'is-selected': selectable && isSelected(row) }"
+          :aria-selected="selectable ? isSelected(row) : undefined" @click="onRowClick($event, row)">
+          <span v-if="selectable" class="data-table__select" role="cell">
+            <input type="checkbox" :checked="isSelected(row)" :aria-label="t('table.selectRow')" @click="toggleRow(row, $event)" />
+          </span>
           <div v-for="(c, i) in columns" :key="c.key" class="data-table__cell" :class="mods(c, i)" role="cell">
             <slot :name="`cell-${c.key}`" :row="row">{{ cellText(row, c.key) }}</slot>
           </div>

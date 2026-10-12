@@ -23,3 +23,13 @@
 .coil-env {
     margin-top: 0.4rem;
 }
+
+// near the board's protection threshold (devices/limits.ts): a warning, the value stays
+.coil-card__warn {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.5rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--amber);
+}

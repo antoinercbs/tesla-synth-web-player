@@ -115,6 +115,11 @@
     margin-right: auto;
 }
 
+.editor-history {
+    display: inline-flex;
+    gap: 0.3rem;
+}
+
 // Below this width the side dock would crush the editor: stack it underneath.
 @media (max-width: 1100px) {
     // Switch to standard block layout to break the flex collapsing chain

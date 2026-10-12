@@ -1,0 +1,93 @@
+// ===========================================================================
+//  ADD TO PLAYLIST
+// ===========================================================================
+// components/playlists/AddToPlaylistModal.vue: songs into a playlist, or a new one.
+
+.pl-add__lead {
+    margin: 0 0 0.8rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-dim);
+    font-weight: 600;
+}
+
+.pl-add__list {
+    list-style: none;
+    margin: 0 0 1rem;
+    padding: 0;
+    max-height: 18rem;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}
+
+.pl-add__list li + li {
+    border-top: 1px solid var(--line);
+}
+
+.pl-add__item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+    transition: background 0.13s;
+}
+
+.pl-add__item:hover:not(:disabled),
+.pl-add__item:focus-visible {
+    background: var(--volt-08);
+}
+
+.pl-add__item:disabled {
+    cursor: var(--cursor-default, default);
+    opacity: 0.55;
+}
+
+.pl-add__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 600;
+}
+
+.pl-add__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex: 0 0 auto;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.pl-add__warn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--amber);
+}
+
+.pl-add__empty {
+    padding: 0.8rem;
+    color: var(--text-mute);
+    text-align: center;
+}
+
+.pl-add__new {
+    display: flex;
+    gap: var(--sp-2);
+}
+
+.pl-add__new .text-field {
+    flex: 1 1 auto;
+    min-width: 0;
+}

@@ -307,9 +307,9 @@ watch(() => props.playheadMs, () => {
       <!-- automation parameter toggle: full width, integrated at the top of the frame -->
       <div v-if="showParam" class="segmented preview__param">
         <button type="button" :class="{ 'is-active': editParam === 'ontime' }"
-          @click="emit('update:editParam', 'ontime')">Ontime</button>
+          @click="emit('update:editParam', 'ontime')">{{ $t('label.ontime') }}</button>
         <button type="button" :class="{ 'is-active': editParam === 'duty' }"
-          @click="emit('update:editParam', 'duty')">Duty</button>
+          @click="emit('update:editParam', 'duty')">{{ $t('label.duty') }}</button>
       </div>
 
       <div ref="bodyEl" class="preview__body">

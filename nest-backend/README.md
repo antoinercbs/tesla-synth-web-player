@@ -64,6 +64,8 @@ All routes are under the global `/api` prefix.
 | PUT    | `/api/tags/sync`         | full desired tag list; creates/updates/deletes to match (LOCAL-ONLY, see below) |
 | GET    | `/api/settings`          | operator config (coil names, default coil count) |
 | PUT    | `/api/settings`          | update the operator config |
+| GET    | `/api/backup`            | the whole library as one JSON file (MIDI bytes in base64, songs with their tag names, playlists, envelopes, tags, tunings, settings) |
+| POST   | `/api/backup`            | multipart `file`: restores a backup — upserts by sync uuid (tags by name) through the sync service, deletes nothing |
 
 ### Design notes
 

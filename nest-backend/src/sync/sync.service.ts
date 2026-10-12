@@ -289,7 +289,14 @@ export class SyncService {
     file: Express.Multer.File,
     dto: UploadFileDto,
   ): Promise<MidiFilePayload> {
-    const storedName = file.filename;
+    return this.receiveStored(file.filename, dto);
+  }
+
+  /** receiveFile for bytes already written to the uploads dir as `storedName` (a backup being restored). */
+  async receiveStored(
+    storedName: string,
+    dto: UploadFileDto,
+  ): Promise<MidiFilePayload> {
     const storedPath = join(UPLOADS_DIR, storedName);
     try {
       // FileInterceptor already wrote the file before validation ran (DTO fields

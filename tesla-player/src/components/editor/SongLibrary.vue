@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
@@ -8,24 +9,38 @@ import { search as searchItems } from '@/utils/search';
 import { coilColor } from '@/ui/coil-colors';
 import { mobileLayout } from '@/ui/viewport';
 import { ICONS } from '@/ui/icons';
-import type { Playlist, Song } from '@/types/domain';
+import type { AppTag, Playlist, Song } from '@/types/domain';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import SearchField from '@/components/ui/SearchField.vue';
 import DataTable from '@/components/ui/DataTable.vue';
 import DropMenu from '@/components/ui/DropMenu.vue';
 import UsageMenu from '@/components/ui/UsageMenu.vue';
 import LibraryConfirm from '@/components/ui/LibraryConfirm.vue';
+import SelectionBar from '@/components/ui/SelectionBar.vue';
+import AddToPlaylistModal from '@/components/playlists/AddToPlaylistModal.vue';
+import { songPayload } from '@/midi/song-payload';
+import { uploadMidiFile } from '@/midi/upload';
+import { useFileDrop } from '@/utils/file-drop';
+import { notify } from '@/utils/toast';
+import { serverMessage } from '@/utils/http';
 import type { DataColumn, Usage } from '@/components/ui/data-table';
 
 /**
  * The songs, as the MIDI files are listed (MidiLibraryPanel): search, a new
- * song, the table. A row opens the song in the editor; its menu deletes it.
+ * song, the table. A row opens the song in the editor; its menu adds it to a
+ * playlist, copies or deletes it; ticked rows get the same, and tags, from the
+ * selection bar. A MIDI file dropped on it becomes a new song.
  */
 const { t } = useI18n();
+const router = useRouter();
 const midiStore = useMidiStore();
 
 const search = ref('');
-const pendingDelete = ref<Song | null>(null);
+// one song (its menu) or the ticked ones
+const pendingDelete = ref<Song[]>([]);
+const selectedIds = ref<(number | string)[]>([]);
+const selectedSongs = computed(() => midiStore.midiSongList.filter((s) => selectedIds.value.includes(s.id)));
+const addingToPlaylist = ref<Song[]>([]);
 
 // found by its name, its file's, its tags' or its playlists'
 const filtered = computed<Song[]>(() =>
@@ -92,21 +107,74 @@ function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i
 function usesSpeaker(s: Song): boolean { return (s.output2Mask ?? 0) !== 0; }
 const editRoute = (s: Song) => ({ name: 'edit', params: { id: String(s.id) } });
 
+const deleteMessage = computed(() =>
+  pendingDelete.value.length > 1 ? t('label.deleteSongs', { n: pendingDelete.value.length }) : undefined,
+);
 async function confirmDelete(): Promise<void> {
-  const s = pendingDelete.value;
-  pendingDelete.value = null;
-  if (!s) return;
-  try {
-    await axios.delete(`/api/songs/${s.id}`);
-    midiStore.deleteMidiSong(s.id);
-  } catch (err) {
-    console.error('Song delete failed', err);
+  const songs = pendingDelete.value;
+  pendingDelete.value = [];
+  for (const s of songs) {
+    try {
+      await axios.delete(`/api/songs/${s.id}`);
+      midiStore.deleteMidiSong(s.id);
+    } catch (err) {
+      console.error('Song delete failed', err);
+      notify('label.deleteFailed', 'error');
+      break;
+    }
+  }
+  selectedIds.value = [];
+}
+
+/* ------------------------------------------------- tags, on the selection */
+const allTags = computed<AppTag[]>(() => midiStore.tagList ?? []);
+function tagState(tag: AppTag): 'all' | 'some' | 'none' {
+  const n = selectedSongs.value.filter((s) => (s.tags ?? []).some((x) => x.id === tag.id)).length;
+  return n === 0 ? 'none' : n === selectedSongs.value.length ? 'all' : 'some';
+}
+// on all of them, or off all of them when they all have it
+async function toggleTag(tag: AppTag): Promise<void> {
+  if (tag.id == null) return;
+  const off = tagState(tag) === 'all';
+  for (const s of selectedSongs.value) {
+    const ids = (s.tags ?? []).map((x) => x.id).filter((id): id is number => id != null);
+    const has = ids.includes(tag.id);
+    if (off === !has) continue;
+    try {
+      const { data } = await axios.put<Song>(`/api/songs/${s.id}`, songPayload(s, off ? ids.filter((id) => id !== tag.id) : [...ids, tag.id]));
+      midiStore.updateMidiSong(data);
+    } catch (err) {
+      const why = serverMessage(err);
+      notify(why ? `${t('label.saveFailed')} : ${why}` : 'label.saveFailed', 'error');
+      return;
+    }
   }
 }
+const tagIcon = { all: 'fa-square-check', some: 'fa-square-minus', none: 'fa-square' } as const;
+
+/* ------------------------------------------ a MIDI file dropped: a new song */
+const importing = ref(false);
+async function onFilesDropped(files: FileList): Promise<void> {
+  const midi = [...files].filter((f) => /\.(mid|midi|kar)$/i.test(f.name));
+  if (!midi.length || importing.value) return;
+  importing.value = true;
+  try {
+    const uploaded = [];
+    for (const f of midi) uploaded.push(await uploadMidiFile(f));
+    if (uploaded.length > 1) notify(t('label.filesImported', uploaded.length), 'info');
+    router.push({ name: 'edit', params: { id: 'new' }, query: { file: String(uploaded[0].id) } });
+  } catch (err) {
+    console.error('MIDI upload failed', err);
+    notify('label.uploadFailed', 'error');
+  } finally {
+    importing.value = false;
+  }
+}
+const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop(onFilesDropped);
 </script>
 
 <template>
-  <div class="lib">
+  <div class="lib" @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
     <div class="lib__bar">
       <search-field v-model="search" :placeholder="$t('label.searchSong')" />
       <router-link class="btn btn--volt" :to="{ name: 'edit', params: { id: 'new' } }">
@@ -114,12 +182,13 @@ async function confirmDelete(): Promise<void> {
         <span>{{ $t('label.newSong') }}</span>
       </router-link>
     </div>
+    <p class="lib__hint">{{ $t('label.dropMidiForSong') }}</p>
 
-    <library-confirm v-if="pendingDelete" :name="pendingDelete.name || `#${pendingDelete.id}`" @confirm="confirmDelete"
-      @cancel="pendingDelete = null" />
+    <library-confirm v-if="pendingDelete.length" :name="pendingDelete[0].name || `#${pendingDelete[0].id}`"
+      :message="deleteMessage" @confirm="confirmDelete" @cancel="pendingDelete = []" />
 
-    <data-table :columns="columns" :rows="filtered" :row-key="(s) => s.id" :row-to="editRoute" actions-width="2rem"
-      :default-sort="{ key: 'name', dir: 'asc' }" storage-key="songs">
+    <data-table v-model:selected="selectedIds" :columns="columns" :rows="filtered" :row-key="(s) => s.id" :row-to="editRoute"
+      actions-width="2rem" :default-sort="{ key: 'name', dir: 'asc' }" storage-key="songs" selectable>
       <template #cell-name="{ row: s }">
         <router-link class="data-table__name" :to="editRoute(s)">{{ s.name || `#${s.id}` }}</router-link>
       </template>
@@ -143,12 +212,20 @@ async function confirmDelete(): Promise<void> {
       </template>
       <template #actions="{ row: s }">
         <drop-menu>
+          <button class="dropdown__item" type="button" @click="addingToPlaylist = [s]">
+            <i class="fas fa-list-ul"></i>
+            <span>{{ $t('playlistAdd.action') }}</span>
+          </button>
+          <router-link class="dropdown__item" :to="{ name: 'edit', params: { id: 'new' }, query: { from: String(s.id) } }">
+            <i class="fas fa-clone"></i>
+            <span>{{ $t('label.duplicate') }}</span>
+          </router-link>
           <router-link v-if="s.midiFile && !mobileLayout" class="dropdown__item" :to="{ name: 'midi-edit', params: { id: s.midiFile.id } }">
             <i class="fas fa-pen-to-square"></i>
             <span>{{ $t('midiEditor.open') }}</span>
           </router-link>
-          <div v-if="s.midiFile && !mobileLayout" class="dropdown__divider"></div>
-          <button class="dropdown__item is-danger" type="button" @click="pendingDelete = s">
+          <div class="dropdown__divider"></div>
+          <button class="dropdown__item is-danger" type="button" @click="pendingDelete = [s]">
             <i class="fas fa-trash"></i>
             <span>{{ $t('label.delete') }}</span>
           </button>
@@ -165,5 +242,30 @@ async function confirmDelete(): Promise<void> {
         <template v-else>{{ $t('label.noSongFound') }}</template>
       </template>
     </data-table>
+
+    <selection-bar v-if="selectedSongs.length" :count="selectedSongs.length" :label="$t('label.selectedSongs', selectedSongs.length)"
+      @clear="selectedIds = []">
+      <button class="btn" type="button" @click="addingToPlaylist = selectedSongs">
+        <span class="icon"><i class="fas fa-list-ul"></i></span>{{ $t('playlistAdd.action') }}
+      </button>
+      <drop-menu v-if="allTags.length" trigger-class="btn" :label="$t('label.tags')">
+        <template #trigger><span class="icon"><i class="fas fa-tags"></i></span>{{ $t('label.tags') }}</template>
+        <button v-for="tag in allTags" :key="tag.id" class="dropdown__item" type="button" @click="toggleTag(tag)">
+          <i class="far" :class="tagIcon[tagState(tag)]"></i>
+          <span class="song-tag-pill" :style="{ '--tag-c': tag.color }">{{ tag.name }}</span>
+        </button>
+      </drop-menu>
+      <button class="btn btn--danger-ghost" type="button" @click="pendingDelete = selectedSongs">
+        <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.delete') }}
+      </button>
+    </selection-bar>
+
+    <div v-if="dragActive || importing" class="lib__drop">
+      <span class="lib__drop-icon"><i class="fas" :class="importing ? 'fa-spinner fa-spin' : 'fa-file-circle-plus'"></i></span>
+      <span>{{ $t('label.dropToCreateSong') }}</span>
+    </div>
+
+    <add-to-playlist-modal :open="addingToPlaylist.length > 0" :songs="addingToPlaylist" @close="addingToPlaylist = []"
+      @added="loadPlaylists" />
   </div>
 </template>

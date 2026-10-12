@@ -136,3 +136,75 @@
 .coil-card.is-off {
     opacity: 0.55;
 }
+
+// the firing rate, on a log slider: its value and the note it sounds above it
+.fixed-freq {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+}
+
+.fixed-freq__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.fixed-freq__head .readout__key {
+    margin-right: auto;
+}
+
+.fixed-freq__note {
+    color: var(--coil, var(--volt));
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+// the exact value, typed: the slider's range, or past it
+.fixed-freq__field {
+    flex: 0 0 auto;
+    width: 6.5rem;
+}
+
+.fixed-freq__field input {
+    padding-block: 0.2rem;
+    font-size: var(--fs-md);
+}
+
+.fixed-freq__range {
+    width: 100%;
+    accent-color: var(--coil, var(--volt));
+}
+
+// linked: moves with the other linked coils, their intervals kept
+.fixed-freq__link {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.13s;
+}
+
+.fixed-freq__link:hover {
+    color: var(--text);
+    border-color: var(--coil, var(--volt));
+}
+
+.fixed-freq__link.is-on {
+    color: var(--ink);
+    background: var(--coil, var(--volt));
+    border-color: var(--coil, var(--volt));
+}
+
+.fixed-link-all {
+    margin-left: auto;
+}

@@ -57,6 +57,21 @@
     border-color: var(--line-strong);
 }
 
+// the pause between songs, in seconds, on its button
+.queue-btn__badge {
+    position: absolute;
+    right: -0.35rem;
+    top: -0.4rem;
+    padding: 0 0.2rem;
+    border-radius: var(--radius-pill);
+    background: var(--panel-2);
+    border: 1px solid var(--volt);
+    color: var(--volt);
+    font-family: var(--font-mono);
+    font-size: 0.55rem;
+    line-height: 0.85rem;
+}
+
 .repeat-one {
     position: absolute;
     right: 1px;
@@ -122,6 +137,16 @@
     font-family: var(--font-body);
     font-size: var(--fs-sm);
     color: var(--text-mute);
+}
+
+// counting down to the next song
+.queue-now.is-waiting .queue-now__label {
+    color: var(--volt);
+    font-variant-numeric: tabular-nums;
+}
+
+.queue-now.is-waiting .queue-now__name {
+    color: var(--text);
 }
 
 .queue-now__name {

@@ -10,6 +10,7 @@ import { DEFAULT_DEVICE_ID, detectProfile, profileById, resolveProfile, type Out
 import type { DeviceId, DeviceProfile } from '@/devices/types';
 import type { BoardStatus } from '@/sysex/board';
 import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
+import { forgetQueuedSong } from '@/components/player/queue';
 
 interface MidiState {
   /** Output 1 (coils): a real WebMidi output or the built-in Tesla synth. */
@@ -203,6 +204,7 @@ export const useMidiStore = defineStore('midi', {
     },
     deleteMidiSong(songId: number) {
       this.midiSongList = this.midiSongList.filter((song) => song.id !== songId);
+      forgetQueuedSong(songId);
     },
     sendSysex(payload: string | number[]) {
       if (this.midiOutput) helperSendSysex(this.midiOutput as SysexOutput, payload);

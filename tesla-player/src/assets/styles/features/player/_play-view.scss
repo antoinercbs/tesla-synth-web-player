@@ -1,0 +1,78 @@
+// ===========================================================================
+//  PLAY VIEW
+// ===========================================================================
+// views/PlayView.vue: its header's tools, and the page on stage (ui/stage.ts,
+// html[data-stage]): the sidebar out of the way, the transport, the power and
+// Panic within reach of a hurried hand.
+
+.play-head__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.play-head__actions .icon-btn {
+    font-size: var(--fs-md);
+}
+
+.play-head__actions .icon-btn:hover,
+.play-head__actions .icon-btn.is-on {
+    color: var(--volt);
+    border-color: var(--volt);
+}
+
+// a phone has no keyboard to learn
+@media (max-width: 1000px) {
+    .play-head__keys {
+        display: none;
+    }
+}
+
+// the board's protection threshold, reached by the live power or the song itself
+.player-limit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 0 0 auto;
+    margin: 0 1rem 0.5rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px solid rgb(var(--amber-rgb) / 0.5);
+    border-radius: var(--radius-md);
+    background: rgb(var(--amber-rgb) / 0.1);
+    color: var(--text);
+    font-size: var(--fs-sm);
+}
+
+.player-limit .icon {
+    color: var(--amber);
+}
+
+html[data-stage] {
+    .sidebar {
+        display: none;
+    }
+
+    .power-range {
+        height: 2.2rem;
+    }
+
+    .power-head__val {
+        font-size: var(--fs-2xl);
+    }
+
+    .player-transport {
+        gap: 0.7rem;
+        padding-block: 0.6rem 1.2rem;
+    }
+
+    .player-transport .btn {
+        min-height: 3.6rem;
+        font-size: var(--fs-lg);
+    }
+
+    // the one to find without looking
+    .player-transport .btn--panic {
+        flex-grow: 2;
+        font-size: var(--fs-xl);
+    }
+}

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { DEFAULT_TAG_COLOR, MAX_COILS, MIN_COILS } from '@/types/domain';
@@ -7,6 +8,10 @@ import type { AppTag, CoilConfig, CoilEvent, Song, SongStereo } from '@/types/do
 import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
 import { notify } from '@/utils/toast';
 import { useLeaveGuard } from '@/utils/leave-guard';
+import { SnapshotHistory } from '@/utils/history';
+import { serverMessage } from '@/utils/http';
+import { inTextField } from '@/ui/page-keys';
+import { baseName } from '@/midi/upload';
 import { useDropdown } from '@/components/ui/dropdown';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
@@ -24,6 +29,10 @@ const props = defineProps<{
   locked?: boolean;
   /** Where the embedded player is (ms): the automation adds points there. */
   playerPosition?: number;
+  /** A new song starts from this MIDI file (its name too)… */
+  seedFileId?: number | null;
+  /** …or as a copy of this song. */
+  seedSong?: Song | null;
 }>();
 const emit = defineEmits<{
   (e: 'saved', song: Song): void;
@@ -33,6 +42,7 @@ const emit = defineEmits<{
 }>();
 
 const midiStore = useMidiStore();
+const { t } = useI18n();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
 
 // A song is always driven in the firmware's MIDI mode (the "fixed" / Simple mode
@@ -138,10 +148,80 @@ function markSaved(): void {
   baseline.value = snapshot();
 }
 
+const nameError = ref('');
+watch(() => draft.name, () => { nameError.value = ''; });
+
+/* --- undo / redo: the draft as the user shapes it, one step per pause --- */
+function editable() {
+  return {
+    name: draft.name, midiFileId: draft.midiFileId, coilCount: draft.coilCount, output2Mask: draft.output2Mask,
+    coils: draft.coils, events: draft.events, tags: draft.tags, stereo: draft.stereo,
+  };
+}
+type Editable = ReturnType<typeof editable>;
+const history = new SnapshotHistory<Editable>(editable());
+const canUndo = ref(false);
+const canRedo = ref(false);
+function syncHistory(): void {
+  canUndo.value = history.canUndo;
+  canRedo.value = history.canRedo;
+}
+// a burst of typing or a drag is one step: recorded once the draft has stayed put a moment
+let recordTimer: ReturnType<typeof setTimeout> | null = null;
+function recordNow(): void {
+  if (recordTimer) { clearTimeout(recordTimer); recordTimer = null; }
+  history.record(editable());
+  syncHistory();
+}
+watch(draft, () => {
+  if (recordTimer) clearTimeout(recordTimer);
+  recordTimer = setTimeout(recordNow, 400);
+}, { deep: true });
+function resetHistory(): void {
+  if (recordTimer) { clearTimeout(recordTimer); recordTimer = null; }
+  history.reset(editable());
+  syncHistory();
+}
+function restore(s: Editable | null): void {
+  if (!s) return;
+  draft.name = s.name;
+  draft.midiFileId = s.midiFileId;
+  draft.output2Mask = s.output2Mask;
+  draft.coils = s.coils;
+  draft.coilCount = s.coilCount;
+  draft.events = s.events;
+  draft.tags = s.tags;
+  draft.stereo = s.stereo;
+}
+function undo(): void {
+  if (props.locked) return;
+  recordNow();
+  restore(history.undo());
+  syncHistory();
+}
+function redo(): void {
+  if (props.locked) return;
+  restore(history.redo());
+  syncHistory();
+}
+onBeforeUnmount(() => { if (recordTimer) clearTimeout(recordTimer); });
+
 function load(song: Song | null | undefined): void {
   showLibrary.value = false; // its "used by" links open another song here
-  if (!song) { resetNew(); return; }
+  nameError.value = '';
+  if (!song) {
+    resetNew();
+    applySeed();
+    resetHistory();
+    return;
+  }
   draft.id = song.id;
+  fill(song);
+  markSaved();
+  resetHistory();
+}
+
+function fill(song: Song): void {
   draft.name = song.name ?? '';
   draft.midiFileId = song.midiFile ? song.midiFile.id : null;
   draft.output2Mask = song.output2Mask ?? 0;
@@ -152,7 +232,21 @@ function load(song: Song | null | undefined): void {
   draft.stereo = song.stereo ? JSON.parse(JSON.stringify(song.stereo)) : null;
   while (draft.coils.length < draft.coilCount) draft.coils.push(defaultCoil(draft.coils.length));
   if (draft.coils.length > draft.coilCount) draft.coils.length = draft.coilCount;
-  markSaved();
+}
+
+// a new song's head start (after resetNew's baseline: unsaved until saved)
+function applySeed(): void {
+  const from = props.seedSong;
+  if (from) {
+    fill(from);
+    draft.name = t('label.copyOf', { name: from.name || `#${from.id}` });
+    return;
+  }
+  const file = props.seedFileId != null ? midiStore.midiFileList.find((f) => f.id === props.seedFileId) : null;
+  if (file) {
+    draft.midiFileId = file.id;
+    draft.name = baseName(file.name);
+  }
 }
 
 function resetNew(): void {
@@ -176,6 +270,11 @@ watch(() => props.song, (s) => {
   if (s && s.id === draft.id) return;
   load(s);
 }, { immediate: true });
+// another head start for the new song; or the library, loading after the page, brings its file
+watch(() => [props.seedFileId, props.seedSong?.id, midiStore.midiFileList.length], () => {
+  if (draft.id != null || (dirty.value && draft.midiFileId != null)) return;
+  load(null);
+});
 
 const dirty = computed(() => snapshot() !== baseline.value);
 watch(dirty, (d) => emit('dirty', d), { immediate: true });
@@ -209,6 +308,11 @@ function buildPayload() {
 const saving = ref(false);
 async function save(): Promise<void> {
   if (saving.value || !dirty.value) return;
+  if (!draft.name.trim()) {
+    nameError.value = t('label.songNameRequired');
+    nextTick(() => document.getElementById('song-name')?.focus());
+    return;
+  }
   const payload = buildPayload();
   const sent = snapshot();
   const isNew = !draft.id;
@@ -230,11 +334,14 @@ async function save(): Promise<void> {
     notify('label.songSaved');
   } catch (err) {
     console.error('Save failed', err);
-    notify('label.saveFailed', 'error');
+    const why = serverMessage(err);
+    notify(why ? `${t('label.saveFailed')} : ${why}` : 'label.saveFailed', 'error');
   } finally {
     saving.value = false;
   }
 }
+
+
 
 const confirmDeleteSong = ref(false);
 function doDelete(): void {
@@ -249,9 +356,18 @@ function doDelete(): void {
 }
 
 function onKey(e: KeyboardEvent): void {
-  if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 's') return;
-  e.preventDefault();
-  if (!leavePending.value && !confirmDeleteSong.value) save();
+  if (!(e.ctrlKey || e.metaKey)) return;
+  const key = e.key.toLowerCase();
+  const busy = leavePending.value || confirmDeleteSong.value || showLibrary.value;
+  if (key === 's') {
+    e.preventDefault();
+    if (!busy) save();
+  } else if ((key === 'z' || key === 'y') && !busy && !inTextField(e.target)) {
+    // in a field, its own undo goes first
+    e.preventDefault();
+    if (key === 'y' || e.shiftKey) redo();
+    else undo();
+  }
 }
 onMounted(() => window.addEventListener('keydown', onKey));
 onBeforeUnmount(() => window.removeEventListener('keydown', onKey));
@@ -331,7 +447,9 @@ watch(draft, () => emitChange(), { deep: true });
     <div class="editor-meta">
       <div class="field-block field-block--wide">
         <label class="field-label" for="song-name">{{ $t('label.songName') }}</label>
-        <input id="song-name" class="text-field" v-model="draft.name" :placeholder="$t('label.songName')">
+        <input id="song-name" class="text-field" :class="{ 'is-invalid': nameError }" v-model="draft.name"
+          :placeholder="$t('label.songName')" :aria-invalid="!!nameError" :aria-describedby="nameError ? 'song-name-error' : undefined">
+        <p v-if="nameError" id="song-name-error" class="field-error" role="alert">{{ nameError }}</p>
         <span v-if="song && song.editorName" class="editor-meta__editor">
           <i class="fas fa-user-pen"></i>{{ $t('auth.lastEditedBy', { name: song.editorName }) }}
         </span>
@@ -433,6 +551,15 @@ watch(draft, () => emitChange(), { deep: true });
         @click="confirmDeleteSong = true">
         <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.deleteSong') }}
       </button>
+      <router-link v-if="draft.id" class="btn btn--ghost" :to="{ name: 'edit', params: { id: 'new' }, query: { from: String(draft.id) } }">
+        <span class="icon"><i class="fas fa-clone"></i></span>{{ $t('label.duplicate') }}
+      </router-link>
+      <span class="editor-history">
+        <button class="icon-btn icon-btn--sm" type="button" :disabled="!canUndo || locked" :title="$t('label.undo')"
+          :aria-label="$t('label.undo')" @click="undo"><i class="fas fa-rotate-left"></i></button>
+        <button class="icon-btn icon-btn--sm" type="button" :disabled="!canRedo || locked" :title="$t('label.redo')"
+          :aria-label="$t('label.redo')" @click="redo"><i class="fas fa-rotate-right"></i></button>
+      </span>
       <span v-if="dirty" class="editor-dirty"><i class="fas fa-circle"></i>{{ $t('label.unsavedChanges') }}</span>
       <button class="btn btn--volt" type="button" :disabled="!dirty || saving" :title="$t('label.saveShortcut')"
         @click="save">

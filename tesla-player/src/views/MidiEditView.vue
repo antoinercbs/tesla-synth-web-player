@@ -306,6 +306,21 @@ const toolOptions = computed(() => [
   { value: 'select' as const, label: t('midiEditor.toolSelect'), icon: 'fa-arrow-pointer', title: t('midiEditor.toolSelectHint') },
   { value: 'pencil' as const, label: t('midiEditor.toolPencil'), icon: 'fa-pencil', title: t('midiEditor.toolPencilHint') },
 ]);
+// the speed the file starts at; every tempo change follows an edit (MidiEditor.setBpm)
+const bpm = computed(() => {
+  void rev.value;
+  return ed.value ? Math.round(ed.value.bpm() * 10) / 10 : 120;
+});
+const tempoTitle = computed(() => {
+  void rev.value;
+  const n = ed.value?.tempoChanges() ?? 0;
+  return n > 1 ? t('midiEditor.tempoChanges', { n }) : t('midiEditor.tempoHint');
+});
+function onTempo(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  ed.value?.setBpm(Number(input.value));
+  input.value = String(bpm.value);
+}
 const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
   { value: 'bar', label: t('midiEditor.gridBar') },
   { value: 'beat', label: t('midiEditor.gridBeat') },
@@ -370,6 +385,12 @@ const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
                 <option v-for="o in gridOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
             </span>
+          </label>
+          <label class="me-tb-field" :title="tempoTitle">
+            <i class="fas fa-gauge-high"></i>
+            <input class="me-num" type="number" min="10" max="400" step="1" :value="bpm" :aria-label="$t('midiEditor.tempo')"
+              @change="onTempo">
+            <span>{{ $t('midiEditor.bpm') }}</span>
           </label>
           <div class="me-seg" role="group" :aria-label="$t('midiEditor.zoom')">
             <button type="button" :title="$t('midiEditor.zoomOut')" :aria-label="$t('midiEditor.zoomOut')" @click="roll?.zoomBy(1 / 1.25)">

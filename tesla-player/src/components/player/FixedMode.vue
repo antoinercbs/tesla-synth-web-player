@@ -11,6 +11,7 @@ import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
 import { ICONS } from '@/ui/icons';
+import { noteName } from '@/ui/piano-layout';
 
 const midiStore = useMidiStore();
 // the board's outputs: a coil past them would not sound
@@ -18,10 +19,11 @@ const coilRange = computed(() =>
   Array.from({ length: midiStore.deviceProfile.coils - MIN_COILS + 1 }, (_, i) => MIN_COILS + i),
 );
 
-/** A fixed-mode coil plus an individual on/off switch (off = ontime forced to 0). */
-interface FixedCoil extends SimpleCoil { enabled: boolean }
+/** A fixed-mode coil plus an individual on/off switch (off = ontime forced to 0), and its
+ *  frequency linked to the other linked coils' (they move together). */
+interface FixedCoil extends SimpleCoil { enabled: boolean; linked: boolean }
 function defaultCoil(index: number): FixedCoil {
-  return { coilIndex: index, ontimeUs: 40, duty: 0.05, frequencyHz: 100, enabled: true };
+  return { coilIndex: index, ontimeUs: 40, duty: 0.05, frequencyHz: 100, enabled: true, linked: false };
 }
 /** keep only finite numbers from (possibly corrupt) persisted config */
 function num(v: unknown, d: number): number {
@@ -45,6 +47,7 @@ try {
       duty: num(parsed.coils?.[i]?.duty, 0.05),
       frequencyHz: num(parsed.coils?.[i]?.frequencyHz, 100),
       enabled: parsed.coils?.[i]?.enabled ?? true,
+      linked: parsed.coils?.[i]?.linked === true,
     }));
   }
 } catch {
@@ -95,6 +98,7 @@ function scheduleResend(): void {
 }
 function start(): void {
   if (!canRun.value || running.value) return;
+  midiStore.midiOutput?.resume?.(); // the built-in synth's audio starts on a gesture
   sendConfig();
   running.value = true;
 }
@@ -127,6 +131,66 @@ function onDutyInput(c: SimpleCoil, e: Event): void {
   c.duty = Number.isFinite(v) ? Math.min(1, Math.max(0, v / 100)) : 0;
 }
 
+/* the firing rate is the pitch: a log slider over the coil's musical range (its middle ≈ 200 Hz);
+   the field beside it takes anything else, a few sparks a second included */
+const FREQ_MIN = 20;
+const FREQ_MAX = 2000;
+const TYPED_MIN = 1;
+const TYPED_MAX = 5000;
+const FREQ_STEPS = 1000;
+const FREQ_SPAN = Math.log(FREQ_MAX / FREQ_MIN);
+function freqToPos(hz: number): number {
+  const f = Math.min(FREQ_MAX, Math.max(FREQ_MIN, hz || FREQ_MIN));
+  return Math.round((Math.log(f / FREQ_MIN) / FREQ_SPAN) * FREQ_STEPS);
+}
+function posToFreq(pos: number): number {
+  return Math.round(FREQ_MIN * Math.exp((pos / FREQ_STEPS) * FREQ_SPAN));
+}
+// A linked coil's slider moves every linked coil by the same ratio, so a chord keeps its
+// intervals. Taken from where they all were as the move began: rounding to whole hertz at
+// every step would wear the intervals away.
+let moveStart: Map<number, number> | null = null;
+function onFreqInput(c: FixedCoil, e: Event): void {
+  const hz = posToFreq(Number((e.target as HTMLInputElement).value));
+  if (!c.linked) {
+    c.frequencyHz = hz;
+    return;
+  }
+  moveStart ??= new Map(cfg.coils.filter((o) => o.linked).map((o) => [o.coilIndex, o.frequencyHz]));
+  const ratio = hz / (moveStart.get(c.coilIndex) || hz);
+  for (const o of cfg.coils) {
+    const from = moveStart.get(o.coilIndex);
+    if (from != null) o.frequencyHz = Math.min(FREQ_MAX, Math.max(FREQ_MIN, Math.round(from * ratio)));
+  }
+}
+function endFreqMove(): void {
+  moveStart = null;
+}
+function onFreqTyped(c: FixedCoil, e: Event): void {
+  const input = e.target as HTMLInputElement;
+  const hz = Math.round(Number(input.value));
+  if (!Number.isFinite(hz) || hz < TYPED_MIN) { input.value = String(c.frequencyHz); return; }
+  const target = Math.min(TYPED_MAX, hz);
+  if (c.linked) {
+    const ratio = target / (c.frequencyHz || target);
+    for (const o of cfg.coils) {
+      if (o.linked && o !== c) o.frequencyHz = Math.min(TYPED_MAX, Math.max(TYPED_MIN, Math.round(o.frequencyHz * ratio)));
+    }
+  }
+  c.frequencyHz = target;
+  input.value = String(target);
+}
+const allLinked = computed(() => cfg.coils.length > 1 && cfg.coils.every((c) => c.linked));
+function toggleLinkAll(): void {
+  const link = !allLinked.value;
+  for (const c of cfg.coils) c.linked = link;
+}
+/** The note a firing rate sounds, "C3", when it is one. */
+function freqNote(hz: number): string {
+  const note = Math.round(69 + 12 * Math.log2(hz / 440));
+  return hz > 0 && note >= 0 && note <= 127 ? noteName(note) : '';
+}
+
 onBeforeUnmount(() => { if (running.value) stop(); });
 </script>
 
@@ -136,6 +200,8 @@ onBeforeUnmount(() => { if (running.value) stop(); });
     <article class="fixed-bar">
       <div class="fixed-bar__status" :class="{ 'is-live': running }">
         <span class="fixed-dot"></span>{{ running ? $t('label.liveRunning') : $t('label.liveStopped') }}
+        <span v-if="midiStore.isSynthOutput" class="player-synth-badge"><i class="fas" :class="ICONS.synth"></i>{{
+          $t('label.synthActive') }}</span>
       </div>
       <div class="fixed-coils-toggle">
         <button v-for="(c, i) in cfg.coils" :key="i" type="button" class="coil-toggle" :class="{ 'is-on': c.enabled }"
@@ -162,6 +228,11 @@ onBeforeUnmount(() => { if (running.value) stop(); });
         <span class="fixed-section__title">
           <span class="icon"><i class="fas" :class="ICONS.fixedMode"></i></span>{{ $t('label.fixedOutput') }}
         </span>
+        <button v-if="cfg.coils.length > 1" class="btn btn--ghost btn--xs fixed-link-all" type="button"
+          :aria-pressed="allLinked" @click="toggleLinkAll">
+          <span class="icon"><i class="fas" :class="allLinked ? 'fa-link-slash' : 'fa-link'"></i></span>{{
+            allLinked ? $t('player.fixed.unlinkAll') : $t('player.fixed.linkAll') }}
+        </button>
         <segmented-control v-model="cfg.coilCount" pressed :aria-label="$t('label.coilCount')"
           :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />
       </header>
@@ -188,11 +259,24 @@ onBeforeUnmount(() => { if (running.value) stop(); });
               <label class="readout__field"><input type="number" min="0" max="100" step="0.1" :value="dutyPct(c.duty)"
                   @input="onDutyInput(c, $event)"><i>%</i></label>
             </div>
-            <div class="readout">
+          </div>
+          <div class="fixed-freq">
+            <span class="fixed-freq__head">
               <span class="readout__key">{{ $t('label.frequency') }}</span>
-              <label class="readout__field"><input type="number" min="0" step="1"
-                  v-model.number="c.frequencyHz"><i>Hz</i></label>
-            </div>
+              <small v-if="freqNote(c.frequencyHz)" class="fixed-freq__note">{{ freqNote(c.frequencyHz) }}</small>
+              <label class="readout__field fixed-freq__field">
+                <input type="number" :min="TYPED_MIN" :max="TYPED_MAX" step="1" :value="c.frequencyHz"
+                  :aria-label="$t('label.frequency')" @change="onFreqTyped(c, $event)"><i>Hz</i>
+              </label>
+              <button class="fixed-freq__link" :class="{ 'is-on': c.linked }" type="button" :aria-pressed="c.linked"
+                :title="$t(c.linked ? 'player.fixed.unlink' : 'player.fixed.link')"
+                :aria-label="$t(c.linked ? 'player.fixed.unlink' : 'player.fixed.link')" @click="c.linked = !c.linked">
+                <i class="fas fa-link"></i>
+              </button>
+            </span>
+            <input class="fixed-freq__range" type="range" :aria-label="$t('label.frequency')" min="0" :max="FREQ_STEPS" step="1" :value="freqToPos(c.frequencyHz)"
+              :aria-valuetext="`${c.frequencyHz} Hz ${freqNote(c.frequencyHz)}`" @input="onFreqInput(c, $event)"
+              @change="endFreqMove" />
           </div>
         </article>
       </div>

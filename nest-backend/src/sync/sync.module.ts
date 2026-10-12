@@ -24,5 +24,7 @@ import { SyncService } from './sync.service';
   ],
   controllers: [SyncController],
   providers: [SyncService],
+  // the backup restores through the same upserts
+  exports: [SyncService],
 })
 export class SyncModule {}

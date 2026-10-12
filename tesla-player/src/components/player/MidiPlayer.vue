@@ -16,6 +16,7 @@ import PowerControlPanel from '@/components/player/PowerControlPanel.vue';
 import BoardAlert from '@/components/player/BoardAlert.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
+import { dutyNearLimit, limitLabel, ontimeNearLimit } from '@/devices/limits';
 import { tour } from '@/tour/tour';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
@@ -245,6 +246,16 @@ const legendRows = computed(() =>
     duty: effDutyPct(c),
   })),
 );
+// the coils the live power (or the song itself) takes near the board's protection
+const limitWarn = computed(() => {
+  const hw = midiStore.deviceProfile.hardwareLimits;
+  if (!hw || midiStore.isSynthOutput) return '';
+  const coils = legendRows.value
+    .filter((r) => ontimeNearLimit(hw, r.ontime) || dutyNearLimit(hw, r.duty / 100))
+    .map((r) => r.coilIndex);
+  if (!coils.length) return '';
+  return t('player.nearLimit', { coils: coils.join(', '), ontime: limitLabel(hw, 'ontime'), duty: limitLabel(hw, 'duty') }, coils.length);
+});
 function onAutoplayToggle(e: Event): void {
   midiStore.setAutoplay((e.target as HTMLInputElement).checked);
 }
@@ -530,6 +541,19 @@ function onSeekUp(): void {
   seek(target); // commit on release (each seek rebuilds the engine → avoid per-move churn)
 }
 
+const SEEK_STEP_MS = 5000;
+function seekBy(deltaMs: number): void {
+  seek(playheadMs.value + deltaMs);
+}
+function onSeekKey(e: KeyboardEvent): void {
+  const steps: Record<string, number> = { ArrowLeft: -SEEK_STEP_MS, ArrowDown: -SEEK_STEP_MS, ArrowRight: SEEK_STEP_MS, ArrowUp: SEEK_STEP_MS, PageDown: -30000, PageUp: 30000 };
+  if (e.key in steps) seekBy(steps[e.key]);
+  else if (e.key === 'Home') seek(0);
+  else if (e.key === 'End') seek(durationMs.value);
+  else return;
+  e.preventDefault();
+}
+
 /** Flush an output's scheduled-but-unsent messages, if the browser supports it. */
 function clearOutput(out: typeof midiStore.midiOutput): void {
   const o = out as unknown as { clear?: () => void } | null;
@@ -618,6 +642,19 @@ function setScope(next: PowerScope): void {
   powerScope.value = next;
   applyLive();
 }
+/** The keyboard's power step: every coil together, never past the cap. */
+function nudgePower(delta: number): void {
+  const clamp = (v: number): number => Math.max(0, Math.min(powerMax.value, v + delta));
+  if (powerScope.value === 'advanced') {
+    for (const c of song.value?.coils ?? []) {
+      coilOntime[c.coilIndex] = clamp(coilOntime[c.coilIndex] ?? 100);
+      coilDuty[c.coilIndex] = clamp(coilDuty[c.coilIndex] ?? 100);
+    }
+  } else {
+    masterPower.value = clamp(masterPower.value);
+  }
+  applyLive();
+}
 function resetPower(): void {
   masterPower.value = 100;
   for (const c of song.value?.coils ?? []) { coilOntime[c.coilIndex] = 100; coilDuty[c.coilIndex] = 100; }
@@ -675,7 +712,7 @@ onBeforeUnmount(() => {
   if (liveTimer) clearTimeout(liveTimer);
 });
 
-defineExpose({ loadSong, playSong, stop });
+defineExpose({ loadSong, playSong, stop, togglePlayPause, seekBy, nudgePower });
 </script>
 
 <template>
@@ -715,7 +752,9 @@ defineExpose({ loadSong, playSong, stop });
     <!-- playback progress (click / drag to seek), right under the song title -->
     <div v-if="song" class="player-progress">
       <div class="player-progress__bar" :class="{ 'is-scrubbing': scrubbing }" ref="seekBar" @pointerdown="onSeekDown"
-        :title="$t('label.seek')">
+        :title="$t('label.seek')" role="slider" tabindex="0" :aria-label="$t('label.seek')" aria-valuemin="0"
+        :aria-valuemax="Math.round(durationMs / 1000)" :aria-valuenow="Math.round(playheadMs / 1000)"
+        :aria-valuetext="`${fmt(playheadMs)} / ${fmt(durationMs)}`" @keydown="onSeekKey">
         <div class="player-progress__fill" :style="{ width: seekPct + '%' }"></div>
         <div class="player-progress__knob" :style="{ left: seekPct + '%' }"></div>
       </div>
@@ -744,7 +783,7 @@ defineExpose({ loadSong, playSong, stop });
         :title="`${$t('label.instrument')}: ${e.env.name}`">
         <span class="env-chip__pn">P{{ e.program }}</span>
         <span class="env-chip__name">{{ e.env.name }}</span>
-        <span class="env-chip__chs">ch {{ e.chs.join(', ') }}</span>
+        <span class="env-chip__chs">{{ $t('label.channelsShort', { list: e.chs.join(', ') }) }}</span>
       </span>
     </div>
 
@@ -754,6 +793,10 @@ defineExpose({ loadSong, playSong, stop });
       :boost="powerBoost" :dirty="masterDirty" :has-song="!!song" :capped="powerCapped" :max="powerMax"
       @set-scope="setScope" @power-change="onPowerChange" @coil-input="onCoilInput" @coil-change="applyLive"
       @reset="resetPower" @toggle-cap="toggleCap" />
+
+    <p v-if="limitWarn" class="player-limit" role="status">
+      <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ limitWarn }}
+    </p>
 
     <div class="player-transport">
       <button class="btn btn--volt" type="button" :disabled="!canTransport" @click="togglePlayPause">

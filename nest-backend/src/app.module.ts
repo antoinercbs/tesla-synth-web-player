@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
+import { BackupModule } from './backup/backup.module';
 import { PUBLIC_DIR, UPLOADS_DIR_ABS } from './config/paths';
 import { dataSourceOptions } from './database/data-source';
 import { DownloadsModule } from './downloads/downloads.module';
@@ -52,6 +53,7 @@ import { TuningModule } from './tuning/tuning.module';
     FirmwareModule,
     TuningModule,
     EnvelopesModule,
+    BackupModule,
   ],
 })
 export class AppModule {}

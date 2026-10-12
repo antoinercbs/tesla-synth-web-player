@@ -5,6 +5,7 @@ import { useMidiStore } from '@/stores/midi';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import EmptyState from '@/components/ui/EmptyState.vue';
 import SearchField from '@/components/ui/SearchField.vue';
+import AddToPlaylistModal from '@/components/playlists/AddToPlaylistModal.vue';
 import { coilColor } from '@/ui/coil-colors';
 import { formatDuration } from '@/utils/format';
 import { search as searchItems } from '@/utils/search';
@@ -87,6 +88,7 @@ loadPlaylists();
 // come from the store, which App refreshes directly).
 watch(() => midiStore.dataRevision, loadPlaylists);
 
+const addingToPlaylist = ref<Song[]>([]);
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
 /** Does the song mirror any channel to the 2nd (speaker) output? */
 function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0; }
@@ -140,6 +142,10 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
             <div class="play-row__acts">
               <button class="row-btn" type="button" @click="emit('enqueue', song)" :title="$t('label.addToQueue')">
                 <i class="fas fa-plus"></i>
+              </button>
+              <button class="row-btn" type="button" @click="addingToPlaylist = [song]" :title="$t('playlistAdd.action')"
+                :aria-label="$t('playlistAdd.action')">
+                <i class="fas fa-list-ul"></i>
               </button>
               <RouterLink class="row-btn" :to="{ name: 'edit', params: { id: String(song.id) } }"
                 :title="$t('nav.edit')">
@@ -257,5 +263,7 @@ function usesSpeaker(song: Song): boolean { return (song.output2Mask ?? 0) !== 0
         <li v-else-if="compatibleSongs.length === 0" class="play-empty">{{ $t('label.noCompatibleSongs') }}</li>
       </ul>
     </template>
+    <add-to-playlist-modal :open="addingToPlaylist.length > 0" :songs="addingToPlaylist" @close="addingToPlaylist = []"
+      @added="loadPlaylists" />
   </article>
 </template>

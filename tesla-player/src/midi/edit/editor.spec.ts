@@ -164,4 +164,40 @@ describe('selection criteria', () => {
     const notes = [n(0, 60), n(480, 60), n(480, 60, 240, 1), n(960, 62)];
     expect(sameKeys(notes, [notes[0]]).length).toBe(2);
   });
+
+  it('quantizes the selected notes to the grid, keeping their lengths, and undoes it', () => {
+    const ed = editor();
+    const n = byNote(ed, 72)[0];
+    n.tick = 1000; // off the 480-tick grid
+    ed.select([n]);
+    expect(ed.quantize(480)).toBe(1);
+    expect(n.tick).toBe(960);
+    expect(n.dur).toBe(480);
+    expect(ed.quantize(480)).toBe(0); // already on it: nothing to undo
+    ed.undo();
+    expect(byNote(ed, 72)[0].tick).toBe(1000);
+  });
+
+  it('changes the speed through every tempo change, the notes staying on their ticks', () => {
+    const ed = editor();
+    expect(ed.bpm()).toBe(120);
+    const before = byNote(ed, 74)[0].tick;
+    ed.setBpm(60);
+    expect(ed.bpm()).toBe(60);
+    expect(byNote(ed, 74)[0].tick).toBe(before);
+    expect(ed.map.toMs(480)).toBe(1000);
+    // written and read back
+    const back = new MidiEditor(readMidi(ed.bytes()));
+    expect(back.bpm()).toBe(60);
+    ed.undo();
+    expect(ed.bpm()).toBe(120);
+  });
+
+  it('starts a file without a tempo at the one asked', () => {
+    const bytes = writeMidi({ header: { format: 0, numTracks: 1, ticksPerBeat: 96 }, tracks: [[on(0, 0, 60), off(96, 0, 60), end()]] });
+    const ed = new MidiEditor(readMidi(bytes));
+    ed.setBpm(90);
+    expect(Math.round(ed.bpm())).toBe(90);
+    expect(ed.tempoChanges()).toBe(1);
+  });
 });

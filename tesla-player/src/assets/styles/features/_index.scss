@@ -13,6 +13,7 @@
 @import "desktop/download-modal";
 @import "settings/theme-picker";
 @import "settings/skin-picker";
+@import "settings/backup-modal";
 @import "tour/fake-phone";
 @import "tour/welcome-dialog";
 @import "tour/tour-overlay";
@@ -34,8 +35,10 @@
 @import "player/play-panel";
 @import "player/song-playlist-picker";
 @import "player/queue-panel";
+@import "player/shortcuts-modal";
 @import "player/playback-mode";
 @import "playlists/playlist-manager";
+@import "playlists/add-to-playlist";
 @import "syntherrupter/param-cell";
 @import "syntherrupter/param-row";
 @import "tour/page-tour-button";
@@ -54,6 +57,7 @@
 @import "envelopes/envelopes-view";
 @import "auth/login-view";
 @import "midi-editor/midi-edit-view";
+@import "player/play-view";
 @import "playlists/playlists-view";
 @import "styleguide/styleguide-view";
 @import "syntherrupter/syntherrupter-view";

@@ -8,5 +8,6 @@ import { SettingsService } from './settings.service';
   imports: [TypeOrmModule.forFeature([AppConfig])],
   controllers: [SettingsController],
   providers: [SettingsService],
+  exports: [SettingsService],
 })
 export class SettingsModule {}

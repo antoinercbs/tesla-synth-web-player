@@ -47,6 +47,17 @@
     box-shadow: var(--field-focus-ring, var(--focus-ring));
 }
 
+// a value the form can't take (aria-invalid), and the line saying why under it
+.text-field.is-invalid {
+    border-color: var(--danger);
+}
+
+.field-error {
+    margin: 0.35rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--danger-text, var(--danger));
+}
+
 .select-field {
     position: relative;
 }

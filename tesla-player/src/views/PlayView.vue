@@ -6,9 +6,13 @@ import LiveMode from '@/components/player/LiveMode.vue';
 import FixedMode from '@/components/player/FixedMode.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
+import ShortcutsModal from '@/components/player/ShortcutsModal.vue';
 import { confirmLeaveInPlace } from '@/utils/leave-guard';
 import { mobileLayout } from '@/ui/viewport';
 import { tour } from '@/tour/tour';
+import { inTextField, isPageKey, overlayOpen } from '@/ui/page-keys';
+import { fullscreenAvailable, leaveStage, stage, toggleStage } from '@/ui/stage';
+import { useWakeLock } from '@/utils/wake-lock';
 import { ICONS } from '@/ui/icons';
 
 type PlayMode = 'playback' | 'live' | 'fixed';
@@ -27,15 +31,6 @@ const mode = ref<PlayMode>(
 );
 watch(mode, (m) => localStorage.setItem(STORAGE_KEY, m));
 
-// Fixed (Simple) mode drives continuous coil tones — meaningless on the note-driven
-// synth emulation, so it's disabled while the built-in synth is the output.
-function modeDisabled(id: PlayMode): boolean {
-  return id === 'fixed' && midiStore.isSynthOutput;
-}
-watch(() => midiStore.isSynthOutput, (synth) => {
-  if (synth && mode.value === 'fixed') mode.value = 'playback';
-}, { immediate: true });
-
 // the mode's component goes, and what it plays with it: it may ask first
 async function requestMode(next: PlayMode): Promise<void> {
   if (next === mode.value || !(await confirmLeaveInPlace())) return;
@@ -44,20 +39,27 @@ async function requestMode(next: PlayMode): Promise<void> {
 // the phone layout plays songs only (its mode switch is hidden)
 watch(mobileLayout, (mobile) => { if (mobile) void requestMode('playback'); }, { immediate: true });
 
-function inTextField(el: EventTarget | null): boolean {
-  return el instanceof HTMLElement
-    && !!el.closest('textarea, select, [contenteditable="true"], input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"])');
-}
-// Esc = Panic, as on show-control desks; unless it closes something open over the page
+// Esc = Panic, as on show-control desks; unless it closes something open over the page.
+// ? shows the keys; F (Live plays notes on it) puts Playback on stage.
+const shortcutsOpen = ref(false);
 function onKeydown(e: KeyboardEvent): void {
-  if (e.key !== 'Escape' || e.defaultPrevented || tour.active || inTextField(e.target)) return;
-  // popover menus stay in the DOM while closed: only a shown one counts
-  const open = document.querySelectorAll('.modal-overlay, .sidebar-menu, [role="menu"], [role="listbox"]');
-  if ([...open].some((el) => el.getClientRects().length > 0)) return;
-  midiStore.panic();
+  if (e.key === 'Escape') {
+    if (e.defaultPrevented || tour.active || inTextField(e.target) || overlayOpen()) return;
+    midiStore.panic();
+  } else if (e.key === '?' && isPageKey(e)) {
+    e.preventDefault();
+    shortcutsOpen.value = true;
+  } else if (e.key.toLowerCase() === 'f' && !e.shiftKey && mode.value === 'playback' && isPageKey(e)) {
+    e.preventDefault();
+    toggleStage();
+  }
 }
 onMounted(() => window.addEventListener('keydown', onKeydown));
-onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown));
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown);
+  leaveStage();
+});
+useWakeLock(() => stage.on);
 
 const headerScrolled = ref(false);
 let scrollEl: HTMLElement | null = null;
@@ -70,7 +72,7 @@ onMounted(() => {
   scrollEl = document.querySelector('.app-main');
   if (scrollEl) {
     scrollEl.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // Vérification initiale
+    onScroll();
   }
 });
 
@@ -89,16 +91,24 @@ const activeComponent = computed(
   <div class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ $t('nav.play') }}<page-tour-button id="play" /></h1>
-      <segmented-control :model-value="mode" class="mode-switch mode-switch--play" label-class="mode-switch__label"
-        @update:model-value="requestMode" :options="MODES.map((m) => ({
-        value: m.id, label: $t(m.key), icon: m.icon,
-        disabled: modeDisabled(m.id),
-        title: modeDisabled(m.id) ? $t('label.fixedNeedsHardware') : '',
-      }))" />
+      <div class="play-head__actions">
+        <button class="icon-btn play-head__keys" type="button" :title="$t('player.keys.title')"
+          :aria-label="$t('player.keys.title')" @click="shortcutsOpen = true">
+          <i class="fas fa-keyboard"></i>
+        </button>
+        <button class="icon-btn" :class="{ 'is-on': stage.on }" type="button" :aria-pressed="stage.on"
+          :title="$t(stage.on ? 'player.stageLeave' : 'player.stageEnter')"
+          :aria-label="$t(stage.on ? 'player.stageLeave' : 'player.stageEnter')" @click="toggleStage">
+          <i class="fas" :class="stage.on ? 'fa-compress' : fullscreenAvailable ? 'fa-expand' : 'fa-display'"></i>
+        </button>
+        <segmented-control :model-value="mode" class="mode-switch mode-switch--play" label-class="mode-switch__label"
+          @update:model-value="requestMode" :options="MODES.map((m) => ({ value: m.id, label: $t(m.key), icon: m.icon }))" />
+      </div>
     </header>
 
     <div class="screen-body" :class="{ 'screen-body--fill': mode === 'playback' }">
       <component :is="activeComponent" />
     </div>
+    <shortcuts-modal :open="shortcutsOpen" @close="shortcutsOpen = false" />
   </div>
 </template>

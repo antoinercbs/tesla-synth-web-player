@@ -1,4 +1,4 @@
-import type { TempoMap } from '@/midi/tempo';
+import { DEFAULT_TEMPO, type TempoMap } from '@/midi/tempo';
 import {
   cutRange,
   docTempo,
@@ -217,6 +217,15 @@ export class MidiEditor {
     for (const n of s) n.tick += dt;
     this.changed();
   }
+  /** Each selected note starts on the nearest line of a `step`-tick grid; lengths stay. @returns how many moved */
+  quantize(step: number): number {
+    const moved = step > 0 ? this.selected().filter((n) => Math.round(n.tick / step) * step !== n.tick) : [];
+    if (!moved.length) return 0;
+    this.checkpoint();
+    for (const n of moved) n.tick = Math.max(0, Math.round(n.tick / step) * step);
+    this.changed();
+    return moved.length;
+  }
   setVelocity(v: number): void {
     const s = this.selected();
     if (!s.length) return;
@@ -330,6 +339,38 @@ export class MidiEditor {
     this.sel.clear();
     this.range = null;
     this.playhead = 0;
+    this.changed();
+  }
+  /** µs per beat as the file starts (its tempo at tick 0, or MIDI's default 120 BPM). */
+  private startTempo(): number {
+    const at0 = this.doc.events.find((e) => e.tick === 0 && e.ev.type === 'setTempo');
+    return at0 ? (at0.ev as { microsecondsPerBeat: number }).microsecondsPerBeat : DEFAULT_TEMPO;
+  }
+  /** Beats per minute as the file starts. */
+  bpm(): number {
+    return 60_000_000 / this.startTempo();
+  }
+  tempoChanges(): number {
+    return this.doc.events.filter((e) => e.ev.type === 'setTempo').length;
+  }
+  /** Another speed: every tempo change scaled alike (a ritardando stays one), the notes on their ticks. */
+  setBpm(bpm: number): void {
+    if (!Number.isFinite(bpm) || bpm <= 0) return;
+    const target = Math.round(60_000_000 / Math.min(400, Math.max(10, bpm)));
+    const start = this.startTempo();
+    if (target === start) return;
+    this.checkpoint();
+    const factor = target / start;
+    const scaled = this.doc.events.map((e) =>
+      e.ev.type === 'setTempo'
+        ? { ...e, ev: { ...e.ev, microsecondsPerBeat: Math.round(e.ev.microsecondsPerBeat * factor) } }
+        : e,
+    );
+    const hasStart = scaled.some((e) => e.tick === 0 && e.ev.type === 'setTempo');
+    this.doc.events = hasStart
+      ? scaled
+      : [{ track: 0, tick: 0, seq: -1, ev: { deltaTime: 0, meta: true, type: 'setTempo', microsecondsPerBeat: target } }, ...scaled];
+    this.map = docTempo(this.doc);
     this.changed();
   }
   endTick(): number {

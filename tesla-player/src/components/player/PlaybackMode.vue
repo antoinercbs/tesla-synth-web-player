@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useMidiStore } from '@/stores/midi';
 import MidiPlayer from '@/components/player/MidiPlayer.vue';
 import ResizeHandle from '@/components/ui/ResizeHandle.vue';
@@ -7,6 +7,9 @@ import SongPlaylistPicker from '@/components/player/SongPlaylistPicker.vue';
 import QueuePanel from '@/components/player/QueuePanel.vue';
 import { formatDuration, totalDurationMs, hasUnknownDuration } from '@/utils/format';
 import type { Song } from '@/types/domain';
+import { useWakeLock } from '@/utils/wake-lock';
+import { isPageKey } from '@/ui/page-keys';
+import { GAP_KEY, GAPS, loadGap, loadQueue, saveQueue, type Repeat } from './queue';
 
 const midiStore = useMidiStore();
 const player = ref<InstanceType<typeof MidiPlayer> | null>(null);
@@ -44,13 +47,20 @@ function saveLeftWidth(): void {
 }
 
 /* --------------------------------- queue ---------------------------------- */
-type Repeat = 'off' | 'all' | 'one';
-const queue = ref<Song[]>([]);
-const order = ref<number[]>([]); // play order: positions hold indices into `queue`
-const pos = ref(-1); // current position within `order`
-const repeat = ref<Repeat>('off');
-const shuffle = ref(false);
+// kept between visits (./queue.ts): `ids` holds the songs, `order` positions into it
+const saved = loadQueue();
+const ids = ref<number[]>(saved.ids);
+const order = ref<number[]>(saved.order); // play order: positions hold indices into `ids`
+const pos = ref(saved.pos); // current position within `order`
+const repeat = ref<Repeat>(saved.repeat);
+const shuffle = ref(saved.shuffle);
+watch([ids, order, pos, repeat, shuffle], () => {
+  saveQueue({ ids: ids.value, order: order.value, pos: pos.value, repeat: repeat.value, shuffle: shuffle.value });
+}, { deep: true });
 
+const songsById = computed(() => new Map(midiStore.midiSongList.map((s) => [s.id, s])));
+// a song not in the library (yet: it loads after the page, or the tour's demo) shows nothing
+const queue = computed<(Song | null)[]>(() => ids.value.map((id) => songsById.value.get(id) ?? null));
 const current = computed<Song | null>(() =>
   pos.value >= 0 && pos.value < order.value.length
     ? queue.value[order.value[pos.value]] ?? null
@@ -62,9 +72,18 @@ const hasNext = computed(
 );
 // total play length of the whole queue ("~" prefix if any track's length is unknown)
 const queueTotalLabel = computed(() => {
-  const label = formatDuration(totalDurationMs(queue.value));
-  return hasUnknownDuration(queue.value) ? `~${label}` : label;
+  const songs = queue.value.filter((s): s is Song => !!s);
+  const label = formatDuration(totalDurationMs(songs));
+  return hasUnknownDuration(songs) ? `~${label}` : label;
 });
+
+// back on the page (a reload, Live and back): the song it was on is cued, never played
+let cued = false;
+watch(current, (s) => {
+  if (!s || cued) return;
+  cued = true;
+  nextTick(() => player.value?.loadSong(s));
+}, { immediate: true });
 
 function shuffledOrder(n: number, first: number): number[] {
   const rest = Array.from({ length: n }, (_, i) => i).filter((i) => i !== first);
@@ -75,7 +94,7 @@ function shuffledOrder(n: number, first: number): number[] {
   return [first, ...rest];
 }
 function rebuildOrder(startQueueIdx: number): void {
-  const n = queue.value.length;
+  const n = ids.value.length;
   if (n === 0) { order.value = []; pos.value = -1; return; }
   if (shuffle.value) { order.value = shuffledOrder(n, startQueueIdx); pos.value = 0; }
   else { order.value = Array.from({ length: n }, (_, i) => i); pos.value = startQueueIdx; }
@@ -84,6 +103,8 @@ function rebuildOrder(startQueueIdx: number): void {
 // already playing (navigating an active queue). Otherwise it just LOADS (cues)
 // the track — so with autoplay off the next song is queued up but waits for Play.
 function playCurrent(noAutoPlay = false): void {
+  cancelWait();
+  cued = true;
   if (!current.value) return;
   if ((midiStore.autoplay || isPlaying.value) && !noAutoPlay) player.value?.playSong(current.value);
   else player.value?.loadSong(current.value);
@@ -102,14 +123,13 @@ function pushToOrder(newQueueIdx: number): void {
 
 // "Play now": start a fresh queue with just this song (or the whole playlist).
 function playNow(song: Song): void {
-  queue.value = [song];
+  ids.value = [song.id];
   rebuildOrder(0);
   playCurrent(true);
-  console.log("Play without autoplay")
 }
 function playPlaylist(songs: Song[]): void {
   if (!songs.length) return;
-  queue.value = [...songs];
+  ids.value = songs.map((s) => s.id);
   rebuildOrder(0);
   playCurrent();
 }
@@ -117,9 +137,9 @@ function playPlaylist(songs: Song[]): void {
 // never hijacks the current track or restarts after the user stopped).
 function enqueue(song: Song): void {
   const wasEmpty = pos.value < 0;
-  queue.value.push(song);
-  pushToOrder(queue.value.length - 1);
-  if (wasEmpty) { pos.value = order.value.indexOf(queue.value.length - 1); playCurrent(); }
+  ids.value.push(song.id);
+  pushToOrder(ids.value.length - 1);
+  if (wasEmpty) { pos.value = order.value.indexOf(ids.value.length - 1); playCurrent(); }
 }
 
 function next(auto = false): void {
@@ -135,8 +155,9 @@ function prev(): void {
 }
 function jumpToPos(p: number): void { pos.value = p; playCurrent(); }
 function clearQueue(): void {
+  cancelWait();
   player.value?.stop();
-  queue.value = [];
+  ids.value = [];
   order.value = [];
   pos.value = -1;
 }
@@ -144,7 +165,7 @@ function clearQueue(): void {
 function removeAt(opos: number): void {
   const queueIdx = order.value[opos];
   order.value.splice(opos, 1);
-  queue.value.splice(queueIdx, 1);
+  ids.value.splice(queueIdx, 1);
   for (let i = 0; i < order.value.length; i++) {
     if (order.value[i] > queueIdx) {
       order.value[i]--;
@@ -173,14 +194,79 @@ function onReorder(from: number, toPos: number): void {
 }
 function toggleShuffle(): void {
   shuffle.value = !shuffle.value;
-  if (queue.value.length) rebuildOrder(pos.value >= 0 ? order.value[pos.value] : 0);
+  if (ids.value.length) rebuildOrder(pos.value >= 0 ? order.value[pos.value] : 0);
 }
 function cycleRepeat(): void {
   repeat.value = repeat.value === 'off' ? 'all' : repeat.value === 'all' ? 'one' : 'off';
 }
 
-// once a track has been playing, finishing it always advances the queue
-function onSongFinished(): void { next(true); }
+/* ------------------------------------------------ the pause between songs */
+const gap = ref(loadGap());
+watch(gap, (v) => {
+  try { localStorage.setItem(GAP_KEY, String(v)); } catch { /* the gap lasts the visit */ }
+});
+function cycleGap(): void {
+  gap.value = GAPS[(GAPS.indexOf(gap.value) + 1) % GAPS.length];
+}
+const waitLeft = ref(0); // seconds before the next song starts by itself
+let waitTimer: ReturnType<typeof setInterval> | null = null;
+function cancelWait(): void {
+  if (waitTimer) { clearInterval(waitTimer); waitTimer = null; }
+  waitLeft.value = 0;
+}
+// once a track has been playing, finishing it always advances the queue; with
+// autoplay, after the pause asked for (when there is something to play next)
+function onSongFinished(): void {
+  const more = repeat.value !== 'off' || pos.value < order.value.length - 1;
+  if (!gap.value || !midiStore.autoplay || !more) { next(true); return; }
+  waitLeft.value = gap.value;
+  waitTimer = setInterval(() => {
+    if (--waitLeft.value > 0) return;
+    cancelWait();
+    next(true);
+  }, 1000);
+}
+watch(() => midiStore.panicRev, cancelWait);
+onBeforeUnmount(cancelWait);
+
+/* --------------------------------------------------------------- keyboard */
+useWakeLock(() => isPlaying.value);
+
+// Space play/pause, ←/→ 5 s, Shift+←/→ (or P/N) the previous/next song, ↑/↓ the
+// power by 5 %. Live mode plays notes from the keyboard: they live here, not on the page.
+const KEYS: Record<string, () => void> = {
+  ' ': () => player.value?.togglePlayPause(),
+  ArrowLeft: () => player.value?.seekBy(-5000),
+  ArrowRight: () => player.value?.seekBy(5000),
+  'Shift+ArrowLeft': prev,
+  'Shift+ArrowRight': () => next(false),
+  p: prev,
+  n: () => next(false),
+  ArrowUp: () => player.value?.nudgePower(5),
+  ArrowDown: () => player.value?.nudgePower(-5),
+};
+function keyName(e: KeyboardEvent): string {
+  const key = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+  return e.shiftKey && key.startsWith('Arrow') ? `Shift+${key}` : key;
+}
+function onKeydown(e: KeyboardEvent): void {
+  const action = KEYS[keyName(e)];
+  if (!action || !isPageKey(e)) return;
+  e.preventDefault();
+  action();
+}
+// a focused button would also take the Space it was given, on its keyup
+function onKeyup(e: KeyboardEvent): void {
+  if (e.key === ' ' && isPageKey(e)) e.preventDefault();
+}
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown);
+  window.addEventListener('keyup', onKeyup);
+});
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', onKeydown);
+  window.removeEventListener('keyup', onKeyup);
+});
 </script>
 
 <template>
@@ -190,10 +276,12 @@ function onSongFinished(): void { next(true); }
       <song-playlist-picker :current-id="current?.id ?? null" @play-now="playNow" @enqueue="enqueue"
         @play-playlist="playPlaylist" />
 
-      <queue-panel v-if="queue.length > 1" :queue="queue" :order="order" :pos="pos" :current="current"
+      <queue-panel v-if="ids.length > 1 || waitLeft > 0" :queue="queue" :order="order" :pos="pos" :current="current"
         :has-prev="hasPrev" :has-next="hasNext" :total-label="queueTotalLabel" :shuffle="shuffle" :repeat="repeat"
+        :gap="gap" :wait-left="waitLeft"
         @prev="prev" @next="next(false)" @jump="jumpToPos" @remove="removeAt" @reorder="onReorder"
-        @toggle-shuffle="toggleShuffle" @cycle-repeat="cycleRepeat" @clear="clearQueue" />
+        @toggle-shuffle="toggleShuffle" @cycle-repeat="cycleRepeat" @cycle-gap="cycleGap" @cancel-wait="cancelWait"
+        @clear="clearQueue" />
     </div>
 
     <resize-handle class="playback__split" @resize-start="onLeftResizeStart" @resize="onLeftResize"

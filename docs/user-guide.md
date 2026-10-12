@@ -14,6 +14,7 @@ How to play music on your Tesla coils and configure each song. This covers the w
 - [Playlists](#playlists)
 - [MIDI files & the MIDI editor](#midi-files--the-midi-editor)
 - [Envelopes](#envelopes)
+- [Backup](#backup)
 - [Language](#language)
 
 ---
@@ -56,7 +57,17 @@ Go to **Play**:
 
 1. Pick a **song** (or a **playlist**) from the picker.
 2. Press play.
-3. **Autoplay** (toggle) starts the next track automatically when one ends.
+3. **Autoplay** (toggle) starts the next track automatically when one ends. The hourglass of **Up next** adds a pause between two songs (3 to 20 s), shown as a countdown you can skip or cancel.
+
+The queue is kept: a reload, or a detour through Live or Fixed, finds it where it was, its song loaded but never started by itself. A song deleted from the library leaves it. In it, Enter plays a song, Alt+↑/↓ moves it, Delete takes it out. A song's **list** button adds it to a playlist.
+
+**Keyboard** (the keyboard button, or **?**): Space play/pause, ←/→ 5 s back or forward, Shift+←/→ (or P/N) the previous or next song, ↑/↓ the power by 5 % (never past the 100 % lock), F stage mode.
+
+**Stage mode** (F, or the button beside the modes): full screen, the sidebar out of the way, bigger transport and **Panic**, and the screen kept on. Esc stays **Panic** there; hold it to leave full screen.
+
+**Fixed** sends a constant tone per coil: ontime, duty, and the firing rate on a slider (20 Hz to 2 kHz, the note it sounds beside it; the field takes any value from 1 to 5000 Hz). The link button ties coils' frequencies together: moving one moves the others, their intervals kept. It plays on the emulated synth too.
+
+When the board's protection threshold is known (the ESP32 board), the player warns when the live power takes a coil near it, and the song editor's coil cards when the song's own settings do. A warning only: the board's protection stays the limit.
 
 **Panic** (or **Esc** on the Play page, in every mode) stops everything at once: the coils first, by switching the Syntherrupter's modes off (the next Play, Live or Fixed start switches its mode back on), then every note on both outputs. **Stop** and **Pause** cut the coils the same way, so nothing still queued plays after them.
 
@@ -74,7 +85,7 @@ Live changes are sent to the coils as the fader moves and don't alter the saved 
 
 ## Editing a song
 
-Go to **Edit**: it lists your songs the way the MIDI file manager lists files, with a search (name, tag or file), **New song**, and per song its file, length, coils and the playlists holding it. Click a song to open it; its **⋮** menu deletes it. A song is a MIDI file plus a **per-coil configuration**.
+Go to **Edit**: it lists your songs the way the MIDI file manager lists files, with a search (name, tag or file), **New song**, and per song its file, length, coils and the playlists holding it. Click a song to open it; its **⋮** menu adds it to a playlist, duplicates or deletes it. Tick songs to add them to a playlist, tag them or delete them together. A MIDI file dropped on the list, or **Create a song** in a file's menu of the MIDI files, starts a new song from it. In the editor, **Duplicate** starts a copy, **Undo / Redo** (Ctrl+Z / Ctrl+Shift+Z, outside the text fields) step back through the edits, and a song needs a name to be saved. A song is a MIDI file plus a **per-coil configuration**.
 
 - **Name** and **MIDI file**: choose the file this song plays (upload new ones from the MIDI file manager, reachable from the picker).
 - **Coil count**: how many physical coils this song targets (1–6).
@@ -120,13 +131,14 @@ Go to **Playlists** to group songs into an ordered set for a show (the list work
 
 ## MIDI files & the MIDI editor
 
-The **MIDI files** manager lets you **upload**, **download**, **rename**, **replace** and **delete** the `.mid` files your songs use. The pen next to a file (and next to the file field of the song editor) opens the **MIDI editor**:
+The **MIDI files** manager lets you **upload**, **download**, **rename**, **replace** and **delete** the `.mid` files your songs use (several at once by ticking them). The pen next to a file (and next to the file field of the song editor) opens the **MIDI editor**:
 
 - **Channels (left)**: each channel's **instrument**, the Program Change it starts on, so the envelope it plays on the Syntherrupter. The eye hides a channel, the speaker mutes it while listening, the bin deletes it with its notes. Click a channel's name to select its notes.
 - **Selecting notes**: click, or drag a box; Shift adds, Ctrl toggles. **Select ▾** picks them by criterion, in one channel or all: shorter than a length (ghost notes), below a velocity, from or below a pitch (to split a bass from a melody), the top note of each chord or the rest, the notes beyond a number of voices at once, the same keys as the selection. Drag on the ruler to choose a **passage**: the criteria then stay inside it.
-- **The selection bar** appears at the bottom while notes are selected: move them to another **channel** (they take its instrument; a free channel starts on program 0, choose its instrument in the list), **transpose** (↑ ↓, Shift for an octave), **shift** them by a grid step (← →), set or scale their **velocity** (on the Syntherrupter it is each note's power), copy, duplicate, paste at the cursor, delete.
+- **The selection bar** appears at the bottom while notes are selected: move them to another **channel** (they take its instrument; a free channel starts on program 0, choose its instrument in the list), **transpose** (↑ ↓, Shift for an octave), **shift** them by a grid step (← →), set or scale their **velocity** (on the Syntherrupter it is each note's power), **quantize** them (their start onto the grid, their length kept), copy, duplicate, paste at the cursor, delete.
 - **Drawing**: the **Pencil** (P) adds notes on the channel chosen next to it, drag for their length. With **Select** (V), a double-click adds a note, a right-click deletes one, dragging moves the selection (on the grid, Alt for free) and a note's right edge sets its length. The lane at the bottom paints the velocity.
 - **Passages**: delete one (the rest closes up) or keep it alone; **Trim** removes the silence before the first note.
+- **Tempo** (in BPM, in the toolbar): the speed the file starts at. Changing it speeds up or slows down the whole song, every tempo change following in the same proportion; the notes stay on their grid.
 - **Listen** (Space) plays the edit on the emulated synth, with its envelopes, from the cursor: everything, or the selection only. It never plays on the coils.
 - **Undo / redo** (Ctrl+Z / Ctrl+Y). **Save** (Ctrl+S) lists what changed and, for each song using the file, the notes now on a channel no coil plays and the coils left with nothing to play.
 
@@ -145,6 +157,10 @@ The **Envelopes** screen lists the firmware's built-in envelopes (**P0–P19**, 
 - The screen shows which MIDI files use the envelope, and warns before deleting or moving one they play.
 
 Your envelopes live in the app's library (and are [synced](./desktop-app.md#synchronizing-with-a-server) like songs). The player sends the ones a song uses to the device **before each song**, so there is nothing to save on the Syntherrupter itself. The amplitude may exceed 1 for a punchier attack; the device still caps the result at the coil's [safety limits](./syntherrupter.md).
+
+## Backup
+
+**Backup**, in the **⋯** menu, downloads the whole library as one file: MIDI files, songs (with their tags), playlists, envelopes, tags, tunings and the coils' settings. Restoring one brings each item it holds back to its saved version, matched by its identity (a tag by its name); nothing is deleted, so what was added since stays. It asks first, then says what came back.
 
 ## Tuning the primary with a camera
 

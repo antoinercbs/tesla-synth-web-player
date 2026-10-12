@@ -9,7 +9,8 @@ import { ICONS } from '@/ui/icons';
 
 /**
  * What to do with the selected notes, shown only while there are some: change
- * their channel (and so their instrument), transpose, shift, velocity, clipboard.
+ * their channel (and so their instrument), transpose, shift, quantize, velocity,
+ * clipboard.
  */
 const props = defineProps<{ ed: MidiEditor; rev: number; grid: number }>();
 const { t } = useI18n();
@@ -51,6 +52,10 @@ function move(): void {
 }
 const step = (): number => props.grid || props.ed.doc.ticksPerBeat / 4;
 function shift(dir: number): void { props.ed.shiftBy(dir * step()); }
+function quantize(): void {
+  const n = props.ed.quantize(props.grid);
+  notify(n ? t('midiEditor.quantized', n) : t('midiEditor.alreadyOnGrid'), 'info');
+}
 function copy(): void {
   const n = props.ed.copy();
   if (n) notify(t('midiEditor.copied', n), 'info');
@@ -102,6 +107,10 @@ defineExpose({ close: () => { velOpen.value = false; }, isOpen: () => velOpen.va
       <button type="button" :aria-label="$t('midiEditor.shiftEarlier')" @click="shift(-1)"><i class="fas fa-arrow-left"></i></button>
       <button type="button" :aria-label="$t('midiEditor.shiftLater')" @click="shift(1)"><i class="fas fa-arrow-right"></i></button>
     </span>
+    <button class="btn" type="button" :disabled="!grid" :title="grid ? $t('midiEditor.quantizeHint') : $t('midiEditor.quantizeNeedsGrid')"
+      @click="quantize">
+      <span class="icon"><i class="fas fa-magnet"></i></span>{{ $t('midiEditor.quantize') }}
+    </button>
     <div ref="velRoot" class="me-selbar__vel">
       <button class="btn" type="button" :aria-expanded="velOpen" @click="velOpen = !velOpen">
         <span class="icon"><i class="fas" :class="ICONS.velocity"></i></span>{{ $t('midiEditor.velocity') }}<i class="fas fa-chevron-up me-caret"></i>

@@ -1,0 +1,73 @@
+// ===========================================================================
+//  SHORTCUTS MODAL
+// ===========================================================================
+// components/player/ShortcutsModal.vue: the Play page's keys.
+
+.shortcuts + .shortcuts {
+    margin-top: 1rem;
+}
+
+.shortcuts__title {
+    margin: 0 0 0.4rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-mute);
+}
+
+// one grid for the whole list: the keys line up in one column, what they do in the other
+.shortcuts__list {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 1.2rem;
+    margin: 0;
+}
+
+.shortcuts__row {
+    display: contents;
+}
+
+.shortcuts__keys,
+.shortcuts__what {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.shortcuts__keys {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.6rem;
+}
+
+.shortcuts__combo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+}
+
+.shortcuts__plus {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.shortcuts__keys kbd {
+    display: inline-block;
+    min-width: 1.6rem;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--line-strong);
+    border-bottom-width: 2px;
+    border-radius: var(--radius-xs);
+    background: var(--panel-2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    text-align: center;
+}
+
+.shortcuts__what {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}

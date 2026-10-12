@@ -14,7 +14,10 @@ import DataTable from "@/components/ui/DataTable.vue";
 import DropMenu from "@/components/ui/DropMenu.vue";
 import UsageMenu from "@/components/ui/UsageMenu.vue";
 import LibraryConfirm from "@/components/ui/LibraryConfirm.vue";
+import SelectionBar from "@/components/ui/SelectionBar.vue";
 import type { DataColumn, Usage } from "@/components/ui/data-table";
+import { uploadMidiFile } from "@/midi/upload";
+import { useFileDrop } from "@/utils/file-drop";
 
 /**
  * The MIDI file manager interface: import (button or drop anywhere on it), searchable table,
@@ -28,8 +31,9 @@ import type { DataColumn, Usage } from "@/components/ui/data-table";
  * upload message) is reset by remounting — the modal renders it with `v-if`, and
  * the page mounts it once.
  */
-const props = withDefaults(defineProps<{ currentId?: number | null }>(), {
+const props = withDefaults(defineProps<{ currentId?: number | null; selectable?: boolean }>(), {
     currentId: null,
+    selectable: true,
 });
 const emit = defineEmits<{
     (e: "select", id: number | null): void;
@@ -40,9 +44,14 @@ const midiStore = useMidiStore();
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const uploading = ref(false);
-const dragActive = ref(false);
 const librarySearch = ref("");
-const pendingDelete = ref<{ id: number; name: string } | null>(null);
+// one file (its menu) or the ticked ones
+const pendingDelete = ref<MidiFile[]>([]);
+const selectedIds = ref<(number | string)[]>([]);
+const selectedFiles = computed(() => midiStore.midiFileList.filter((f) => selectedIds.value.includes(f.id)));
+const deleteMessage = computed(() =>
+    pendingDelete.value.length > 1 ? t("label.deleteFiles", { n: pendingDelete.value.length }) : undefined,
+);
 const uploadMsg = ref<{ type: "success" | "error"; name?: string } | null>(
     null,
 );
@@ -66,33 +75,7 @@ function onFileChosen(e: Event): void {
     const files = (e.target as HTMLInputElement).files;
     if (files) uploadMultiple(files)
 }
-// dragenter/dragleave also fire for every child crossed: count them so the overlay doesn't flicker
-let dragDepth = 0;
-function isFileDrag(e: DragEvent): boolean {
-    return !!e.dataTransfer?.types.includes("Files");
-}
-function onDragEnter(e: DragEvent): void {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
-    dragDepth++;
-    dragActive.value = true;
-}
-function onDragOver(e: DragEvent): void {
-    if (isFileDrag(e)) e.preventDefault();
-}
-function onDragLeave(e: DragEvent): void {
-    if (!isFileDrag(e)) return;
-    dragDepth = Math.max(0, dragDepth - 1);
-    if (dragDepth === 0) dragActive.value = false;
-}
-function onDrop(e: DragEvent): void {
-    if (!isFileDrag(e)) return;
-    e.preventDefault();
-    dragDepth = 0;
-    dragActive.value = false;
-    const files = e.dataTransfer?.files;
-    if (files) uploadMultiple(files)
-}
+const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop((files) => uploadMultiple(files));
 function triggerReplace(f: MidiFile): void {
     targetReplaceId.value = f.id;
     replaceInput.value?.click();
@@ -108,11 +91,7 @@ async function uploadOne(file: File): Promise<void> {
     uploading.value = true;
     uploadMsg.value = null;
     try {
-        const form = new FormData();
-        form.append("file", file);
-        // No manual Content-Type: the browser sets multipart/form-data + boundary.
-        const { data } = await axios.post<MidiFile>("/api/midi", form);
-        midiStore.addMidiFileToList(data);
+        const data = await uploadMidiFile(file);
         emit("select", data.id); // auto-select the freshly uploaded file
         uploadMsg.value = { type: "success", name: data.name };
     } catch (err) {
@@ -209,22 +188,29 @@ async function saveEditName(f: MidiFile): Promise<void> {
 }
 
 function requestDelete(f: MidiFile): void {
-    pendingDelete.value = { id: f.id, name: f.name };
+    pendingDelete.value = [f];
 }
 function cancelDelete(): void {
-    pendingDelete.value = null;
+    pendingDelete.value = [];
 }
 async function confirmDelete(): Promise<void> {
-    const target = pendingDelete.value;
-    if (!target) return;
-    pendingDelete.value = null;
-    try {
-        await axios.delete(`/api/midi/${target.id}`);
-        midiStore.deleteMidiFile(target.id);
-        if (props.currentId === target.id) emit("select", null);
-    } catch (err) {
-        console.error("MIDI delete failed", err);
+    const targets = pendingDelete.value;
+    pendingDelete.value = [];
+    for (const target of targets) {
+        try {
+            await axios.delete(`/api/midi/${target.id}`);
+            midiStore.deleteMidiFile(target.id);
+            if (props.currentId === target.id) emit("select", null);
+        } catch (err) {
+            console.error("MIDI delete failed", err);
+            break;
+        }
     }
+    selectedIds.value = [];
+}
+async function downloadSelected(): Promise<void> {
+    // one after the other: a browser asks before a page saves many files at once
+    for (const f of selectedFiles.value) await downloadFile(f);
 }
 
 const songsByMidi = computed(() => {
@@ -295,15 +281,17 @@ const columns = computed<DataColumn<MidiFile>[]>(() => [
         </div>
         <p class="lib__hint">{{ $t("label.dropMidiAnywhere") }}</p>
 
-        <div v-if="uploadMsg && !pendingDelete" class="lib__msg" :class="`is-${uploadMsg.type}`">
+        <div v-if="uploadMsg && !pendingDelete.length" class="lib__msg" :class="`is-${uploadMsg.type}`">
             <i class="fas" :class="uploadMsg.type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation'"></i>
             <span v-if="uploadMsg.type === 'success'">{{ uploadMsg.name }} · {{ $t("label.uploaded") }}</span>
             <span v-else>{{ $t("label.uploadFailed") }}</span>
         </div>
 
-        <library-confirm v-if="pendingDelete" :name="pendingDelete.name" @confirm="confirmDelete" @cancel="cancelDelete" />
+        <library-confirm v-if="pendingDelete.length" :name="pendingDelete[0].name" :message="deleteMessage"
+            @confirm="confirmDelete" @cancel="cancelDelete" />
 
-        <data-table :columns="columns" :rows="filteredLibrary" :row-key="(f) => f.id" :current="currentId" storage-key="midi">
+        <data-table v-model:selected="selectedIds" :columns="columns" :rows="filteredLibrary" :row-key="(f) => f.id"
+            :current="currentId" storage-key="midi" :selectable="selectable">
             <template #cell-name="{ row: f }">
                 <span v-if="editingId === f.id" class="midi-lib__name-edit">
                     <input type="text" v-model="editName" ref="editInput"
@@ -334,6 +322,11 @@ const columns = computed<DataColumn<MidiFile>[]>(() => [
                     <i class="fas fa-pen-to-square"></i>
                 </RouterLink>
                 <drop-menu>
+                    <RouterLink class="dropdown__item" :to="{ name: 'edit', params: { id: 'new' }, query: { file: String(f.id) } }">
+                        <i class="fas fa-file-circle-plus"></i>
+                        <span>{{ $t("label.songFromFile") }}</span>
+                    </RouterLink>
+                    <div class="dropdown__divider"></div>
                     <button class="dropdown__item" type="button" @click="startEditName(f)">
                         <i class="fa-solid fa-pen"></i>
                         <span>{{ $t("label.rename") }}</span>
@@ -364,6 +357,16 @@ const columns = computed<DataColumn<MidiFile>[]>(() => [
                 <template v-else>{{ $t("label.noResults") }}</template>
             </template>
         </data-table>
+
+        <selection-bar v-if="selectedFiles.length" :count="selectedFiles.length"
+            :label="$t('label.selectedFiles', selectedFiles.length)" @clear="selectedIds = []">
+            <button class="btn" type="button" @click="downloadSelected">
+                <span class="icon"><i class="fas fa-download"></i></span>{{ $t("label.download") }}
+            </button>
+            <button class="btn btn--danger-ghost" type="button" @click="pendingDelete = selectedFiles">
+                <span class="icon"><i class="fas fa-trash"></i></span>{{ $t("label.delete") }}
+            </button>
+        </selection-bar>
 
         <!-- only while files are dragged over; pointer-events: none keeps the drag depth count on the rows below -->
         <div v-if="dragActive" class="lib__drop">

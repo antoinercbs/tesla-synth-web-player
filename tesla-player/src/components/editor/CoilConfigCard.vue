@@ -6,6 +6,8 @@ import { useMidiStore } from '@/stores/midi';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 import EnvelopeSelect from '@/envelopes/EnvelopeSelect.vue';
 import { ICONS } from '@/ui/icons';
+import { useI18n } from 'vue-i18n';
+import { dutyNearLimit, limitLabel, ontimeNearLimit } from '@/devices/limits';
 
 const props = defineProps<{ index: number; showEnvelope?: boolean; availableChannels?: number[] | null }>();
 const coil = defineModel<CoilConfig>({ required: true });
@@ -25,6 +27,18 @@ const ontimeUs = computed({
 const dutyPercent = computed({
   get: () => Math.round(coil.value.duty * 1e4) / 100,
   set: (v: number) => { coil.value = { ...coil.value, duty: Math.min(1, Math.max(0, (v || 0) / 100)) }; },
+});
+
+// a warning, never a block: the thresholds are the board's typical ones (devices/limits.ts)
+const { t } = useI18n();
+const limitWarn = computed(() => {
+  const hw = midiStore.deviceProfile.hardwareLimits;
+  if (!hw || midiStore.isSynthOutput) return '';
+  const over = [
+    ontimeNearLimit(hw, coil.value.ontimeUs) ? limitLabel(hw, 'ontime') : '',
+    dutyNearLimit(hw, coil.value.duty) ? limitLabel(hw, 'duty') : '',
+  ].filter(Boolean);
+  return over.length ? t('board.nearLimit', { limit: over.join(' / ') }) : '';
 });
 
 const activeChannels = computed(() => {
@@ -70,6 +84,10 @@ const program = computed<number | null>({
         </label>
       </div>
     </div>
+
+    <p v-if="limitWarn" class="coil-card__warn" role="status">
+      <i class="fas fa-triangle-exclamation"></i>{{ limitWarn }}
+    </p>
 
     <template v-if="showEnvelope">
       <span class="readout-label coil-env__label">

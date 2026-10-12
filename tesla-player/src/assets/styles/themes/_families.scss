@@ -12,7 +12,7 @@ $pushed-on: ".queue-btn.is-active, .power-head__cap.is-on, .coil-filter-toggle.i
 $flat-buttons: ".me-ico, .sidebar-section__edit, .me-x, .dyn-row__remove, .dropdown__more, .col-filter, .midi-lib__edit-icon, .combo__clear, .roll-range__x, .env-steps__remove, .cfg-tag-del, .tour__x";
 
 // the bars that pad their .btn taller than a look's own size
-$button-bars: ".player-transport, .edit-body__dock .player-transport, .me-toolbar, .me-selbar, .me-pop, .lib__bar, .tour__nav";
+$button-bars: ".player-transport, .edit-body__dock .player-transport, .me-toolbar, .me-selbar, .sel-bar, .me-pop, .lib__bar, .tour__nav";
 
 // a choice of a tool or a view (their <button>s), and of a value (SegmentedControl)
 $tool-choices: ".mode-switch, .me-seg, .me-stepper";

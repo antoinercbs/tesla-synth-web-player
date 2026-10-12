@@ -1,4 +1,4 @@
-import { decodeFrame, ENVELOPE_PN, PAN_PN, PN } from "@/sysex/syntherrupter";
+import { decodeFrame, ENVELOPE_PN, MODE_BYTE, PAN_PN, PN } from "@/sysex/syntherrupter";
 import { CENTER, panVolume } from "@/midi/stereo";
 import {
   ENVELOPE_STEP_COUNT,
@@ -100,6 +100,20 @@ interface CoilPlace {
   single: boolean;
 }
 const COIL_SLOTS = 6;
+/** A coil's fixed (Simple mode) tone, as the device holds it: firing rate, ontime, duty. */
+interface SimpleParams {
+  bps: number;
+  ontime: number;
+  duty: number;
+}
+interface SimpleTone {
+  source: OscillatorNode;
+  loud: GainNode;
+  panner: StereoPannerNode;
+  hz: number;
+}
+// a fixed tone may fire a few times a second: its bang keeps its clicks up to this many harmonics
+const SIMPLE_HARMONICS_MAX = 2048;
 const freshNrp = (): ChannelNrp => ({ selMsb: 127, selLsb: 127, mode: 0, srcLow: 0, srcHigh: 127, tgtLow: 0, tgtHigh: 1 });
 const freshPlace = (): CoilPlace => ({ position: -1, reach: 1, single: false });
 
@@ -162,6 +176,11 @@ export class TeslaSynthOutput implements MidiSink {
   private coilPlace: CoilPlace[] = Array.from({ length: COIL_SLOTS }, freshPlace);
   private channelPan: number[] = new Array(16).fill(CENTER);
   private nrp: ChannelNrp[] = Array.from({ length: 16 }, freshNrp);
+  // Simple ("fixed") mode: its own per-coil parameters, and a steady tone per coil while enabled
+  private simple: (SimpleParams | undefined)[] = [];
+  private simpleOn = false;
+  private simpleTones = new Map<number, SimpleTone>();
+  private simpleWaves = new Map<string, PeriodicWave>();
 
   constructor() {
     const Ctx =
@@ -295,6 +314,9 @@ export class TeslaSynthOutput implements MidiSink {
     for (const v of [...this.live])
       this.endVoice(v, this.ctx.currentTime, 0.01);
     this.voices.clear();
+    // Panic sends it: the fixed tones go too (the device would keep them until Simple mode is off)
+    this.simpleOn = false;
+    this.syncSimple(this.ctx.currentTime);
   }
 
   clear(): void {
@@ -303,6 +325,9 @@ export class TeslaSynthOutput implements MidiSink {
     this.live = [];
     this.voices.clear();
     this.coils = [];
+    this.simpleOn = false;
+    this.syncSimple(this.ctx.currentTime);
+    this.simple = [];
     this.channelProgram = new Array(16).fill(0);
     this.coilPlace = Array.from({ length: COIL_SLOTS }, freshPlace);
     this.channelPan = new Array(16).fill(CENTER);
@@ -363,6 +388,10 @@ export class TeslaSynthOutput implements MidiSink {
       this.writePlace(dec.pnFull, dec.coil, dec.isFloat ? dec.valueFloat : dec.valueInt, dec.isFloat);
       return;
     }
+    if (dec.mode === MODE_BYTE.simple) {
+      this.applySimple(dec.pn, dec.coil, dec.valueInt, dec.valueFloat, when);
+      return;
+    }
     const c = dec.coil;
     if (c < 0 || c > 5) return;
     const cs = (this.coils[c] ??= { mask: 0, ontime: [], duty: [] });
@@ -370,6 +399,97 @@ export class TeslaSynthOutput implements MidiSink {
     else if (dec.pn === PN.DUTY) cs.duty.push({ when, v: dec.valueFloat });
     else if (dec.pn === PN.CHANNEL_MAP) cs.mask = dec.valueInt;
     if (dec.pn === PN.ONTIME || dec.pn === PN.DUTY) this.remodulate(c, when);
+  }
+
+  /** Simple mode, as compileSimpleConfig / compileSimpleStop drive it: per-coil BPS, ontime, duty, then the global enable. */
+  private applySimple(pn: number, coil: number, valueInt: number, valueFloat: number, when: number): void {
+    if (pn === PN.ENABLE) {
+      this.simpleOn = valueInt === 1;
+    } else {
+      if (coil < 0 || coil >= COIL_SLOTS) return;
+      const p = (this.simple[coil] ??= { bps: 0, ontime: 0, duty: 0 });
+      if (pn === PN.BPS) p.bps = valueInt;
+      else if (pn === PN.ONTIME) p.ontime = valueInt;
+      else if (pn === PN.DUTY) p.duty = valueFloat;
+      else return;
+      if (!this.simpleOn) return;
+    }
+    this.syncSimple(when);
+  }
+
+  /** How loud a fixed tone plays: the firmware caps a pulse's ontime by the duty at that rate. */
+  private simpleLevel(p: SimpleParams): number {
+    const ontime = Math.min(p.ontime, (p.duty * 1e6) / p.bps);
+    const tone = this.model === "pulse" ? PULSE_GAIN : pitchGain(p.bps);
+    return TeslaSynthOutput.energy(ontime, p.duty) * tone;
+  }
+
+  /** The coil's impulse repeated at any rate (not only a note's), band-limited and cached. */
+  private simpleWave(hz: number): PeriodicWave {
+    const key = `${this.model}:${hz}`;
+    const cached = this.simpleWaves.get(key);
+    if (cached) return cached;
+    const coeffs = this.model === "pulse" ? retroPulseCoefficients : pulseCoefficients;
+    const { real, imag } = coeffs(hz, this.ctx.sampleRate, SIMPLE_HARMONICS_MAX);
+    const wave = this.ctx.createPeriodicWave(real, imag, { disableNormalization: false });
+    this.simpleWaves.set(key, wave);
+    return wave;
+  }
+
+  /** Start, retune or stop each coil's fixed tone to match what the device would now fire. */
+  private syncSimple(when: number): void {
+    for (let c = 0; c < COIL_SLOTS; c++) {
+      const p = this.simple[c];
+      const on = this.simpleOn && !!p && p.bps > 0 && p.ontime > 0 && p.duty > 0;
+      const tone = this.simpleTones.get(c);
+      if (!on || !p) {
+        if (tone) this.stopSimpleTone(c, tone, when);
+        continue;
+      }
+      const level = Math.max(0.0001, this.simpleLevel(p));
+      if (tone) {
+        if (tone.hz !== p.bps) {
+          tone.source.setPeriodicWave(this.simpleWave(p.bps));
+          tone.source.frequency.setValueAtTime(p.bps, when);
+          tone.hz = p.bps;
+        }
+        this.holdAt(tone.loud.gain, when);
+        tone.loud.gain.linearRampToValueAtTime(level, when + 0.03);
+        continue;
+      }
+      const source = this.ctx.createOscillator();
+      source.setPeriodicWave(this.simpleWave(p.bps));
+      source.frequency.value = p.bps;
+      const loud = this.ctx.createGain();
+      loud.gain.setValueAtTime(0.0001, when);
+      loud.gain.linearRampToValueAtTime(level, when + ATTACK_MIN_S * 10);
+      const panner = this.ctx.createStereoPanner();
+      const place = this.coilPlace[c];
+      panner.pan.value = place.position >= 0 ? 2 * place.position - 1 : 0;
+      source.connect(loud).connect(panner).connect(this.bus);
+      source.start(when);
+      this.simpleTones.set(c, { source, loud, panner, hz: p.bps });
+    }
+  }
+
+  private stopSimpleTone(coil: number, tone: SimpleTone, when: number): void {
+    this.simpleTones.delete(coil);
+    try {
+      this.holdAt(tone.loud.gain, when);
+      tone.loud.gain.linearRampToValueAtTime(0.0001, when + 0.02);
+      tone.source.stop(when + 0.06);
+    } catch {
+      /* already stopped */
+    }
+    setTimeout(() => {
+      for (const node of [tone.source, tone.loud, tone.panner]) {
+        try {
+          node.disconnect();
+        } catch {
+          /* */
+        }
+      }
+    }, Math.max(0, (when - this.ctx.currentTime) * 1000) + 120);
   }
 
   /** Mirrors MIDIProgram::setDataPoint: the release amplitude stays 0, n-tau is

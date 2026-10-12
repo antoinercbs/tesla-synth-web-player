@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { useI18n } from 'vue-i18n';
 import { ArcMeter, DEFAULT_PARAMS, summarize, type Background, type BackgroundBuilder, type Measurement, type Shift } from '@/vision/arc-meter';
 import { ICONS } from '@/ui/icons';
+import { useWakeLock } from '@/utils/wake-lock';
 
 /**
  * The camera side of the arc meter, shared by the phone page of a tuning session
@@ -49,7 +50,9 @@ const wctx = work.getContext('2d', { willReadFrequently: true }) as CanvasRender
 const maskCanvas = document.createElement('canvas');
 const mctx = maskCanvas.getContext('2d') as CanvasRenderingContext2D;
 const exposureLocked = ref(false);
-let wakeLock: { release(): Promise<void> } | null = null;
+// the screen stays on from the camera's start: a phone on a stand must not sleep mid-trial
+const cameraOn = ref(false);
+useWakeLock(() => cameraOn.value);
 
 async function startCamera(): Promise<void> {
   step.value = 'starting';
@@ -74,7 +77,7 @@ async function startCamera(): Promise<void> {
     geom.floorY = Math.round(workH * 0.8);
     clampZone();
     step.value = 'setup';
-    void requestWakeLock();
+    cameraOn.value = true;
     emit('started', { width: workW, height: workH });
     loop();
   } catch (e) {
@@ -84,13 +87,6 @@ async function startCamera(): Promise<void> {
   }
 }
 
-async function requestWakeLock(): Promise<void> {
-  try {
-    const nav = navigator as Navigator & { wakeLock?: { request(type: 'screen'): Promise<{ release(): Promise<void> }> } };
-    wakeLock = (await nav.wakeLock?.request('screen')) ?? null;
-  } catch { wakeLock = null; }
-}
-function onVisibility(): void { if (document.visibilityState === 'visible' && !wakeLock) void requestWakeLock(); }
 
 /** Freeze exposure / white balance / focus where the browser allows it (Android Chrome). */
 async function lockExposure(): Promise<void> {
@@ -457,18 +453,15 @@ function onGripClick(): void {
 
 /* --------------------------------------------------------------- lifecycle */
 onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibility);
   document.body.classList.add('tune-cam-body');
 });
 onBeforeUnmount(() => {
   cancelCapture();
-  document.removeEventListener('visibilitychange', onVisibility);
   document.body.classList.remove('tune-cam-body');
   if (rafId) cancelAnimationFrame(rafId);
   const vv = video.value as (HTMLVideoElement & { cancelVideoFrameCallback?: (id: number) => void }) | null;
   if (vfcId && vv?.cancelVideoFrameCallback) vv.cancelVideoFrameCallback(vfcId);
   stream?.getTracks().forEach((tr) => tr.stop());
-  void wakeLock?.release();
 });
 
 defineExpose({ captureBackground, cancelCapture, redoZone, meter, hasBackground, capture: captureState, live, exposureLocked, size });
