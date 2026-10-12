@@ -132,6 +132,8 @@ const USES = [{ key: 1, label: 'Korobeiniki (Tetris)', to: '/edit', coils: 3 }];
             <span class="switch__track"></span>
             <span class="switch__text">Switch</span>
           </label>
+          <label class="sg-label"><input class="check" type="checkbox" checked /> Check</label>
+          <label class="sg-label"><input class="check" type="checkbox" /> Unchecked</label>
         </div>
       </section>
 

@@ -80,7 +80,7 @@ onBeforeUnmount(() => close());
       <div class="col-filter__head">{{ label }}</div>
       <div class="col-filter__list">
         <label v-for="o in options" :key="o.value" class="col-filter__option">
-          <input type="checkbox" :checked="model.includes(o.value)" @change="flip(o.value)" />
+          <input class="check" type="checkbox" :checked="model.includes(o.value)" @change="flip(o.value)" />
           <span v-if="o.color" class="col-filter__dot" :style="{ '--c': o.color }"></span>
           <span class="col-filter__label">{{ o.label }}</span>
           <span class="col-filter__n">{{ o.count }}</span>

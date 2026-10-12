@@ -121,15 +121,6 @@
     background: var(--line-005);
 }
 
-// the whole row opens the item; its name is the link the keyboard reaches
-.data-table__row.is-link {
-    cursor: var(--cursor-pointer, pointer);
-}
-
-.data-table__row.is-link:hover .data-table__name {
-    color: var(--volt);
-}
-
 /* the item in use: same micro-arc edge as the song on air */
 .data-table__row.is-current {
     background: var(--volt-08);
@@ -152,12 +143,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-.data-table__select input {
-    margin: 0;
-    accent-color: var(--volt);
-    cursor: var(--cursor-pointer, pointer);
 }
 
 .data-table__row.is-selected {
@@ -184,9 +169,11 @@
     gap: 0.25rem;
 }
 
+// as wide as its text: only the name opens the item, not the empty cell around it
 .data-table__name {
-    display: block;
-    min-width: 0;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: middle;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -197,6 +184,11 @@
     transition: color 0.13s;
 }
 
+a.data-table__name {
+    cursor: var(--cursor-pointer, pointer);
+}
+
+a.data-table__name:hover,
 a.data-table__name:focus-visible {
     color: var(--volt);
 }

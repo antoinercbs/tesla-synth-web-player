@@ -187,7 +187,7 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
     <library-confirm v-if="pendingDelete.length" :name="pendingDelete[0].name || `#${pendingDelete[0].id}`"
       :message="deleteMessage" @confirm="confirmDelete" @cancel="pendingDelete = []" />
 
-    <data-table v-model:selected="selectedIds" :columns="columns" :rows="filtered" :row-key="(s) => s.id" :row-to="editRoute"
+    <data-table v-model:selected="selectedIds" :columns="columns" :rows="filtered" :row-key="(s) => s.id"
       actions-width="2rem" :default-sort="{ key: 'name', dir: 'asc' }" storage-key="songs" selectable>
       <template #cell-name="{ row: s }">
         <router-link class="data-table__name" :to="editRoute(s)">{{ s.name || `#${s.id}` }}</router-link>

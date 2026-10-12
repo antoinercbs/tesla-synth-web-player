@@ -99,7 +99,7 @@ async function confirmDelete(): Promise<void> {
     <library-confirm v-if="pendingDelete.length" :name="pendingDelete[0].name" :message="deleteMessage"
       @confirm="confirmDelete" @cancel="pendingDelete = []" />
 
-    <data-table v-model:selected="selectedIds" :columns="columns" :rows="filtered" :row-key="(p) => p.id" :row-to="editRoute"
+    <data-table v-model:selected="selectedIds" :columns="columns" :rows="filtered" :row-key="(p) => p.id"
       actions-width="2rem" :default-sort="{ key: 'name', dir: 'asc' }" storage-key="playlists" selectable>
       <template #cell-name="{ row: p }">
         <router-link class="data-table__name" :to="editRoute(p)">{{ p.name }}</router-link>

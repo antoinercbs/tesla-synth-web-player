@@ -1,16 +1,16 @@
 <script setup lang="ts" generic="T">
 import { computed, reactive, ref, useSlots, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { useRouter, type RouteLocationRaw } from 'vue-router';
 import ColumnFilter from './ColumnFilter.vue';
 import { countOptions, filterRows, nextSort, sortRows, type DataColumn, type FilterValue, type Picked, type SortState } from './data-table';
 
 /**
  * A library's table: a sticky head, a row per item, the actions at the end. A
  * cell shows `row[key]` unless its slot (`cell-<key>`) says otherwise; the
- * actions are the `actions` slot, the no-rows message the `empty` slot. With
- * `rowTo` the whole row opens the item (its name should still be a link, for
- * the keyboard). The first column is the main one: alone on its line on a phone.
+ * actions are the `actions` slot, the no-rows message the `empty` slot. A row
+ * opens its item by its name only (a link in the name's slot), never by a click
+ * beside it: next to a box or a menu, that would open it by mistake. The first
+ * column is the main one: alone on its line on a phone.
  *
  * A column with `sort` sorts the rows from its header, one with `filter`
  * filters them; the rows come in already searched, in the table's own order
@@ -24,14 +24,12 @@ const props = withDefaults(defineProps<{
   rows: T[];
   rowKey: (row: T) => number | string;
   current?: number | string | null;
-  rowTo?: (row: T) => RouteLocationRaw;
   actionsWidth?: string;
   defaultSort?: SortState | null;
   storageKey?: string;
   selectable?: boolean;
 }>(), {
   current: null,
-  rowTo: undefined,
   actionsWidth: '4.6rem',
   defaultSort: null,
   storageKey: undefined,
@@ -40,7 +38,6 @@ const props = withDefaults(defineProps<{
 const selected = defineModel<(number | string)[]>('selected', { default: () => [] });
 
 const slots = useSlots();
-const router = useRouter();
 const { t, locale } = useI18n();
 
 const tracks = computed(() => {
@@ -157,13 +154,6 @@ function toggleRow(row: T, e: MouseEvent): void {
   lastTicked = key;
 }
 
-// a control in the row keeps its click; text being selected isn't a click either
-function onRowClick(e: MouseEvent, row: T): void {
-  if (!props.rowTo) return;
-  if ((e.target as Element).closest('a, button, input, select, textarea, label, .dropdown')) return;
-  if (window.getSelection()?.toString()) return;
-  router.push(props.rowTo(row));
-}
 </script>
 
 <template>
@@ -172,7 +162,7 @@ function onRowClick(e: MouseEvent, row: T): void {
       <div v-if="rows.length" class="data-table__grid" role="table">
         <div class="data-table__head" role="row">
           <span v-if="selectable" class="data-table__select is-interactive" role="columnheader">
-            <input type="checkbox" :checked="allSelected" :indeterminate="someSelected" :aria-label="t('table.selectAll')"
+            <input class="check" type="checkbox" :checked="allSelected" :indeterminate="someSelected" :aria-label="t('table.selectAll')"
               :title="t('table.selectAll')" @change="toggleAll" />
           </span>
           <div v-for="(c, i) in columns" :key="c.key" class="data-table__th" :class="mods(c, i)" role="columnheader"
@@ -189,10 +179,10 @@ function onRowClick(e: MouseEvent, row: T): void {
           <span v-if="$slots.actions" role="columnheader"></span>
         </div>
         <div v-for="row in shown" :key="rowKey(row)" class="data-table__row" role="row"
-          :class="{ 'is-current': current != null && rowKey(row) === current, 'is-link': !!rowTo, 'is-selected': selectable && isSelected(row) }"
-          :aria-selected="selectable ? isSelected(row) : undefined" @click="onRowClick($event, row)">
+          :class="{ 'is-current': current != null && rowKey(row) === current, 'is-selected': selectable && isSelected(row) }"
+          :aria-selected="selectable ? isSelected(row) : undefined">
           <span v-if="selectable" class="data-table__select" role="cell">
-            <input type="checkbox" :checked="isSelected(row)" :aria-label="t('table.selectRow')" @click="toggleRow(row, $event)" />
+            <input class="check" type="checkbox" :checked="isSelected(row)" :aria-label="t('table.selectRow')" @click="toggleRow(row, $event)" />
           </span>
           <div v-for="(c, i) in columns" :key="c.key" class="data-table__cell" :class="mods(c, i)" role="cell">
             <slot :name="`cell-${c.key}`" :row="row">{{ cellText(row, c.key) }}</slot>
