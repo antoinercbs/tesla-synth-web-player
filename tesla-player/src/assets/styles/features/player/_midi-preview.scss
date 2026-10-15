@@ -1,12 +1,12 @@
 // ===========================================================================
 //  MIDI PREVIEW
 // ===========================================================================
-// components/player/MidiPreview.vue: the score, the coils' lanes, both combined. A
-// skin restyles them through these tokens (unset, the lab look):
+// components/player/MidiPreview.vue: the score, alone or above the coils' load (drawn
+// with the load view's own pieces). A skin restyles them through these tokens (unset,
+// the lab look):
 //   --preview-bg --preview-border --preview-radius --preview-shadow --preview-rail-bg
 //   --preview-line (grid, ticks, edges) --preview-ink --preview-ink-dim --preview-ink-mute
-//   --preview-font --preview-playhead --preview-note-rx --preview-blocks (the lanes'
-//   fill opacity) --preview-glow (a filter on the drawing)
+//   --preview-font --preview-playhead --preview-note-rx --preview-glow (a filter on the drawing)
 
 .preview {
     display: flex;
@@ -74,14 +74,9 @@
     filter: var(--preview-glow, none);
 }
 
-// the notes' and blocks' corners: the SVG's rx attribute, which a skin may replace
-.preview__svg > rect,
-.preview__svg g rect {
+// the notes' corners: the SVG's rx attribute, which a skin may replace
+.preview__svg > rect {
     rx: var(--preview-note-rx, 1.5px);
-}
-
-.preview__blocks {
-    opacity: var(--preview-blocks, 0.32);
 }
 
 .preview__inner {
@@ -202,7 +197,7 @@
     font-size: 0.5625rem;
 }
 
-// the arc's white-blue core, shared by score / lanes / combined
+// the arc's white-blue core, shared by the score and the combined view
 .preview__playhead {
     stroke: var(--preview-playhead, var(--arc-core));
     stroke-width: 1.5;
@@ -216,22 +211,4 @@
     color: var(--preview-ink-mute, var(--text-mute));
     font-family: var(--font-body);
     font-size: var(--fs-md);
-}
-
-.auto-base {
-    stroke-width: 1;
-    stroke-dasharray: 3 4;
-    opacity: 0.4;
-}
-
-// the rim carries the level over notes; this thin line only shows it across the gaps
-.auto-line {
-    fill: none;
-    stroke-width: 1;
-    opacity: 0.45;
-}
-
-.lane-rim {
-    fill: none;
-    stroke-width: 2;
 }

@@ -23,3 +23,9 @@ export function totalDurationMs(songs: Song[]): number {
 export function hasUnknownDuration(songs: Song[]): boolean {
   return songs.some((s) => s.midiFile?.durationMs == null);
 }
+
+/** A fraction as a percentage to show: one decimal under 10 %, whole numbers above ("8.4", "12"). */
+export function pctLabel(fraction: number): string {
+  const pct = fraction * 100;
+  return String(pct < 10 ? Math.round(pct * 10) / 10 : Math.round(pct));
+}

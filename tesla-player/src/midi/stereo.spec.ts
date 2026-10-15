@@ -17,11 +17,11 @@ import { PAN_PN, compileStereo, decodeFrame, stereoChannelMessages } from '@/sys
 import type { CoilConfig, SongStereo } from '@/types/domain';
 
 const note = (channel: number, n: number, startMs: number, endMs: number, velocity = 100): MidiNote =>
-  ({ channel, note: n, startMs, endMs, velocity });
+  ({ channel, note: n, startMs, endMs, velocity, volume: 1 });
 function analysis(notes: MidiNote[], panEvents: MidiAnalysis['panEvents'] = []): MidiAnalysis {
   return {
     durationMs: 1000, notes, channels: [...new Set(notes.map((n) => n.channel))].sort(),
-    programByChannel: {}, programs: [], panEvents, beats: [], beatsPerBar: 4,
+    programByChannel: {}, programs: [], panEvents, volumeEvents: [], beats: [], beatsPerBar: 4,
     pitchRange: { min: 0, max: 127 },
   };
 }

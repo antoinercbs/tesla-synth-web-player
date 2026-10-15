@@ -73,27 +73,6 @@
     min-width: 3.4rem;
 }
 
-.edit-body__dock .player-coils {
-    gap: 0.35rem;
-}
-
-.edit-body__dock .player-coil {
-    padding: 0.22rem 0.45rem;
-    gap: 0.35rem;
-}
-
-.edit-body__dock .player-coil__chip {
-    font-size: 0.72rem;
-}
-
-.edit-body__dock .player-coil__readout {
-    font-size: var(--fs-xs);
-}
-
-.edit-body__dock .player-coil__readout i {
-    font-size: 0.62rem;
-}
-
 // sticky action bar pinned to the bottom of the viewport while editing
 .editor-footer {
     position: sticky;

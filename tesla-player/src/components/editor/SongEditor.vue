@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
@@ -14,6 +14,8 @@ import { inTextField } from '@/ui/page-keys';
 import { baseName } from '@/midi/upload';
 import { useDropdown } from '@/components/ui/dropdown';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
+import CoilLoadView from '@/components/player/CoilLoadView.vue';
+import { simulate, type LoadMark, type Simulation } from '@/devices/coil-sim';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
 import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
@@ -408,6 +410,33 @@ async function refreshPreview(): Promise<void> {
 }
 watch(() => draft.midiFileId, () => refreshPreview(), { immediate: true });
 
+// --- what the board makes of the song: every coil, note by note (devices/coil-sim.ts) ---
+const sim = shallowRef<Simulation | null>(null);
+const songCoils = computed(() => draft.coils.slice(0, draft.coilCount));
+let simTimer: ReturnType<typeof setTimeout> | null = null;
+// a burst of keystrokes in a field runs it once
+function scheduleSim(): void {
+  if (simTimer) clearTimeout(simTimer);
+  simTimer = setTimeout(() => {
+    simTimer = null;
+    const a = analysis.value;
+    sim.value = a && a.notes.length
+      ? simulate({ analysis: a, coils: songCoils.value, stereo: draft.stereo, events: draft.events, limits: midiStore.effectiveCoilLimits })
+      : null;
+  }, 150);
+}
+watch([analysis, songCoils, () => draft.stereo, () => draft.events, () => midiStore.effectiveCoilLimits], scheduleSim, { deep: true, immediate: true });
+onBeforeUnmount(() => { if (simTimer) clearTimeout(simTimer); });
+const loadCoils = computed(() => songCoils.value.map((c) => ({
+  coilIndex: c.coilIndex, name: midiStore.coilName(c.coilIndex), limits: midiStore.coilLimit(c.coilIndex),
+})));
+/** A card's hovered note: its moments light up on the coil's lane. */
+const loadMarks = ref<{ coilIndex: number; list: LoadMark[] } | null>(null);
+function peakOf(i: number): number | null {
+  const tr = sim.value?.tracks[i];
+  return tr ? tr.pulseUs.reduce((m, us) => Math.max(m, us), 0) : null;
+}
+
 const selectedFile = computed(() => midiStore.midiFileList.find((f) => f.id === draft.midiFileId) ?? null);
 // what the phone layout hides but the song keeps (and saves as it is)
 const largeScreenOnly = computed(() => {
@@ -522,9 +551,12 @@ watch(draft, () => emitChange(), { deep: true });
       </div>
     </div>
 
+    <CoilLoadView v-if="sim" class="editor-load" :sim="sim" :coils="loadCoils" :marks="loadMarks" />
+
     <div class="coils-grid">
       <CoilConfigCard v-for="i in draft.coilCount" :key="i - 1" v-model="draft.coils[i - 1]" :index="i - 1"
-        :available-channels="availableChannels" />
+        :available-channels="availableChannels" :fates="sim?.fates[i - 1] ?? null" :peak-us="peakOf(i - 1)"
+        @marks="(m) => loadMarks = m ? { coilIndex: i - 1, list: m } : null" />
     </div>
 
     <article class="coil-card output2-card" :style="{ '--coil': 'var(--plasma)' }">

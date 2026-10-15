@@ -29,10 +29,18 @@ export function noteFrequency(note: number): number {
   return 440 * Math.pow(2, (note - 69) / 12);
 }
 
+/** The equal-temperament note nearest to `hz`, which may lie outside 0..127. */
+export function nearestNote(hz: number): number {
+  return Math.round(69 + 12 * Math.log2(hz / 440));
+}
+
 /** "131 Hz" above 100 Hz, "65.4 Hz" below (a Tesla coil's firing rate IS the pitch). */
+export function hzLabel(hz: number): string {
+  return `${hz >= 100 ? Math.round(hz) : hz.toFixed(1)} Hz`;
+}
+
 export function noteHzLabel(note: number): string {
-  const f = noteFrequency(note);
-  return `${f >= 100 ? Math.round(f) : f.toFixed(1)} Hz`;
+  return hzLabel(noteFrequency(note));
 }
 
 /** Last note of a window of `octaves` octaves starting at `start` (the closing C). */

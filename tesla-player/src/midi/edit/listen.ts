@@ -15,8 +15,9 @@ interface Msg { at: number; data: number[] }
 
 /**
  * Plays the file being edited on the emulated synth, never on a coil: an edit
- * in progress is heard before it is saved. One coil listening to every channel
- * at a moderate level, so every channel sounds, with the channel's envelope.
+ * in progress is heard before it is saved. One coil listening to every channel,
+ * with the channel's envelope, played as the board would: its voices and limits
+ * hold, so a dense passage loses notes here too.
  */
 export class EditorListener {
   private synth = getTeslaSynth();

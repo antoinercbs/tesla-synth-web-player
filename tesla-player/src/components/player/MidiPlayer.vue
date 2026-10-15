@@ -1,22 +1,25 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, reactive, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
 import { maskToChannels } from '@/sysex/syntherrupter';
-import { envelope, envelopeAmplitude } from '@/sysex/envelopes';
-import { analyzeMidi, type MidiAnalysis } from '@/midi/analyze';
-import { coilLevelAt, effectiveRatio } from '@/midi/automation';
+import { envelopeAmplitude } from '@/sysex/envelopes';
+import { analyzeMidi, channelVolumes, noteRange, type MidiAnalysis } from '@/midi/analyze';
+import { coilLevelAt } from '@/midi/automation';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
-import type { CoilConfig, CoilParam, Song } from '@/types/domain';
-import CoilLegend from '@/components/player/CoilLegend.vue';
+import type { CoilConfig, Song } from '@/types/domain';
 import VizTabs from '@/components/player/VizTabs.vue';
 import PowerControlPanel from '@/components/player/PowerControlPanel.vue';
 import BoardAlert from '@/components/player/BoardAlert.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { dutyNearLimit, limitLabel, ontimeNearLimit } from '@/devices/limits';
+import { cutsSoFar, simulate, stepAt, type Simulation } from '@/devices/coil-sim';
+import type { CoilLimits } from '@/devices/coil-limits';
+import { capUs, requestedOntimeUs } from '@/devices/ontime-model';
+import { noteFrequency } from '@/ui/piano-layout';
 import { tour } from '@/tour/tour';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import SmfPlayer from '@/smfplayer/js/smfPlayer.js';
@@ -40,45 +43,40 @@ const isPlaying = ref(false);
 // MIDI analysis + visualisation (VU / score / coil occupancy tabs)
 const analysis = ref<MidiAnalysis | null>(null);
 const playheadMs = ref(0);
-type Viz = 'vu' | 'roll' | 'lanes' | 'combined';
-const viz = ref<Viz>((localStorage.getItem('playerViz') as Viz) || 'vu');
+type Viz = 'vu' | 'roll' | 'load' | 'combined';
+// the coil lanes' tab became the load's
+const storedViz = localStorage.getItem('playerViz');
+const viz = ref<Viz>(storedViz === 'lanes' ? 'load' : (storedViz as Viz) || 'vu');
 watch(viz, (v) => localStorage.setItem('playerViz', v));
-// which automation parameter the read-only coils view overlays
-const playerParam = ref<CoilParam>('ontime');
 let rafId: number | null = null;
 let playStart = 0;
 // LIVE POWER: a GLOBAL ⇄ ADVANCED toggle.
 //  • Global  — one "Power" knob scaling ontime AND duty for ALL coils (the quick "turn
 //    it down/up" control a performer reaches for).
 //  • Advanced — per-coil Ontime & Duty multipliers, for fine-tuning each coil.
-// Effective ratio sent to a coil (percent, 100 = as configured): global → masterPower
-// for both params; advanced → that coil's own ontime/duty.
+// Power sent to a coil (percent, 100 = as configured, ontime and duty together):
+// global → masterPower; advanced → that coil's own.
 type PowerScope = 'global' | 'advanced';
 const powerScope = ref<PowerScope>((localStorage.getItem('playerPowerScope') as PowerScope) || 'global');
 watch(powerScope, (v) => localStorage.setItem('playerPowerScope', v));
 const masterPower = ref(100);
-// per-coil ontime & duty (%, keyed by coilIndex), kept from one song to the next: a
-// coil turned down for the venue must not come back at 100 % on the next track
-const coilOntime = reactive<Record<number, number>>({});
-const coilDuty = reactive<Record<number, number>>({});
+// per-coil power (%, keyed by coilIndex), kept from one song to the next: a coil
+// turned down for the venue must not come back at 100 % on the next track
+const coilPower = reactive<Record<number, number>>({});
 watch(() => song.value?.coils, (coils) => {
-  for (const c of coils ?? []) { coilOntime[c.coilIndex] ??= 100; coilDuty[c.coilIndex] ??= 100; }
+  for (const c of coils ?? []) coilPower[c.coilIndex] ??= 100;
 }, { immediate: true });
 // "≤ 100 %": the operator's lock against overdrive, for the whole show (persisted)
 const powerCapped = ref(localStorage.getItem('playerPowerCap') === '1');
 watch(powerCapped, (v) => localStorage.setItem('playerPowerCap', v ? '1' : '0'));
 const powerMax = computed(() => (powerCapped.value ? 100 : 200));
-function effRatioOntime(i: number): number {
-  return powerScope.value === 'advanced' ? (coilOntime[i] ?? 100) : masterPower.value;
-}
-function effRatioDuty(i: number): number {
-  return powerScope.value === 'advanced' ? (coilDuty[i] ?? 100) : masterPower.value;
+function powerOf(i: number): number {
+  return powerScope.value === 'advanced' ? (coilPower[i] ?? 100) : masterPower.value;
 }
 const powerBoost = computed(() => masterPower.value > 100); // global readout: past "nominal"
 const masterDirty = computed(() => {
   if (powerScope.value === 'advanced') {
-    return (song.value?.coils ?? []).some((c) =>
-      (coilOntime[c.coilIndex] ?? 100) !== 100 || (coilDuty[c.coilIndex] ?? 100) !== 100);
+    return (song.value?.coils ?? []).some((c) => (coilPower[c.coilIndex] ?? 100) !== 100);
   }
   return masterPower.value !== 100;
 });
@@ -103,16 +101,19 @@ function inSpeaker(ch: number): boolean {
 function channelEnergy(ch: number): number {
   const c = (song.value?.coils ?? []).find((co) => (co.channelMask & (1 << ch)) !== 0);
   if (!c) return inSpeaker(ch) ? 0.6 : 0;
-  const ot = (c.ontimeUs * effRatioOntime(c.coilIndex)) / 100;
-  const dt = (c.duty * effRatioDuty(c.coilIndex)) / 100;
+  const ot = (c.ontimeUs * powerOf(c.coilIndex)) / 100;
+  const dt = (c.duty * powerOf(c.coilIndex)) / 100;
   return Math.min(1, (ot * dt) / 4);
 }
+// the file's channel volume × expression: the board scales every note of the channel by both
+const volumesAt = computed(() => channelVolumes(analysis.value?.volumeEvents ?? []));
 /** Per frame: bar level = (max envelope amplitude of notes sounding now) × coil energy. */
 function updateLevels(): void {
   const a = analysis.value;
   const t = playheadMs.value;
   const chMax = new Array<number>(MIDI_CHANNEL_COUNT).fill(0);
   if (a) {
+    const volumes = volumesAt.value(t);
     for (const note of a.notes) {
       if (t < note.startMs || t >= note.endMs + RELEASE_TAIL_MS) continue;
       const program = channelProgram[note.channel] ?? 0;
@@ -120,7 +121,7 @@ function updateLevels(): void {
       // The Syntherrupter scales a note's ontime linearly with velocity
       // (ontimeUS = velocity/127 × envelopeVolume × … × maxOntime), so the VU
       // must weight the envelope by velocity to reflect actual coil output.
-      const amp = envelopeAmplitude(program, t - note.startMs, releaseMs) * (note.velocity / 127);
+      const amp = envelopeAmplitude(program, t - note.startMs, releaseMs) * (note.velocity / 127) * volumes[note.channel];
       if (amp > chMax[note.channel]) chMax[note.channel] = amp;
     }
   }
@@ -181,22 +182,13 @@ const canStop = computed(() => isPlaying.value || paused.value);
 const canPanic = computed(() => !!midiStore.midiOutput);
 const canSysex = computed(() => !!song.value && !!midiStore.midiOutput);
 
-// per-coil legend (ontime + duty), ordered by coil index
+// the song's coils, ordered by coil index
 const legendCoils = computed(() =>
   [...(song.value?.coils ?? [])].sort((a, b) => a.coilIndex - b.coilIndex),
 );
-// distinct envelopes currently heard, with the channels using each
-const envelopesInUse = computed(() => {
-  const groups = new Map<number, number[]>();
-  channelProgram.forEach((p, ch) => {
-    if (p == null) return;
-    if (!groups.has(p)) groups.set(p, []);
-    groups.get(p)!.push(ch);
-  });
-  return [...groups.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .map(([program, chs]) => ({ program, chs, env: envelope(program) }));
-});
+// the file's CC7 × CC11 where it is heard: the VU's ceiling on each channel; none when it sets neither
+const volumeCeilings = computed(() =>
+  analysis.value?.volumeEvents.length ? volumesAt.value(playheadMs.value) : null);
 function resetPrograms(): void {
   for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) channelProgram[i] = null;
 }
@@ -222,37 +214,83 @@ function startPlayhead(): void {
   };
   rafId = requestAnimationFrame(tick);
 }
-/** duty fraction (0..1) → percentage with up to 2 decimals. */
-function dutyPct(duty: number): number {
-  return Math.round(duty * 1e4) / 100;
+// the notes each coil plays: its lowest one tells where Power stops changing its bass
+const coilRanges = computed(() => {
+  const notes = analysis.value?.notes ?? [];
+  return new Map((song.value?.coils ?? []).map((c) => [c.coilIndex, noteRange(notes, c.channelMask)]));
+});
+
+/*
+ * What the board makes of the song (devices/coil-sim.ts), redone when the power or
+ * the coils' limits change: a few times a second at most while a fader moves.
+ */
+const sim = shallowRef<Simulation | null>(null);
+let simTimer: ReturnType<typeof setTimeout> | null = null;
+function scheduleSim(): void {
+  if (simTimer) return;
+  simTimer = setTimeout(() => {
+    simTimer = null;
+    const s = song.value, a = analysis.value;
+    sim.value = s && a?.notes.length
+      ? simulate({ analysis: a, coils: s.coils ?? [], stereo: s.stereo, events: s.events ?? [], limits: midiStore.effectiveCoilLimits, power: powerOf })
+      : null;
+  }, 120);
 }
-// legend shows the EFFECTIVE values = base × the live power (master × bias) × the
-// active automation ratio at the playhead, so it tracks both the faders and events.
-function effOntime(c: CoilConfig): number {
-  const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'ontime', playheadMs.value);
-  return Math.round((c.ontimeUs * r * effRatioOntime(c.coilIndex)) / 100);
+watch([song, analysis, () => midiStore.effectiveCoilLimits, masterPower, powerScope, coilPower], scheduleSim, { deep: true, immediate: true });
+const loadCoils = computed(() => (song.value?.coils ?? []).map((c) => ({
+  coilIndex: c.coilIndex, name: midiStore.coilName(c.coilIndex), limits: midiStore.coilLimit(c.coilIndex),
+})));
+
+/** The power past which a coil's lowest note fires its max ontime, whatever more it gets. */
+function notchOf(c: CoilConfig, limits: CoilLimits | null): number | null {
+  const cap = capUs(limits);
+  const range = coilRanges.value.get(c.coilIndex);
+  if (cap == null || !range) return null;
+  const pct = Math.floor((cap / requestedOntimeUs({ ontimeUs: c.ontimeUs, duty: c.duty }, noteFrequency(range.min))) * 100);
+  return pct < 200 ? pct : null;
 }
-function effDutyPct(c: CoilConfig): number {
-  const r = effectiveRatio(song.value?.events ?? [], c.coilIndex, 'duty', playheadMs.value);
-  return dutyPct((c.duty * r * effRatioDuty(c.coilIndex)) / 100);
-}
-// legend rows for <coil-legend>: colour + effective ontime/duty (recomputed each
-// frame via playheadMs, so the readouts track the faders and automation events).
-const legendRows = computed(() =>
-  legendCoils.value.map((c) => ({
-    coilIndex: c.coilIndex,
-    color: coilColor(c.coilIndex),
-    ontime: effOntime(c),
-    duty: effDutyPct(c),
-  })),
-);
-// the coils the live power (or the song itself) takes near the board's protection
+// the skipped-notes light stays on a little, or a single note would only flicker it
+const LED_HOLD_MS = 600;
+const ledUntil = new Map<number, number>();
+// each coil's row in the power panel: what it is sent, and what it fires where the song is heard
+const coilRows = computed(() => {
+  const s = sim.value;
+  const ms = playheadMs.value;
+  const step = s ? stepAt(s, ms) : 0;
+  const now = performance.now();
+  return legendCoils.value.map((c) => {
+    const limits = midiStore.coilLimit(c.coilIndex);
+    const tr = s?.tracks.find((x) => x.coilIndex === c.coilIndex) ?? null;
+    let live = null;
+    if (tr) {
+      if (tr.skipped[step]) ledUntil.set(c.coilIndex, now + LED_HOLD_MS);
+      live = {
+        dutyAsked: tr.dutyAsked[step], duty: tr.duty[step], factor: tr.factor[step],
+        pulseUs: tr.pulseUs[step], askedUs: tr.askedUs[step],
+        skippedNow: now < (ledUntil.get(c.coilIndex) ?? 0), skippedSoFar: cutsSoFar(tr, ms),
+      };
+    }
+    return {
+      coilIndex: c.coilIndex,
+      color: coilColor(c.coilIndex),
+      name: midiStore.coilName(c.coilIndex),
+      power: coilPower[c.coilIndex] ?? 100,
+      sent: coilLevelAt(song.value?.events ?? [], c, ms, powerOf(c.coilIndex), powerOf(c.coilIndex)),
+      limits,
+      notch: notchOf(c, limits),
+      live,
+    };
+  });
+});
+// the coils the live power (or the song itself) takes near the board's protection: their
+// longest pulse and their highest duty anywhere in the song
 const limitWarn = computed(() => {
   const hw = midiStore.deviceProfile.hardwareLimits;
-  if (!hw || midiStore.isSynthOutput) return '';
-  const coils = legendRows.value
-    .filter((r) => ontimeNearLimit(hw, r.ontime) || dutyNearLimit(hw, r.duty / 100))
-    .map((r) => r.coilIndex);
+  if (!hw || midiStore.isSynthOutput || !sim.value) return '';
+  const peak = (a: Float32Array): number => a.reduce((m, v) => Math.max(m, v), 0);
+  const coils = sim.value.tracks
+    .filter((tr) => ontimeNearLimit(hw, peak(tr.pulseUs)) || dutyNearLimit(hw, peak(tr.duty)))
+    .map((tr) => tr.coilIndex);
   if (!coils.length) return '';
   return t('player.nearLimit', { coils: coils.join(', '), ontime: limitLabel(hw, 'ontime'), duty: limitLabel(hw, 'duty') }, coils.length);
 });
@@ -380,7 +418,7 @@ function sendCoilLevels(ms: number, force = false): void {
   if (!out || !song.value) return;
   const driver = midiStore.driver;
   for (const coil of song.value.coils ?? []) {
-    const lvl = coilLevelAt(song.value.events ?? [], coil, ms, effRatioOntime(coil.coilIndex), effRatioDuty(coil.coilIndex));
+    const lvl = coilLevelAt(song.value.events ?? [], coil, ms, powerOf(coil.coilIndex), powerOf(coil.coilIndex));
     const dutyKey = Math.round(lvl.duty * DUTY_STEPS);
     const last = sentLevels.get(coil.coilIndex);
     if (force || last?.ontimeUs !== lvl.ontimeUs) out.send(driver.coilLevel(coil.coilIndex, 'ontime', lvl.ontimeUs));
@@ -622,22 +660,18 @@ function toggleCap(): void {
   powerCapped.value = !powerCapped.value;
   if (!powerCapped.value) return;
   masterPower.value = Math.min(masterPower.value, 100);
-  for (const k of Object.keys(coilOntime)) coilOntime[+k] = Math.min(coilOntime[+k], 100);
-  for (const k of Object.keys(coilDuty)) coilDuty[+k] = Math.min(coilDuty[+k], 100);
+  for (const k of Object.keys(coilPower)) coilPower[+k] = Math.min(coilPower[+k], 100);
   applyLive();
 }
-// Switching to Advanced INHERITS the current global power into each coil's ontime & duty;
+// Switching to Advanced INHERITS the current global power into each coil's own;
 // switching back to Global starts from the lowest coil setting: either way no coil jumps up.
 function setScope(next: PowerScope): void {
   if (next === powerScope.value) return;
   const coils = song.value?.coils ?? [];
   if (next === 'advanced') {
-    for (const c of coils) {
-      coilOntime[c.coilIndex] = masterPower.value;
-      coilDuty[c.coilIndex] = masterPower.value;
-    }
+    for (const c of coils) coilPower[c.coilIndex] = masterPower.value;
   } else if (coils.length) {
-    masterPower.value = Math.min(...coils.flatMap((c) => [coilOntime[c.coilIndex] ?? 100, coilDuty[c.coilIndex] ?? 100]));
+    masterPower.value = Math.min(...coils.map((c) => coilPower[c.coilIndex] ?? 100));
   }
   powerScope.value = next;
   applyLive();
@@ -646,10 +680,7 @@ function setScope(next: PowerScope): void {
 function nudgePower(delta: number): void {
   const clamp = (v: number): number => Math.max(0, Math.min(powerMax.value, v + delta));
   if (powerScope.value === 'advanced') {
-    for (const c of song.value?.coils ?? []) {
-      coilOntime[c.coilIndex] = clamp(coilOntime[c.coilIndex] ?? 100);
-      coilDuty[c.coilIndex] = clamp(coilDuty[c.coilIndex] ?? 100);
-    }
+    for (const c of song.value?.coils ?? []) coilPower[c.coilIndex] = clamp(coilPower[c.coilIndex] ?? 100);
   } else {
     masterPower.value = clamp(masterPower.value);
   }
@@ -657,23 +688,13 @@ function nudgePower(delta: number): void {
 }
 function resetPower(): void {
   masterPower.value = 100;
-  for (const c of song.value?.coils ?? []) { coilOntime[c.coilIndex] = 100; coilDuty[c.coilIndex] = 100; }
+  for (const c of song.value?.coils ?? []) coilPower[c.coilIndex] = 100;
   applyLive();
 }
-// per-coil rows for <power-control-panel> (advanced sliders). The panel is
-// controlled: it streams drag values back via @coil-input (we store them here,
-// the readout follows) and fires @coil-change on release (→ applyLive).
-const powerCoilRows = computed(() =>
-  legendCoils.value.map((c) => ({
-    coilIndex: c.coilIndex,
-    color: coilColor(c.coilIndex),
-    ontime: coilOntime[c.coilIndex] ?? 100,
-    duty: coilDuty[c.coilIndex] ?? 100,
-  })),
-);
-function onCoilInput(coilIndex: number, param: CoilParam, value: number): void {
-  if (param === 'ontime') coilOntime[coilIndex] = value;
-  else coilDuty[coilIndex] = value;
+// The panel is controlled: it streams a coil's drag back via @coil-input (stored here,
+// the row follows) and fires @coil-change on release (→ applyLive).
+function onCoilInput(coilIndex: number, value: number): void {
+  coilPower[coilIndex] = value;
   applyLiveSoon();
 }
 
@@ -741,9 +762,6 @@ defineExpose({ loadSong, playSong, stop, togglePlayPause, seekBy, nudgePower });
       <span class="icon"><i class="fas fa-music"></i></span>
       <span v-if="song" class="player-song__name">{{ song.name }}</span>
       <span v-else class="player-song__empty">{{ $t('label.noSongLoaded') }}</span>
-      <!-- per-coil legend (colour + ontime + duty): same line as the name if it
-           fits, otherwise wraps full-width onto the line below -->
-      <coil-legend v-if="song" :rows="legendRows" />
       <span v-if="mutedCoils" class="player-muted" :title="$t('board.mutedHint', { n: midiStore.deviceProfile.coils })">
         <i class="fas fa-volume-xmark"></i>{{ mutedCoils }}
       </span>
@@ -768,31 +786,18 @@ defineExpose({ loadSong, playSong, stop, togglePlayPause, seekBy, nudgePower });
       <span class="icon"><i class="fas fa-circle-info"></i></span>{{ $t('label.loadSongHint') }}
     </p>
 
-    <viz-tabs v-model:viz="viz" v-model:edit-param="playerParam" :level="level" :backgrounds="vuBackgrounds"
-      :mapped="vuMapped" :analysis="analysis" :coils="song?.coils ?? []" :coil-count="song?.coilCount ?? 0"
+    <viz-tabs v-model:viz="viz" :level="level" :backgrounds="vuBackgrounds"
+      :mapped="vuMapped" :analysis="analysis" :coils="song?.coils ?? []"
       :output2-mask="song?.output2Mask ?? 0" :playhead-ms="playheadMs" :playing="isPlaying" :paused="paused"
-      :events="song?.events ?? []" :compact="compactGraph" :stereo="song?.stereo" />
-
-    <!-- instruments (envelopes) heard per channel, tracked from MIDI program changes -->
-    <div v-if="song && envelopesInUse.length" class="vu-legend">
-      <span class="vu-legend__label">
-        <span class="icon"><i class="fas" :class="ICONS.instrument"></i></span>
-        <span class="vu-legend__label-text">{{ $t('label.instruments') }}</span>
-      </span>
-      <span v-for="e in envelopesInUse" :key="e.program" class="env-chip"
-        :title="`${$t('label.instrument')}: ${e.env.name}`">
-        <span class="env-chip__pn">P{{ e.program }}</span>
-        <span class="env-chip__name">{{ e.env.name }}</span>
-        <span class="env-chip__chs">{{ $t('label.channelsShort', { list: e.chs.join(', ') }) }}</span>
-      </span>
-    </div>
+      :compact="compactGraph" :sim="sim" :load-coils="loadCoils" :ceilings="volumeCeilings" />
 
     <!-- LIVE POWER: a GLOBAL ⇄ ADVANCED toggle. Global = one Power fader (ontime+duty,
          all coils); Advanced = per-coil ontime/duty sliders for fine-tuning. -->
-    <power-control-panel v-model:master-power="masterPower" :scope="powerScope" :coil-rows="powerCoilRows"
+    <power-control-panel v-model:master-power="masterPower" :scope="powerScope" :coil-rows="coilRows"
       :boost="powerBoost" :dirty="masterDirty" :has-song="!!song" :capped="powerCapped" :max="powerMax"
       @set-scope="setScope" @power-change="onPowerChange" @coil-input="onCoilInput" @coil-change="applyLive"
       @reset="resetPower" @toggle-cap="toggleCap" />
+
 
     <p v-if="limitWarn" class="player-limit" role="status">
       <span class="icon"><i class="fas fa-triangle-exclamation"></i></span>{{ limitWarn }}

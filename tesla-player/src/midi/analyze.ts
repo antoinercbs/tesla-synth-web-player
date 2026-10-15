@@ -35,6 +35,16 @@ export interface MidiNote {
   /** MIDI note-on velocity (0..127). The Syntherrupter scales coil ontime
    *  linearly with this (ontime ∝ velocity/127), so it drives output power. */
   velocity: number;
+  /** Channel volume (CC7) × expression (CC11) as the note starts, 0..1: the
+   *  firmware scales the ontime by both, like the velocity. */
+  volume: number;
+}
+/** A channel volume (CC7) or expression (CC11) change. */
+export interface VolumeEvent {
+  channel: number;
+  atMs: number;
+  controller: 7 | 11;
+  value: number;
 }
 export interface MidiAnalysis {
   durationMs: number;
@@ -47,6 +57,8 @@ export interface MidiAnalysis {
   programs: number[];
   /** the file's pan changes (CC10, 0..127), in time order */
   panEvents: { channel: number; atMs: number; value: number }[];
+  /** the file's channel volume (CC7) and expression (CC11) changes, in time order */
+  volumeEvents: VolumeEvent[];
   /** time of every beat up to the end, following the tempo changes */
   beats: number[];
   /** beats in a bar (the first time signature; 4 without one) */
@@ -82,10 +94,14 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
 
   // 3. walk events: pair note-on/off, capture first program per channel
   const notes: MidiNote[] = [];
-  const active = new Map<string, { tick: number; velocity: number }>(); // "ch:note" -> start
+  const active = new Map<string, { tick: number; velocity: number; volume: number }>(); // "ch:note" -> start
   const programByChannel: Record<number, number> = {};
   const programs = new Set<number>();
   const panEvents: MidiAnalysis["panEvents"] = [];
+  const volumeEvents: VolumeEvent[] = [];
+  // switching the MIDI mode on resets both to 127 on the board, and a song always does
+  const cc7 = new Array<number>(16).fill(127);
+  const cc11 = new Array<number>(16).fill(127);
   let maxTick = 0;
 
   for (const e of all) {
@@ -95,6 +111,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
       active.set(`${e.channel}:${e.noteNumber}`, {
         tick: e.tick,
         velocity: e.velocity ?? 127,
+        volume: (cc7[e.channel] / 127) * (cc11[e.channel] / 127),
       });
     } else if (e.subtype === "noteOff" && e.noteNumber != null) {
       const key = `${e.channel}:${e.noteNumber}`;
@@ -106,6 +123,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
           startMs: t2ms(start.tick),
           endMs: t2ms(e.tick),
           velocity: start.velocity,
+          volume: start.volume,
         });
         active.delete(key);
       }
@@ -115,6 +133,14 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
         programByChannel[e.channel] = e.programNumber;
     } else if (e.subtype === "controller" && e.controllerType === 10 && e.value != null) {
       panEvents.push({ channel: e.channel, atMs: t2ms(e.tick), value: e.value });
+    } else if (e.subtype === "controller" && (e.controllerType === 7 || e.controllerType === 11) && e.value != null) {
+      (e.controllerType === 7 ? cc7 : cc11)[e.channel] = e.value;
+      volumeEvents.push({ channel: e.channel, atMs: t2ms(e.tick), controller: e.controllerType, value: e.value });
+    } else if (e.subtype === "controller" && e.controllerType === 121) {
+      cc7[e.channel] = 127;
+      cc11[e.channel] = 127;
+      volumeEvents.push({ channel: e.channel, atMs: t2ms(e.tick), controller: 7, value: 127 });
+      volumeEvents.push({ channel: e.channel, atMs: t2ms(e.tick), controller: 11, value: 127 });
     }
   }
   // close any notes left hanging at the end of the file
@@ -126,6 +152,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
       startMs: t2ms(start.tick),
       endMs: t2ms(maxTick),
       velocity: start.velocity,
+      volume: start.volume,
     });
   }
 
@@ -154,6 +181,7 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
     programByChannel,
     programs: [...programs].sort((a, b) => a - b),
     panEvents,
+    volumeEvents,
     beats,
     beatsPerBar: signature?.numerator ?? 4,
     pitchRange: {
@@ -161,4 +189,41 @@ export function analyzeMidi(parsed: unknown): MidiAnalysis {
       max: pitches.length ? Math.max(...pitches) : 127,
     },
   };
+}
+
+/** Lowest and highest note on the channels of `channelMask`, null when they play none. */
+export function noteRange(notes: readonly MidiNote[], channelMask: number): { min: number; max: number } | null {
+  let min = Infinity;
+  let max = -Infinity;
+  for (const n of notes) {
+    if (!(channelMask & (1 << n.channel))) continue;
+    if (n.note < min) min = n.note;
+    if (n.note > max) max = n.note;
+  }
+  return min <= max ? { min, max } : null;
+}
+
+/** CC7 × CC11 of each of the 16 channels (0..1) at any time of the song, 1 where the file sets neither. */
+export function channelVolumes(events: readonly VolumeEvent[]): (atMs: number) => number[] {
+  // one lane per channel and controller, searched by time
+  const lanes = new Map<number, VolumeEvent[]>();
+  for (const e of events) {
+    const key = e.channel * 128 + e.controller;
+    if (!lanes.has(key)) lanes.set(key, []);
+    lanes.get(key)!.push(e);
+  }
+  const valueAt = (channel: number, controller: number, atMs: number): number => {
+    const lane = lanes.get(channel * 128 + controller);
+    if (!lane || lane[0].atMs > atMs) return 127;
+    let lo = 0;
+    let hi = lane.length - 1;
+    while (lo < hi) {
+      const mid = (lo + hi + 1) >> 1;
+      if (lane[mid].atMs <= atMs) lo = mid;
+      else hi = mid - 1;
+    }
+    return lane[lo].value;
+  };
+  return (atMs) =>
+    Array.from({ length: 16 }, (_, ch) => (valueAt(ch, 7, atMs) / 127) * (valueAt(ch, 11, atMs) / 127));
 }

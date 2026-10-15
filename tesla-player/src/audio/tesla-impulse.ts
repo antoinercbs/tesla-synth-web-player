@@ -69,17 +69,26 @@ export const TESLA_IMPULSE: ImpulseParams = {
 };
 
 /**
- * Bang energy vs pitch. With a peak-normalised waveform the synth already repeats the SAME
- * impulse at every pitch (constant peak, RMS ∝ √f0 — exactly what the recordings show across
- * each coil's range); on top of that the measured per-bang energy drifts gently down with
- * pitch (≈ −2 dB/oct on single coils, −4 dB/oct in the Megalovania mix), applied here as a
- * gain — set toward the mix value after listening ("the bass was too attenuated").
+ * How loud a coil's pulse sounds. The synth repeats the SAME impulse at every pitch
+ * (a peak-normalised wave: RMS ∝ √f0, as the recordings show across each coil's
+ * range). A longer pulse makes a louder bang, as (pulse / reference)^alpha, and the
+ * bang drifts with pitch by slopeDbPerOct: the recordings drift ≈ −2 dB/oct on a
+ * single coil, −4 in a mix, at settings that were not noted, so part of that drift
+ * is the pulse length itself (D × period in the bass). Picked by ear on an A/B against
+ * α ½ and slopes of 0 and −3 dB/oct.
  */
-export const PITCH_GAIN_DB_PER_OCT = -3;
-export const PITCH_GAIN_REF_HZ = 110;
+export interface LevelLaw {
+  alpha: number;
+  slopeDbPerOct: number;
+}
+export const LEVEL_LAW: Readonly<LevelLaw> = { alpha: 1, slopeDbPerOct: -1.5 };
+// 40 µs / 5 % on A4 with a 2 µs min ontime fires 115.6 µs: the reference level
+const LEVEL_REF_US = 115.6;
+const LEVEL_REF_HZ = 440;
 
-export function pitchGain(f0: number): number {
-  return 10 ** ((PITCH_GAIN_DB_PER_OCT * Math.log2(f0 / PITCH_GAIN_REF_HZ)) / 20);
+export function pulseLevel(pulseUs: number, f0: number, law: Readonly<LevelLaw> = LEVEL_LAW): number {
+  if (!(pulseUs > 0)) return 0;
+  return (pulseUs / LEVEL_REF_US) ** law.alpha * 10 ** ((law.slopeDbPerOct * Math.log2(f0 / LEVEL_REF_HZ)) / 20);
 }
 
 export interface Complex {

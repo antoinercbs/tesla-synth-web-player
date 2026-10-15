@@ -371,8 +371,7 @@
     }
 
     .power-head__val,
-    .player-progress__time,
-    .player-coil__readout {
+    .player-progress__time {
         @include nixie;
     }
 

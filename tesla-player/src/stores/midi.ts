@@ -9,7 +9,10 @@ import { driverFor, type DeviceDriver } from '@/devices/driver';
 import { DEFAULT_DEVICE_ID, detectProfile, profileById, resolveProfile, type OutputIdentity } from '@/devices/registry';
 import type { DeviceId, DeviceProfile } from '@/devices/types';
 import type { BoardStatus } from '@/sysex/board';
-import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
+import {
+  DEFAULT_COIL_LIMITS, lastCoilLimits, rememberCoilLimits, type CoilLimits, type CoilLimitsSource,
+} from '@/devices/coil-limits';
+import { MAX_COILS, type AppConfig, type AppTag, type CustomEnvelope, type MidiFile, type Song } from '@/types/domain';
 import { forgetQueuedSong } from '@/components/player/queue';
 
 interface MidiState {
@@ -56,9 +59,25 @@ interface MidiState {
   boardTrips: number[];
   /** The board stopped answering its heartbeat. */
   boardSilent: boolean;
+  /** Each coil's limits as the board gave them (max ontime, max duty, min ontime,
+   *  voices), by coil index; empty when there is no board to ask (devices/board-monitor.ts). */
+  /** As the board gave them now; empty without a board to ask. */
+  coilLimits: CoilLimits[];
+  /** As this kind of board last gave them on this machine. */
+  lastCoilLimits: CoilLimits[];
 }
 
 /** Clamp the 2nd-output offset to a safe range (< the player look-ahead). */
+/** The limits a reading holds: its numbers only (a stored one may be anything). */
+function known(limits: CoilLimits | undefined): CoilLimits {
+  const out: CoilLimits = {};
+  for (const k of ['ontimeUs', 'duty', 'minOntimeUs', 'voices'] as const) {
+    const v = limits?.[k];
+    if (typeof v === 'number' && Number.isFinite(v)) out[k] = v;
+  }
+  return out;
+}
+
 function clampOffset(ms: number): number {
   return Number.isFinite(ms) ? Math.max(-200, Math.min(200, Math.round(ms))) : 0;
 }
@@ -92,6 +111,8 @@ export const useMidiStore = defineStore('midi', {
     boardStatus: null,
     boardTrips: [],
     boardSilent: false,
+    coilLimits: [],
+    lastCoilLimits: lastCoilLimits(profileById(localStorage.getItem('boardId') ?? DEFAULT_DEVICE_ID).id),
   }),
   getters: {
     /** Operator name for a coil index, or '' if unnamed. */
@@ -113,6 +134,16 @@ export const useMidiStore = defineStore('midi', {
     emulatorDriver: (state): DeviceDriver => driverFor(profileById(state.boardId)),
     /** The board's protection is latched: nothing can play until it is cleared. */
     boardLatched: (state): boolean => state.boardStatus?.latched ?? false,
+    /** Every coil's limits, by coil index: the board's now, else its last reading, else the defaults. */
+    effectiveCoilLimits: (state): CoilLimits[] => Array.from({ length: MAX_COILS }, (_, i) => ({
+      ...DEFAULT_COIL_LIMITS, ...known(state.lastCoilLimits[i]), ...known(state.coilLimits[i]),
+    })),
+    coilLimit(): (index: number) => CoilLimits {
+      return (index) => this.effectiveCoilLimits[index] ?? DEFAULT_COIL_LIMITS;
+    },
+    coilLimitSource: (state) => (index: number): CoilLimitsSource =>
+      Object.keys(known(state.coilLimits[index])).length ? 'board'
+        : Object.keys(known(state.lastCoilLimits[index])).length ? 'last' : 'default',
   },
   actions: {
     /** Signal that server-side data may have changed (e.g. after a sync). */
@@ -144,6 +175,7 @@ export const useMidiStore = defineStore('midi', {
     setBoardId(id: DeviceId) {
       this.boardId = profileById(id).id;
       localStorage.setItem('boardId', this.boardId);
+      this.lastCoilLimits = lastCoilLimits(this.boardId);
     },
     setBoardStatus(status: BoardStatus | null) {
       this.boardStatus = status;
@@ -153,6 +185,23 @@ export const useMidiStore = defineStore('midi', {
     },
     setBoardSilent(silent: boolean) {
       this.boardSilent = silent;
+    },
+    setCoilLimits(limits: CoilLimits[]) {
+      this.coilLimits = limits;
+      this.rememberCoilLimits();
+    },
+    setCoilLimit(index: number, limits: CoilLimits) {
+      const next = Array.from({ length: Math.max(this.coilLimits.length, index + 1) }, (_, i) => this.coilLimits[i] ?? {});
+      next[index] = limits;
+      this.coilLimits = next;
+      this.rememberCoilLimits();
+    },
+    /** What the board just gave becomes its last reading; what it did not give stays. */
+    rememberCoilLimits() {
+      if (!this.coilLimits.some((l) => Object.keys(known(l)).length)) return;
+      const n = Math.max(this.coilLimits.length, this.lastCoilLimits.length);
+      this.lastCoilLimits = Array.from({ length: n }, (_, i) => ({ ...known(this.lastCoilLimits[i]), ...known(this.coilLimits[i]) }));
+      rememberCoilLimits(this.boardId, this.lastCoilLimits);
     },
     setMidiOutput2(output: Output | null) {
       this.midiOutput2 = output;

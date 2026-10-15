@@ -1,3 +1,4 @@
+import { markRaw } from "vue";
 import { decodeFrame, ENVELOPE_PN, MODE_BYTE, PAN_PN, PN } from "@/sysex/syntherrupter";
 import { CENTER, panVolume } from "@/midi/stereo";
 import {
@@ -7,7 +8,16 @@ import {
   stepsAmplitude,
   type EnvStep,
 } from "@/sysex/envelopes";
-import { pitchGain, pulseCoefficients, retroPulseCoefficients } from "@/audio/tesla-impulse";
+import {
+  LEVEL_LAW,
+  pulseCoefficients,
+  pulseLevel,
+  retroPulseCoefficients,
+  type LevelLaw,
+} from "@/audio/tesla-impulse";
+import { BoardCore, type BoardCoil, type BoardNote } from "@/devices/board-core";
+import { DEFAULT_COIL_LIMITS, type CoilLimits } from "@/devices/coil-limits";
+import { fixedOntimeUs } from "@/devices/ontime-model";
 
 /**
  * The subset of a MIDI output the app drives. Both a real WebMidi `Output` and
@@ -42,7 +52,8 @@ export const SYNTH_MODELS: readonly SynthModel[] = ["tesla", "clean", "pulse"];
 // notes carry their energy on the 2nd/3rd harmonic. Each note is one band-limited waveform
 // via a per-note PeriodicWave (only harmonics below Nyquist → ZERO aliasing), which Web Audio
 // peak-normalises: the SAME bang at every pitch, exactly what the recordings show (constant
-// impulse, RMS growing with pitch). The electrical SysEx ontime/duty drive only loudness.
+// impulse, RMS growing with pitch). How loud each bang is comes from the pulse the board
+// would fire for the note (see "The board" below).
 //
 // Texture: the recordings are ~85% tonal in the mids but the bangs are not identical — the
 // inter-harmonic floor sits ~10 dB under the harmonics — so each voice's amplitude is
@@ -70,18 +81,82 @@ const NOISE_RMS = 1 / Math.sqrt(3); // uniform [-1, 1]
 const MASTER_GAIN = 0.335;
 // at −2 dB, stacked chords still overshot 0 dBFS now and then (attack + make-up gain)
 const LIMITER_THRESHOLD_DB = -4;
-// the retro pulse is flat across pitch (no pitch gain), and a narrow pulse carries little energy
-// at its normalised peak: this plays it as loud as the Tesla model (K-weighted, same test phrase).
-const PULSE_GAIN = 0.42;
+// The level of the reference pulse (tesla-impulse.ts pulseLevel): the former model's for
+// 40 µs / 5 % on A4, so the app's default settings keep their loudness. The retro pulse is
+// flat across pitch, and as loud as the Tesla model (K-weighted, same test phrase).
+const TESLA_REF_GAIN = 0.25;
+const PULSE_REF_GAIN = 0.21;
+
+// The board (MIDI.cpp, Channel.cpp): its notes are looked at on this grid and at every event
+// in between (the firmware does every 2 ms), up to a little ahead of the audio clock; an
+// event landing inside what is already scheduled reschedules from its time.
+const STEP_S = 0.008;
+const HORIZON_S = 0.2;
+const PUMP_MS = 25;
+const EPS = 1e-6;
+// the board's LFO on the modulation wheel (CC1), its EEPROM defaults
+const LFO_HZ = 5;
+const LFO_DEPTH = 0.5;
+// the soft pedal (CC67) multiplies a held note's volume
+const SOFT_PEDAL = 0.6;
+const BEND_RANGE = 2; // semitones, after a reset
+// no coil configured yet: the notes play on one of these, rather than not at all
+const UNCONFIGURED: BoardCoil = { drive: { ontimeUs: 40, duty: 0.05 }, limits: DEFAULT_COIL_LIMITS };
 
 interface Stamped {
   when: number;
   v: number;
 }
+
+/** A value along the audio clock: what a controller or a coil setting is at any moment. */
+class Timeline {
+  private points: Stamped[] = [];
+  constructor(private readonly initial: number) {}
+
+  set(when: number, v: number): void {
+    let i = this.points.length;
+    while (i > 0 && this.points[i - 1].when > when) i--;
+    this.points.splice(i, 0, { when, v });
+  }
+
+  at(t: number): number {
+    for (let i = this.points.length - 1; i >= 0; i--) if (this.points[i].when <= t + EPS) return this.points[i].v;
+    return this.initial;
+  }
+
+  /** Forget what came before `t`, keeping the value it left. */
+  prune(t: number): void {
+    let i = 0;
+    while (i + 1 < this.points.length && this.points[i + 1].when <= t) i++;
+    if (i > 0) this.points.splice(0, i);
+  }
+}
+
 interface CoilState {
   mask: number;
-  ontime: Stamped[];
-  duty: Stamped[];
+  ontime: Timeline;
+  duty: Timeline;
+}
+/** A channel's controllers, as Channel.h holds them (the times they changed included). */
+interface ChannelState {
+  volume: Timeline;
+  expression: Timeline;
+  modulation: Timeline;
+  soft: Timeline;
+  sustain: Timeline;
+  pan: Timeline;
+  /** Semitones off the note: the pitch bend × its range, plus the tuning. */
+  bend: Timeline;
+  /** When its controllers changed: the firmware looks at its notes again then. */
+  touches: number[];
+  bendRaw: number;
+  rangeCoarse: number;
+  rangeFine: number;
+  fineCoarse: number;
+  fineFine: number;
+  coarseTuning: number;
+  /** The RPN selected (0x7f7f: none); the NRPN one is in ChannelNrp. */
+  rpn: number;
 }
 /** A channel's note pan mapping (NRP 42) and its NRPN selection, as Channel.h holds them. */
 interface ChannelNrp {
@@ -116,27 +191,66 @@ interface SimpleTone {
 const SIMPLE_HARMONICS_MAX = 2048;
 const freshNrp = (): ChannelNrp => ({ selMsb: 127, selLsb: 127, mode: 0, srcLow: 0, srcHigh: 127, tgtLow: 0, tgtHigh: 1 });
 const freshPlace = (): CoilPlace => ({ position: -1, reach: 1, single: false });
+const freshChannel = (): ChannelState => ({
+  volume: new Timeline(1),
+  expression: new Timeline(1),
+  modulation: new Timeline(0),
+  soft: new Timeline(0),
+  sustain: new Timeline(0),
+  pan: new Timeline(CENTER),
+  bend: new Timeline(0),
+  touches: [],
+  bendRaw: 0,
+  rangeCoarse: BEND_RANGE,
+  rangeFine: 0,
+  fineCoarse: 64,
+  fineFine: 0,
+  coarseTuning: 0,
+  rpn: 0x7f7f,
+});
 
-interface Voice {
+interface VoiceAudio {
   source: OscillatorNode;
-  env: GainNode; // envelope shape × velocity (can exceed 1 on attack)
+  env: GainNode; // the level of the pulse the board fires, step by step
   flick: GainNode; // arc-flicker amplitude shimmer (per-voice random walk)
   jitter: GainNode; // bang-to-bang amplitude jitter (1 ± σ, driven by low-passed noise)
   jitterLp: BiquadFilterNode;
   jitterAmt: GainNode;
-  loud: GainNode; // coil energy × toneGain (re-modulated live by ontime/duty automation)
-  /** The model's level for this note, fixed at note-on (pitch gain, or the pulse's gain). */
-  toneGain: number;
   panner: StereoPannerNode; // where the coils playing it stand
-  /** How loud each coil plays this note (the spatialisation); 0 = not at all. */
-  coilVol: number[];
+}
+
+/** A note on the board's list, from its note-on until its release is over. */
+interface Voice {
+  id: number;
+  /** Null: no coil plays its channel; it still takes the board's voices. */
+  audio: VoiceAudio | null;
+  retro: boolean;
+  /** The static detune of its pulse rate (1 for the steady models). */
+  detune: number;
   note: number;
   vel: number;
   ch: number;
-  program: number;
-  velScale: number;
-  startWhen: number;
+  steps: EnvStep[];
+  releaseS: number;
+  onAt: number;
+  keyUp: number | null;
+  /** When its envelope went to the release: the key up, or the pedal up after it. */
+  releaseAt: number | null;
+  /** Cut short (struck again, stolen, all sound off), with its fade. */
+  endAt: number | null;
+  endFade: number;
+  /** When it changed on its own (its key up): the firmware looks at it again then. */
+  touches: number[];
+  /** How loud each coil plays it (the spatialisation); 0 = not at all. */
+  coilVol: number[];
+  placeRev: number;
   key: string;
+  // what is scheduled on its level
+  attacked: boolean;
+  closed: boolean;
+  lastT: number;
+  lastV: number;
+  flatUntil: number | null;
 }
 
 const MAX_VOICES = 40;
@@ -145,13 +259,26 @@ function noteHz(note: number): number {
   return 440 * 2 ** ((note - 69) / 12);
 }
 
+/** When a voice leaves the board's list: its release over, or cut short. */
+function deathOf(v: Voice): number | null {
+  if (v.endAt != null) return v.endAt;
+  return v.releaseAt != null ? v.releaseAt + v.releaseS : null;
+}
+
 /**
  * A Web-Audio "MIDI output" emulating Tesla-coil sound. Per note: one band-limited
  * impulse-train oscillator (a per-note PeriodicWave built from the measured coil impulse
- * spectrum, zero aliasing), gated by the channel's Syntherrupter envelope (the VCA),
- * roughened by per-bang amplitude jitter and a slow flicker, into a bus with a limiter and
- * a light reverb send. Loudness follows the coil's ontime/duty tracked from the SysEx stream.
- * The other {@link SynthModel}s keep all of that but the timbre.
+ * spectrum, zero aliasing), roughened by per-bang amplitude jitter and a slow flicker, into a
+ * bus with a limiter and a light reverb send.
+ *
+ * Its loudness is the board's: the synth holds the board's MIDI state (the notes, each
+ * channel's controllers and envelope, each coil's ontime, duty, channels, place and limits)
+ * and, step by step, works out the pulse each coil fires for each note the way the firmware
+ * does (devices/board-core.ts, devices/ontime-model.ts): a note's volume (velocity, CC7,
+ * CC11, envelope, soft pedal, LFO, pan), the crossover, the coil's voices, its max ontime and
+ * duty, its min ontime, the output's floor. A note sounds as loud as the longest pulse fired
+ * for it (tesla-impulse.ts pulseLevel). The other {@link SynthModel}s keep all of that but the
+ * timbre.
  */
 export class TeslaSynthOutput implements MidiSink {
   readonly id = SYNTH_OUTPUT_ID;
@@ -163,26 +290,44 @@ export class TeslaSynthOutput implements MidiSink {
   private wet: GainNode; // reverb send level
   private noise: AudioBufferSourceNode; // shared white noise, low-passed per voice
   private model: SynthModel = "tesla"; // applies from the next note-on
+  private law: Readonly<LevelLaw>;
   private pulseCache = new Map<number, PeriodicWave>(); // per MIDI note (spectrum depends only on pitch)
   private retroCache = new Map<number, PeriodicWave>();
+  // the keys down (or held by the pedal), to find a note-off's voice
   private voices = new Map<string, Voice>();
+  // the board's list, in the order the notes came
   private live: Voice[] = [];
+  private nextId = 1;
   private channelProgram: number[] = new Array(16).fill(0);
-  private coils: CoilState[] = [];
+  private coils: (CoilState | undefined)[] = [];
+  private limits: readonly CoilLimits[] = [];
+  private running = false;
   // Envelopes written over SysEx, like the device's RAM: kept across clear()
   // (a device forgets them only on reboot). Unwritten programs use the shared table.
   private writtenPrograms = new Map<number, EnvStep[]>();
   // Spatialisation as the device holds it (MIDI.h, Channel.h); cleared with the coils' state.
   private coilPlace: CoilPlace[] = Array.from({ length: COIL_SLOTS }, freshPlace);
-  private channelPan: number[] = new Array(16).fill(CENTER);
+  private placeRev = 0;
+  private chan: ChannelState[] = Array.from({ length: 16 }, freshChannel);
   private nrp: ChannelNrp[] = Array.from({ length: 16 }, freshNrp);
+  // the board stepped ahead of the audio clock, and what it was at each step (to step again)
+  private core = new BoardCore();
+  private snapshots: { t: number; core: BoardCore }[] = [];
+  private scheduledUntil = 0;
+  private lastStep = 0;
+  private marks: number[] = [];
+  private timer: ReturnType<typeof setInterval> | null = null;
+  // the earliest change of a burst of events, stepped once they are all in
+  private pendingFrom: number | null = null;
   // Simple ("fixed") mode: its own per-coil parameters, and a steady tone per coil while enabled
   private simple: (SimpleParams | undefined)[] = [];
   private simpleOn = false;
   private simpleTones = new Map<number, SimpleTone>();
   private simpleWaves = new Map<string, PeriodicWave>();
 
-  constructor() {
+  /** `law`: how loud a pulse sounds, LEVEL_LAW unless an A/B tries another. */
+  constructor({ law = LEVEL_LAW }: { law?: Readonly<LevelLaw> } = {}) {
+    this.law = law;
     const Ctx =
       window.AudioContext ||
       (window as unknown as { webkitAudioContext: typeof AudioContext })
@@ -220,6 +365,13 @@ export class TeslaSynthOutput implements MidiSink {
 
   setModel(model: SynthModel): void {
     this.model = model;
+  }
+
+  /** Each coil's limits, by coil index, as the board holds them (or is taken to). */
+  setCoilLimits(limits: readonly CoilLimits[]): void {
+    this.limits = limits;
+    this.changedAt(this.ctx.currentTime);
+    this.syncSimple(this.ctx.currentTime);
   }
 
   /** Bounded mean-reverting random walk (~1.0 ±FLICKER_DEPTH) baked onto a per-voice gain → arc shimmer. */
@@ -301,7 +453,8 @@ export class TeslaSynthOutput implements MidiSink {
     else if (kind === 0x80 || (kind === 0x90 && data[2] === 0))
       this.noteOff(ch, data[1], when);
     else if (kind === 0xc0) this.channelProgram[ch] = data[1];
-    else if (kind === 0xb0) this.control(ch, data[1], data[2]);
+    else if (kind === 0xb0) this.control(ch, data[1], data[2], when);
+    else if (kind === 0xe0) this.pitchBend(ch, data[1] + data[2] * 128 - 8192, when);
     else if (status === 0xf0) this.applyFrame(data, when);
   }
 
@@ -311,27 +464,40 @@ export class TeslaSynthOutput implements MidiSink {
   }
 
   sendAllSoundOff(): void {
-    for (const v of [...this.live])
-      this.endVoice(v, this.ctx.currentTime, 0.01);
+    const now = this.ctx.currentTime;
+    for (const v of [...this.live]) this.endVoice(v, now, 0.01);
     this.voices.clear();
     // Panic sends it: the fixed tones go too (the device would keep them until Simple mode is off)
     this.simpleOn = false;
-    this.syncSimple(this.ctx.currentTime);
+    this.syncSimple(now);
   }
 
   clear(): void {
-    for (const v of [...this.live])
-      this.disposeVoice(v, this.ctx.currentTime, 0);
+    const now = this.ctx.currentTime;
+    for (const v of this.live) this.disconnect(v, now);
     this.live = [];
     this.voices.clear();
     this.coils = [];
+    this.running = false;
     this.simpleOn = false;
-    this.syncSimple(this.ctx.currentTime);
+    this.syncSimple(now);
     this.simple = [];
     this.channelProgram = new Array(16).fill(0);
     this.coilPlace = Array.from({ length: COIL_SLOTS }, freshPlace);
-    this.channelPan = new Array(16).fill(CENTER);
+    this.placeRev++;
+    this.chan = Array.from({ length: 16 }, freshChannel);
     this.nrp = Array.from({ length: 16 }, freshNrp);
+    this.core = new BoardCore();
+    this.snapshots = [];
+    this.marks = [];
+    this.scheduledUntil = now;
+    this.lastStep = now;
+  }
+
+  /** Stops the scheduling timer (an offline render, a synth thrown away). */
+  dispose(): void {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = null;
   }
 
   // --- internals -----------------------------------------------------------
@@ -380,25 +546,48 @@ export class TeslaSynthOutput implements MidiSink {
     }
     if (dec.pnFull === PAN_PN.RESET_NRPS) {
       for (let ch = 0; ch < 16; ch++) {
-        if (dec.valueInt & (1 << ch)) this.nrp[ch] = { ...freshNrp(), selMsb: this.nrp[ch].selMsb, selLsb: this.nrp[ch].selLsb };
+        if (dec.valueInt & (1 << ch)) {
+          this.nrp[ch] = { ...freshNrp(), selMsb: this.nrp[ch].selMsb, selLsb: this.nrp[ch].selLsb };
+          this.touch(ch, when);
+        }
       }
+      this.changedAt(when);
       return;
     }
     if (dec.pnFull === PAN_PN.CONFIG || dec.pnFull === PAN_PN.POSITION || dec.pnFull === PAN_PN.REACH) {
       this.writePlace(dec.pnFull, dec.coil, dec.isFloat ? dec.valueFloat : dec.valueInt, dec.isFloat);
+      this.changedAt(when);
       return;
     }
     if (dec.mode === MODE_BYTE.simple) {
       this.applySimple(dec.pn, dec.coil, dec.valueInt, dec.valueFloat, when);
       return;
     }
+    if (dec.pn === PN.ENABLE) {
+      this.setRunning(dec.valueInt === 1, when);
+      return;
+    }
     const c = dec.coil;
     if (c < 0 || c > 5) return;
-    const cs = (this.coils[c] ??= { mask: 0, ontime: [], duty: [] });
-    if (dec.pn === PN.ONTIME) cs.ontime.push({ when, v: dec.valueInt });
-    else if (dec.pn === PN.DUTY) cs.duty.push({ when, v: dec.valueFloat });
-    else if (dec.pn === PN.CHANNEL_MAP) cs.mask = dec.valueInt;
-    if (dec.pn === PN.ONTIME || dec.pn === PN.DUTY) this.remodulate(c, when);
+    const cs = (this.coils[c] ??= { mask: 0, ontime: new Timeline(0), duty: new Timeline(0) });
+    if (dec.pn === PN.ONTIME) cs.ontime.set(when, dec.valueInt);
+    else if (dec.pn === PN.DUTY) cs.duty.set(when, dec.valueFloat);
+    else if (dec.pn === PN.CHANNEL_MAP) {
+      cs.mask = dec.valueInt;
+      this.placeRev++;
+    } else return;
+    this.changedAt(when);
+  }
+
+  /** MIDI.cpp setRunning: on, every channel's controllers reset; off, every note dropped. */
+  private setRunning(run: boolean, when: number): void {
+    if (run && !this.running) for (let ch = 0; ch < 16; ch++) this.resetControllers(ch, when);
+    if (!run) {
+      for (const v of [...this.live]) this.endVoice(v, when, 0.005);
+      this.voices.clear();
+    }
+    this.running = run;
+    this.changedAt(when);
   }
 
   /** Simple mode, as compileSimpleConfig / compileSimpleStop drive it: per-coil BPS, ontime, duty, then the global enable. */
@@ -417,11 +606,10 @@ export class TeslaSynthOutput implements MidiSink {
     this.syncSimple(when);
   }
 
-  /** How loud a fixed tone plays: the firmware caps a pulse's ontime by the duty at that rate. */
-  private simpleLevel(p: SimpleParams): number {
-    const ontime = Math.min(p.ontime, (p.duty * 1e6) / p.bps);
-    const tone = this.model === "pulse" ? PULSE_GAIN : pitchGain(p.bps);
-    return TeslaSynthOutput.energy(ontime, p.duty) * tone;
+  /** How loud a fixed tone plays: the duty, sent last, sets the pulse at that rate (Simple.h), within the coil's limits. */
+  private simpleLevel(coil: number, p: SimpleParams): number {
+    const pulse = fixedOntimeUs({ ontimeUs: p.ontime, duty: p.duty }, p.bps, this.limits[coil] ?? DEFAULT_COIL_LIMITS);
+    return this.levelOf(this.model === "pulse", pulse, p.bps);
   }
 
   /** The coil's impulse repeated at any rate (not only a note's), band-limited and cached. */
@@ -440,13 +628,14 @@ export class TeslaSynthOutput implements MidiSink {
   private syncSimple(when: number): void {
     for (let c = 0; c < COIL_SLOTS; c++) {
       const p = this.simple[c];
-      const on = this.simpleOn && !!p && p.bps > 0 && p.ontime > 0 && p.duty > 0;
+      // the ontime sent does not count: the duty sets the pulse
+      const on = this.simpleOn && !!p && p.bps > 0 && p.duty > 0;
       const tone = this.simpleTones.get(c);
       if (!on || !p) {
         if (tone) this.stopSimpleTone(c, tone, when);
         continue;
       }
-      const level = Math.max(0.0001, this.simpleLevel(p));
+      const level = Math.max(0.0001, this.simpleLevel(c, p));
       if (tone) {
         if (tone.hz !== p.bps) {
           tone.source.setPeriodicWave(this.simpleWave(p.bps));
@@ -530,33 +719,139 @@ export class TeslaSynthOutput implements MidiSink {
     } else if (value >= 0 && value <= 1) {
       k.reach = value;
     }
+    this.placeRev++;
   }
 
-  /** Pan (CC10), reset all controllers, and NRP 42 as MIDI.cpp reads them. */
-  private control(ch: number, num: number, v: number): void {
+  /** Channel.cpp resetControllers (CC121, the MIDI mode switched on): not the NRPs themselves. */
+  private resetControllers(ch: number, when: number): void {
+    const c = this.chan[ch];
+    c.volume.set(when, 1);
+    c.expression.set(when, 1);
+    c.modulation.set(when, 0);
+    c.pan.set(when, CENTER);
+    c.soft.set(when, 0);
+    c.bendRaw = 0;
+    c.rangeCoarse = BEND_RANGE;
+    c.rangeFine = 0;
+    c.fineCoarse = 64;
+    c.fineFine = 0;
+    c.coarseTuning = 0;
+    c.rpn = 0x7f7f;
+    c.bend.set(when, 0);
+    this.retune(ch, when);
+    this.nrp[ch].selMsb = 127;
+    this.nrp[ch].selLsb = 127;
+    this.setSustain(ch, false, when);
+    this.touch(ch, when);
+  }
+
+  /** The controllers MIDI.cpp reads, at their time. */
+  private control(ch: number, num: number, v: number, when: number): void {
+    const c = this.chan[ch];
     const n = this.nrp[ch];
-    if (num === 10) this.channelPan[ch] = v / 127;
-    else if (num === 121) {
-      // resetControllers: the pan and the NRPN selection, not the NRPs themselves
-      this.channelPan[ch] = CENTER;
+    if (num === 1) {
+      c.modulation.set(when, v / 127);
+      this.touch(ch, when);
+    } else if (num === 7) c.volume.set(when, v / 127);
+    else if (num === 11) c.expression.set(when, v / 127);
+    else if (num === 10) {
+      c.pan.set(when, v / 127);
+      this.touch(ch, when);
+    } else if (num === 64) this.setSustain(ch, v >= 64, when);
+    else if (num === 67) {
+      c.soft.set(when, v >= 64 ? 1 : 0);
+      this.touch(ch, when);
+    } else if (num === 99 || num === 98) {
+      // an NRPN selected forgets the RPN, and the other way round
+      if (num === 99) n.selMsb = v;
+      else n.selLsb = v;
+      c.rpn = 0x7f7f;
+    } else if (num === 101 || num === 100) {
+      c.rpn = num === 101 ? (c.rpn & 0x00ff) | (v << 8) : (c.rpn & 0xff00) | v;
       n.selMsb = 127;
       n.selLsb = 127;
-    } else if (num === 99) n.selMsb = v;
-    else if (num === 98) n.selLsb = v;
-    else if (n.selMsb === 42 && num === 6) {
-      if (n.selLsb === 1) n.srcHigh = v;
-      else if (n.selLsb === 2) n.tgtHigh = v / 127;
-    } else if (n.selMsb === 42 && num === 38) {
-      if (n.selLsb === 0) n.mode = v;
-      else if (n.selLsb === 1) n.srcLow = v;
-      else if (n.selLsb === 2) n.tgtLow = v / 127;
+    } else if (num === 6 || num === 38) this.dataEntry(ch, num === 38, v, when);
+    else if (num === 120) {
+      // all sound off: the notes die at once
+      for (const voice of [...this.live]) if (voice.ch === ch) this.endVoice(voice, when, 0.005);
+      for (const [key, voice] of this.voices) if (voice.ch === ch) this.voices.delete(key);
+      this.touch(ch, when);
+    } else if (num === 121) this.resetControllers(ch, when);
+    else if (num === 123) {
+      // all notes off: straight to the release, the pedal or not
+      for (const [key, voice] of this.voices) {
+        if (voice.ch !== ch) continue;
+        this.voices.delete(key);
+        voice.keyUp ??= when;
+        this.release(voice, when);
+      }
+      for (const voice of this.live) if (voice.ch === ch && voice.releaseAt == null && voice.endAt == null) this.release(voice, when);
+    } else return;
+    this.changedAt(when);
+  }
+
+  /** CC6 (coarse) / CC38 (fine) on the RPN or NRPN selected, as MIDI.cpp reads them. */
+  private dataEntry(ch: number, fine: boolean, v: number, when: number): void {
+    const c = this.chan[ch];
+    const n = this.nrp[ch];
+    if (c.rpn === 0) {
+      if (fine) c.rangeFine = v;
+      else c.rangeCoarse = v;
+    } else if (c.rpn === 1) {
+      if (fine) c.fineFine = v;
+      else c.fineCoarse = v;
+    } else if (c.rpn === 2 && !fine) c.coarseTuning = v - 64;
+    else if (n.selMsb === 42 && !fine && n.selLsb === 1) n.srcHigh = v;
+    else if (n.selMsb === 42 && !fine && n.selLsb === 2) n.tgtHigh = v / 127;
+    else if (n.selMsb === 42 && fine && n.selLsb === 0) n.mode = v;
+    else if (n.selMsb === 42 && fine && n.selLsb === 1) n.srcLow = v;
+    else if (n.selMsb === 42 && fine && n.selLsb === 2) n.tgtLow = v / 127;
+    else return;
+    if (c.rpn <= 2) {
+      c.bend.set(when, this.bendOf(c));
+      this.retune(ch, when);
+    }
+    this.touch(ch, when);
+  }
+
+  private pitchBend(ch: number, raw: number, when: number): void {
+    const c = this.chan[ch];
+    c.bendRaw = raw;
+    c.bend.set(when, this.bendOf(c));
+    this.retune(ch, when);
+    this.touch(ch, when);
+    this.changedAt(when);
+  }
+
+  /** Semitones off the note: the bend × its range (semitones + cents), plus the tuning. */
+  private bendOf(c: ChannelState): number {
+    const tuning = ((c.fineCoarse << 7) + c.fineFine - 8192) / 8192 + c.coarseTuning;
+    return (c.bendRaw / 8192) * (c.rangeCoarse + c.rangeFine / 100) + tuning;
+  }
+
+  /** The channel's sounding notes follow its pitch from `when`. */
+  private retune(ch: number, when: number): void {
+    const bend = this.chan[ch].bend.at(when);
+    for (const v of this.live) {
+      if (v.ch !== ch || !v.audio || (deathOf(v) ?? Infinity) <= when) continue;
+      v.audio.source.frequency.setValueAtTime(noteHz(v.note + bend) * v.detune, Math.max(when, v.onAt));
+    }
+  }
+
+  /** The sustain pedal: up, the notes it held go to their release. */
+  private setSustain(ch: number, down: boolean, when: number): void {
+    this.chan[ch].sustain.set(when, down ? 1 : 0);
+    this.touch(ch, when);
+    if (down) return;
+    for (const v of this.live) {
+      if (v.ch === ch && v.keyUp != null && v.keyUp <= when + EPS && v.releaseAt == null && v.endAt == null) this.release(v, when);
     }
   }
 
   /** Where the device puts a note (0..1), or null when it plays everywhere (omni). */
-  private notePan(ch: number, note: number, vel: number): number | null {
+  private notePan(ch: number, note: number, vel: number, t: number): number | null {
     const n = this.nrp[ch];
-    if (n.mode === 0) return this.channelPan[ch];
+    if (n.mode === 0) return this.chan[ch].pan.at(t);
     if (n.mode === 2) return null;
     let input = note;
     if (n.mode !== 1) {
@@ -572,8 +867,8 @@ export class TeslaSynthOutput implements MidiSink {
   }
 
   /** How loud each coil plays a note: 0 when not assigned the channel or out of reach. */
-  private coilVolumes(ch: number, note: number, vel: number): number[] {
-    const pan = this.notePan(ch, note, vel);
+  private coilVolumes(ch: number, note: number, vel: number, t: number): number[] {
+    const pan = this.notePan(ch, note, vel, t);
     return Array.from({ length: COIL_SLOTS }, (_, c) => {
       const cs = this.coils[c];
       if (!cs || (cs.mask & (1 << ch)) === 0) return 0;
@@ -581,21 +876,6 @@ export class TeslaSynthOutput implements MidiSink {
       if (pan == null || k.position < 0) return 1;
       return panVolume(pan, k, k.single ? 'single' : 'fade');
     });
-  }
-
-  /** The loudest of the coils playing the note (not their sum: one note stays one voice). */
-  private voiceEnergy(ch: number, coilVol: number[], when: number): number {
-    let best = 0;
-    let assigned = false;
-    for (let c = 0; c < this.coils.length; c++) {
-      const cs = this.coils[c];
-      if (!cs || (cs.mask & (1 << ch)) === 0) continue;
-      assigned = true;
-      const e = TeslaSynthOutput.energy(this.stampAt(cs.ontime, when, 0), this.stampAt(cs.duty, when, 0));
-      best = Math.max(best, e * (coilVol[c] ?? 0));
-    }
-    // no coil configured for the channel yet: play it plainly rather than not at all
-    return assigned ? best : TeslaSynthOutput.energy(40, 0.05);
   }
 
   /** Stereo position (-1..1) of a note: the placed coils playing it, weighted by volume. */
@@ -614,91 +894,66 @@ export class TeslaSynthOutput implements MidiSink {
     return this.writtenPrograms.get(program) ?? programSteps(program);
   }
 
-  private stampAt(list: Stamped[], when: number, fallback: number): number {
-    let v = fallback;
-    let best = -Infinity;
-    for (const s of list)
-      if (s.when <= when + 1e-4 && s.when >= best) {
-        best = s.when;
-        v = s.v;
-      }
-    return v;
-  }
-  private static energy(ontime: number, duty: number): number {
-    return Math.max(0.04, Math.min(1, (ontime * duty) / 4));
-  }
-
-  /**
-   * Schedule the attack→sustain envelope on a gain param by sampling the real curve
-   * step-by-step (~8 ms within each step so short attacks aren't missed). A floor of
-   * ATTACK_MIN on the very first ramp prevents the click of an instant gate (P0).
-   */
-  private scheduleAttack(
-    g: AudioParam,
-    program: number,
-    velScale: number,
-    when: number,
-  ): void {
-    const steps = this.stepsFor(program);
-    const a0 = stepsAmplitude(steps, 0, null) * velScale;
-    g.setValueAtTime(0.0001, when);
-    let startMs = 0;
-    if (a0 > 0.001) {
-      g.linearRampToValueAtTime(a0, when + ATTACK_MIN_S);
-      startMs = ATTACK_MIN_S * 1000;
-    }
-
-    let acc = 0;
-    let cur = 0;
-    // a looping envelope keeps cycling until the 8 s horizon, like on the device
-    for (let guard = 0; guard < 512; guard++) {
-      const s = steps[cur];
-      const dur = Math.max(0, s.durMs);
-      if (dur > 0) {
-        const m = Math.max(1, Math.min(16, Math.round(dur / 8)));
-        for (let k = 1; k <= m; k++) {
-          const tMs = acc + (k / m) * dur;
-          if (tMs > startMs) {
-            g.linearRampToValueAtTime(
-              Math.max(
-                0.0001,
-                stepsAmplitude(steps, tMs, null) * velScale,
-              ),
-              when + tMs / 1000,
-            );
-          }
-        }
-        acc += dur;
-      }
-      if (s.next === cur || acc > 8000) break;
-      cur = s.next;
-    }
+  /** The coils with channels, by index: none configured yet → -1, a stand-in for all of them. */
+  private configuredCoils(): number[] {
+    const out: number[] = [];
+    this.coils.forEach((cs, c) => {
+      if (cs && cs.mask) out.push(c);
+    });
+    return out.length ? out : [-1];
   }
 
   private noteOn(ch: number, note: number, vel: number, when: number): void {
-    if (this.live.length >= MAX_VOICES) {
-      const st = this.live.shift();
-      if (st) {
-        this.voices.delete(st.key);
-        this.disposeVoice(st, when, 0.01);
-      }
-    }
-    const coilVol = this.coilVolumes(ch, note, vel);
+    // a key struck again: the board reuses its note at the end of the list, here a new voice takes over
+    const key = `${ch}:${note}`;
+    const prev = this.voices.get(key);
+    if (prev) this.endVoice(prev, when, 0.01);
+    const sounding = this.live.filter((v) => (deathOf(v) ?? Infinity) > when);
+    if (sounding.length >= MAX_VOICES) this.endVoice(sounding[0], when, 0.01);
+
+    const coilVol = this.coilVolumes(ch, note, vel, when);
+    const audible = this.configuredCoils()[0] === -1 || coilVol.some((x) => x > 0);
+    const textured = this.model === "tesla";
+    const program = this.channelProgram[ch] ?? 0;
+    const steps = this.stepsFor(program);
+    const detune = textured ? 1 + (Math.random() * 2 - 1) * PITCH_JITTER : 1;
+    const voice: Voice = {
+      id: this.nextId++,
+      audio: audible ? this.makeAudio(note, ch, detune, coilVol, when) : null,
+      retro: this.model === "pulse",
+      detune,
+      note,
+      vel,
+      ch,
+      steps,
+      releaseS: Math.max(0, steps[RELEASE_STEP].durMs) / 1000,
+      onAt: when,
+      keyUp: null,
+      releaseAt: null,
+      endAt: null,
+      endFade: 0,
+      touches: [],
+      coilVol,
+      placeRev: this.placeRev,
+      key,
+      attacked: false,
+      closed: false,
+      lastT: when,
+      lastV: 0,
+      flatUntil: null,
+    };
+    this.voices.set(key, voice);
+    this.live.push(voice);
+    this.changedAt(when);
+  }
+
+  private makeAudio(note: number, ch: number, detune: number, coilVol: number[], when: number): VoiceAudio {
+    const ctx = this.ctx;
     const hz = noteHz(note);
     const textured = this.model === "tesla";
-    const toneGain = this.model === "pulse" ? PULSE_GAIN : pitchGain(hz);
-    const energy = this.voiceEnergy(ch, coilVol, when) * toneGain;
-    if (energy <= 0) return; // out of every coil's reach: the device stays silent too
-    // Linear in velocity, matching the Syntherrupter firmware (ontime ∝ velocity/127).
-    const velScale = vel / 127;
-    const program = this.channelProgram[ch] ?? 0;
-    const ctx = this.ctx;
-
     const env = ctx.createGain();
     env.gain.setValueAtTime(0, ctx.currentTime);
     const flick = ctx.createGain();
-    const loud = ctx.createGain();
-    loud.gain.setValueAtTime(energy, ctx.currentTime);
     const panner = ctx.createStereoPanner();
     panner.pan.value = this.audioPan(coilVol);
 
@@ -719,38 +974,13 @@ export class TeslaSynthOutput implements MidiSink {
     const source = ctx.createOscillator();
     source.setPeriodicWave(this.model === "pulse" ? this.retroPulseFor(note) : this.pulseFor(note));
     // tiny static per-voice detune (measured PRF jitter ≈0.07%) so repeated/stacked
-    // notes aren't digitally identical.
-    source.frequency.value = textured ? hz * (1 + (Math.random() * 2 - 1) * PITCH_JITTER) : hz;
+    // notes aren't digitally identical; the channel's bend from the start
+    source.frequency.value = noteHz(note + this.chan[ch].bend.at(when)) * detune;
     source.connect(env);
-    env.connect(flick).connect(jitter).connect(loud).connect(panner).connect(this.bus);
-    this.scheduleAttack(env.gain, program, velScale, when);
+    env.connect(flick).connect(jitter).connect(panner).connect(this.bus);
     if (textured) this.scheduleFlicker(flick.gain, when);
     source.start(when);
-
-    const key = `${ch}:${note}`;
-    const prev = this.voices.get(key);
-    if (prev) this.endVoice(prev, when, 0.01);
-    const voice: Voice = {
-      source,
-      env,
-      flick,
-      jitter,
-      jitterLp,
-      jitterAmt,
-      loud,
-      toneGain,
-      panner,
-      coilVol,
-      note,
-      vel,
-      ch,
-      program,
-      velScale,
-      startWhen: when,
-      key,
-    };
-    this.voices.set(key, voice);
-    this.live.push(voice);
+    return { source, env, flick, jitter, jitterLp, jitterAmt, panner };
   }
 
   private noteOff(ch: number, note: number, when: number): void {
@@ -758,72 +988,62 @@ export class TeslaSynthOutput implements MidiSink {
     const v = this.voices.get(key);
     if (!v) return;
     this.voices.delete(key);
-    const steps = this.stepsFor(v.program);
-    const relMs = steps[RELEASE_STEP].durMs;
-    const heldElapsed = Math.max(0, (when - v.startWhen) * 1000);
-    try {
-      this.holdAt(v.env.gain, when);
-      const n = Math.max(2, Math.min(16, Math.round(relMs / 8)));
-      for (let i = 1; i <= n; i++) {
-        const rt = (i / n) * relMs;
-        const amp =
-          stepsAmplitude(steps, heldElapsed + rt, heldElapsed) *
-          v.velScale;
-        v.env.gain.linearRampToValueAtTime(
-          Math.max(0.0001, amp),
-          when + rt / 1000,
-        );
-      }
-    } catch {
-      /* */
-    }
-    this.disposeVoice(v, when, relMs / 1000 + 0.05);
+    v.keyUp = when;
+    v.touches.push(when);
+    // the pedal down holds the note until it lifts
+    if (!this.chan[ch].sustain.at(when)) this.release(v, when);
+    this.changedAt(when);
   }
 
-  private endVoice(v: Voice, when: number, release = 0.02): void {
+  /** The note's envelope goes to its release step. */
+  private release(v: Voice, when: number): void {
+    if (v.releaseAt != null || v.endAt != null) return;
+    v.releaseAt = when;
+    this.mark(when);
+    this.mark(when + v.releaseS);
     try {
-      this.holdAt(v.env.gain, when);
-      v.env.gain.linearRampToValueAtTime(0.0001, when + release);
-    } catch {
-      /* */
-    }
-    this.disposeVoice(v, when, release + 0.05);
-  }
-
-  /** Stop a voice's oscillator and detach its chain from the bus so voices don't pile up. */
-  private disposeVoice(v: Voice, when: number, tailS: number): void {
-    try {
-      v.source.stop(when + tailS);
+      v.audio?.source.stop(when + v.releaseS + 0.05);
     } catch {
       /* already stopped */
     }
-    const i = this.live.indexOf(v);
-    if (i !== -1) this.live.splice(i, 1);
-    const delayMs =
-      Math.max(0, (when - this.ctx.currentTime + tailS) * 1000) + 40;
-    setTimeout(() => {
+  }
+
+  /** Cut a note short: struck again, stolen, or all sound off. */
+  private endVoice(v: Voice, when: number, fade: number): void {
+    if (this.voices.get(v.key) === v) this.voices.delete(v.key);
+    const death = deathOf(v);
+    if (death != null && death <= when) return;
+    v.endAt = when;
+    v.endFade = fade;
+    try {
+      v.audio?.source.stop(when + fade + 0.05);
+    } catch {
+      /* already stopped */
+    }
+    this.changedAt(when);
+  }
+
+  /** Detach a voice's chain from the bus so voices don't pile up. */
+  private disconnect(v: Voice, when: number): void {
+    const a = v.audio;
+    if (!a) return;
+    try {
+      a.source.stop(when);
+    } catch {
+      /* already stopped */
+    }
+    try {
+      this.noise.disconnect(a.jitterLp);
+    } catch {
+      /* */
+    }
+    for (const node of [a.source, a.env, a.flick, a.jitter, a.jitterLp, a.jitterAmt, a.panner]) {
       try {
-        this.noise.disconnect(v.jitterLp);
+        node.disconnect();
       } catch {
         /* */
       }
-      for (const node of [
-        v.source,
-        v.env,
-        v.flick,
-        v.jitter,
-        v.jitterLp,
-        v.jitterAmt,
-        v.loud,
-        v.panner,
-      ]) {
-        try {
-          node.disconnect();
-        } catch {
-          /* */
-        }
-      }
-    }, delayMs);
+    }
   }
 
   private holdAt(g: AudioParam, when: number): void {
@@ -835,28 +1055,242 @@ export class TeslaSynthOutput implements MidiSink {
     }
   }
 
-  /** Re-apply coil energy to live notes when the coil's ontime/duty changes. */
-  private remodulate(coil: number, when: number): void {
-    const cs = this.coils[coil];
-    if (!cs) return;
+  // --- the board, stepped ahead of the audio clock ---------------------------
+  private touch(ch: number, when: number): void {
+    this.chan[ch].touches.push(when);
+  }
+
+  private mark(when: number): void {
+    this.marks.push(when);
+  }
+
+  /**
+   * Something the board reads changed at `when`: step there. Inside what is already
+   * scheduled (a key played now, a setting moved), the board steps again from the
+   * last step before it; near enough, at once, after the rest of the burst (a chord,
+   * a coil's settings) is in.
+   */
+  private changedAt(when: number): void {
+    this.mark(when);
+    if (when > this.ctx.currentTime + HORIZON_S) {
+      this.startTimer();
+      return;
+    }
+    if (this.pendingFrom == null) queueMicrotask(() => this.flush());
+    this.pendingFrom = Math.min(this.pendingFrom ?? Infinity, when);
+  }
+
+  private flush(): void {
+    const from = this.pendingFrom;
+    this.pendingFrom = null;
+    if (from == null) return;
+    if (from < this.scheduledUntil) this.rewind(from);
+    this.pump();
+  }
+
+  private rewind(when: number): void {
+    let i = this.snapshots.length - 1;
+    while (i >= 0 && this.snapshots[i].t >= when - EPS) i--;
+    const snap = this.snapshots[i];
+    this.snapshots.length = i + 1;
+    this.core = snap ? snap.core.clone() : new BoardCore();
+    this.scheduledUntil = snap ? snap.t : when - EPS;
+    this.lastStep = this.scheduledUntil;
     for (const v of this.live) {
-      if ((cs.mask & (1 << v.ch)) === 0) continue;
-      try {
-        this.holdAt(v.loud.gain, when);
-        v.loud.gain.linearRampToValueAtTime(
-          Math.max(0.0001, this.voiceEnergy(v.ch, v.coilVol, when) * v.toneGain),
-          when + 0.03,
-        );
-      } catch {
-        /* */
+      const a = v.audio;
+      if (!a || !v.attacked) continue;
+      const death = deathOf(v);
+      // a fade already under way is left alone
+      if (v.closed && death != null && death < when) continue;
+      this.holdAt(a.env.gain, when);
+      if (v.onAt >= when - EPS) v.attacked = false;
+      v.closed = false;
+      v.lastT = when;
+      v.lastV = NaN;
+      v.flatUntil = null;
+    }
+  }
+
+  private startTimer(): void {
+    if (this.timer) return;
+    this.timer = setInterval(() => {
+      this.pump();
+      if (!this.live.length && this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
       }
+    }, PUMP_MS);
+  }
+
+  /**
+   * Step the board up to `until` (audio time), scheduling each voice's level: on its own
+   * timer ahead of the clock; public for an offline render, which steps it to the end.
+   */
+  pump(until = this.ctx.currentTime + HORIZON_S): void {
+    if (this.pendingFrom != null) {
+      if (this.pendingFrom < this.scheduledUntil) this.rewind(this.pendingFrom);
+      this.pendingFrom = null;
+    }
+    const now = this.ctx.currentTime;
+    // left behind (a throttled tab): the steps already past can't be heard any more
+    if (this.scheduledUntil < now - STEP_S) {
+      this.scheduledUntil = now;
+      this.lastStep = now;
+    }
+    if (until > this.scheduledUntil) {
+      for (const t of this.stepTimes(this.scheduledUntil, until)) this.stepAt(t);
+      this.scheduledUntil = until;
+    }
+    this.prune(now);
+    if (this.live.length) this.startTimer();
+  }
+
+  /** The grid in (from, to], and every event in it. */
+  private stepTimes(from: number, to: number): number[] {
+    const times: number[] = [];
+    for (let k = Math.floor(from / STEP_S) + 1; k * STEP_S <= to + EPS; k++) times.push(k * STEP_S);
+    for (const m of this.marks) if (m > from + EPS && m <= to + EPS) times.push(m);
+    for (const v of this.live) {
+      const death = deathOf(v);
+      if (death != null && death > from + EPS && death <= to + EPS) times.push(death);
+    }
+    times.sort((a, b) => a - b);
+    return times.filter((t, i) => i === 0 || t - times[i - 1] > EPS);
+  }
+
+  private stepAt(t: number): void {
+    const prev = this.lastStep;
+    const notes: Voice[] = [];
+    for (const v of this.live) {
+      if (v.onAt > t + EPS) continue;
+      const death = deathOf(v);
+      if (death != null && t >= death - EPS) {
+        this.core.forget(v.id);
+        this.close(v, death);
+      } else notes.push(v);
+    }
+    notes.sort((a, b) => a.onAt - b.onAt || a.id - b.id);
+
+    const slots = this.configuredCoils();
+    const coils: BoardCoil[] = slots.map((c) => {
+      const cs = this.coils[c];
+      return !cs ? UNCONFIGURED : {
+        drive: { ontimeUs: cs.ontime.at(t), duty: cs.duty.at(t) },
+        limits: this.limits[c] ?? DEFAULT_COIL_LIMITS,
+      };
+    });
+    const lfo = (Math.sin(2 * Math.PI * LFO_HZ * t) + 1) / 2;
+    const hz: number[] = [];
+    const board: BoardNote[] = notes.map((v) => {
+      const c = this.chan[v.ch];
+      const touched = c.touches.some((x) => x > prev + EPS && x <= t + EPS) || v.touches.some((x) => x > prev + EPS && x <= t + EPS);
+      if (touched || v.placeRev !== this.placeRev) {
+        v.coilVol = this.coilVolumes(v.ch, v.note, v.vel, t);
+        v.placeRev = this.placeRev;
+      }
+      const heldMs = v.releaseAt != null ? (v.releaseAt - v.onAt) * 1000 : null;
+      const env = stepsAmplitude(v.steps, (t - v.onAt) * 1000, heldMs);
+      // the soft pedal acts while the key is down
+      const soft = c.soft.at(v.keyUp != null ? Math.min(t, v.keyUp) : t) ? SOFT_PEDAL : 1;
+      const level = (v.vel / 127) * soft * c.volume.at(t) * c.expression.at(t) * env
+        * (1 - lfo * c.modulation.at(t) * LFO_DEPTH);
+      const f = noteHz(v.note + c.bend.at(t));
+      hz.push(f);
+      return { id: v.id, hz: f, level, vols: slots.map((s) => (s < 0 ? 1 : v.coilVol[s] ?? 0)), touched };
+    });
+    // a note sounds as loud as the longest pulse a coil fires for it
+    const pulse = new Float64Array(notes.length);
+    for (const step of this.core.step(board, coils)) {
+      step.fired.forEach((j, m) => {
+        pulse[j] = Math.max(pulse[j], step.limited.pulsesUs[m]);
+      });
+    }
+    notes.forEach((v, j) => this.schedule(v, t, this.levelOf(v.retro, pulse[j], hz[j])));
+    this.lastStep = t;
+    this.snapshots.push({ t, core: this.core.clone() });
+  }
+
+  private levelOf(retro: boolean, pulseUs: number, hz: number): number {
+    return retro
+      ? PULSE_REF_GAIN * pulseLevel(pulseUs, hz, { alpha: this.law.alpha, slopeDbPerOct: 0 })
+      : TESLA_REF_GAIN * pulseLevel(pulseUs, hz, this.law);
+  }
+
+  /** A voice's level at `t`: ramps between the steps, nothing while it holds still. */
+  private schedule(v: Voice, t: number, g: number): void {
+    const a = v.audio;
+    if (!a) return;
+    const p = a.env.gain;
+    if (!v.attacked) {
+      // the gate's attack: from silence at the note-on
+      v.attacked = true;
+      p.setValueAtTime(0, v.onAt);
+      v.lastT = v.onAt + ATTACK_MIN_S;
+      p.linearRampToValueAtTime(g, v.lastT);
+      v.lastV = g;
+      v.flatUntil = null;
+      return;
+    }
+    if (t <= v.lastT + EPS) return;
+    if (Math.abs(g - v.lastV) < 1e-5) {
+      v.flatUntil = t;
+      return;
+    }
+    // the end of a still stretch, then the change
+    if (v.flatUntil != null) p.linearRampToValueAtTime(v.lastV, v.flatUntil);
+    p.linearRampToValueAtTime(g, t);
+    v.lastT = t;
+    v.lastV = g;
+    v.flatUntil = null;
+  }
+
+  /** A voice leaving the board's list: silent from its death (a fade if cut short). */
+  private close(v: Voice, death: number): void {
+    const a = v.audio;
+    if (v.closed || !a) return;
+    v.closed = true;
+    const p = a.env.gain;
+    if (v.endAt != null) {
+      this.holdAt(p, death);
+      p.linearRampToValueAtTime(0, death + v.endFade);
+    } else {
+      if (v.flatUntil != null) p.linearRampToValueAtTime(v.lastV, v.flatUntil);
+      p.linearRampToValueAtTime(0, Math.max(death, v.lastT + EPS));
+    }
+  }
+
+  /** Forget what the clock has passed: dead voices, old marks, old controller values. */
+  private prune(now: number): void {
+    const past = now - 0.1;
+    this.live = this.live.filter((v) => {
+      const death = deathOf(v);
+      if (death == null || death + v.endFade + 0.05 > past) return true;
+      this.core.forget(v.id);
+      this.disconnect(v, now);
+      return false;
+    });
+    this.marks = this.marks.filter((m) => m > past);
+    let keep = this.snapshots.length;
+    while (keep > 0 && this.snapshots[keep - 1].t > now) keep--;
+    // the last steps before the clock stay: an event now steps again from the one before it
+    if (keep > 2) this.snapshots.splice(0, keep - 2);
+    for (const c of this.chan) {
+      for (const tl of [c.volume, c.expression, c.modulation, c.soft, c.sustain, c.pan, c.bend]) tl.prune(past);
+      c.touches = c.touches.filter((x) => x > past);
+    }
+    for (const cs of this.coils) {
+      cs?.ontime.prune(past);
+      cs?.duty.prune(past);
     }
   }
 }
 
 let singleton: TeslaSynthOutput | null = null;
-/** Lazily create the shared built-in synth (its AudioContext starts suspended). */
+/**
+ * Lazily create the shared built-in synth (its AudioContext starts suspended). Raw: held
+ * in the store as the output, a reactive proxy would track every step of its board.
+ */
 export function getTeslaSynth(): TeslaSynthOutput {
-  if (!singleton) singleton = new TeslaSynthOutput();
+  if (!singleton) singleton = markRaw(new TeslaSynthOutput());
   return singleton;
 }

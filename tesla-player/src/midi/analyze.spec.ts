@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { analyzeMidi } from "./analyze";
+import { analyzeMidi, channelVolumes, noteRange } from "./analyze";
 
 describe("analyzeMidi", () => {
   it("pairs notes and converts ticks→ms at the default tempo (120 BPM)", () => {
@@ -132,5 +132,57 @@ describe("analyzeMidi", () => {
     const a = analyzeMidi(parsed);
     expect(a.programs).toEqual([1, 21, 40]);
     expect(a.programByChannel).toEqual({ 0: 21, 1: 1 });
+  });
+
+  it("gives each note the channel volume × expression it starts with, 127 each until the file sets them", () => {
+    const cc = (deltaTime: number, channel: number, controllerType: number, value: number) => ({
+      deltaTime, type: "channel", subtype: "controller", channel, controllerType, value,
+    });
+    const on = (deltaTime: number, channel: number) => ({
+      deltaTime, type: "channel", subtype: "noteOn", channel, noteNumber: 60, velocity: 100,
+    });
+    const off = (deltaTime: number, channel: number) => ({
+      deltaTime, type: "channel", subtype: "noteOff", channel, noteNumber: 60, velocity: 0,
+    });
+    const parsed = {
+      header: { ticksPerBeat: 480 },
+      tracks: [[
+        on(0, 0), off(480, 0),
+        cc(0, 0, 7, 127), cc(0, 0, 11, 64), on(0, 0), off(480, 0),
+        cc(0, 0, 121, 0), on(0, 0), off(480, 0),
+        on(0, 1), off(480, 1),
+      ]],
+    };
+    const a = analyzeMidi(parsed);
+    expect(a.notes.filter((n) => n.channel === 0).map((n) => n.volume)).toEqual([1, 64 / 127, 1]);
+    expect(a.notes.find((n) => n.channel === 1)!.volume).toBe(1);
+    expect(a.volumeEvents.map((e) => [e.atMs, e.controller, e.value])).toEqual([
+      [500, 7, 127], [500, 11, 64], [1000, 7, 127], [1000, 11, 127],
+    ]);
+  });
+});
+
+describe("noteRange", () => {
+  const n = (channel: number, note: number) => ({ channel, note, startMs: 0, endMs: 1, velocity: 100, volume: 1 });
+  it("spans the notes of the masked channels only", () => {
+    const notes = [n(0, 40), n(0, 70), n(1, 20), n(2, 90)];
+    expect(noteRange(notes, 0b001)).toEqual({ min: 40, max: 70 });
+    expect(noteRange(notes, 0b101)).toEqual({ min: 40, max: 90 });
+    expect(noteRange(notes, 0b1000)).toBeNull();
+  });
+});
+
+describe("channelVolumes", () => {
+  it("multiplies the last CC7 and CC11 of each channel, 1 before them", () => {
+    const at = channelVolumes([
+      { channel: 2, atMs: 100, controller: 7, value: 64 },
+      { channel: 2, atMs: 200, controller: 11, value: 127 },
+      { channel: 2, atMs: 300, controller: 7, value: 127 },
+    ]);
+    expect(at(50)[2]).toBe(1);
+    expect(at(150)[2]).toBeCloseTo(64 / 127, 6);
+    expect(at(250)[2]).toBeCloseTo(64 / 127, 6);
+    expect(at(300)[2]).toBe(1);
+    expect(at(150)[0]).toBe(1);
   });
 });

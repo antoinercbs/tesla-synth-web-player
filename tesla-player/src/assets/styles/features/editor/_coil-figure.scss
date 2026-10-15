@@ -1,0 +1,268 @@
+// ===========================================================================
+//  COIL FIGURE
+// ===========================================================================
+// components/editor/CoilFigure.vue: above, the pulse a lone note fires; below,
+// what the song does with the coil's notes; one notes' axis for both. Its text
+// sizes are in the SVG's units (1rem: 16 of them), scaled with the card.
+
+.cfig {
+    margin-top: 0.6rem;
+}
+
+.cfig__plot {
+    position: relative;
+}
+
+.cfig__plot svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.cfig__grid line,
+.cfig__gridline {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.cfig__ax,
+.cfig__side {
+    font-size: 0.5625rem;
+    fill: var(--text-mute);
+}
+
+.cfig__ax {
+    font-family: var(--font-mono);
+}
+
+.cfig__vt {
+    font-size: 0.59rem;
+    fill: var(--text-dim);
+}
+
+.cfig__vt-u {
+    fill: var(--text-mute);
+}
+
+.cfig__hatch-bg {
+    fill: rgb(var(--amber-rgb) / 0.1);
+}
+
+.cfig__hatch-line {
+    stroke: rgb(var(--amber-rgb) / 0.55);
+    stroke-width: 1.5;
+}
+
+.cfig__wash {
+    fill: var(--coil, var(--volt));
+    fill-opacity: 0.1;
+}
+
+.cfig__cap {
+    stroke: var(--amber);
+    stroke-width: 1.5;
+}
+
+.cfig__curve,
+.cfig__keyline {
+    fill: none;
+    stroke: var(--coil, var(--volt));
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+// a label over the drawing: a halo of the card's colour keeps it legible on the lines
+.cfig__lab,
+.cfig__val {
+    font-size: 0.59rem;
+    fill: var(--text-dim);
+    paint-order: stroke;
+    stroke: var(--panel);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.cfig__val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    fill: var(--text-strong);
+}
+
+// the song's notes, by what the board did with them
+.cfig__bar.is-cut {
+    fill: var(--danger);
+}
+
+.cfig__bar.is-reduced {
+    fill: var(--amber);
+}
+
+.cfig__bar.is-ok {
+    fill: var(--text-mute);
+    fill-opacity: 0.45;
+}
+
+// Live: the chords that fit, stacked like on a staff
+.cfig__nh {
+    fill: var(--coil, var(--volt));
+}
+
+.cfig__nh-cut {
+    stroke: var(--amber);
+    stroke-width: 1.2;
+}
+
+.cfig__nh-lost {
+    fill: none;
+    stroke: var(--danger);
+    stroke-width: 1.2;
+}
+
+.cfig__num {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    fill: var(--text-strong);
+}
+
+.cfig__base,
+.cfig__tick {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+}
+
+.cfig__xo {
+    stroke: var(--text-dim);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+}
+
+.cfig__xoname {
+    font-family: var(--font-mono);
+    font-size: 0.59rem;
+    font-weight: 700;
+    fill: var(--text-strong);
+}
+
+.cfig__col {
+    fill: rgb(var(--hi-rgb) / 0.08);
+    pointer-events: none;
+}
+
+.cfig__hit {
+    fill: transparent;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.cfig__hit.is-pinned {
+    fill: rgb(var(--hi-rgb) / 0.06);
+}
+
+// over the card above the drawing, kept inside it (the card clips)
+.cfig__tip {
+    position: absolute;
+    z-index: 3;
+    bottom: calc(100% + 0.4rem);
+    left: clamp(0%, calc(var(--x) - 7.5rem), calc(100% - 15rem));
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: 15rem;
+    max-width: 100%;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    box-shadow: var(--shadow-pop);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.cfig__tip-title {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.cfig__tip .is-cut {
+    color: var(--danger-text, var(--danger));
+}
+
+.cfig__tip .is-reduced {
+    color: var(--amber);
+}
+
+// one line under the figure, with the drawing's own marks
+.cfig__key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    margin-top: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cfig__key > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.cfig__key > span[title] {
+    cursor: help;
+}
+
+.cfig__key b {
+    font-family: var(--font-mono);
+    color: var(--text-strong);
+}
+
+.cfig__sw-line {
+    width: 14px;
+    height: 2px;
+    border-radius: var(--radius-2xs);
+    background: var(--coil, var(--volt));
+}
+
+.cfig__sw {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-2xs);
+}
+
+.cfig__sw.is-cut {
+    background: var(--danger);
+}
+
+.cfig__sw.is-reduced {
+    background: var(--amber);
+}
+
+.cfig__sw.is-ok {
+    background: var(--text-mute);
+    opacity: 0.45;
+}
+
+.cfig__nhsw {
+    flex: none;
+    width: 8px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--coil, var(--volt));
+}
+
+.cfig__nhsw.is-cut {
+    border: 1px solid var(--amber);
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.8) 0 1.5px, transparent 1.5px 3px);
+}
+
+.cfig__nhsw.is-lost {
+    border: 1px solid var(--danger);
+    background: transparent;
+}

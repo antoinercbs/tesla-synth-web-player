@@ -11,7 +11,9 @@ import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import { useLeaveGuard } from '@/utils/leave-guard';
 import { tour } from '@/tour/tour';
 import { ICONS } from '@/ui/icons';
-import { noteName } from '@/ui/piano-layout';
+import { nearestNote, noteName } from '@/ui/piano-layout';
+import { fixedRequestedUs, limitTones } from '@/devices/ontime-model';
+import { pctLabel } from '@/utils/format';
 
 const midiStore = useMidiStore();
 // the board's outputs: a coil past them would not sound
@@ -63,6 +65,30 @@ const effectiveCoils = computed<SimpleCoil[]>(() =>
     duty: c.enabled ? c.duty : 0,
     frequencyHz: c.frequencyHz,
   })),
+);
+// what the board really fires: the duty, sent last, turns into the ontime at the BPS,
+// then the coil's limits apply
+const gauges = computed(() =>
+  effectiveCoils.value.map((c) => {
+    const lim = midiStore.coilLimit(c.coilIndex);
+    const hz = c.frequencyHz;
+    const asked = fixedRequestedUs(c, hz);
+    const l = limitTones(hz > 0 ? [{ ontimeUs: asked, hz }] : [], lim);
+    const us = l.pulsesUs[0] ?? 0;
+    const maxOn = lim?.ontimeUs ?? null;
+    // the pulse the max duty allows at this rate, min ontime included
+    const dutyCapUs = lim?.duty != null && hz > 0 ? (lim.duty * 1e6) / hz : null;
+    const by = l.factor < 1 ? 'byDuty' : maxOn != null && asked + (lim?.minOntimeUs ?? 0) > maxOn ? 'byOntime' : null;
+    const scale = Math.max(asked, us, maxOn ?? 0, 1) * 1.08;
+    const at = (v: number): string => `${Math.min(100, (v / scale) * 100)}%`;
+    return {
+      us, asked, by, maxOn, dutyCapUs, at,
+      duty: (us * hz) / 1e6,
+      maxDuty: lim?.duty ?? null,
+      over: asked > us + 1,
+      showDutyCap: dutyCapUs != null && dutyCapUs < scale,
+    };
+  }),
 );
 function toggleCoil(i: number): void {
   cfg.coils[i].enabled = !cfg.coils[i].enabled;
@@ -187,7 +213,7 @@ function toggleLinkAll(): void {
 }
 /** The note a firing rate sounds, "C3", when it is one. */
 function freqNote(hz: number): string {
-  const note = Math.round(69 + 12 * Math.log2(hz / 440));
+  const note = nearestNote(hz);
   return hz > 0 && note >= 0 && note <= 127 ? noteName(note) : '';
 }
 
@@ -250,14 +276,41 @@ onBeforeUnmount(() => { if (running.value) stop(); });
           </header>
           <div class="readout-row">
             <div class="readout">
-              <span class="readout__key">{{ $t('label.ontime') }}</span>
-              <label class="readout__field"><input type="number" min="0" step="1"
-                  v-model.number="c.ontimeUs"><i>µs</i></label>
+              <span class="readout__key">{{ $t('label.ontime') }}<small class="readout__tag"
+                  :title="$t('ontime.fixed.ignoredHint')">{{ $t('ontime.fixed.ignored') }}</small></span>
+              <label class="readout__field is-ignored" :title="$t('ontime.fixed.ignoredHint')"><input type="number"
+                  min="0" step="1" v-model.number="c.ontimeUs"><i>µs</i></label>
             </div>
             <div class="readout">
               <span class="readout__key">{{ $t('label.duty') }}</span>
               <label class="readout__field"><input type="number" min="0" max="100" step="0.1" :value="dutyPct(c.duty)"
                   @input="onDutyInput(c, $event)"><i>%</i></label>
+            </div>
+          </div>
+          <!-- the pulse fired: the fill; the demand cut: hatched; the coil's two limits: the marks -->
+          <div class="fx-gauge">
+            <div class="fx-gauge__head">
+              <i class="fas" :class="ICONS.power"></i>
+              <span class="fx-gauge__real">{{ $t('ontime.fixed.real') }} <b>{{ Math.round(gauges[i].us) }}</b> µs</span>
+              <span class="fx-gauge__duty">· {{ $t('ontime.fixed.duty') }} <b>{{ pctLabel(gauges[i].duty) }}</b> %</span>
+            </div>
+            <div class="fx-gauge__track">
+              <div class="fx-gauge__fill" :style="{ width: gauges[i].at(gauges[i].us) }"></div>
+              <div v-if="gauges[i].over" class="fx-gauge__over"
+                :style="{ left: gauges[i].at(gauges[i].us), right: `calc(100% - ${gauges[i].at(gauges[i].asked)})` }">
+              </div>
+              <div v-if="gauges[i].maxOn != null" class="fx-gauge__cap" :style="{ left: gauges[i].at(gauges[i].maxOn) }"
+                :title="$t('ontime.fixed.ontimeCap', { us: gauges[i].maxOn })"></div>
+              <div v-if="gauges[i].showDutyCap" class="fx-gauge__cap is-duty"
+                :style="{ left: gauges[i].at(gauges[i].dutyCapUs ?? 0) }"
+                :title="$t('ontime.fixed.dutyCap', { pct: pctLabel(gauges[i].maxDuty ?? 0), us: Math.round(gauges[i].dutyCapUs ?? 0) })">
+              </div>
+            </div>
+            <div class="fx-gauge__foot">
+              <span>0</span>
+              <span v-if="gauges[i].by">{{ $t('ontime.fixed.asked', { us: Math.round(gauges[i].asked) }) }}, {{
+                $t('ontime.fixed.cutBy', { what: $t(`ontime.fixed.${gauges[i].by}`) }) }}</span>
+              <span v-else>{{ $t('ontime.fixed.none') }}</span>
             </div>
           </div>
           <div class="fixed-freq">

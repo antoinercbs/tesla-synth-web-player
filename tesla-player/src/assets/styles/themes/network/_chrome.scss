@@ -294,11 +294,6 @@ $pro-posts: ".play-panel, .player-panel, .editor-meta, .pl-pane";
         box-shadow: none;
     }
 
-    // a coil's chip: a skill, its endorsements
-    .player-coil {
-        border-radius: 999px;
-    }
-
     // --- menus, toasts ------------------------------------------------------------------------------------------------------
     #{$menus} {
         border: 0;

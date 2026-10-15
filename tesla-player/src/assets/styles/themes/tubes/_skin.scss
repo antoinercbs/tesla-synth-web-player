@@ -90,7 +90,6 @@ $tubes: map.merge(
         preview-ink-dim: "rgb(var(--tb-nixie-rgb) / 0.85)",
         preview-ink-mute: "rgb(var(--tb-nixie-rgb) / 0.6)",
         preview-playhead: var(--tb-nixie-core),
-        preview-blocks: 0.45,
         preview-glow: "drop-shadow(0 0 2px rgb(var(--tb-nixie-rgb) / 0.55))",
         chip-bg: var(--tb-glass),
         chip-color: var(--tb-nixie-core),

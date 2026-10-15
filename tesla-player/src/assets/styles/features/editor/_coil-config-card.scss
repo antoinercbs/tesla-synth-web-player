@@ -33,3 +33,105 @@
     font-size: var(--fs-xs);
     color: var(--amber);
 }
+
+// a coil the keys held in Live mode push past its max duty (devices/coil-sim.ts heldReduction)
+.coil-card__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--amber);
+    border-radius: var(--radius-pill);
+    background: rgb(var(--amber-rgb) / 0.12);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
+    cursor: help;
+}
+
+.coil-card__live i {
+    color: var(--amber);
+}
+
+// the two settings by what they do, the bass on the left, where they hand over between them
+.coil-drive {
+    align-items: flex-end;
+    gap: 0.45rem;
+}
+
+.readout__sub {
+    margin-left: 0.35rem;
+    font-size: var(--fs-xs);
+    font-weight: 400;
+    color: var(--text-mute);
+}
+
+.coil-drive__xo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.1rem;
+    padding-bottom: 0.55rem;
+    font-size: 0.62rem;
+    color: var(--text-mute);
+    white-space: nowrap;
+    cursor: help;
+}
+
+.coil-drive__xo b {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-strong);
+}
+
+// the coil's limits, read from the board (devices/coil-limits.ts)
+.coil-limits {
+    width: 100%;
+    margin: 0.6rem 0 0.1rem;
+    border-collapse: collapse;
+    table-layout: fixed;
+    cursor: help;
+}
+
+.coil-limits th,
+.coil-limits td {
+    padding: 0 0.25rem;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.coil-limits th {
+    font-size: 0.62rem;
+    font-weight: 400;
+    color: var(--text-mute);
+}
+
+.coil-limits th:first-child {
+    width: 1.1rem;
+    padding: 0;
+    vertical-align: middle;
+    font-size: 0.7rem;
+}
+
+.coil-limits td {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text);
+}
+
+// not the board's own reading: its last one, or the defaults
+.coil-limits__source {
+    caption-side: bottom;
+    padding: 0.15rem 0 0 1.1rem;
+    font-size: 0.62rem;
+    color: var(--text-mute);
+    text-align: left;
+}
+
+.coil-limits__source i {
+    margin-right: 0.3rem;
+}

@@ -5,6 +5,7 @@ import {
   fitOctaves,
   isBlackKey,
   keyboardLayout,
+  nearestNote,
   noteFrequency,
   noteHzLabel,
   noteName,
@@ -104,5 +105,10 @@ describe('noteFrequency', () => {
   it('labels with a sensible precision', () => {
     expect(noteHzLabel(48)).toBe('131 Hz');
     expect(noteHzLabel(36)).toBe('65.4 Hz');
+  });
+  it('finds the note nearest to a frequency', () => {
+    expect(noteName(nearestNote(1250))).toBe('D#6');
+    expect(noteName(nearestNote(333.3))).toBe('E4');
+    expect(nearestNote(440)).toBe(69);
   });
 });

@@ -35,7 +35,7 @@ The sidebar's **Output** section has two lines, **Coils** and **Speakers**. Each
 
 The menu lists every destination in one place:
 
-- **Emulated synth**: the built-in Web Audio emulation, for composing and previewing without hardware. Its **timbre** is set right below it; the MIDI editor and the envelope audition use it too, whatever the output.
+- **Emulated synth**: the built-in Web Audio emulation, for composing and previewing without hardware. It plays the notes as the board would fire them: each coil's voices, max ontime, max duty and min ontime hold, as read from the board (else as last read on this computer, else default values), and the file's volume and expression (CC7, CC11), pedals and pitch bend count. Its **timbre** is set right below it; the MIDI editor and the envelope audition use it too, whatever the output.
 - **MIDI interfaces**: every MIDI output the browser sees (a USB-MIDI interface to your coil setup).
 - **Syntherrupter over USB**: a **direct serial link to the Syntherrupter** (Web Serial). **Connect a USB port…** opens the browser's port picker. Once connected, a **Syntherrupter** page appears in the sidebar so you can [configure the device itself](./syntherrupter.md), and **Disconnect** goes back to the synth. A previously authorized port reconnects automatically on the next launch, and when it is plugged back in (or the device reboots).
 
@@ -105,7 +105,7 @@ The **Power over time** section varies the coils' power along the song. Switch i
 - **Per coil** adds a track per coil, for its ontime or duty: it multiplies the Song curve, for a solo or a balance that changes during the song.
 - The list under the tracks holds the exact time, level and transition of every point.
 
-What a coil gets is its setting × the Song curve × its own curve × the player's live **Power** fader: the fader always applies on top, so it stays your safety control during a show. The player's coil lanes show each coil at that level.
+What a coil gets is its setting × the Song curve × its own curve × the player's live **Power** fader: the fader always applies on top, so it stays your safety control during a show. The player's **Load** view shows what each coil fires at that level.
 
 ### Spatialisation
 
@@ -115,7 +115,7 @@ The **Spatialisation** section spreads the notes across the coils by position, s
 - **Choose how a note passes from one coil to the next**: *Fade* (the volume drops with the distance, the note glides) or *One at a time* (full volume inside the reach, nothing past it).
 - **Choose, per channel, where its notes sit**: the **file's pan** (CC10, the default), their **pitch** (each note, or the lowest, highest or loudest one sounding, over a note range, low notes on the left or on the right), or **everywhere** (every coil assigned the channel plays all of it).
 
-A coil only plays the channels it is assigned: the section warns when a channel sits out of reach of all its coils (it would not play), or when it is assigned to a single coil (it cannot move). The player's coil lanes show what each coil actually plays, fainter when quieter, and the built-in synth pans the sound left and right the same way.
+A coil only plays the channels it is assigned: the section warns when a channel sits out of reach of all its coils (it would not play), or when it is assigned to a single coil (it cannot move). The player's **Load** view counts it in what each coil fires, and the built-in synth pans the sound left and right the same way.
 
 The player sends the spatialisation before each song, and switches it off for songs without it (and for Live mode and tuning), so a song never inherits the previous one's.
 

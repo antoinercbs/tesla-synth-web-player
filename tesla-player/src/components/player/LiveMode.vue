@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch 
 import { useI18n } from 'vue-i18n';
 import { WebMidi, type Input } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
+import { heldReduction, type HeldKey } from '@/devices/coil-sim';
 import { customEnvelope, programChange } from '@/sysex/envelopes';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_NOTE_COUNT } from '@/ui/piano-layout';
@@ -181,7 +182,7 @@ function onMidiMessage(e: MidiMessageEvent): void {
   if (kind === 0xc0 && running.value) writeEnvelopes([data[1]]);
   if (running.value) sendToOutputs(data);
   // monitor — mirrors the note state on the keyboard and the channel LEDs
-  if (kind === 0x90 && data[2] > 0) { setNote(data[1], ch, true); flashChannel(ch); }
+  if (kind === 0x90 && data[2] > 0) { setNote(data[1], ch, true, data[2]); flashChannel(ch); }
   else if (kind === 0x80 || kind === 0x90) setNote(data[1], ch, false);
   else if (kind === 0xb0 && (data[1] === 120 || data[1] === 123)) clearChannelNotes(ch); // all sound/notes off
 }
@@ -221,18 +222,25 @@ const noteChannels = reactive<number[]>(Array(MIDI_NOTE_COUNT).fill(0));
 const litChannels = reactive<boolean[]>(Array(MIDI_CHANNEL_COUNT).fill(false));
 const ledTimers: Array<ReturnType<typeof setTimeout> | null> = Array(MIDI_CHANNEL_COUNT).fill(null);
 
-function setNote(note: number, ch: number, on: boolean): void {
+// the same keys in the order they went down, for the coils' limits
+const heldKeys = shallowRef<HeldKey[]>([]);
+
+function setNote(note: number, ch: number, on: boolean, velocity = 0): void {
   if (note < 0 || note >= MIDI_NOTE_COUNT) return;
   const bit = 1 << ch;
   const next = on ? noteChannels[note] | bit : noteChannels[note] & ~bit;
   if (next !== noteChannels[note]) noteChannels[note] = next;
+  const rest = heldKeys.value.filter((k) => k.note !== note || k.channel !== ch);
+  heldKeys.value = on ? [...rest, { note, channel: ch, velocity }] : rest;
 }
 function clearChannelNotes(ch: number): void {
   const bit = 1 << ch;
   for (let n = 0; n < MIDI_NOTE_COUNT; n++) if (noteChannels[n] & bit) noteChannels[n] &= ~bit;
+  heldKeys.value = heldKeys.value.filter((k) => k.channel !== ch);
 }
 function clearAllNotes(): void {
   for (let n = 0; n < MIDI_NOTE_COUNT; n++) if (noteChannels[n]) noteChannels[n] = 0;
+  heldKeys.value = [];
   for (let i = 0; i < MIDI_CHANNEL_COUNT; i++) {
     litChannels[i] = false;
     const t = ledTimers[i];
@@ -254,6 +262,10 @@ const heldChannelMask = computed(() => {
 function channelLit(ch: number): boolean {
   return ((heldChannelMask.value >> ch) & 1) === 1 || litChannels[ch];
 }
+// how much each coil's max duty reduces the keys held, percent
+const liveCuts = computed(() =>
+  cfg.coils.map((c, i) => Math.round(100 * heldReduction(heldKeys.value, c, midiStore.coilLimit(i)))),
+);
 
 /* ---------------------------- on-screen keyboard -------------------------- */
 const PIANO_VELOCITY = 100;
@@ -278,7 +290,7 @@ function onPianoNoteOn(note: number): void {
   const ch = playChannel.value;
   virtualHeld.set(note, ch);
   sendToOutputs([0x90 | ch, note, PIANO_VELOCITY]);
-  setNote(note, ch, true);
+  setNote(note, ch, true, PIANO_VELOCITY);
   flashChannel(ch);
 }
 function onPianoNoteOff(note: number): void {
@@ -430,7 +442,7 @@ onBeforeUnmount(() => {
       </header>
       <div class="coils-grid">
         <CoilConfigCard v-for="i in cfg.coilCount" :key="i - 1" v-model="cfg.coils[i - 1]" :index="i - 1"
-          :show-envelope="true" />
+          :show-envelope="true" :span="[24, 107]" :live-cut="liveCuts[i - 1]" />
       </div>
     </section>
     <confirm-modal :open="leavePending" :title="$t('player.liveLeaveTitle')" :message="$t('player.liveLeaveQuestion')"

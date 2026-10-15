@@ -785,12 +785,8 @@
     }
 }
 
-// the chips' figures on seven segments, the sidebar's coil marks lamps lit in their colour
+// the sidebar's coil marks: lamps lit in their colour
 [data-skin="control"] {
-    .player-coil__readout {
-        @include digits;
-    }
-
     .sidebar-coil__dot {
         border: 1px solid #000;
         box-shadow: 0 0 6px 1px var(--c), inset 0 1px 1px rgb(255 255 255 / 0.5);

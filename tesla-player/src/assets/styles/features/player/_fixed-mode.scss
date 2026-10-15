@@ -208,3 +208,108 @@
 .fixed-link-all {
     margin-left: auto;
 }
+
+// the ontime the firmware ignores in this mode (devices/ontime-model.ts): still editable
+.readout__tag {
+    margin-left: 0.4rem;
+    padding: 0 0.35rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    cursor: help;
+}
+
+.readout__field.is-ignored {
+    opacity: 0.55;
+}
+
+// what the board fires: the pulse, the demand it cut (hatched), the coil's two limits (marks)
+.fx-gauge {
+    margin: 0.8rem 0 0.2rem;
+}
+
+.fx-gauge__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.fx-gauge__head > i {
+    color: var(--coil, var(--volt));
+}
+
+.fx-gauge__real,
+.fx-gauge__duty {
+    white-space: nowrap;
+}
+
+.fx-gauge__real b {
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    color: var(--text-strong);
+}
+
+.fx-gauge__duty {
+    color: var(--text-mute);
+}
+
+.fx-gauge__duty b {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.fx-gauge__track {
+    position: relative;
+    height: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    background: rgb(var(--hi-rgb) / 0.04);
+}
+
+.fx-gauge__fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+    background: var(--coil, var(--volt));
+    transition: width 0.12s;
+}
+
+.fx-gauge__over {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.55) 0 3px, transparent 3px 6px);
+}
+
+.fx-gauge__cap {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    margin-left: -1px;
+    border-radius: var(--radius-2xs);
+    background: var(--amber);
+    cursor: help;
+}
+
+.fx-gauge__cap.is-duty {
+    background: var(--text-dim);
+}
+
+.fx-gauge__foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+}

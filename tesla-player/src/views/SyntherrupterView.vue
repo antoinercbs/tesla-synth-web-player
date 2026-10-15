@@ -23,6 +23,7 @@ import BaseModal from '@/components/ui/BaseModal.vue';
 import PageTourButton from '@/components/tour/PageTourButton.vue';
 import { ICONS } from '@/ui/icons';
 import { dutyNearLimit, limitLabel, ontimeNearLimit } from '@/devices/limits';
+import { MAX_DUTY_PN, MAX_ONTIME_PN, MAX_VOICES_PN, MIN_ONTIME_PN } from '@/devices/coil-limits';
 
 /**
  * Syntherrupter hardware config page (needs a link with read-back: Web Serial, or
@@ -170,6 +171,23 @@ function seedRead(key: string, p: SynthParam, f: DecodedFrame | undefined): void
     delete edited[key];
   }
 }
+// the editors and the player show what the coils really fire against these: keep the store in step
+function shareCoilLimits(): void {
+  for (const c of coils.value) {
+    const num = (pn: number): number | undefined => {
+      const v = device[coilKey(c, pn)];
+      return typeof v === 'number' ? v : undefined;
+    };
+    const known = midiStore.coilLimits[c] ?? {};
+    const duty = num(MAX_DUTY_PN); // shown in %
+    midiStore.setCoilLimit(c, {
+      ontimeUs: num(MAX_ONTIME_PN) ?? known.ontimeUs,
+      duty: duty != null ? duty / 100 : known.duty,
+      minOntimeUs: num(MIN_ONTIME_PN) ?? known.minOntimeUs,
+      voices: num(MAX_VOICES_PN) ?? known.voices,
+    });
+  }
+}
 function isDirty(e: Entry): boolean {
   return !e.p.readOnly && String(edited[e.key] ?? '') !== String(device[e.key] ?? '');
 }
@@ -218,6 +236,7 @@ async function loadAll(): Promise<void> {
       }
       done++;
     }
+    shareCoilLimits();
     // system settings: one GET over 0x201..0x266
     step(t('sp.loadSystem'));
     const sysFrames = await out.read(0x201, 0, 0x266);
@@ -282,6 +301,7 @@ function doApply(entries: Entry[]): void {
   const out = link();
   if (!out) return;
   for (const e of entries) writeEntry(out, e);
+  shareCoilLimits();
   notify('sp.applied');
 }
 

@@ -4,6 +4,7 @@ import type { Output } from 'webmidi';
 import { useMidiStore } from '@/stores/midi';
 import type { MidiSink } from '@/audio/tesla-synth';
 import type { DeviceLink } from '@/serial/device-link';
+import { lastLimitsKey, type CoilLimits } from '@/devices/coil-limits';
 import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
 import type { TuningDraft, TuningRecord } from '@/tuning/api';
 import { SessionLink } from '@/tuning/session-link';
@@ -31,7 +32,10 @@ type Outputs = { output: MidiSink | null; output2: Output | null; deviceLink: De
 let lib: DemoLibrary | null = null;
 let interceptor: number | null = null;
 let guard: WatchStopHandle | null = null;
-let saved: ({ files: MidiFile[]; songs: Song[]; tags: AppTag[]; envelopes: CustomEnvelope[]; config: AppConfig; storage: Record<string, string | null> } & Outputs) | null = null;
+let saved: ({
+  files: MidiFile[]; songs: Song[]; tags: AppTag[]; envelopes: CustomEnvelope[]; config: AppConfig;
+  storage: Record<string, string | null>; lastLimits: CoilLimits[];
+} & Outputs) | null = null;
 const realTransport = SessionLink.defaultTransport;
 const realFetch = window.fetch;
 
@@ -44,11 +48,11 @@ function demoFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Respon
   return Promise.resolve(new Response(JSON.stringify(answer), { headers: { 'Content-Type': 'application/json' } }));
 }
 
-// what the pages read from storage when they mount: the player opens on the coil
-// lanes, the play page on songs (its tour switches to Live and back), the tuning
+// what the pages read from storage when they mount: the player opens on the coils'
+// load, the play page on songs (its tour switches to Live and back), the tuning
 // page on short trials over the fake phone's range
 const DEMO_STORAGE: Record<string, string> = {
-  playerViz: 'lanes',
+  playerViz: 'load',
   playMode: 'playback',
   playQueue: '{}',
   tuningSetup: JSON.stringify({
@@ -142,7 +146,9 @@ export function enterDemo(lang: string): void {
     tags: store.tagList,
     envelopes: store.envelopeList,
     config: store.appConfig,
-    storage: Object.fromEntries(Object.keys(DEMO_STORAGE).map((k) => [k, localStorage.getItem(k)])),
+    // the fake board's limits must not stand as the real board's last reading
+    storage: Object.fromEntries([...Object.keys(DEMO_STORAGE), lastLimitsKey(store.boardId)].map((k) => [k, localStorage.getItem(k)])),
+    lastLimits: store.lastCoilLimits,
     output: store.midiOutput,
     output2: store.midiOutput2 as Output | null,
     deviceLink: store.deviceLink,
@@ -206,6 +212,7 @@ export function exitDemo(): void {
       if (v === null) localStorage.removeItem(k);
       else localStorage.setItem(k, v);
     }
+    store.$patch({ lastCoilLimits: saved.lastLimits });
     store.setMidiOutput(saved.output);
     store.setMidiOutput2(saved.output2);
     store.setDeviceLink(saved.deviceLink);

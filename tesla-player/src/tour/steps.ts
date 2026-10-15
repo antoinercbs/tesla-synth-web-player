@@ -72,7 +72,7 @@ const TUNE_HISTORY = { name: 'tune', query: { view: 'history' } };
 const SYNTHERRUPTER = { name: 'syntherrupter' };
 // the player's coil lanes: their setting tabs, in their order: ontime, duty
 const paramTab = (n: number): string => `.player-viz .preview__param button:nth-of-type(${n})`;
-// the player's view tabs, in their order: VU, score, coil lanes, combined
+// the player's view tabs, in their order: VU, score, load, combined
 const vizTab = (n: number): string => `.player-viz__tabs button:nth-of-type(${n})`;
 // the play page's modes, in their order: playback, live, fixed; only when not the current one
 const playMode = (n: number): string => `.screen-head .mode-switch button:nth-of-type(${n}):not(.is-active)`;
@@ -109,9 +109,9 @@ const PLAY_STEPS: TourStep[] = [
   { id: 'transport', icon: 'fa-circle-play', points: ['fa-play', 'fa-wrench'], note: 'warn', noteIcon: 'fa-bell-slash', route: PLAY, target: '.player-transport', placement: 'left', click: [playMode(1), '.play-row:not(.is-current) .row-btn--play', PLAY_BUTTON], plays: true, once: true },
   { id: 'vizVu', icon: 'fa-chart-simple', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(1) },
   { id: 'vizScore', icon: ICONS.pianoRoll, note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(2) },
-  { id: 'vizLanes', icon: ICONS.coil, note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(3) },
+  { id: 'vizLoad', icon: ICONS.coil, note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(3) },
   { id: 'vizCombined', icon: 'fa-layer-group', route: PLAY, target: '.player-viz', placement: 'left', click: vizTab(4) },
-  { id: 'vizParam', icon: 'fa-toggle-on', note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: [vizTab(3), paramTab(2)] },
+  { id: 'vizParam', icon: 'fa-toggle-on', note: 'tip', route: PLAY, target: '.player-viz', placement: 'left', click: [vizTab(4), paramTab(2)] },
   { id: 'power', icon: ICONS.power, note: 'warn', route: PLAY, target: '.player-power', placement: 'left' },
   { id: 'playDone', icon: 'fa-flag-checkered', note: 'tip', route: PLAY },
 ];

@@ -605,6 +605,11 @@ export default {
     }
   },
   watch: {
+    // the synth holds the coils to the same limits as the board (or its last reading, or the defaults)
+    'midiStore.effectiveCoilLimits': {
+      handler(limits) { getTeslaSynth().setCoilLimits(limits) },
+      immediate: true,
+    },
     menuOpen(open) { this.setMenuListeners(open) },
     outMenu(id, was) { if (!id !== !was) this.setOutMenuListeners(!!id) },
     $route() {

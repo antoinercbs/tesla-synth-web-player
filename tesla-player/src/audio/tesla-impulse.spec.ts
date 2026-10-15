@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   impulseMagnitude,
   impulseSpectrum,
-  pitchGain,
   pulseCoefficients,
+  pulseLevel,
   retroPulseCoefficients,
   retroPulseDuty,
   TESLA_IMPULSE,
@@ -131,10 +131,18 @@ describe('retroPulseCoefficients', () => {
   });
 });
 
-describe('pitchGain', () => {
-  it('is unity at the reference pitch and −3 dB per octave above it', () => {
-    expect(pitchGain(110)).toBeCloseTo(1, 9);
-    expect(pitchGain(440)).toBeCloseTo(0.501187, 5);
-    expect(pitchGain(55)).toBeCloseTo(1.412538, 5);
+describe('pulseLevel', () => {
+  it('plays the reference pulse on A4 at 1', () => {
+    expect(pulseLevel(115.6, 440)).toBeCloseTo(1, 9);
+  });
+
+  it('follows the pulse to the power alpha, and the pitch by the slope', () => {
+    const law = { alpha: 0.5, slopeDbPerOct: -3 };
+    expect(pulseLevel(4 * 115.6, 440, law)).toBeCloseTo(2, 9);
+    expect(pulseLevel(115.6, 880, law)).toBeCloseTo(0.707946, 5);
+  });
+
+  it('is silent without a pulse', () => {
+    expect(pulseLevel(0, 440)).toBe(0);
   });
 });
