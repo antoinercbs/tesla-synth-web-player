@@ -1,5 +1,5 @@
 import type { TourId } from './tour';
-import { DEMO_ENVELOPE_PROGRAM, DEMO_FILE_ID, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from './demo/data';
+import { DEMO_ENVELOPE_PROGRAM, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from './demo/data';
 import { joinFakePhone } from './demo/fake-camera';
 import { ICONS } from '@/ui/icons';
 
@@ -62,8 +62,7 @@ export interface TourStep {
 const PLAY = { name: 'play' };
 const DEMO_SONG = { name: 'edit', params: { id: String(DEMO_SONG_ID) } };
 const DEMO_PLAYLIST = { name: 'playlists', params: { id: String(DEMO_PLAYLIST_ID) } };
-const MIDI = { name: 'midi' };
-const DEMO_FILE = { name: 'midi-edit', params: { id: String(DEMO_FILE_ID) } };
+const DEMO_NOTES = { name: 'midi-edit', params: { id: String(DEMO_SONG_ID) } };
 const DEMO_ENVELOPE = { name: 'envelopes', params: { program: String(DEMO_ENVELOPE_PROGRAM) } };
 // the tuning page opens on a choice; the session and the history are ?view= of it
 const TUNE = { name: 'tune' };
@@ -78,7 +77,7 @@ const vizTab = (n: number): string => `.player-viz__tabs button:nth-of-type(${n}
 const playMode = (n: number): string => `.screen-head .mode-switch button:nth-of-type(${n}):not(.is-active)`;
 
 export const MAIN_STEPS: TourStep[] = [
-  { id: 'welcome', icon: ICONS.welcome, points: ['fa-gear', 'fa-play', 'fa-folder-open', 'fa-pencil', 'fa-list-ul', ICONS.coil], tiles: true, note: 'tip', noteIcon: 'fa-flask', route: PLAY },
+  { id: 'welcome', icon: ICONS.welcome, points: ['fa-gear', 'fa-play', 'fa-pencil', 'fa-list-ul', ICONS.coil], tiles: true, note: 'tip', noteIcon: 'fa-flask', route: PLAY },
   { id: 'nav', icon: 'fa-compass', points: ['fa-music', ICONS.coil], route: PLAY, target: '.nav', placement: 'right' },
   // the menu opens beside the sidebar; the next step closes it
   { id: 'settings', icon: 'fa-gear', points: ['fa-tags', 'fa-palette'], route: PLAY, target: '.sidebar-menu', placement: 'right', click: '.sidebar-more:not(.is-open)' },
@@ -86,8 +85,7 @@ export const MAIN_STEPS: TourStep[] = [
   { id: 'coils', wide: true, icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
   // the path of a song, from the stage back to its file
   { id: 'pathPlay', icon: 'fa-play', points: [ICONS.power, ICONS.live], route: PLAY, target: '.source-panel', placement: 'right' },
-  { id: 'pathMidi', icon: 'fa-folder-open', points: ['fa-layer-group', 'fa-pen-to-square'], route: MIDI, target: '.midi-lib .data-table', placement: 'top' },
-  { id: 'pathSong', icon: 'fa-pencil', points: [ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
+  { id: 'pathSong', icon: 'fa-pencil', points: ['fa-file-audio', ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
   { id: 'pathPlaylist', icon: 'fa-list-ul', route: DEMO_PLAYLIST, target: '.pl-panes', placement: 'top' },
   // the hardware
   { id: 'pathTune', wide: true, icon: ICONS.tuning, route: TUNE, target: '.tune-intro__choices', placement: 'bottom' },
@@ -118,7 +116,7 @@ const PLAY_STEPS: TourStep[] = [
 
 const EDIT_STEPS: TourStep[] = [
   { id: 'editor', icon: 'fa-pencil', points: ['fa-file-circle-plus', 'fa-tags'], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
-  { id: 'editFile', icon: 'fa-file-audio', points: ['fa-pen-to-square', 'fa-folder-open'], note: 'warn', route: DEMO_SONG, target: '.midi-field', placement: 'bottom' },
+  { id: 'editFile', icon: 'fa-file-audio', points: ['fa-pen-to-square', 'fa-file-arrow-up'], note: 'warn', route: DEMO_SONG, target: '.midi-field', placement: 'bottom' },
   { id: 'coilCards', icon: ICONS.coil, points: ['fa-layer-group', ICONS.power], route: DEMO_SONG, target: '.coils-grid', placement: 'top' },
   { id: 'stereo', wide: true, icon: ICONS.stereo, points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top' },
   { id: 'dynamics', wide: true, icon: ICONS.dynamics, points: ['fa-circle-dot', ICONS.coil], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top' },
@@ -133,23 +131,16 @@ const PLAYLIST_STEPS: TourStep[] = [
   { id: 'plDone', icon: 'fa-play', note: 'tip', route: DEMO_PLAYLIST },
 ];
 
-const MIDI_STEPS: TourStep[] = [
-  { id: 'midi', icon: 'fa-table-list', note: 'tip', route: MIDI, target: '.midi-lib .data-table', placement: 'top' },
-  { id: 'midiImport', icon: 'fa-cloud-arrow-up', points: ['fa-cloud-arrow-up', 'fa-magnifying-glass'], route: MIDI, target: '.midi-lib .lib__bar', placement: 'bottom' },
-  { id: 'midiActions', icon: 'fa-pen-to-square', points: ['fa-pen-to-square', 'fa-ellipsis-vertical'], route: MIDI, target: '.midi-lib .data-table__actions', placement: 'left' },
-  { id: 'midiDone', icon: 'fa-share-nodes', note: 'tip', route: MIDI },
-];
-
 // the selection bar only shows with notes selected: a channel's name selects its notes
 const MIDI_EDIT_STEPS: TourStep[] = [
-  { id: 'meIntro', icon: 'fa-pen-to-square', points: ['fa-shuffle', 'fa-arrows-up-down', 'fa-pencil'], note: 'tip', noteIcon: 'fa-flask', route: DEMO_FILE },
-  { id: 'meChannels', icon: 'fa-layer-group', points: ['fa-eye', 'fa-arrow-pointer'], route: DEMO_FILE, target: '.me-chans', placement: 'right' },
-  { id: 'meRoll', icon: ICONS.pianoRoll, points: ['fa-arrow-pointer', 'fa-up-down-left-right', 'fa-plus', 'fa-left-right'], route: DEMO_FILE, target: '.roll__area', placement: 'left' },
-  { id: 'meSelect', icon: 'fa-filter', points: ['fa-stopwatch', 'fa-arrows-up-down', 'fa-layer-group'], note: 'tip', route: DEMO_FILE, target: '.me-pop', placement: 'right', click: '.me-pop-wrap > .btn[aria-expanded="false"]' },
-  { id: 'meSelBar', icon: 'fa-object-group', points: ['fa-shuffle', 'fa-arrows-up-down', ICONS.velocity], route: DEMO_FILE, target: '.me-selbar', placement: 'top', click: ['.me-pop-wrap > .btn[aria-expanded="true"]', '.me-chan__name'] },
-  { id: 'meVelocity', icon: ICONS.velocity, note: 'tip', route: DEMO_FILE, target: '.roll__vel', placement: 'top' },
-  { id: 'meListen', icon: 'fa-headphones', note: 'tip', route: DEMO_FILE, target: '.me-transport', placement: 'bottom' },
-  { id: 'meDone', icon: 'fa-floppy-disk', points: ['fa-list-check'], note: 'warn', route: DEMO_FILE, target: '.me-head', placement: 'bottom' },
+  { id: 'meIntro', icon: 'fa-pen-to-square', points: ['fa-shuffle', 'fa-arrows-up-down', 'fa-pencil'], note: 'tip', noteIcon: 'fa-flask', route: DEMO_NOTES },
+  { id: 'meChannels', icon: 'fa-layer-group', points: ['fa-eye', 'fa-arrow-pointer'], route: DEMO_NOTES, target: '.me-chans', placement: 'right' },
+  { id: 'meRoll', icon: ICONS.pianoRoll, points: ['fa-arrow-pointer', 'fa-up-down-left-right', 'fa-plus', 'fa-left-right'], route: DEMO_NOTES, target: '.roll__area', placement: 'left' },
+  { id: 'meSelect', icon: 'fa-filter', points: ['fa-stopwatch', 'fa-arrows-up-down', 'fa-layer-group'], note: 'tip', route: DEMO_NOTES, target: '.me-pop', placement: 'right', click: '.me-pop-wrap > .btn[aria-expanded="false"]' },
+  { id: 'meSelBar', icon: 'fa-object-group', points: ['fa-shuffle', 'fa-arrows-up-down', ICONS.velocity], route: DEMO_NOTES, target: '.me-selbar', placement: 'top', click: ['.me-pop-wrap > .btn[aria-expanded="true"]', '.me-chan__name'] },
+  { id: 'meVelocity', icon: ICONS.velocity, note: 'tip', route: DEMO_NOTES, target: '.roll__vel', placement: 'top' },
+  { id: 'meListen', icon: 'fa-headphones', note: 'tip', route: DEMO_NOTES, target: '.me-transport', placement: 'bottom' },
+  { id: 'meDone', icon: 'fa-floppy-disk', points: ['fa-list-check'], note: 'warn', route: DEMO_NOTES, target: '.me-head', placement: 'bottom' },
 ];
 
 const ENVELOPE_STEPS: TourStep[] = [
@@ -212,7 +203,6 @@ export const TOUR_ICONS: Record<TourId, string> = {
   play: 'fa-play',
   edit: 'fa-pencil',
   playlists: 'fa-list-ul',
-  midi: 'fa-folder-open',
   midiEdit: 'fa-pen-to-square',
   envelopes: ICONS.envelope,
   tune: ICONS.tuning,
@@ -224,7 +214,6 @@ export const TOURS: Record<TourId, TourStep[]> = {
   play: PLAY_STEPS,
   edit: EDIT_STEPS,
   playlists: PLAYLIST_STEPS,
-  midi: MIDI_STEPS,
   midiEdit: MIDI_EDIT_STEPS,
   envelopes: ENVELOPE_STEPS,
   tune: TUNE_STEPS,

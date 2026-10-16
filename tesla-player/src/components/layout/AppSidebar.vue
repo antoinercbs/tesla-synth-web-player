@@ -20,18 +20,13 @@
       <router-link class="nav-item" :to="{ name: 'play' }" :title="sidebarCompact ? $t('nav.play') : null">
         <span class="icon"><i class="fas fa-play"></i></span><span class="nav-item__label">{{ $t('nav.play') }}</span>
       </router-link>
-      <router-link class="nav-item" :to="{ name: 'edit' }" :title="sidebarCompact ? $t('nav.edit') : null">
+      <router-link class="nav-item" :class="{ 'router-link-active': $route.meta.nav === 'edit' }" :to="{ name: 'edit' }"
+        :title="sidebarCompact ? $t('nav.edit') : null">
         <span class="icon"><i class="fas fa-pencil"></i></span><span class="nav-item__label">{{ $t('nav.edit') }}</span>
       </router-link>
       <router-link class="nav-item" :to="{ name: 'playlists' }" :title="sidebarCompact ? $t('nav.playlists') : null">
         <span class="icon"><i class="fas fa-list-ul"></i></span><span class="nav-item__label">{{ $t('nav.playlists')
         }}</span>
-      </router-link>
-      <router-link class="nav-item" :class="{ 'router-link-active': $route.meta.nav === 'midi' }" :to="{ name: 'midi' }"
-        :title="sidebarCompact ? $t('nav.midi') : null">
-        <span class="icon"><i class="fas fa-folder-open"></i></span>
-        <span class="nav-item__label nav-item__label--long">{{ $t('nav.midi') }}</span>
-        <span class="nav-item__label nav-item__label--short">{{ $t('nav.midiShort') }}</span>
       </router-link>
       <!-- --wide: not offered by the phone layout (ui/viewport.ts) -->
       <router-link class="nav-item nav-item--wide" :to="{ name: 'envelopes' }"
@@ -969,7 +964,6 @@ export default {
     onSyncApplied() {
       // A pull may have changed the local DB — refresh the cached lists, and
       // bump the data revision so views that fetch ad-hoc (playlists) re-read.
-      this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => { })
       this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => { })
       this.axios.get('/api/envelopes').then(r => this.midiStore.setEnvelopeList(r.data)).catch(() => { })
       this.midiStore.bumpDataRevision()

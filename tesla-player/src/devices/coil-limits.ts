@@ -22,11 +22,12 @@ export interface CoilLimits {
 }
 
 /**
- * What a coil is taken to hold when no board told: near the demo's coils and
- * under the ESP32 board's protection (210 µs / 15 %). Not the firmware's factory
- * values (10 µs, 5 %, 0 µs): 10 µs would flatten every note.
+ * What a coil is taken to hold when no board told. 120 µs: what a coil's OCD and
+ * circuit (bus voltage, primary RLC) let it fire in practice, the club's coils
+ * included. Not the firmware's factory values (10 µs, 5 %, 0 µs): 10 µs would
+ * flatten every note.
  */
-export const DEFAULT_COIL_LIMITS: Readonly<Required<CoilLimits>> = { ontimeUs: 200, duty: 0.1, minOntimeUs: 2, voices: 8 };
+export const DEFAULT_COIL_LIMITS: Readonly<Required<CoilLimits>> = { ontimeUs: 120, duty: 0.1, minOntimeUs: 2, voices: 8 };
 
 /** Where a coil's limits come from: the board now, its last reading on this machine, or the defaults. */
 export type CoilLimitsSource = 'board' | 'last' | 'default';

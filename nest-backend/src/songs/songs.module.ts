@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MidiFile } from '../midi/entities/midi-file.entity';
+import { MidiModule } from '../midi/midi.module';
+import { AppConfig } from '../settings/entities/app-config.entity';
 import { Coil } from './entities/coil.entity';
 import { CoilEvent } from './entities/coil-event.entity';
 import { Song } from './entities/song.entity';
@@ -9,7 +10,7 @@ import { SongsService } from './songs.service';
 import { Tag } from '../tags/entities/tag.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Song, Coil, CoilEvent, MidiFile, Tag])],
+  imports: [TypeOrmModule.forFeature([Song, Coil, CoilEvent, Tag, AppConfig]), MidiModule],
   controllers: [SongsController],
   providers: [SongsService],
 })

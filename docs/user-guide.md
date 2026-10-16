@@ -12,7 +12,7 @@ How to play music on your Tesla coils and configure each song. This covers the w
 - [Live power control](#live-power-control)
 - [Editing a song](#editing-a-song)
 - [Playlists](#playlists)
-- [MIDI files & the MIDI editor](#midi-files--the-midi-editor)
+- [The MIDI editor](#the-midi-editor)
 - [Envelopes](#envelopes)
 - [Backup](#backup)
 - [Language](#language)
@@ -21,11 +21,11 @@ How to play music on your Tesla coils and configure each song. This covers the w
 
 ## The interface at a glance
 
-- **Sidebar (left)**: navigation (Play, Edit, Playlists, MIDI files, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, and the **…** menu: language, look, desktop download / sync, the guided tour, and **About Tesla Player**, the project's pages and credits).
+- **Sidebar (left)**: navigation (Play, Edit, Playlists, Envelopes, Tuning, and Syntherrupter when connected), your **output selection**, the **coil legend**, and footer controls (connection status, and the **…** menu: language, look, desktop download / sync, the guided tour, and **About Tesla Player**, the project's pages and credits).
 - **Main area**: the current screen (Play, Edit, ...)
-- **Lists** (MIDI files, songs, playlists): a click on a column's header sorts by it (again for the other way, a third time for the list's own order); the funnel beside a header filters on that column's values (tags, coil count, playlists, instruments, used or not). The searches take the words in any order and ignore case and accents ("fur elise" finds *Für Elise*); put a phrase in quotes to keep its words together, and a minus before a word to leave out what holds it (`-classique`).
+- **Lists** (songs, playlists): a click on a column's header sorts by it (again for the other way, a third time for the list's own order); the funnel beside a header filters on that column's values (tags, coil count, playlists). The searches take the words in any order and ignore case and accents ("fur elise" finds *Für Elise*); put a phrase in quotes to keep its words together, and a minus before a word to leave out what holds it (`-classique`).
 - **Guided tours**: the app tour (offered on the first visit, then in the **⋯** menu) shows how the pages fit together; the **?** beside each page's title runs that page's own, detailed tour. Both run on demo data: nothing is saved and nothing reaches the coils.
-- **On a phone or a tablet** (a window under 1000 px wide), the sidebar becomes a bottom bar with the show-time pages only: **Play**, a simplified **Edit** (name, file, tags, coils; the spatialisation and the power over time stay as they are, to edit on a large screen), **Playlists** and the **MIDI files** (without the MIDI editor). **More** opens the **⋯** menu. The other pages stay reachable by their address.
+- **On a phone or a tablet** (a window under 1000 px wide), the sidebar becomes a bottom bar with the show-time pages only: **Play**, a simplified **Edit** (name, file, tags, coils; the spatialisation, the power over time and the MIDI editor stay on a large screen) and **Playlists**. **More** opens the **⋯** menu. The other pages stay reachable by their address.
 
 ## Choosing your outputs
 
@@ -85,9 +85,11 @@ Live changes are sent to the coils as the fader moves and don't alter the saved 
 
 ## Editing a song
 
-Go to **Edit**: it lists your songs the way the MIDI file manager lists files, with a search (name, tag or file), **New song**, and per song its file, length, coils and the playlists holding it. Click a song to open it; its **⋮** menu adds it to a playlist, duplicates or deletes it. Tick songs to add them to a playlist, tag them or delete them together. A MIDI file dropped on the list, or **Create a song** in a file's menu of the MIDI files, starts a new song from it. In the editor, **Duplicate** starts a copy, **Undo / Redo** (Ctrl+Z / Ctrl+Shift+Z, outside the text fields) step back through the edits, and a song needs a name to be saved. A song is a MIDI file plus a **per-coil configuration**.
+Go to **Edit**: it lists your songs, with a search (name, tag or file name), **New song**, and per song its length, coils and the playlists holding it. Click a song to open it; its **⋮** menu adds it to a playlist, duplicates it, opens its notes or deletes it. Tick songs to add them to a playlist, tag them or delete them together.
 
-- **Name** and **MIDI file**: choose the file this song plays (upload new ones from the MIDI file manager, reachable from the picker).
+A song is **its own MIDI file** plus a **per-coil configuration**: no other song plays its file, so editing it changes that song alone. **New song** starts one from a MIDI file (pick it or drop it; several files make as many songs, and a file dropped right on the list does the same), or from a copy of another song's MIDI (its notes only: the coils are yours to set). In the editor, **Duplicate** copies the song as saved, its file included, **Undo / Redo** (Ctrl+Z / Ctrl+Shift+Z, outside the text fields) step back through the edits, and a song needs a name to be saved.
+
+- **Name** and **MIDI file**: the song's file, with its length. The pen opens its notes in the [MIDI editor](#the-midi-editor); the arrow replaces it with another file (the coil settings stay, the old file is erased).
 - **Coil count**: how many physical coils this song targets (1–6).
 - **Per-coil cards** :for each coil:
   - **MIDI channels**: which channels of the file feed this coil (a multi-select grid). The player on the right colors notes by their channel→coil mapping so you can see who plays what.
@@ -129,9 +131,9 @@ In this 3-coil setup, **coils 0 and 1 play channel 1** and **coil 2 plays channe
 
 Go to **Playlists** to group songs into an ordered set for a show (the list works like the songs': search, **New playlist**, a click opens one). A playlist targets a specific **coil count**; only songs authored for that count are meant to play. Reorder, add and remove songs, then play the playlist from the Play screen (with autoplay for a hands-off set).
 
-## MIDI files & the MIDI editor
+## The MIDI editor
 
-The **MIDI files** manager lets you **upload**, **download**, **rename**, **replace** and **delete** the `.mid` files your songs use (several at once by ticking them). The pen next to a file (and next to the file field of the song editor) opens the **MIDI editor**:
+The pen next to a song's file field (or **Edit the notes** in its **⋮** menu) opens the song's notes in the **MIDI editor**:
 
 - **Channels (left)**: each channel's **instrument**, the Program Change it starts on, so the envelope it plays on the Syntherrupter. The eye hides a channel, the speaker mutes it while listening, the bin deletes it with its notes. Click a channel's name to select its notes.
 - **Selecting notes**: click, or drag a box; Shift adds, Ctrl toggles. **Select ▾** picks them by criterion, in one channel or all: shorter than a length (ghost notes), below a velocity, from or below a pitch (to split a bass from a melody), the top note of each chord or the rest, the notes beyond a number of voices at once, the same keys as the selection. Drag on the ruler to choose a **passage**: the criteria then stay inside it.
@@ -140,9 +142,9 @@ The **MIDI files** manager lets you **upload**, **download**, **rename**, **repl
 - **Passages**: delete one (the rest closes up) or keep it alone; **Trim** removes the silence before the first note.
 - **Tempo** (in BPM, in the toolbar): the speed the file starts at. Changing it speeds up or slows down the whole song, every tempo change following in the same proportion; the notes stay on their grid.
 - **Listen** (Space) plays the edit on the emulated synth, with its envelopes, from the cursor: everything, or the selection only. It never plays on the coils.
-- **Undo / redo** (Ctrl+Z / Ctrl+Y). **Save** (Ctrl+S) lists what changed and, for each song using the file, the notes now on a channel no coil plays and the coils left with nothing to play.
+- **Undo / redo** (Ctrl+Z / Ctrl+Y). **Save** (Ctrl+S) lists what changed and, on the song's coils, the notes now on a channel no coil plays and the coils left with nothing to play.
 
-> ⚠️ Saving rewrites the **file itself**, so it affects **every song** that uses it. The tempo, the controllers and the file's other events are kept.
+> ⚠️ Saving rewrites the song's file: to keep the original, **Duplicate** the song first. The tempo, the controllers and the file's other events are kept.
 
 ## Envelopes
 
@@ -154,13 +156,13 @@ The **Envelopes** screen lists the firmware's built-in envelopes (**P0–P19**, 
 - **Edit** it on the graph: drag each step's point (its duration and amplitude), the release point, or the note-off line to see how a shorter or longer note plays; double-click the curve to add a step there. The table below holds the exact values of each step, in playing order: amplitude (a multiplier of the note ontime, 1 = nominal), duration and curve (n-tau: 0 = linear). Add a step with **+**, remove one with its **×** (up to 7 steps, plus the release).
 - **Choose what a held note does after the last step**: *Hold the level* (sustain until note-off), *Loop* from a given step (pulsation, tremolo), or *Release* straight away, even while the note is held (a one-shot). The release, played at note-off, has its own column.
 - **Listen** with **Synth** (the emulation, even before saving), or **Coil**: it sends the envelope to the device and plays the note on the coil you pick, at the ontime you set, with every other coil muted.
-- The screen shows which MIDI files use the envelope, and warns before deleting or moving one they play.
+- The screen shows which songs use the envelope, and warns before deleting or moving one they play.
 
 Your envelopes live in the app's library (and are [synced](./desktop-app.md#synchronizing-with-a-server) like songs). The player sends the ones a song uses to the device **before each song**, so there is nothing to save on the Syntherrupter itself. The amplitude may exceed 1 for a punchier attack; the device still caps the result at the coil's [safety limits](./syntherrupter.md).
 
 ## Backup
 
-**Backup**, in the **⋯** menu, downloads the whole library as one file: MIDI files, songs (with their tags), playlists, envelopes, tags, tunings and the coils' settings. Restoring one brings each item it holds back to its saved version, matched by its identity (a tag by its name); nothing is deleted, so what was added since stays. It asks first, then says what came back.
+**Backup**, in the **⋯** menu, downloads the whole library as one file: songs (with their MIDI files and tags), playlists, envelopes, tags, tunings and the coils' settings. Restoring one brings each item it holds back to its saved version, matched by its identity (a tag by its name); nothing is deleted, so what was added since stays. It asks first, then says what came back. A backup made when songs could share a file gives each song its own copy, and leaves out the files no song played.
 
 ## Tuning the primary with a camera
 

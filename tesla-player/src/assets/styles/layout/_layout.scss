@@ -866,11 +866,6 @@
         width 0.2s ease;
 }
 
-// the bottom bar's shorter label (see the mobile block)
-.nav-item__label--short {
-    display: none;
-}
-
 // collapse/expand toggle, sat at the right of the brand header
 .brand__toggle {
     margin-left: auto;
@@ -1108,14 +1103,6 @@
         font-size: var(--fs-xs);
         font-weight: 500;
         letter-spacing: 0;
-    }
-    .nav-item__label--long,
-    .sidebar--compact .nav-item__label--long {
-        display: none;
-    }
-    .nav-item__label--short,
-    .sidebar--compact .nav-item__label--short {
-        display: unset;
     }
     .sidebar > section,
     .sidebar > button {

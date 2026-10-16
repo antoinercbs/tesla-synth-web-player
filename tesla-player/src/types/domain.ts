@@ -27,8 +27,10 @@ export type PlaybackMode = 'midi' | 'simple';
 /** Per-coil parameter that can be adjusted (live or via mid-song events). */
 export type CoilParam = 'ontime' | 'duty';
 
+/** A song's own MIDI file: no other song plays it, editing it changes that song alone. */
 export interface MidiFile {
   id: number;
+  /** As it was named on the uploader's disk. */
   name: string;
   /** Server path, e.g. "/uploads/foo.mid". */
   path: string;
@@ -40,6 +42,8 @@ export interface MidiFile {
   durationMs?: number | null;
   /** Who last uploaded/edited this (server-stamped from the OIDC token), or null. */
   editorName?: string | null;
+  /** The bytes' sha256: changes with the notes (see fileUrl). */
+  hash?: string | null;
 }
 
 /** Global operator configuration (one row server-side). */

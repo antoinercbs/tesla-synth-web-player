@@ -12,7 +12,7 @@ import type { BoardStatus } from '@/sysex/board';
 import {
   DEFAULT_COIL_LIMITS, lastCoilLimits, rememberCoilLimits, type CoilLimits, type CoilLimitsSource,
 } from '@/devices/coil-limits';
-import { MAX_COILS, type AppConfig, type AppTag, type CustomEnvelope, type MidiFile, type Song } from '@/types/domain';
+import { MAX_COILS, type AppConfig, type AppTag, type CustomEnvelope, type Song } from '@/types/domain';
 import { forgetQueuedSong } from '@/components/player/queue';
 
 interface MidiState {
@@ -20,7 +20,7 @@ interface MidiState {
   midiOutput: MidiSink | null;
   midiOutput2: Output | null;
   midiOutputList: Output[] | null;
-  midiFileList: MidiFile[];
+  /** The songs, each with its own MIDI file (song.midiFile): there is no file library. */
   midiSongList: Song[];
   tagList: AppTag[];
   /** Library envelopes (programs 20-63). Mutate through the actions only: they
@@ -94,7 +94,6 @@ export const useMidiStore = defineStore('midi', {
     midiOutput: null,
     midiOutput2: null,
     midiOutputList: null,
-    midiFileList: [],
     midiSongList: [],
     tagList: [],
     envelopeList: [],
@@ -212,20 +211,6 @@ export const useMidiStore = defineStore('midi', {
     },
     setMidiOutputList(list: Output[]) {
       this.midiOutputList = list;
-    },
-    setMidiFileList(list: MidiFile[]) {
-      this.midiFileList = list;
-    },
-    addMidiFileToList(file: MidiFile) {
-      this.midiFileList.push(file);
-    },
-    updateMidiFile(file: MidiFile) {
-      const index = this.midiFileList.findIndex((f) => f.id === file.id);
-      if (index !== -1) this.midiFileList.splice(index, 1, file);
-      else this.midiFileList.push(file);
-    },
-    deleteMidiFile(fileId: number) {
-      this.midiFileList = this.midiFileList.filter((file) => file.id !== fileId);
     },
     setMidiSongList(list: Song[]) {
       this.midiSongList = list;

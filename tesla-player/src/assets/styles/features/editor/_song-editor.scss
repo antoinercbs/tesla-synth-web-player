@@ -106,8 +106,28 @@
     align-items: stretch;
 }
 
-.midi-field .combo {
+// the song's own file: what it is, not a choice
+.midi-field__file {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    color: var(--text-dim);
+}
+
+.midi-field__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text);
+}
+
+.midi-field__meta {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
 }
 
 // the phone layout keeps the essentials (ui/viewport.ts): hidden, not dropped, so a

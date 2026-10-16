@@ -7,6 +7,7 @@ import { maskToChannels } from '@/sysex/syntherrupter';
 import { envelopeAmplitude } from '@/sysex/envelopes';
 import { analyzeMidi, channelVolumes, noteRange, type MidiAnalysis } from '@/midi/analyze';
 import { coilLevelAt } from '@/midi/automation';
+import { fileUrl } from '@/midi/song-file';
 import { coilColor } from '@/ui/coil-colors';
 import { MIDI_CHANNEL_COUNT } from '@/types/domain';
 import type { CoilConfig, Song } from '@/types/domain';
@@ -341,7 +342,7 @@ function resetNotes(): void {
 }
 
 function loadSong(s: Song): void {
-  const newPath = s.midiFile?.path ?? null;
+  const newPath = s.midiFile ? fileUrl(s.midiFile) : null;
   song.value = s; // always reflect the latest config (legend, VU colours, etc.)
   pendingAutoplay = false; // a plain load cancels any pending auto-start
   if (newPath === loadedPath) return; // same MIDI (or none) → config-only, no reparse
@@ -698,8 +699,8 @@ function onCoilInput(coilIndex: number, value: number): void {
   applyLiveSoon();
 }
 
-function loadMidiFile(path: string): Promise<ArrayBuffer> {
-  return axios.get(path.replace(/^\./, ''), { responseType: 'arraybuffer' }).then((r) => r.data as ArrayBuffer);
+function loadMidiFile(url: string): Promise<ArrayBuffer> {
+  return axios.get(url, { responseType: 'arraybuffer' }).then((r) => r.data as ArrayBuffer);
 }
 
 /** Status byte of a SMF event (handles numeric or "0xNN" string forms). */

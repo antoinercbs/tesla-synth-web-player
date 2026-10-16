@@ -4,7 +4,6 @@
 @import "editor/edit-view";
 @import "editor/coil-card";
 @import "player/player";
-@import "midi-library/midi-library";
 
 // the components, children before their parents (a parent restyles a child it holds)
 @import "settings/config-modals";
@@ -24,6 +23,7 @@
 @import "editor/stereo-stage";
 @import "editor/stereo-section";
 @import "editor/song-editor-form";
+@import "editor/new-song";
 @import "midi-editor/channel-list";
 @import "midi-editor/piano-roll";
 @import "midi-editor/controls";

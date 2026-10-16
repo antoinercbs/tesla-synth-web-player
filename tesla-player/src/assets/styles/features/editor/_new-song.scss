@@ -1,0 +1,76 @@
+// ===========================================================================
+//  NEW SONG
+// ===========================================================================
+// components/editor/NewSongModal.vue: a song starts from its MIDI file, or from
+// a copy of another song's.
+
+.new-song__drop {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.6rem 1rem;
+    border: 1.5px dashed var(--line-strong);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+}
+
+.new-song__drop.is-active {
+    border-color: var(--volt);
+    background: var(--volt-08);
+}
+
+.new-song__drop-icon {
+    font-size: var(--fs-2xl);
+    color: var(--volt);
+}
+
+.new-song__lead {
+    margin: 0;
+    color: var(--text-dim);
+}
+
+.new-song__from {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-top: 1.2rem;
+}
+
+// a line across, the word on it
+.new-song__or {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 0.6rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.new-song__or::before,
+.new-song__or::after {
+    content: "";
+    flex: 1 1 auto;
+    border-top: 1px solid var(--line);
+}
+
+.new-song__from-row {
+    display: flex;
+    gap: var(--sp-2);
+}
+
+.new-song__from-row > :first-child {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.new-song__hint {
+    margin: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}

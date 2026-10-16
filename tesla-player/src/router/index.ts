@@ -31,18 +31,15 @@ const routes: RouteRecordRaw[] = [
     name: "playlists",
     component: () => import("@/views/PlaylistsView.vue"),
   },
+  // a song's notes; `nav` lights the sidebar entry the page belongs to (it isn't a child route of it)
   {
-    path: "/midi",
-    name: "midi",
-    component: () => import("@/views/MidiFilesView.vue"),
-  },
-  // `nav` lights the sidebar entry the page belongs to (it isn't a child route of it)
-  {
-    path: "/midi/:id/edit",
+    path: "/edit/:id/midi",
     name: "midi-edit",
     component: () => import("@/views/MidiEditView.vue"),
-    meta: { nav: "midi" },
+    meta: { nav: "edit" },
   },
+  // the MIDI files had a page of their own before each song owned its file
+  { path: "/midi/:rest(.*)*", redirect: { name: "edit" } },
   {
     path: "/envelopes/:program?",
     name: "envelopes",

@@ -8,7 +8,7 @@ Welcome to the Tesla Coil Syntherrupter Web Player documentation. Pick a guide b
 
 ### For everyone
 
-- **[User guide](./user-guide.md)**: the day-to-day: choosing and playing songs, the live **power** control, editing a song's per-coil configuration, playlists, the MIDI file manager, and picking your audio/coil outputs.
+- **[User guide](./user-guide.md)**: the day-to-day: choosing and playing songs, the live **power** control, editing a song's per-coil configuration, playlists, the MIDI editor, and picking your audio/coil outputs.
 - **[Desktop app](./desktop-app.md)**: install the standalone offline app (Linux/Windows), keep it in sync with a server, and sign in when the server requires it.
 
 ### For coil operators

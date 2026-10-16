@@ -23,6 +23,7 @@ import { Playlist } from '../playlists/entities/playlist.entity';
 import { Coil } from '../songs/entities/coil.entity';
 import { CoilEvent } from '../songs/entities/coil-event.entity';
 import { Song } from '../songs/entities/song.entity';
+import { copyFileRow, dropFileIfUnused, ownFileUuid, rehashSong } from '../songs/own-files';
 import { sanitizeStereo } from '../songs/stereo';
 import { hashBytes, hashEnvelope, hashPlaylist, hashSong } from './content-hash';
 import {
@@ -340,6 +341,10 @@ export class SyncService {
         if (oldName !== storedName) {
           await fs.rm(join(UPLOADS_DIR, oldName), { force: true });
         }
+        // the song's hash holds its file's: honest even if its own apply never comes
+        const query = (sql: string, params?: unknown[]) => this.dataSource.query(sql, params);
+        const songs: { id: number }[] = await query(`SELECT id FROM "Song" WHERE midiFile_id = ?`, [saved.id]);
+        for (const s of songs) await rehashSong(query, s.id);
         return this.midiPayloadOf(saved);
       }
 
@@ -426,17 +431,29 @@ export class SyncService {
   ): Promise<'created' | 'updated'> {
     // Resolve the MIDI file by uuid (bytes were transferred beforehand).
     let midiFile: MidiFile | null = null;
-    let effectiveMidiUuid: string | null = null;
     if (payload.midiFileUuid) {
       midiFile = await manager.findOne(MidiFile, {
         where: { uuid: payload.midiFileUuid },
       });
-      if (midiFile) {
-        effectiveMidiUuid = midiFile.uuid;
-      } else {
+      if (!midiFile) {
         warnings.push(
           `song ${payload.uuid}: MIDI file ${payload.midiFileUuid} not found — left without one`,
         );
+      }
+    }
+    // A peer from before songs owned their file may point two songs at one:
+    // this one takes its own copy, as the OwnMidiFiles migration would give it.
+    if (midiFile) {
+      const owner = await manager.findOne(Song, {
+        where: { midiFile: { id: midiFile.id } },
+        select: { id: true, uuid: true },
+      });
+      if (owner && owner.uuid !== payload.uuid) {
+        const uuid = ownFileUuid(midiFile.uuid, payload.uuid);
+        const query = (sql: string, params?: unknown[]) => manager.query(sql, params);
+        midiFile =
+          (await manager.findOne(MidiFile, { where: { uuid } })) ??
+          (await manager.findOne(MidiFile, { where: { id: await copyFileRow(query, midiFile.id, uuid) } }));
       }
     }
 
@@ -454,6 +471,7 @@ export class SyncService {
     song.coilCount = payload.coilCount;
     song.mode = payload.mode;
     song.output2Mask = payload.output2Mask;
+    const previousFile = song.midiFile ?? null;
     song.midiFile = midiFile;
     song.updatedAt = payload.updatedAt;
     // Preserve authorship from the payload (historical metadata) — NOT the
@@ -490,7 +508,8 @@ export class SyncService {
       coilCount: song.coilCount,
       mode: song.mode,
       output2Mask: song.output2Mask,
-      midiFileUuid: effectiveMidiUuid,
+      midiFileUuid: midiFile?.uuid ?? null,
+      midiFileHash: midiFile?.contentHash ?? null,
       coils: song.coils,
       events: song.events,
       stereo: song.stereo,
@@ -498,6 +517,10 @@ export class SyncService {
     });
 
     await manager.save(song);
+    // the file it played before, if it now has another: nobody can reach it any more
+    if (previousFile && previousFile.id !== midiFile?.id) {
+      await dropFileIfUnused((sql, params) => manager.query(sql, params), previousFile.id);
+    }
     return action;
   }
 

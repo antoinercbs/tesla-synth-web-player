@@ -147,10 +147,10 @@ function duplicate(): void {
 /* ------------------------------ library lists ------------------------------ */
 interface Use { name: string; channels: number[] }
 function usesOf(program: number): Use[] {
-  return midiStore.midiFileList
-    .map((f) => ({
-      name: f.name,
-      channels: Object.entries(f.programs ?? {})
+  return midiStore.midiSongList
+    .map((s) => ({
+      name: s.name,
+      channels: Object.entries(s.midiFile?.programs ?? {})
         .filter(([, p]) => p === program)
         .map(([ch]) => Number(ch))
         .sort((a, b) => a - b),
@@ -160,7 +160,7 @@ function usesOf(program: number): Use[] {
 const customRows = computed(() =>
   midiStore.envelopeList.map((e) => ({ ...e, uses: usesOf(e.program).length })),
 );
-// who plays the SAVED slot: moving an envelope elsewhere does not move its files
+// who plays the SAVED slot: moving an envelope elsewhere does not move the songs playing it
 const uses = computed(() => (builtin.value ? [] : usesOf(baseline.value?.program ?? draft.program)));
 const USES_SHOWN = 3;
 

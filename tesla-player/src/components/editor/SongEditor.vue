@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, shallowRef, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
@@ -11,16 +12,15 @@ import { useLeaveGuard } from '@/utils/leave-guard';
 import { SnapshotHistory } from '@/utils/history';
 import { serverMessage } from '@/utils/http';
 import { inTextField } from '@/ui/page-keys';
-import { baseName } from '@/midi/upload';
+import { duplicateSong, fileUrl, MIDI_FILE_NAME, newCoil, replaceSongMidi } from '@/midi/song-file';
+import { formatDuration } from '@/utils/format';
 import { useDropdown } from '@/components/ui/dropdown';
 import CoilConfigCard from '@/components/editor/CoilConfigCard.vue';
 import CoilLoadView from '@/components/player/CoilLoadView.vue';
 import { simulate, type LoadMark, type Simulation } from '@/devices/coil-sim';
 import ChannelMaskSelector from '@/components/editor/ChannelMaskSelector.vue';
-import SearchableSelect from '@/components/ui/SearchableSelect.vue';
 import ConfirmModal from '@/components/ui/ConfirmModal.vue';
 import SegmentedControl from '@/components/ui/SegmentedControl.vue';
-import MidiLibraryModal from '@/components/editor/MidiLibraryModal.vue';
 import StereoSection from '@/components/editor/StereoSection.vue';
 import DynamicsSection from '@/components/editor/DynamicsSection.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
@@ -31,10 +31,6 @@ const props = defineProps<{
   locked?: boolean;
   /** Where the embedded player is (ms): the automation adds points there. */
   playerPosition?: number;
-  /** A new song starts from this MIDI file (its name too)… */
-  seedFileId?: number | null;
-  /** …or as a copy of this song. */
-  seedSong?: Song | null;
 }>();
 const emit = defineEmits<{
   (e: 'saved', song: Song): void;
@@ -44,6 +40,7 @@ const emit = defineEmits<{
 }>();
 
 const midiStore = useMidiStore();
+const router = useRouter();
 const { t } = useI18n();
 const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MIN_COILS + i);
 
@@ -51,25 +48,18 @@ const coilRange = Array.from({ length: MAX_COILS - MIN_COILS + 1 }, (_, i) => MI
 // is a separate live feature, not a stored song).
 const SONG_MODE = 'midi' as const;
 
-function defaultCoil(index: number): CoilConfig {
-  return { coilIndex: index, channelMask: 0, ontimeUs: 40, duty: 0.05 };
-}
-
+// the song's own file is not in it: it changes on the server at once (replaceSongMidi)
 const draft = reactive({
   id: null as number | null,
   name: '',
-  midiFileId: null as number | null,
   coilCount: 3,
   output2Mask: 0,
-  coils: [defaultCoil(0), defaultCoil(1), defaultCoil(2)] as CoilConfig[],
+  coils: [newCoil(0), newCoil(1), newCoil(2)] as CoilConfig[],
   events: [] as CoilEvent[],
   tags: [] as AppTag[],
   stereo: null as SongStereo | null,
 });
 
-const midiFileItems = computed(() =>
-  midiStore.midiFileList.map((f) => ({ id: f.id, label: f.name })),
-);
 const allTags = computed<AppTag[]>(() => midiStore.tagList || []);
 const availableTagsToAdd = computed(() => {
   const currentIds = draft.tags.map(t => t.id);
@@ -133,12 +123,9 @@ async function createTag(): Promise<void> {
 watch(() => draft.coilCount, (n) => {
   if (draft.coils.length === n) return;
   const next: CoilConfig[] = [];
-  for (let i = 0; i < n; i++) next.push(draft.coils[i] ?? defaultCoil(i));
+  for (let i = 0; i < n; i++) next.push(draft.coils[i] ?? newCoil(i));
   draft.coils = next;
 });
-
-// --- MIDI library / upload modal (extracted to editor/MidiLibraryModal.vue) ---
-const showLibrary = ref(false);
 
 // --- unsaved changes: the draft against what the server holds, as a save would send it ---
 const baseline = ref('');
@@ -156,7 +143,7 @@ watch(() => draft.name, () => { nameError.value = ''; });
 /* --- undo / redo: the draft as the user shapes it, one step per pause --- */
 function editable() {
   return {
-    name: draft.name, midiFileId: draft.midiFileId, coilCount: draft.coilCount, output2Mask: draft.output2Mask,
+    name: draft.name, coilCount: draft.coilCount, output2Mask: draft.output2Mask,
     coils: draft.coils, events: draft.events, tags: draft.tags, stereo: draft.stereo,
   };
 }
@@ -187,7 +174,6 @@ function resetHistory(): void {
 function restore(s: Editable | null): void {
   if (!s) return;
   draft.name = s.name;
-  draft.midiFileId = s.midiFileId;
   draft.output2Mask = s.output2Mask;
   draft.coils = s.coils;
   draft.coilCount = s.coilCount;
@@ -209,11 +195,9 @@ function redo(): void {
 onBeforeUnmount(() => { if (recordTimer) clearTimeout(recordTimer); });
 
 function load(song: Song | null | undefined): void {
-  showLibrary.value = false; // its "used by" links open another song here
   nameError.value = '';
   if (!song) {
     resetNew();
-    applySeed();
     resetHistory();
     return;
   }
@@ -225,40 +209,23 @@ function load(song: Song | null | undefined): void {
 
 function fill(song: Song): void {
   draft.name = song.name ?? '';
-  draft.midiFileId = song.midiFile ? song.midiFile.id : null;
   draft.output2Mask = song.output2Mask ?? 0;
   draft.events = (song.events ?? []).map((e) => ({ ...e }));
   draft.coils = (song.coils ?? []).map((c) => ({ ...c }));
   draft.coilCount = song.coilCount ?? (draft.coils.length || 1);
   draft.tags = (song.tags ?? []).map(t => ({ ...t }));
   draft.stereo = song.stereo ? JSON.parse(JSON.stringify(song.stereo)) : null;
-  while (draft.coils.length < draft.coilCount) draft.coils.push(defaultCoil(draft.coils.length));
+  while (draft.coils.length < draft.coilCount) draft.coils.push(newCoil(draft.coils.length));
   if (draft.coils.length > draft.coilCount) draft.coils.length = draft.coilCount;
-}
-
-// a new song's head start (after resetNew's baseline: unsaved until saved)
-function applySeed(): void {
-  const from = props.seedSong;
-  if (from) {
-    fill(from);
-    draft.name = t('label.copyOf', { name: from.name || `#${from.id}` });
-    return;
-  }
-  const file = props.seedFileId != null ? midiStore.midiFileList.find((f) => f.id === props.seedFileId) : null;
-  if (file) {
-    draft.midiFileId = file.id;
-    draft.name = baseName(file.name);
-  }
 }
 
 function resetNew(): void {
   draft.id = null;
   draft.name = '';
-  draft.midiFileId = null;
   draft.output2Mask = 0;
   const count = midiStore.appConfig.defaultCoilCount || 3;
   draft.coilCount = count;
-  draft.coils = Array.from({ length: count }, (_, i) => defaultCoil(i));
+  draft.coils = Array.from({ length: count }, (_, i) => newCoil(i));
   draft.events = [];
   draft.tags = [];
   draft.stereo = null;
@@ -272,11 +239,6 @@ watch(() => props.song, (s) => {
   if (s && s.id === draft.id) return;
   load(s);
 }, { immediate: true });
-// another head start for the new song; or the library, loading after the page, brings its file
-watch(() => [props.seedFileId, props.seedSong?.id, midiStore.midiFileList.length], () => {
-  if (draft.id != null || (dirty.value && draft.midiFileId != null)) return;
-  load(null);
-});
 
 const dirty = computed(() => snapshot() !== baseline.value);
 watch(dirty, (d) => emit('dirty', d), { immediate: true });
@@ -294,7 +256,6 @@ function coilsPayload() {
 function buildPayload() {
   return {
     name: draft.name,
-    midiFileId: draft.midiFileId,
     coilCount: draft.coilCount,
     mode: SONG_MODE,
     output2Mask: draft.output2Mask,
@@ -360,7 +321,7 @@ function doDelete(): void {
 function onKey(e: KeyboardEvent): void {
   if (!(e.ctrlKey || e.metaKey)) return;
   const key = e.key.toLowerCase();
-  const busy = leavePending.value || confirmDeleteSong.value || showLibrary.value;
+  const busy = leavePending.value || confirmDeleteSong.value || pendingFile.value != null;
   if (key === 's') {
     e.preventDefault();
     if (!busy) save();
@@ -397,18 +358,19 @@ function bufferToString(buffer: ArrayBuffer): string {
   try { return decodeURIComponent(escape(binary)); } catch { return binary; }
 }
 
-async function refreshPreview(): Promise<void> {
-  const file = midiStore.midiFileList.find((f) => f.id === draft.midiFileId);
-  if (!file) { analysis.value = null; return; }
+const songFile = computed(() => props.song?.midiFile ?? null);
+async function refreshPreview(url: string | null): Promise<void> {
+  if (!url) { analysis.value = null; return; }
   try {
-    const { data } = await axios.get(file.path.replace(/^\./, ''), { responseType: 'arraybuffer' });
+    const { data } = await axios.get(url, { responseType: 'arraybuffer' });
     const parser = new SmfParser();
     analysis.value = analyzeMidi(parser.parse(bufferToString(data as ArrayBuffer)));
   } catch {
     analysis.value = null;
   }
 }
-watch(() => draft.midiFileId, () => refreshPreview(), { immediate: true });
+// new notes come back as a new URL (see fileUrl)
+watch(() => (songFile.value ? fileUrl(songFile.value) : null), refreshPreview, { immediate: true });
 
 // --- what the board makes of the song: every coil, note by note (devices/coil-sim.ts) ---
 const sim = shallowRef<Simulation | null>(null);
@@ -437,7 +399,51 @@ function peakOf(i: number): number | null {
   return tr ? tr.pulseUs.reduce((m, us) => Math.max(m, us), 0) : null;
 }
 
-const selectedFile = computed(() => midiStore.midiFileList.find((f) => f.id === draft.midiFileId) ?? null);
+/* --- the song's file: other notes in its place; or a copy of the whole song --- */
+const fileInput = ref<HTMLInputElement | null>(null);
+const pendingFile = ref<File | null>(null);
+const replacing = ref(false);
+function onFilePicked(e: Event): void {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0] ?? null;
+  input.value = ''; // the same file picked again still asks
+  if (!file) return;
+  if (!MIDI_FILE_NAME.test(file.name)) { notify('label.notAMidiFile', 'error'); return; }
+  pendingFile.value = file;
+}
+async function replaceFile(): Promise<void> {
+  const file = pendingFile.value;
+  pendingFile.value = null;
+  if (!file || !draft.id || replacing.value) return;
+  replacing.value = true;
+  try {
+    await replaceSongMidi(draft.id, file, file.name);
+    notify(t('label.midiReplaced', { name: file.name }));
+  } catch (err) {
+    console.error('MIDI replace failed', err);
+    const why = serverMessage(err);
+    notify(why ? `${t('label.uploadFailed')} : ${why}` : 'label.uploadFailed', 'error');
+  } finally {
+    replacing.value = false;
+  }
+}
+const duplicating = ref(false);
+// the song as saved: the leave guard asks about the changes left here
+async function duplicate(): Promise<void> {
+  const song = props.song;
+  if (!song || duplicating.value) return;
+  duplicating.value = true;
+  try {
+    const copy = await duplicateSong(song, t('label.copyOf', { name: song.name || `#${song.id}` }));
+    router.push({ name: 'edit', params: { id: String(copy.id) } });
+  } catch (err) {
+    console.error('Duplicate failed', err);
+    const why = serverMessage(err);
+    notify(why ? `${t('label.saveFailed')} : ${why}` : 'label.saveFailed', 'error');
+  } finally {
+    duplicating.value = false;
+  }
+}
 // what the phone layout hides but the song keeps (and saves as it is)
 const largeScreenOnly = computed(() => {
   if (draft.stereo) return draft.events.length ? 'label.largeScreenBoth' : 'label.largeScreenStereo';
@@ -446,11 +452,10 @@ const largeScreenOnly = computed(() => {
 
 // Reflect every edit into the embedded debug player (no manual "load" step).
 function emitChange(): void {
-  const midiFile = midiStore.midiFileList.find((f) => f.id === draft.midiFileId) ?? null;
   const song: Song = {
     id: draft.id ?? 0,
     name: draft.name,
-    midiFile,
+    midiFile: songFile.value,
     coilCount: draft.coilCount,
     mode: SONG_MODE,
     output2Mask: draft.output2Mask,
@@ -461,7 +466,7 @@ function emitChange(): void {
   };
   emit('change', song);
 }
-watch(draft, () => emitChange(), { deep: true });
+watch([draft, songFile], () => emitChange(), { deep: true });
 
 </script>
 
@@ -487,20 +492,21 @@ watch(draft, () => emitChange(), { deep: true });
       <div class="field-block field-block--wide">
         <span class="field-label">{{ $t('label.midiFile') }}</span>
         <div class="midi-field">
-          <SearchableSelect v-model="draft.midiFileId" :items="midiFileItems" :label="$t('label.midiFile')"
-            :placeholder="$t('label.chooseAMidiFile')" :clear-label="$t('label.noAssociatedMidiFile')" clearable />
-          <RouterLink v-if="selectedFile" class="field-btn midi-field__edit"
-            :to="{ name: 'midi-edit', params: { id: selectedFile.id } }" :title="$t('midiEditor.open')"
+          <span class="text-field midi-field__file" :title="songFile?.name">
+            <i class="fas fa-file-audio"></i>
+            <span class="midi-field__name">{{ songFile?.name ?? $t('label.noMidiFile') }}</span>
+            <span v-if="songFile?.durationMs" class="midi-field__meta">{{ formatDuration(songFile.durationMs) }}</span>
+          </span>
+          <RouterLink v-if="draft.id && songFile" class="field-btn midi-field__edit"
+            :to="{ name: 'midi-edit', params: { id: String(draft.id) } }" :title="$t('midiEditor.open')"
             :aria-label="$t('midiEditor.open')">
             <i class="fas fa-pen-to-square"></i>
           </RouterLink>
-          <button v-else class="field-btn midi-field__edit" type="button" disabled :title="$t('midiEditor.open')"
-            :aria-label="$t('midiEditor.open')">
-            <i class="fas fa-pen-to-square"></i>
+          <button class="field-btn" type="button" :disabled="!draft.id || replacing" :title="$t('label.replaceFile')"
+            :aria-label="$t('label.replaceFile')" @click="fileInput?.click()">
+            <i class="fas" :class="replacing ? 'fa-spinner fa-spin' : 'fa-file-arrow-up'"></i>
           </button>
-          <button class="field-btn" type="button" :title="$t('title.midiFileManager')" @click="showLibrary = true">
-            <i class="fas fa-folder-open"></i>
-          </button>
+          <input ref="fileInput" type="file" accept=".mid,.midi,audio/midi" hidden @change="onFilePicked">
         </div>
       </div>
 
@@ -583,9 +589,9 @@ watch(draft, () => emitChange(), { deep: true });
         @click="confirmDeleteSong = true">
         <span class="icon"><i class="fas fa-trash"></i></span>{{ $t('label.deleteSong') }}
       </button>
-      <router-link v-if="draft.id" class="btn btn--ghost" :to="{ name: 'edit', params: { id: 'new' }, query: { from: String(draft.id) } }">
-        <span class="icon"><i class="fas fa-clone"></i></span>{{ $t('label.duplicate') }}
-      </router-link>
+      <button v-if="draft.id" class="btn btn--ghost" type="button" :disabled="duplicating" @click="duplicate">
+        <span class="icon"><i class="fas" :class="duplicating ? 'fa-spinner fa-spin' : 'fa-clone'"></i></span>{{ $t('label.duplicate') }}
+      </button>
       <span class="editor-history">
         <button class="icon-btn icon-btn--sm" type="button" :disabled="!canUndo || locked" :title="$t('label.undo')"
           :aria-label="$t('label.undo')" @click="undo"><i class="fas fa-rotate-left"></i></button>
@@ -605,9 +611,9 @@ watch(draft, () => emitChange(), { deep: true });
       :confirm-label="$t('label.confirm')" :cancel-label="$t('label.cancel')" @confirm="doDelete"
       @close="confirmDeleteSong = false" />
 
-    <MidiLibraryModal :open="showLibrary" :current-id="draft.midiFileId" @close="showLibrary = false"
-      @select="draft.midiFileId = $event" />
-    <!-- last: above the library, whose links can be what asks -->
+    <ConfirmModal :open="pendingFile != null" :title="$t('label.replaceFile')"
+      :message="$t('label.replaceMidiQuestion', { name: pendingFile?.name ?? '' })" :confirm-label="$t('label.replace')"
+      :cancel-label="$t('label.cancel')" @confirm="replaceFile" @close="pendingFile = null" />
     <ConfirmModal :open="leavePending" :title="$t('label.unsavedChanges')" :message="$t('label.discardSong')"
       :confirm-label="$t('label.discard')" :cancel-label="$t('label.cancel')" @confirm="answerLeave(true)"
       @close="answerLeave(false)" />

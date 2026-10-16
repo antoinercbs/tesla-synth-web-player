@@ -5,7 +5,7 @@ import { useRoute, useRouter, type RouteLocationRaw } from 'vue-router';
 import { TOUR_ICONS, TOURS, type TourNote, type TourPlacement, type TourStep } from '@/tour/steps';
 import { stopTour, tour } from '@/tour/tour';
 import { enterDemo, exitDemo, isDemoOutputActive, reassertDemo } from '@/tour/demo/demo-mode';
-import { DEMO_ENVELOPE_PROGRAM, DEMO_FILE_ID, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from '@/tour/demo/data';
+import { DEMO_ENVELOPE_PROGRAM, DEMO_PLAYLIST_ID, DEMO_SONG_ID } from '@/tour/demo/data';
 import { phoneView } from '@/tour/demo/fake-camera';
 import { mobileLayout } from '@/ui/viewport';
 import FakePhone from './FakePhone.vue';
@@ -263,7 +263,7 @@ function onKey(e: KeyboardEvent): void {
 /** Where the app's tour leaves the user: off a demo item's page (its library instead), else where it is. */
 function afterDemo(): RouteLocationRaw | null {
   const id = String(route.params.id ?? '');
-  if (route.name === 'midi-edit' && id === String(DEMO_FILE_ID)) return { name: 'midi' };
+  if (route.name === 'midi-edit' && id === String(DEMO_SONG_ID)) return { name: 'edit' };
   if (route.name === 'envelopes' && String(route.params.program ?? '') === String(DEMO_ENVELOPE_PROGRAM)) return { name: 'envelopes' };
   if ([String(DEMO_SONG_ID), String(DEMO_PLAYLIST_ID)].includes(id)) return { name: route.name ?? 'play' };
   return null;

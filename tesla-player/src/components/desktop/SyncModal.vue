@@ -25,9 +25,8 @@ const choices = ref<Record<string, TeslaSyncChoice>>({});
 
 let unsubscribe: (() => void) | null = null;
 
-// Type -> i18n key, in the order rows are shown (deps first).
+// Type -> i18n key, in the order rows are shown. A song's file travels with it: no group of its own.
 const GROUPS: { type: TeslaEntityType; key: string }[] = [
-  { type: 'midiFile', key: 'midiFiles' },
   { type: 'song', key: 'songs' },
   { type: 'playlist', key: 'playlists' },
   { type: 'envelope', key: 'envelopes' },

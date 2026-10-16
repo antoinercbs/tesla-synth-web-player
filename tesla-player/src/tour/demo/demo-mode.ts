@@ -5,7 +5,7 @@ import { useMidiStore } from '@/stores/midi';
 import type { MidiSink } from '@/audio/tesla-synth';
 import type { DeviceLink } from '@/serial/device-link';
 import { lastLimitsKey, type CoilLimits } from '@/devices/coil-limits';
-import type { AppConfig, AppTag, CustomEnvelope, MidiFile, Song } from '@/types/domain';
+import type { AppConfig, AppTag, CustomEnvelope, Song } from '@/types/domain';
 import type { TuningDraft, TuningRecord } from '@/tuning/api';
 import { SessionLink } from '@/tuning/session-link';
 import { buildDemoLibrary, DEMO_PATH_PREFIX, type DemoLibrary } from './data';
@@ -14,8 +14,8 @@ import { fakeDeviceLink } from './fake-device';
 
 /**
  * Demo mode, for the guided tour: the app runs on the sample library of data.ts
- * without any component knowing. Reads the app makes through axios (songs, files,
- * playlists, settings, MIDI bytes) are answered from the library; every write to
+ * without any component knowing. Reads the app makes through axios (songs,
+ * playlists, settings, the songs' MIDI bytes) are answered from the library; every write to
  * /api is refused, so nothing reaches the server, except saving a tuning, kept
  * in the library for the rest of the tour. The tuning form's weather and place
  * name (fetch, not axios) get demo answers too. On exit the store gets the real
@@ -33,7 +33,7 @@ let lib: DemoLibrary | null = null;
 let interceptor: number | null = null;
 let guard: WatchStopHandle | null = null;
 let saved: ({
-  files: MidiFile[]; songs: Song[]; tags: AppTag[]; envelopes: CustomEnvelope[]; config: AppConfig;
+  songs: Song[]; tags: AppTag[]; envelopes: CustomEnvelope[]; config: AppConfig;
   storage: Record<string, string | null>; lastLimits: CoilLimits[];
 } & Outputs) | null = null;
 const realTransport = SessionLink.defaultTransport;
@@ -103,7 +103,6 @@ function adapterFor(config: InternalAxiosRequestConfig, l: DemoLibrary): ((c: In
       : null;
   }
   const json: Record<string, unknown> = {
-    '/api/midi': l.files,
     '/api/songs': l.songs,
     '/api/tags': l.tags,
     '/api/settings': l.config,
@@ -123,7 +122,6 @@ function adapterFor(config: InternalAxiosRequestConfig, l: DemoLibrary): ((c: In
 
 function applyLibrary(l: DemoLibrary): void {
   const store = useMidiStore();
-  store.setMidiFileList(structuredClone(l.files));
   store.setMidiSongList(structuredClone(l.songs));
   store.setTagList(structuredClone(l.tags));
   store.setEnvelopeList(structuredClone(l.envelopes));
@@ -141,7 +139,6 @@ export function enterDemo(lang: string): void {
   });
   const store = useMidiStore();
   saved = {
-    files: store.midiFileList,
     songs: store.midiSongList,
     tags: store.tagList,
     envelopes: store.envelopeList,
@@ -203,7 +200,6 @@ export function exitDemo(): void {
   const store = useMidiStore();
   if (saved) {
     // instant restore, then the server's current state (also covers a raced start)
-    store.setMidiFileList(saved.files);
     store.setMidiSongList(saved.songs);
     store.setTagList(saved.tags);
     store.setEnvelopeList(saved.envelopes);
@@ -218,7 +214,6 @@ export function exitDemo(): void {
     store.setDeviceLink(saved.deviceLink);
   }
   saved = null;
-  axios.get('/api/midi').then((r) => store.setMidiFileList(r.data)).catch(() => {});
   axios.get('/api/songs').then((r) => store.setMidiSongList(r.data)).catch(() => {});
   axios.get('/api/settings').then((r) => store.setAppConfig(r.data)).catch(() => {});
   axios.get('/api/tags').then((r) => store.setTagList(r.data)).catch(() => {});

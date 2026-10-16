@@ -14,28 +14,18 @@ import { PlaybackMode } from '../entities/song.entity';
 import { CoilDto } from './coil.dto';
 import { CoilEventDto } from './coil-event.dto';
 
-/** Reference to a MIDI file, as sent nested by the front (`midiFile.id`). */
-export class MidiFileRefDto {
-  @IsInt()
-  id!: number;
-}
-
 export class CreateSongDto {
   @IsString()
   name!: string;
 
   /**
-   * The MIDI file can be provided either as a nested object (`midiFile`) or as a
-   * flat `midiFileId`. Either is optional (a song may have no MIDI file).
+   * Gives the song a copy of this song's MIDI file, in place of its own. The
+   * file is otherwise the song's business alone: uploaded with it (POST
+   * /songs/upload), replaced by PUT /songs/:id/midi, never picked by id.
    */
   @IsOptional()
-  @ValidateNested()
-  @Type(() => MidiFileRefDto)
-  midiFile?: MidiFileRefDto | null;
-
-  @IsOptional()
   @IsInt()
-  midiFileId?: number | null;
+  midiFromSongId?: number | null;
 
   @IsInt()
   @Min(1)
@@ -72,9 +62,4 @@ export class CreateSongDto {
   @IsArray()
   @IsInt({ each: true })
   tagIds?: number[];
-
-  /** Convenience accessor that resolves the MIDI file id from either field. */
-  get resolvedMidiFileId(): number | null {
-    return this.midiFile?.id ?? this.midiFileId ?? null;
-  }
 }

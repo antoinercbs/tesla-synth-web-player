@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   NotFoundException,
   OnModuleInit,
@@ -9,24 +10,17 @@ import { promises as fs } from 'fs';
 import { basename, join } from 'path';
 import { Repository } from 'typeorm';
 import { UPLOADS_DIR } from '../config/paths';
+import { rehashSong, storedName } from '../songs/own-files';
 import { hashBytes } from '../sync/content-hash';
 import { computeDurationMs } from './midi-duration';
 import { MidiFile } from './entities/midi-file.entity';
 import { computeChannels, computePrograms } from './midi-channels';
 
-/** JSON shape returned to the front, identical to the original Flask output. */
-export interface MidiFileResponse {
-  id: number;
-  name: string;
-  path: string;
-  channels: number | null;
-  /** Starting instrument per note-bearing channel ({ channel: program }). */
-  programs: Record<number, number> | null;
-  durationMs: number | null;
-  /** Who last uploaded/edited this (server-stamped from the OIDC token), or null. */
-  editorName: string | null;
-}
-
+/**
+ * A song's MIDI file: its bytes on disk, what they hold (length, channels,
+ * instruments) and their sync identity. Each song owns its file (see
+ * songs/own-files.ts), so nothing here has to ask who else plays it.
+ */
 @Injectable()
 export class MidiService implements OnModuleInit {
   constructor(
@@ -49,11 +43,11 @@ export class MidiService implements OnModuleInit {
       const needChannels = file.channels == null;
       const needPrograms = file.programs == null;
       if (needDuration || needHash || needChannels || needPrograms) {
-        const buffer = await this.readUpload(basename(file.path));
+        const buffer = await this.read(file);
         if (buffer) {
-          if (needDuration) patch.durationMs = this.durationFromBuffer(buffer);
+          if (needDuration) patch.durationMs = durationOf(buffer);
           if (needHash) patch.contentHash = hashBytes(buffer);
-          if (needChannels) patch.channels = this.channelsFromBuffer(buffer);
+          if (needChannels) patch.channels = channelsOf(buffer);
           if (needPrograms) patch.programs = computePrograms(buffer);
         }
       }
@@ -61,143 +55,105 @@ export class MidiService implements OnModuleInit {
       if (file.updatedAt == null) patch.updatedAt = Date.now();
       if (Object.keys(patch).length > 0) {
         await this.midiFileRepository.update(file.id, patch);
+        // the song's hash holds its file's
+        if (patch.contentHash) await this.rehashSongsOf(file.id);
       }
     }
   }
 
-  async findAll(): Promise<MidiFileResponse[]> {
-    const files = await this.midiFileRepository.find();
-    return files.map((file) => this.toResponse(file));
-  }
-
-  /**
-   * Records an uploaded file. `storedName` is the on-disk filename produced by
-   * Multer; `path` is kept in the `./uploads/<name>` form expected by the front
-   * (the player does `path.substring(1)` to build the `/uploads/...` URL).
-   */
+  /** A new file from uploaded bytes, named as it was on the sender's disk. */
   async create(
-    originalName: string,
-    storedName: string,
-    editorName: string | null = null,
-  ): Promise<MidiFileResponse> {
-    const buffer = await this.readUpload(storedName);
-    const midiFile = this.midiFileRepository.create({
-      name: originalName,
-      path: `./uploads/${storedName}`,
-      durationMs: this.durationFromBuffer(buffer),
-      channels: this.channelsFromBuffer(buffer),
-      programs: buffer ? computePrograms(buffer) : null,
-      uuid: randomUUID(),
-      updatedAt: Date.now(),
-      contentHash: buffer ? hashBytes(buffer) : undefined,
-      // Column only — NOT part of contentHash (byte-identity dedupe stays pure).
-      editorName,
-    });
-    const saved = await this.midiFileRepository.save(midiFile);
-    return this.toResponse(saved);
-  }
-
-  /** Reads an uploaded file's bytes by on-disk name, or null if unreadable. */
-  private async readUpload(filename: string): Promise<Buffer | null> {
-    try {
-      return await fs.readFile(join(UPLOADS_DIR, filename));
-    } catch {
-      return null;
-    }
-  }
-
-  /** Play length (ms) from an in-memory buffer, or null on failure. */
-  private durationFromBuffer(buffer: Buffer | null): number | null {
-    if (!buffer) return null;
-    try {
-      return computeDurationMs(buffer);
-    } catch {
-      return null;
-    }
-  }
-
-  /** The number of channels from an in-memory buffer, or null on failure. */
-  private channelsFromBuffer(buffer: Buffer | null): number | null {
-    if (!buffer) return null;
-    try {
-      return computeChannels(buffer);
-    } catch {
-      return null;
-    }
-  }
-
-  /**
-   * Overwrites the bytes at the entry's existing path, so every song keeps
-   * pointing at it. The sync change-signal is bumped like any other write.
-   */
-  async replaceFile(
-    id: number,
     buffer: Buffer,
+    originalName: string,
     editorName: string | null = null,
-  ): Promise<MidiFileResponse> {
-    const midiFile = await this.midiFileRepository.findOne({ where: { id } });
-    if (!midiFile) {
-      throw new NotFoundException(`MIDI file ${id} not found`);
-    }
-
-    await fs.writeFile(join(UPLOADS_DIR, basename(midiFile.path)), buffer);
-
-    midiFile.durationMs = this.durationFromBuffer(buffer);
-    midiFile.channels = this.channelsFromBuffer(buffer);
-    midiFile.programs = computePrograms(buffer);
-    midiFile.contentHash = hashBytes(buffer);
-    midiFile.updatedAt = Date.now();
-    midiFile.editorName = editorName;
-
-    const saved = await this.midiFileRepository.save(midiFile);
-    return this.toResponse(saved);
-  }
-
-  /** Library name only: the file on disk keeps its stored name. */
-  async rename(
-    id: number,
-    newName: string,
-    editorName: string | null = null,
-  ): Promise<MidiFileResponse> {
-    const midiFile = await this.midiFileRepository.findOne({ where: { id } });
-    if (!midiFile) {
-      throw new NotFoundException(`MIDI file ${id} not found`);
-    }
-
-    midiFile.name = newName;
-    midiFile.updatedAt = Date.now();
-    midiFile.editorName = editorName;
-
-    const saved = await this.midiFileRepository.save(midiFile);
-    return this.toResponse(saved);
-  }
-
-  async remove(id: number): Promise<void> {
-    const midiFile = await this.midiFileRepository.findOne({ where: { id } });
-    if (!midiFile) {
-      throw new NotFoundException(`MIDI file ${id} not found`);
-    }
-    // Detach the file from any song first so the delete does not trip a foreign
-    // key constraint (the existing database.db has no ON DELETE SET NULL).
-    await this.midiFileRepository.query(
-      'UPDATE Song SET midiFile_id = NULL WHERE midiFile_id = ?',
-      [id],
+  ): Promise<MidiFile> {
+    assertMidi(buffer);
+    const stored = storedName(originalName);
+    await fs.mkdir(UPLOADS_DIR, { recursive: true });
+    await fs.writeFile(join(UPLOADS_DIR, stored), buffer);
+    return this.midiFileRepository.save(
+      this.midiFileRepository.create({
+        name: originalName,
+        path: `./uploads/${stored}`,
+        ...meta(buffer),
+        uuid: randomUUID(),
+        updatedAt: Date.now(),
+        // Column only — NOT part of contentHash (byte-identity dedupe stays pure).
+        editorName,
+      }),
     );
-    await this.midiFileRepository.delete(id);
+  }
+
+  /** Another song's file, bytes included, for a song of its own. */
+  async copy(file: MidiFile, editorName: string | null = null): Promise<MidiFile> {
+    const buffer = await this.read(file);
+    if (!buffer) throw new NotFoundException(`MIDI file of "${file.name}" is missing on disk`);
+    return this.create(buffer, file.name ?? 'file.mid', editorName);
+  }
+
+  /** New bytes for `file`, written over the old ones; uuid and path stay. */
+  async replace(
+    file: MidiFile,
+    buffer: Buffer,
+    name: string,
+    editorName: string | null = null,
+  ): Promise<MidiFile> {
+    assertMidi(buffer);
+    await fs.mkdir(UPLOADS_DIR, { recursive: true });
+    await fs.writeFile(join(UPLOADS_DIR, basename(file.path)), buffer);
+    Object.assign(file, meta(buffer), { name, updatedAt: Date.now(), editorName });
+    return this.midiFileRepository.save(file);
+  }
+
+  async remove(file: MidiFile): Promise<void> {
+    await this.midiFileRepository.delete(file.id);
     // Stored paths are of the form "./uploads/<file>"; resolve against the
     // actual uploads directory (which may live at the repository root).
-    await fs.rm(join(UPLOADS_DIR, basename(midiFile.path)), { force: true });
+    const name = basename(file.path ?? '');
+    if (name) await fs.rm(join(UPLOADS_DIR, name), { force: true });
   }
 
-  private toResponse(midiFile: MidiFile): MidiFileResponse {
-    return {
-      id: midiFile.id,
-      name: midiFile.name,
-      path: midiFile.path,
-      channels: midiFile.channels,
-      programs: midiFile.programs ?? null,
-      durationMs: midiFile.durationMs,
-      editorName: midiFile.editorName ?? null,
-    };
+  /** A file's bytes, or null if unreadable. */
+  read(file: MidiFile): Promise<Buffer | null> {
+    return fs.readFile(join(UPLOADS_DIR, basename(file.path ?? ''))).catch(() => null);
+  }
+
+  private async rehashSongsOf(fileId: number): Promise<void> {
+    const query = (sql: string, params?: unknown[]) => this.midiFileRepository.query(sql, params);
+    const songs: { id: number }[] = await query(`SELECT id FROM "Song" WHERE midiFile_id = ?`, [fileId]);
+    for (const s of songs) await rehashSong(query, s.id);
+  }
+}
+
+/** The client's extension check only proves a name: the bytes must open as a Standard MIDI File. */
+function assertMidi(buffer: Buffer): void {
+  if (buffer.length < 14 || buffer.toString('ascii', 0, 4) !== 'MThd') {
+    throw new BadRequestException('Not a MIDI file');
+  }
+}
+
+/** Everything the bytes tell, for the row. */
+function meta(buffer: Buffer): Pick<MidiFile, 'durationMs' | 'channels' | 'programs' | 'contentHash'> {
+  return {
+    durationMs: durationOf(buffer),
+    channels: channelsOf(buffer),
+    programs: computePrograms(buffer),
+    contentHash: hashBytes(buffer),
+  };
+}
+
+function durationOf(buffer: Buffer): number | null {
+  try {
+    return computeDurationMs(buffer);
+  } catch {
+    return null;
+  }
+}
+
+function channelsOf(buffer: Buffer): number | null {
+  try {
+    return computeChannels(buffer);
+  } catch {
+    return null;
   }
 }

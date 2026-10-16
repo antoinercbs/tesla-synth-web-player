@@ -12,7 +12,7 @@ import { TOURS } from './steps';
  * starting a tour or dismissing it counts as seen. `seenPages` = the page tours
  * opened at least once on this device: their ? stops pulsing.
  */
-export type TourId = 'main' | 'play' | 'edit' | 'playlists' | 'midi' | 'midiEdit' | 'envelopes' | 'tune' | 'syntherrupter';
+export type TourId = 'main' | 'play' | 'edit' | 'playlists' | 'midiEdit' | 'envelopes' | 'tune' | 'syntherrupter';
 
 const SEEN_KEY = 'tourSeen';
 const PAGES_KEY = 'pageToursSeen';
@@ -54,7 +54,7 @@ export const tour = reactive({
 /** The tour's first page without the demo item it opens: that one only exists once the demo is in. */
 function entryRoute(id: TourId): RouteLocationRaw {
   const first = TOURS[id][0].route;
-  return first.name === 'midi-edit' ? { name: 'midi' } : { name: first.name };
+  return first.name === 'midi-edit' ? { name: 'edit' } : { name: first.name };
 }
 
 export async function startTour(id: TourId = 'main'): Promise<void> {

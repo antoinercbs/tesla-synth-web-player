@@ -4,8 +4,8 @@ import {
   JoinColumn,
   JoinTable,
   ManyToMany,
-  ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { MidiFile } from '../../midi/entities/midi-file.entity';
@@ -17,7 +17,7 @@ import type { SongStereo } from '../stereo';
 /** 'midi' = firmware MIDI mode (normal playback + live); 'simple' = fixed mode. */
 export type PlaybackMode = 'midi' | 'simple';
 
-/** A song: its MIDI file plus the structured per-coil configuration. */
+/** A song: its own MIDI file plus the structured per-coil configuration. */
 @Entity({ name: 'Song' })
 export class Song {
   @PrimaryGeneratedColumn({ name: 'id' })
@@ -37,7 +37,8 @@ export class Song {
   @Column({ name: 'output2Mask', type: 'integer', default: 0 })
   output2Mask!: number;
 
-  @ManyToOne(() => MidiFile, {
+  /** No other song points at it (UQ_song_midifile): editing it changes this song alone. */
+  @OneToOne(() => MidiFile, {
     eager: true,
     nullable: true,
     onDelete: 'SET NULL',
@@ -71,7 +72,7 @@ export class Song {
   @Column({ name: 'updatedAt', type: 'integer', nullable: true })
   updatedAt!: number;
 
-  /** sha256 of the normalized aggregate (scalars + sorted coils/events + midiFileUuid). */
+  /** sha256 of the normalized aggregate (scalars + sorted coils/events + the file's uuid and bytes hash). */
   @Column({ name: 'contentHash', type: 'text', nullable: true })
   contentHash!: string;
 

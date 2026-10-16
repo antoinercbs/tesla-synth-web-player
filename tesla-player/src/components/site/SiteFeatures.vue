@@ -21,7 +21,7 @@ const ROWS = [
   { key: 'edit', shot: 'edit', points: 3, link: { to: guide('user-guide', '#editing-a-song'), label: 'site.features.inGuide' } },
   { key: 'synth', shot: 'synth', points: 4, link: { to: guide('user-guide', '#choosing-your-outputs'), label: 'site.features.inGuide' } },
   { key: 'tune', shot: 'tune', points: 2, link: { to: guide('tuning'), label: 'site.features.tuneGuide' } },
-  { key: 'midi', shot: 'midi-edit', points: 0, link: { to: guide('user-guide', '#midi-files--the-midi-editor'), label: 'site.features.inGuide' } },
+  { key: 'midi', shot: 'midi-edit', points: 0, link: { to: guide('user-guide', '#the-midi-editor'), label: 'site.features.inGuide' } },
   { key: 'usb', shot: 'syntherrupter', points: 0, link: { to: guide('syntherrupter'), label: 'site.features.usbGuide' } },
 ];
 const EXTRAS = [

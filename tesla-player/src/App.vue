@@ -43,7 +43,6 @@ export default {
     // output resolution, and the connection ping live in AppSidebar — the output
     // picker — which is always mounted as part of the shell.)
     loadBootData() {
-      this.axios.get('/api/midi').then(r => this.midiStore.setMidiFileList(r.data)).catch(() => {})
       this.axios.get('/api/songs').then(r => this.midiStore.setMidiSongList(r.data)).catch(() => {})
       this.axios.get('/api/settings').then(r => this.midiStore.setAppConfig(r.data)).catch(() => {})
       this.axios.get('/api/tags').then(r => this.midiStore.setTagList(r.data)).catch(() => {})

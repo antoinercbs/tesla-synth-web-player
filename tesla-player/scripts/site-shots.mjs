@@ -19,9 +19,9 @@ const arg = (name) => { const i = process.argv.indexOf(`--${name}`); return i > 
 const LOCALES = arg('locale') ? [arg('locale')] : ['fr', 'en'];
 // the looks of the features page's gallery (SITE_LOOKS, src/site/shots.ts)
 const LOOKS = ['lab', 'control', 'v1', 'term', 'web1', 'scope', 'blueprint'];
-const ALL_TOURS = ['main', 'play', 'edit', 'playlists', 'midi', 'midiEdit', 'envelopes', 'tune', 'syntherrupter'];
+const ALL_TOURS = ['main', 'play', 'edit', 'playlists', 'midiEdit', 'envelopes', 'tune', 'syntherrupter'];
 // the demo library's ids (src/tour/demo/data.ts)
-const SONG = 9001, PLAYLIST = 9101, FILE = 9201, ENVELOPE = 20;
+const SONG = 9001, PLAYLIST = 9101, ENVELOPE = 20;
 
 const browser = await chromium.launch({
   ...(process.env.CHROME_PATH ? { executablePath: process.env.CHROME_PATH } : { channel: 'chrome' }),
@@ -165,7 +165,7 @@ for (const locale of LOCALES) {
   await save(await page.screenshot(), locale, 'edit');
   await go(`/playlists/${PLAYLIST}`);
   await save(await page.screenshot(), locale, 'playlists');
-  await go(`/midi/${FILE}/edit`);
+  await go(`/edit/${SONG}/midi`);
   await save(await page.screenshot(), locale, 'midi-edit');
   await go(`/envelopes/${ENVELOPE}`);
   await save(await page.screenshot(), locale, 'envelopes');

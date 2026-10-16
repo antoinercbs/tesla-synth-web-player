@@ -7,7 +7,8 @@ import { useMidiStore } from '@/stores/midi';
 import { notify } from '@/utils/toast';
 import { useBeforeUnload } from '@/utils/leave-guard';
 import { envelope } from '@/sysex/envelopes';
-import type { MidiFile } from '@/types/domain';
+import type { Song } from '@/types/domain';
+import { fileUrl, replaceSongMidi } from '@/midi/song-file';
 import { docBeatsPerBar, readMidi, UnsupportedMidiError } from '@/midi/edit/doc';
 import { MidiEditor } from '@/midi/edit/editor';
 import { EditorListener } from '@/midi/edit/listen';
@@ -21,17 +22,18 @@ import PageTourButton from '@/components/tour/PageTourButton.vue';
 import { ICONS } from '@/ui/icons';
 
 /**
- * The MIDI file editor: select notes in bulk and change their channel (so their
+ * A song's notes: select them in bulk and change their channel (so their
  * instrument), transpose, shift, set their velocity, delete; draw notes; cut a
- * passage. Saving rewrites the file itself, for every song that uses it.
+ * passage. Saving rewrites the song's own file: no other song plays it.
  */
 const route = useRoute();
 const router = useRouter();
 const midiStore = useMidiStore();
 const { t } = useI18n();
 
-const fileId = computed(() => Number(route.params.id));
-const file = computed<MidiFile | null>(() => midiStore.midiFileList.find((f) => f.id === fileId.value) ?? null);
+const songId = computed(() => Number(route.params.id));
+const song = computed<Song | null>(() => midiStore.midiSongList.find((s) => s.id === songId.value) ?? null);
+const file = computed(() => song.value?.midiFile ?? null);
 const ed = shallowRef<MidiEditor | null>(null);
 // the editor lives outside Vue's reactivity (see MidiEditor): this follows its changes
 const rev = ref(0);
@@ -41,18 +43,17 @@ async function load(): Promise<void> {
   stop();
   ed.value = null;
   state.value = 'loading';
-  if (!file.value) {
-    // opened straight at this URL: the library may not be here yet
+  if (!song.value) {
+    // opened straight at this URL: the songs may not be here yet
     try {
-      const { data } = await axios.get<MidiFile[]>('/api/midi');
-      midiStore.setMidiFileList(data);
+      const { data } = await axios.get<Song[]>('/api/songs');
+      midiStore.setMidiSongList(data);
     } catch { /* reported below as missing */ }
   }
   const f = file.value;
   if (!f) { state.value = 'missing'; return; }
   try {
-    // never a cached copy: the file is rewritten in place
-    const { data } = await axios.get<ArrayBuffer>(`${f.path.replace(/^\./, '')}?t=${Date.now()}`, { responseType: 'arraybuffer' });
+    const { data } = await axios.get<ArrayBuffer>(fileUrl(f), { responseType: 'arraybuffer' });
     const editor = markRaw(new MidiEditor(readMidi(new Uint8Array(data))));
     editor.onChange = () => { rev.value++; };
     pencilChannel.value = editor.channels()[0] ?? 0;
@@ -63,7 +64,7 @@ async function load(): Promise<void> {
   }
 }
 onMounted(load);
-watch(fileId, () => { if (route.name === 'midi-edit') load(); });
+watch(songId, () => { if (route.name === 'midi-edit') load(); });
 
 const dirty = computed(() => {
   void rev.value;
@@ -76,7 +77,6 @@ const meta = computed(() => {
   const end = e.endTick(), bar = docBeatsPerBar(e.doc) * e.doc.ticksPerBeat;
   return `${t('midiEditor.bars', Math.ceil(end / bar))} · ${fmtClock(e.map.toMs(end))} · ${t('midiEditor.notes', e.notes.length)}`;
 });
-const uses = computed(() => midiStore.midiSongList.filter((s) => s.midiFile?.id === fileId.value));
 
 /* ------------------------------- tools ------------------------------------ */
 const tool = ref<'select' | 'pencil'>('select');
@@ -189,7 +189,7 @@ const report = computed(() => {
       changes.push({ icon: 'fa-triangle-exclamation', text, warn: true });
     }
   }
-  const songs: SongReport[] = uses.value.map((s) => {
+  const songs: SongReport[] = (song.value ? [song.value] : []).map((s) => {
     const coils = s.coils.slice(0, s.coilCount);
     const routed = coils.reduce((m, coil) => m | coil.channelMask, 0);
     const warnings: string[] = [];
@@ -220,18 +220,14 @@ function openSave(): void {
   if (dirty.value && !saving.value) saveOpen.value = true;
 }
 async function save(): Promise<void> {
-  const e = ed.value, f = file.value;
-  if (!e || !f || saving.value) return;
+  const e = ed.value, s = song.value, f = file.value;
+  if (!e || !s || !f || saving.value) return;
   saving.value = true;
   try {
-    const form = new FormData();
-    // the server keeps the file where it is; the name only has to be a .mid one
-    form.append('file', new Blob([e.bytes()], { type: 'audio/midi' }), f.path.split('/').pop() || 'file.mid');
-    const { data } = await axios.put<MidiFile>(`/api/midi/${f.id}/file`, form);
-    midiStore.updateMidiFile(data);
+    await replaceSongMidi(s.id, new Blob([e.bytes()], { type: 'audio/midi' }), f.name);
     e.markSaved();
     saveOpen.value = false;
-    notify(t('midiEditor.saved', { name: f.name }));
+    notify(t('midiEditor.saved', { name: s.name }));
   } catch (err) {
     console.error('MIDI edit save failed', err);
     notify('label.saveFailed', 'error');
@@ -255,7 +251,7 @@ onBeforeRouteLeave(() => confirmDiscard());
 useBeforeUnload(() => dirty.value);
 function back(): void {
   if (window.history.state?.back) router.back();
-  else router.push({ name: 'midi' });
+  else router.push({ name: 'edit', params: { id: String(songId.value) } });
 }
 
 /* ------------------------------- keyboard --------------------------------- */
@@ -334,14 +330,11 @@ const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
   <div class="screen me-screen">
     <header class="screen-head me-head">
       <button class="btn btn--ghost me-back" type="button" @click="back">
-        <span class="icon"><i class="fas fa-arrow-left"></i></span>{{ $t('nav.midi') }}
+        <span class="icon"><i class="fas fa-arrow-left"></i></span>{{ $t('midiEditor.back') }}
       </button>
-      <h1 class="view-head__title me-head__title">{{ file?.name ?? $t('midiEditor.title') }}</h1>
+      <h1 class="view-head__title me-head__title" :title="file?.name">{{ song?.name ?? $t('midiEditor.title') }}</h1>
       <page-tour-button v-if="!dirty" id="midiEdit" />
       <span class="me-head__meta">{{ meta }}</span>
-      <span v-if="uses.length" class="me-uses" :title="uses.map((s) => s.name).join('\n')">
-        <i class="fas fa-music"></i>{{ $t('midiEditor.usedBy', uses.length) }}
-      </span>
       <span class="me-head__spacer"></span>
       <span v-if="dirty" class="me-dirty"><i class="fas fa-circle"></i>{{ $t('midiEditor.unsaved') }}</span>
       <button class="btn btn--ghost me-hbtn" type="button" :disabled="!ed?.canUndo" :title="$t('midiEditor.undo')"
@@ -425,7 +418,7 @@ const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
       </section>
     </div>
 
-    <BaseModal :open="saveOpen" :title="$t('midiEditor.saveTitle', { name: file?.name ?? '' })" icon="fa-floppy-disk"
+    <BaseModal :open="saveOpen" :title="$t('midiEditor.saveTitle', { name: song?.name ?? '' })" icon="fa-floppy-disk"
       card-class="me-save-card" :close-label="$t('label.cancel')" @close="saveOpen = false">
       <p class="me-warn" role="alert"><i class="fas fa-triangle-exclamation"></i>{{ $t('midiEditor.saveWarning') }}</p>
       <template v-if="report">
@@ -434,7 +427,6 @@ const gridOptions = computed<{ value: GridStep; label: string }[]>(() => [
           <li v-for="(c, i) in report.changes" :key="i" :class="{ 'is-warn': c.warn }"><i class="fas" :class="c.icon"></i>{{ c.text }}</li>
         </ul>
         <div class="me-save__sub">{{ $t('midiEditor.saveSongs') }}</div>
-        <p v-if="!report.songs.length" class="me-save__none">{{ $t('midiEditor.saveNoSong') }}</p>
         <div v-for="s in report.songs" :key="s.id" class="me-song">
           <div class="me-song__name">{{ s.name }}<span class="me-song__map">{{ s.routing }}</span></div>
           <ul>

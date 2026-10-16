@@ -1,5 +1,5 @@
 <template>
-  <!-- No song selected: the songs, listed like the MIDI files (search, new song, table) -->
+  <!-- No song selected: the songs (search, new song, table) -->
   <div v-if="isChooser" class="screen">
     <header class="screen-head">
       <h1 class="view-head__title">{{ $t('nav.edit') }}<page-tour-button id="edit" /></h1>
@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <!-- A song (or "new") is selected: the editor + embedded debug player -->
+  <!-- A song is selected: the editor + embedded debug player -->
   <div v-else class="screen">
     <header class="screen-head" :class="{ 'is-scrolled': headerScrolled }">
       <h1 class="view-head__title">{{ headTitle }}<page-tour-button v-if="!dirty" id="edit" /></h1>
@@ -20,8 +20,7 @@
     </header>
     <div class="edit-body">
       <div class="edit-body__editor" :style="editorStyle">
-        <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" :seed-file-id="seedFileId"
-          :seed-song="seedSong" @saved="onSaved"
+        <song-editor :song="currentSong" :locked="playing" :player-position="playerPosition" @saved="onSaved"
           @change="onChange" @deleted="onDeleted" @dirty="dirty = $event" />
       </div>
       <resize-handle class="edit-body__split" @resize-start="onDockResizeStart" @resize="onDockResize"
@@ -93,7 +92,7 @@ export default {
     },
     isInvalidId() {
       const id = this.routeId
-      if (!id || id === 'new') return false
+      if (!id) return false
       const list = this.midiStore.midiSongList
       if (!list || list.length === 0) return false
       return !list.some(s => s.id === Number(id))
@@ -106,16 +105,8 @@ export default {
       if (!id) return null
       return this.midiStore.midiSongList.find(s => s.id === id) || null
     },
-    // /edit/new?file=<id> starts from a MIDI file, ?from=<id> from a copy of a song
-    seedFileId() {
-      return this.routeId === 'new' ? Number(this.$route.query.file) || null : null
-    },
-    seedSong() {
-      const from = Number(this.$route.query.from)
-      return this.routeId === 'new' && from ? this.midiStore.midiSongList.find(s => s.id === from) || null : null
-    },
     headTitle() {
-      return this.currentSong ? (this.currentSong.name || `#${this.currentSong.id}`) : this.$t('label.newSong')
+      return this.currentSong ? (this.currentSong.name || `#${this.currentSong.id}`) : ''
     },
     // editor : player = 2 : 1 by default; once dragged, editor fills the rest.
     editorStyle() {

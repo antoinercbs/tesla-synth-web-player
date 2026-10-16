@@ -22,6 +22,7 @@ import { MidiPrograms1718000000000 } from './migrations/1718000000000-MidiProgra
 import { Envelopes1718100000000 } from './migrations/1718100000000-Envelopes';
 import { SongStereo1718200000000 } from './migrations/1718200000000-SongStereo';
 import { CoilEventRamp1718300000000 } from './migrations/1718300000000-CoilEventRamp';
+import { OwnMidiFiles1718400000000 } from './migrations/1718400000000-OwnMidiFiles';
 
 /**
  * Shared TypeORM configuration, used both by the Nest app (app.module) and the
@@ -46,6 +47,7 @@ export const dataSourceOptions: DataSourceOptions = {
     Envelopes1718100000000,
     SongStereo1718200000000,
     CoilEventRamp1718300000000,
+    OwnMidiFiles1718400000000,
   ],
   migrationsTableName: 'typeorm_migrations',
   synchronize: false,

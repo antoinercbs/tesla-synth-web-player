@@ -10,6 +10,7 @@ import { UPLOADS_DIR } from '../config/paths';
 import { MidiFile } from '../midi/entities/midi-file.entity';
 import { SettingsService } from '../settings/settings.service';
 import { Song } from '../songs/entities/song.entity';
+import { ownFileUuid } from '../songs/own-files';
 import { hashBytes } from '../sync/content-hash';
 import {
   EnvelopePayloadDto,
@@ -21,14 +22,15 @@ import { Tag } from '../tags/entities/tag.entity';
 import { CoilTuning } from '../tuning/entities/coil-tuning.entity';
 
 export const BACKUP_FORMAT = 'tesla-player-backup';
-export const BACKUP_VERSION = 1;
+/** 2: each song has its own file (OwnMidiFiles). */
+export const BACKUP_VERSION = 2;
 
 /** A tuning as the backup holds it: the row without its local id. */
 type TuningRecord = Omit<CoilTuning, 'id'>;
 
 /**
- * The whole library in one JSON file: the MIDI files (their bytes in base64),
- * songs with their tags, playlists, envelopes, tags, tunings and the settings.
+ * The whole library in one JSON file: the songs' MIDI files (their bytes in
+ * base64), songs with their tags, playlists, envelopes, tags, tunings and the settings.
  * Everything is keyed by its sync uuid, so a backup restores onto the instance
  * it came from (each item back to its saved version) as onto a fresh one.
  */
@@ -127,6 +129,7 @@ export class BackupService {
    */
   async restore(raw: unknown): Promise<RestoreResult> {
     const backup = this.check(raw);
+    if (backup.version < 2) giveSongsTheirFiles(backup);
     const result: RestoreResult = {
       midiFiles: 0,
       songs: { created: 0, updated: 0 },
@@ -243,4 +246,23 @@ export class BackupService {
       settings: b.settings && Array.isArray(b.settings.coilNames) ? b.settings : null,
     };
   }
+}
+
+/**
+ * A backup from before songs owned their file, as the OwnMidiFiles migration
+ * would have left it: each song its own copy, under the same derived uuid, so
+ * it restores onto a migrated instance without a conflict. A file no song
+ * played (the old library) is left out: nothing could reach it.
+ */
+function giveSongsTheirFiles(backup: Backup): void {
+  const files = new Map(backup.midiFiles.map((m) => [m.uuid, m]));
+  const own: Backup['midiFiles'] = [];
+  for (const s of backup.songs) {
+    const file = s.midiFileUuid ? files.get(s.midiFileUuid) : undefined;
+    if (!file) continue;
+    const uuid = ownFileUuid(file.uuid, s.uuid);
+    own.push({ ...file, uuid });
+    s.midiFileUuid = uuid;
+  }
+  backup.midiFiles = own;
 }

@@ -18,18 +18,19 @@ import UsageMenu from '@/components/ui/UsageMenu.vue';
 import LibraryConfirm from '@/components/ui/LibraryConfirm.vue';
 import SelectionBar from '@/components/ui/SelectionBar.vue';
 import AddToPlaylistModal from '@/components/playlists/AddToPlaylistModal.vue';
+import NewSongModal from '@/components/editor/NewSongModal.vue';
 import { songPayload } from '@/midi/song-payload';
-import { uploadMidiFile } from '@/midi/upload';
+import { createSongsFromFiles, duplicateSong } from '@/midi/song-file';
 import { useFileDrop } from '@/utils/file-drop';
 import { notify } from '@/utils/toast';
 import { serverMessage } from '@/utils/http';
 import type { DataColumn, Usage } from '@/components/ui/data-table';
 
 /**
- * The songs, as the MIDI files are listed (MidiLibraryPanel): search, a new
- * song, the table. A row opens the song in the editor; its menu adds it to a
- * playlist, copies or deletes it; ticked rows get the same, and tags, from the
- * selection bar. A MIDI file dropped on it becomes a new song.
+ * The songs: search, a new song, the table. A row opens the song in the
+ * editor; its menu adds it to a playlist, copies or deletes it; ticked rows get
+ * the same, and tags, from the selection bar. A song is its MIDI file: one
+ * dropped on the list becomes a new song.
  */
 const { t } = useI18n();
 const router = useRouter();
@@ -91,7 +92,6 @@ const columns = computed<DataColumn<Song>[]>(() => [
     key: 'tags', label: t('label.tags'), width: 'minmax(0, 11rem)', hide: 'narrow',
     filter: { options: tagOptions.value, values: (s) => (s.tags?.length ? s.tags.map((tag) => tag.name) : NONE) },
   },
-  { key: 'file', label: t('label.midiFile'), width: 'minmax(0, 11rem)', hide: 'narrow', sort: (s) => s.midiFile?.name },
   { key: 'duration', label: t('label.duration'), width: '5rem', narrowWidth: '4.2rem', num: true, sort: (s) => s.midiFile?.durationMs },
   {
     key: 'coils', label: t('label.coilsShort'), width: '6rem', sort: (s) => s.coilCount,
@@ -152,22 +152,37 @@ async function toggleTag(tag: AppTag): Promise<void> {
 }
 const tagIcon = { all: 'fa-square-check', some: 'fa-square-minus', none: 'fa-square' } as const;
 
-/* ------------------------------------------ a MIDI file dropped: a new song */
+/* ------------------------------------------ a new song: from its MIDI file */
+const creating = ref(false);
+function openCreated(songs: Song[]): void {
+  creating.value = false;
+  if (songs.length > 1) notify(t('label.songsCreated', songs.length), 'info');
+  router.push({ name: 'edit', params: { id: String(songs[0].id) } });
+}
 const importing = ref(false);
 async function onFilesDropped(files: FileList): Promise<void> {
-  const midi = [...files].filter((f) => /\.(mid|midi|kar)$/i.test(f.name));
-  if (!midi.length || importing.value) return;
+  if (importing.value) return;
   importing.value = true;
   try {
-    const uploaded = [];
-    for (const f of midi) uploaded.push(await uploadMidiFile(f));
-    if (uploaded.length > 1) notify(t('label.filesImported', uploaded.length), 'info');
-    router.push({ name: 'edit', params: { id: 'new' }, query: { file: String(uploaded[0].id) } });
+    const made = await createSongsFromFiles([...files]);
+    if (made.length) openCreated(made);
+    else notify('label.notAMidiFile', 'error');
   } catch (err) {
     console.error('MIDI upload failed', err);
-    notify('label.uploadFailed', 'error');
+    const why = serverMessage(err);
+    notify(why ? `${t('label.uploadFailed')} : ${why}` : 'label.uploadFailed', 'error');
   } finally {
     importing.value = false;
+  }
+}
+async function duplicate(s: Song): Promise<void> {
+  try {
+    const copy = await duplicateSong(s, t('label.copyOf', { name: s.name || `#${s.id}` }));
+    router.push({ name: 'edit', params: { id: String(copy.id) } });
+  } catch (err) {
+    console.error('Duplicate failed', err);
+    const why = serverMessage(err);
+    notify(why ? `${t('label.saveFailed')} : ${why}` : 'label.saveFailed', 'error');
   }
 }
 const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = useFileDrop(onFilesDropped);
@@ -177,10 +192,10 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
   <div class="lib" @dragenter="onDragEnter" @dragover="onDragOver" @dragleave="onDragLeave" @drop="onDrop">
     <div class="lib__bar">
       <search-field v-model="search" :placeholder="$t('label.searchSong')" />
-      <router-link class="btn btn--volt" :to="{ name: 'edit', params: { id: 'new' } }">
+      <button class="btn btn--volt" type="button" @click="creating = true">
         <span class="icon"><i class="fas fa-file-circle-plus"></i></span>
         <span>{{ $t('label.newSong') }}</span>
-      </router-link>
+      </button>
     </div>
     <p class="lib__hint">{{ $t('label.dropMidiForSong') }}</p>
 
@@ -196,9 +211,6 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
         <span class="data-table__chips">
           <span v-for="tag in s.tags ?? []" :key="tag.id ?? tag.name" class="song-tag-pill" :style="{ '--tag-c': tag.color }">{{ tag.name }}</span>
         </span>
-      </template>
-      <template #cell-file="{ row: s }">
-        <span class="data-table__text" :title="s.midiFile?.name">{{ s.midiFile?.name ?? '—' }}</span>
       </template>
       <template #cell-duration="{ row: s }">{{ formatDuration(s.midiFile?.durationMs) }}</template>
       <template #cell-coils="{ row: s }">
@@ -216,11 +228,11 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
             <i class="fas fa-list-ul"></i>
             <span>{{ $t('playlistAdd.action') }}</span>
           </button>
-          <router-link class="dropdown__item" :to="{ name: 'edit', params: { id: 'new' }, query: { from: String(s.id) } }">
+          <button class="dropdown__item" type="button" @click="duplicate(s)">
             <i class="fas fa-clone"></i>
             <span>{{ $t('label.duplicate') }}</span>
-          </router-link>
-          <router-link v-if="s.midiFile && !mobileLayout" class="dropdown__item" :to="{ name: 'midi-edit', params: { id: s.midiFile.id } }">
+          </button>
+          <router-link v-if="s.midiFile && !mobileLayout" class="dropdown__item" :to="{ name: 'midi-edit', params: { id: String(s.id) } }">
             <i class="fas fa-pen-to-square"></i>
             <span>{{ $t('midiEditor.open') }}</span>
           </router-link>
@@ -234,10 +246,10 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
       <template #empty>
         <template v-if="midiStore.midiSongList.length === 0">
           <empty-state variant="stub" icon="fa-music">{{ $t('label.noSongsYet') }}</empty-state>
-          <router-link class="btn btn--volt" :to="{ name: 'edit', params: { id: 'new' } }">
+          <button class="btn btn--volt" type="button" @click="creating = true">
             <span class="icon"><i class="fas fa-file-circle-plus"></i></span>
             <span>{{ $t('label.newSong') }}</span>
-          </router-link>
+          </button>
         </template>
         <template v-else>{{ $t('label.noSongFound') }}</template>
       </template>
@@ -267,5 +279,6 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
 
     <add-to-playlist-modal :open="addingToPlaylist.length > 0" :songs="addingToPlaylist" @close="addingToPlaylist = []"
       @added="loadPlaylists" />
+    <new-song-modal :open="creating" @close="creating = false" @created="openCreated" />
   </div>
 </template>

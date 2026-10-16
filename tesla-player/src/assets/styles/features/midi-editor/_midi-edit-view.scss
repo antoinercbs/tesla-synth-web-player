@@ -36,19 +36,6 @@
     flex: 1;
 }
 
-.me-uses {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 3px 9px;
-    border-radius: var(--radius-pill);
-    border: 1px solid var(--line-strong);
-    color: var(--text-dim);
-    font-size: var(--fs-xs);
-    cursor: help;
-    white-space: nowrap;
-}
-
 .me-dirty {
     display: inline-flex;
     align-items: center;
@@ -267,12 +254,6 @@
 
 .me-save__list li.is-warn > i {
     color: var(--amber);
-}
-
-.me-save__none {
-    margin: 0;
-    font-size: var(--fs-sm);
-    color: var(--text-mute);
 }
 
 .me-song {

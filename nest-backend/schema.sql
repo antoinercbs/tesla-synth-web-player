@@ -55,6 +55,8 @@ CREATE TABLE IF NOT EXISTS Song (
 CREATE UNIQUE INDEX IF NOT EXISTS UQ_song_uuid     ON Song(uuid)     WHERE uuid IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS UQ_playlist_uuid ON Playlist(uuid) WHERE uuid IS NOT NULL;
 CREATE UNIQUE INDEX IF NOT EXISTS UQ_midifile_uuid ON MidiFile(uuid) WHERE uuid IS NOT NULL;
+-- A song owns its MIDI file (named like the OwnMidiFiles migration's).
+CREATE UNIQUE INDEX IF NOT EXISTS UQ_song_midifile ON Song(midiFile_id) WHERE midiFile_id IS NOT NULL;
 
 -- Per-song, per-coil configuration. Replaces the old opaque SysexCommand list:
 -- the browser compiles these rows into Syntherrupter SysEx on demand.

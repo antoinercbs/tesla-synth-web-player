@@ -38,6 +38,12 @@ export const midiUploadOptions: MulterOptions = {
     }
     cb(null, true);
   },
-  // Bound a single upload (covers POST /api/midi and POST /api/sync/file).
+  // Bound a single upload (covers POST /api/sync/file).
   limits: { fileSize: MAX_UPLOAD_BYTES, files: 1 },
+};
+
+/** A song's file: kept in memory (`file.buffer`), MidiService decides where it goes on disk. */
+export const songMidiUploadOptions: MulterOptions = {
+  fileFilter: midiUploadOptions.fileFilter,
+  limits: midiUploadOptions.limits,
 };

@@ -3,9 +3,10 @@
  * remote peer (both expose the identical /api/sync/* surface) and applies the
  * user's per-item choices. Policy: ADD/UPDATE ONLY — nothing is ever deleted.
  *
- * MIDI files needed by a synced song (and member songs of a synced playlist)
- * are auto-resolved as dependencies regardless of the user's per-row choice, so
- * a propagated song never lands without its file. Likewise the custom envelopes
+ * A song's MIDI file is its own and travels with it: files are not listed for
+ * the user to choose (a song's hash holds its file's, so new notes show as a
+ * changed song). They are resolved as dependencies of the synced songs (and of
+ * a synced playlist's members), so a propagated song never lands without its file. Likewise the custom envelopes
  * a propagated file plays come along, but only where the target has none in
  * that slot: a slot that differs on both sides is a conflict the user decides.
  *
@@ -265,7 +266,6 @@ export async function previewSync(
     manifestOf(remote),
   ]);
   const items = [
-    ...diffType('midiFile', localM.midiFiles, remoteM.midiFiles),
     ...diffType('song', localM.songs, remoteM.songs),
     ...diffType('playlist', localM.playlists, remoteM.playlists),
     ...diffType('envelope', localM.envelopes ?? [], remoteM.envelopes ?? []),

@@ -42,8 +42,11 @@ export interface SongHashInput {
   coilCount: number;
   mode: string;
   output2Mask: number;
-  /** uuid of the referenced MIDI file, NOT its id/path. */
+  /** uuid of the song's MIDI file, NOT its id/path. */
   midiFileUuid: string | null;
+  /** Its bytes' hash: a song is its notes too, so editing them changes the song.
+   *  Folded in only when set, like stereo. */
+  midiFileHash?: string | null;
   coils: CoilHashInput[];
   events: CoilEventHashInput[];
   /** Folded in only when set, like editorName: songs without it keep their hash. */
@@ -125,6 +128,7 @@ export function hashSong(input: SongHashInput): string {
         ...(e.ramp ? { ramp: true } : {}),
       })),
   };
+  if (input.midiFileHash) canonical.midiFileHash = input.midiFileHash;
   if (input.stereo) canonical.stereo = canonicalStereo(input.stereo);
   return sha256(JSON.stringify(withEditor(canonical, input.editorName)));
 }

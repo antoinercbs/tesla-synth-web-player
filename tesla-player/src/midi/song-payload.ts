@@ -4,12 +4,12 @@ import type { Song } from '@/types/domain';
  * What PUT /api/songs/:id takes for a song as the library holds it, with its
  * tags replaced when `tagIds` is given: a change made from a list (tagging a
  * selection) sends the rest of the song back as it was. The song editor builds
- * its own from its draft (SongEditor's buildPayload).
+ * its own from its draft (SongEditor's buildPayload). The file is not in it: it
+ * changes through PUT /api/songs/:id/midi (midi/song-file.ts).
  */
 export function songPayload(song: Song, tagIds?: number[]) {
   return {
     name: song.name,
-    midiFileId: song.midiFile?.id ?? null,
     coilCount: song.coilCount,
     mode: song.mode,
     output2Mask: song.output2Mask ?? 0,
