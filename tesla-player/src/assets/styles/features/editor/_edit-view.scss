@@ -1,7 +1,8 @@
 // ===========================================================================
 //  EDIT VIEW: THE ATELIER
 // ===========================================================================
-// components/editor/SongEditor.vue: the head (the song, its file, undo, save),
+// components/editor/SongEditor.vue: the head (the song's name and tags, undo,
+// save, its file in the menu),
 // the timeline (the player's transport and Power on top of it), and the tool
 // panel below, its tabs on its own edge: they change what is under them.
 
@@ -17,9 +18,8 @@
     position: sticky;
     top: 0;
     z-index: 30;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
+    // its labels give way to the song's name when the head runs short (below)
+    container-type: inline-size;
     margin: 0 -2rem;
     padding: 0.8rem 2rem 0.6rem;
     background: var(--scrim-72);
@@ -27,34 +27,188 @@
     backdrop-filter: blur(10px);
 }
 
-.atelier__back {
-    flex: 0 0 auto;
+// the song, its setup, the actions: the setup centred, the same place from song to
+// song and from edit to save; the actions keep their room (it shifts rather than covers)
+.atelier__bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
+    align-items: center;
+    gap: 1rem;
 }
 
+.atelier__side {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.atelier__side--end {
+    justify-content: flex-end;
+}
+
+.atelier__side > .btn,
+.atelier__back {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+// framed, apart from the song and the actions: what the whole song is set for
+.atelier__setup {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}
+
+// the song: its name, its tags under it
+.atelier__ident {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 0 1 auto;
+    min-width: 7rem;
+}
+
+.atelier__name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+// a click on it renames the song, like its pencil
 .atelier__title {
+    display: block;
     min-width: 0;
     margin: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    cursor: var(--cursor-text, text);
 }
 
-.atelier__file {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
+.atelier__name {
+    flex: 1 1 22rem;
+    min-width: 8rem;
+    padding: 0.2rem 0.5rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 700;
+}
+
+.atelier__rename {
     flex: 0 0 auto;
-    padding: 0.2rem 0.65rem;
-    border: 1px solid var(--line);
-    border-radius: var(--radius-pill);
-    color: var(--text-dim);
+    color: var(--text-mute);
+}
+
+.atelier__tags {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+// one line: the tags past the block's width are cut (not the button, its menu would be too)
+.atelier__tag-list {
+    display: flex;
+    gap: 0.3rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.atelier__tags .editor-tag-pill {
+    flex: 0 0 auto;
+    padding-top: 0.05rem;
+    padding-bottom: 0.05rem;
     font-size: var(--fs-xs);
-    font-variant-numeric: tabular-nums;
+}
+
+// the tags past the second: their names on hover, the menu on a click
+.atelier__tags-more {
+    display: grid;
+    place-items: center;
+    height: 1.4rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    line-height: 1;
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.15s;
+}
+
+.atelier__tags-more:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+.atelier__tags .dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.atelier__tags .editor-tags__add {
+    display: inline-flex;
+    gap: 0.35rem;
+    width: auto;
+    height: 1.4rem;
     white-space: nowrap;
 }
 
-.atelier__file i {
+.atelier__tags .dropdown__menu {
+    right: auto;
+    left: 0;
+    width: 200px;
+}
+
+// the ⋮ menu: the file on top, who last edited the song at the bottom
+.atelier__menu {
+    width: 16rem;
+}
+
+.atelier__menu-file {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    letter-spacing: 0;
+}
+
+.atelier__menu-file i {
     color: var(--volt);
+}
+
+.atelier__menu-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-dim);
+}
+
+.atelier__menu-meta {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.atelier__menu-editor {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+    padding: 0.45rem 0.6rem 0.25rem;
+    border-top: 1px solid var(--line-strong);
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
 }
 
 .atelier__count {
@@ -77,17 +231,14 @@
 
 .atelier__speakers {
     flex: 0 0 auto;
-    margin-left: 0.4rem;
+    padding-left: 0.8rem;
+    border-left: 1px solid var(--line-strong);
     font-size: var(--fs-xs);
 }
 
 .atelier__speakers .switch__text i {
     margin-right: 0.35rem;
     color: var(--plasma);
-}
-
-.atelier__spacer {
-    flex: 1 1 auto;
 }
 
 
@@ -195,9 +346,31 @@
     padding: 1rem;
 }
 
-// the sections that were the long page's are now tools: no card around a card
-.atelier__dock-body > .editor-meta {
-    margin: 0;
+// short of room, the labels go first (their buttons keep a tooltip), the name stays
+@container (max-width: 1300px) {
+    .atelier__dirty-label {
+        display: none;
+    }
+}
+
+@container (max-width: 1120px) {
+    .atelier__count-label,
+    .atelier__speakers-label {
+        display: none;
+    }
+}
+
+// too short for three columns: a line each, as they fit
+@container (max-width: 1000px) {
+    .atelier__bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+    .atelier__side {
+        flex: 1 1 auto;
+    }
 }
 
 @media (max-width: 1000px) {
@@ -208,13 +381,31 @@
     .atelier__head {
         margin: 0 -0.5rem;
         padding: 0.6rem 0.5rem;
-        flex-wrap: wrap;
     }
 
-    // the phone layout keeps the essentials (ui/viewport.ts): hidden, not dropped
+    // the head wraps, its buttons land anywhere: their menus hang from its edges
+    .atelier__more,
+    .atelier__tags .dropdown {
+        position: static;
+    }
+
+    .atelier__menu {
+        right: 0.5rem;
+    }
+
+    .atelier__tags .dropdown__menu {
+        left: 0.5rem;
+    }
+
+    // the phone layout keeps the essentials (ui/viewport.ts): hidden, not dropped,
+    // so a save from there keeps the song's spatialisation and power curve
     .atelier__tool.is-wide,
-    .atelier__notes,
-    .atelier__file {
+    .atelier__notes {
         display: none;
+    }
+
+    .atelier__dock-body > .editor-large-only {
+        display: flex;
+        margin-top: 1rem;
     }
 }

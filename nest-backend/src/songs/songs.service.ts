@@ -38,6 +38,8 @@ export interface SongResponse {
   output2Mask: number;
   /** Who last edited this (server-stamped from the OIDC token), or null. */
   editorName: string | null;
+  /** Epoch ms of its last change, its notes' included; null when never stamped. */
+  updatedAt: number | null;
   midiFile: SongMidiFile | null;
   coils: {
     coilIndex: number;
@@ -275,6 +277,7 @@ export class SongsService {
       mode: song.mode,
       output2Mask: song.output2Mask,
       editorName: song.editorName ?? null,
+      updatedAt: song.updatedAt ?? null,
       stereo: song.stereo ?? null,
       midiFile: file
         ? {

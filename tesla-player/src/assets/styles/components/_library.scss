@@ -29,6 +29,11 @@
     color: var(--text-mute);
 }
 
+// who last changed a song, a shade above the date beside it
+.lib__editor {
+    color: var(--text);
+}
+
 .lib__msg {
     display: flex;
     align-items: center;

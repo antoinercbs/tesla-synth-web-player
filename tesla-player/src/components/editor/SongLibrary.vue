@@ -4,7 +4,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import axios from 'axios';
 import { useMidiStore } from '@/stores/midi';
-import { formatDuration } from '@/utils/format';
+import { formatDuration, formatEditDate } from '@/utils/format';
 import { search as searchItems } from '@/utils/search';
 import { coilColor } from '@/ui/coil-colors';
 import { mobileLayout } from '@/ui/viewport';
@@ -32,7 +32,7 @@ import type { DataColumn, Usage } from '@/components/ui/data-table';
  * the same, and tags, from the selection bar. A song is its MIDI file: one
  * dropped on the list becomes a new song.
  */
-const { t } = useI18n();
+const { t, locale } = useI18n();
 const router = useRouter();
 const midiStore = useMidiStore();
 
@@ -43,11 +43,12 @@ const selectedIds = ref<(number | string)[]>([]);
 const selectedSongs = computed(() => midiStore.midiSongList.filter((s) => selectedIds.value.includes(s.id)));
 const addingToPlaylist = ref<Song[]>([]);
 
-// found by its name, its file's, its tags' or its playlists'
+// found by its name, its file's, its tags', its playlists' or its last editor's
 const filtered = computed<Song[]>(() =>
   searchItems(midiStore.midiSongList, search.value, (s) => [
     s.name,
     s.midiFile?.name,
+    s.editorName,
     ...(s.tags ?? []).map((tag) => tag.name),
     ...playlistsOf(s).map((p) => p.label),
   ]),
@@ -81,6 +82,12 @@ const coilOptions = computed(() =>
     .sort((a, b) => a - b)
     .map((n) => ({ value: n, label: t('label.coilsCount', n) })),
 );
+const editorOptions = computed(() => [
+  ...[...new Set(midiStore.midiSongList.map((s) => s.editorName).filter((n): n is string => !!n))]
+    .sort((a, b) => a.localeCompare(b))
+    .map((n) => ({ value: n, label: n })),
+  { value: NONE, label: t('label.noEditor') },
+]);
 const playlistOptions = computed(() => [
   ...[...playlists.value].sort((a, b) => a.name.localeCompare(b.name)).map((p) => ({ value: p.id, label: p.name })),
   { value: NONE, label: t('label.noPlaylist') },
@@ -101,7 +108,17 @@ const columns = computed<DataColumn<Song>[]>(() => [
     key: 'playlists', label: t('label.inPlaylists'), width: '8rem', narrowWidth: '6.8rem', sort: (s) => playlistsOf(s).length,
     filter: { options: playlistOptions.value, values: (s) => (playlistsOf(s).length ? playlistsOf(s).map((p) => p.key) : NONE) },
   },
+  {
+    key: 'edited', label: t('label.lastEdit'), width: 'minmax(0, 13rem)', hide: 'narrow', sort: (s) => s.updatedAt,
+    filter: { options: editorOptions.value, values: (s) => s.editorName || NONE },
+  },
 ]);
+function editedTitle(s: Song): string | undefined {
+  const name = s.editorName;
+  if (!s.updatedAt) return name ? t('auth.lastEditedBy', { name }) : undefined;
+  const date = new Date(s.updatedAt).toLocaleString(locale.value, { dateStyle: 'long', timeStyle: 'short' });
+  return name ? t('label.editedOnBy', { date, name }) : t('label.editedOn', { date });
+}
 
 function coilChips(n: number): number[] { return Array.from({ length: n }, (_, i) => i); }
 function usesSpeaker(s: Song): boolean { return (s.output2Mask ?? 0) !== 0; }
@@ -217,6 +234,11 @@ const { active: dragActive, onDragEnter, onDragOver, onDragLeave, onDrop } = use
         <span class="coil-dots" :title="$t('label.coilsCount', s.coilCount)">
           <span v-for="i in coilChips(s.coilCount)" :key="i" class="coil-dot" :style="{ '--c': coilColor(i) }"></span>
           <span v-if="usesSpeaker(s)" class="speaker-flag" :title="$t('label.usesSpeaker')"><i class="fas" :class="ICONS.speakers"></i></span>
+        </span>
+      </template>
+      <template #cell-edited="{ row: s }">
+        <span class="data-table__text" :title="editedTitle(s)">
+          {{ formatEditDate(s.updatedAt, locale) }}<template v-if="s.editorName"> · <span class="lib__editor">{{ s.editorName }}</span></template>
         </span>
       </template>
       <template #cell-playlists="{ row: s }">

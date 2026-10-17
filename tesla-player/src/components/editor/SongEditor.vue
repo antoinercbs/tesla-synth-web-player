@@ -40,6 +40,7 @@ import AssistantTool, { type AssistSummary } from '@/components/atelier/Assistan
 import RoutingTool from '@/components/atelier/RoutingTool.vue';
 import SmfParser from '@/smfplayer/js/smfParser.js';
 import { ICONS } from '@/ui/icons';
+import { mobileLayout } from '@/ui/viewport';
 
 /**
  * The atelier: one song on one time axis (AtelierTimeline), its tools one at a
@@ -80,8 +81,9 @@ const draft = reactive({
 });
 
 /* ------------------------------------------------------------------ tools */
-type Tool = 'assist' | 'route' | 'coils' | 'space' | 'dyn' | 'info';
-// in three groups, told apart at a glance: the Assistant, the hand settings, the song's identity
+type Tool = 'assist' | 'route' | 'coils' | 'space' | 'dyn';
+// in two groups, told apart at a glance: the Assistant, the hand settings. The
+// song's name and tags are in the head, its file in the head's menu.
 const TOOL_GROUPS: { id: Tool; icon: string; wide?: boolean }[][] = [
   [{ id: 'assist', icon: 'fa-wand-magic-sparkles' }],
   [
@@ -90,7 +92,6 @@ const TOOL_GROUPS: { id: Tool; icon: string; wide?: boolean }[][] = [
     { id: 'space', icon: ICONS.stereo, wide: true },
     { id: 'dyn', icon: ICONS.dynamics, wide: true },
   ],
-  [{ id: 'info', icon: 'fa-tag' }],
 ];
 const tool = ref<Tool>('coils');
 function openTool(id: Tool): void {
@@ -99,10 +100,16 @@ function openTool(id: Tool): void {
 
 /* ------------------------------------------------------------------- tags */
 const allTags = computed<AppTag[]>(() => midiStore.tagList || []);
-const availableTagsToAdd = computed(() => {
-  const currentIds = draft.tags.map(t => t.id);
-  return allTags.value.filter(t => !currentIds.includes(t.id));
-});
+// two under the name, the others behind "…": their names in its tooltip, all of them in the menu
+const TAGS_SHOWN = 2;
+const hiddenTags = computed(() => draft.tags.slice(TAGS_SHOWN));
+const hasTag = (tag: AppTag): boolean => draft.tags.some((x) => x.id === tag.id);
+// the menu ticks the song's tags, in a steady order: a click puts one on or takes it off
+const tagChoices = computed(() => [...allTags.value, ...draft.tags.filter((x) => !allTags.value.some((a) => a.id === x.id))]);
+function toggleTag(tag: AppTag): void {
+  if (hasTag(tag)) removeTag(tag.id);
+  else addTag({ ...tag });
+}
 
 function addTag(tag: AppTag) {
   draft.tags.push(tag);
@@ -183,8 +190,21 @@ function markSaved(): void {
   baseline.value = snapshot();
 }
 
-const nameError = ref('');
-watch(() => draft.name, () => { nameError.value = ''; });
+/* ------------------------------------------------- the name, in the head */
+const renaming = ref(false);
+const nameField = ref<HTMLInputElement | null>(null);
+let nameBefore = '';
+function rename(): void {
+  nameBefore = draft.name;
+  renaming.value = true;
+  nextTick(() => nameField.value?.select());
+}
+// a song is never left without a name: an empty one gives the old one back
+function endRename(keep: boolean): void {
+  if (!renaming.value) return;
+  if (!keep || !draft.name.trim()) draft.name = nameBefore;
+  renaming.value = false;
+}
 
 /* --- undo / redo: the draft as the user shapes it, one step per pause --- */
 function editable() {
@@ -243,7 +263,7 @@ onBeforeUnmount(() => { if (recordTimer) clearTimeout(recordTimer); });
 const fresh = (song: Song): boolean => (song.coils ?? []).every((c) => !c.channelMask) && !song.output2Mask;
 
 function load(song: Song | null | undefined): void {
-  nameError.value = '';
+  renaming.value = false;
   resetAssistant();
   mutedChannels.value = 0;
   mutedCoils.value = 0;
@@ -328,9 +348,8 @@ const saving = ref(false);
 async function save(): Promise<void> {
   if (saving.value || !dirty.value) return;
   if (!draft.name.trim()) {
-    nameError.value = t('label.songNameRequired');
-    openTool('info');
-    nextTick(() => document.getElementById('song-name')?.focus());
+    notify('label.songNameRequired', 'error');
+    rename();
     return;
   }
   const isNew = !draft.id;
@@ -777,12 +796,6 @@ const largeScreenOnly = computed(() => {
   if (draft.stereo) return draft.events.length ? 'label.largeScreenBoth' : 'label.largeScreenStereo';
   return draft.events.length ? 'label.largeScreenDynamics' : null;
 });
-const fileChip = computed(() => {
-  const a = fileAnalysis.value, f = songFile.value;
-  if (!f) return null;
-  return [formatDuration(f.durationMs ?? a?.durationMs ?? null), a ? t('atelier.channelsCount', a.channels.length) : '', a ? t('atelier.notes', a.notes.length) : '']
-    .filter(Boolean).join(' · ');
-});
 
 // Every edit reaches the player in the bar (no manual "load" step).
 function playerSong(): Song {
@@ -821,45 +834,114 @@ watch(() => props.song, (s) => {
 <template>
   <div class="atelier">
     <header class="atelier__head">
-      <router-link class="btn btn--ghost atelier__back" :to="{ name: 'edit', params: {} }">
-        <span class="icon"><i class="fas fa-arrow-left"></i></span>{{ $t('atelier.songs') }}
-      </router-link>
-      <h1 class="view-head__title atelier__title" :title="draft.name">{{ draft.name || $t('label.songName') }}</h1>
-      <page-tour-button v-if="!dirty" id="edit" />
-      <span v-if="fileChip" class="atelier__file" :title="songFile?.name"><i class="fas fa-music"></i>{{ fileChip }}</span>
-      <!-- the coil count shapes everything below: the routing, the lanes, the pads -->
-      <span class="atelier__count" :title="$t('label.coilCount')">
-        <i class="fas" :class="ICONS.coil"></i><span class="atelier__count-label">{{ $t('atelier.tool.coils') }}</span>
-        <segmented-control v-model="draft.coilCount" pressed :aria-label="$t('label.coilCount')"
-          :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />
-      </span>
-      <label class="switch atelier__speakers" :title="$t('atelier.speakersHint')">
-        <input type="checkbox" :checked="speakersOn" @change="setSpeakers(($event.target as HTMLInputElement).checked)">
-        <span class="switch__track"></span>
-        <span class="switch__text"><i class="fas" :class="ICONS.speakers"></i>{{ $t('atelier.speakers') }}</span>
-      </label>
-      <span class="atelier__spacer"></span>
-      <span v-if="dirty" class="editor-dirty"><i class="fas fa-circle"></i>{{ $t('label.unsavedChanges') }}</span>
-      <button class="icon-btn icon-btn--sm" type="button" :disabled="!canUndo" :title="$t('label.undo')"
-        :aria-label="$t('label.undo')" @click="undo"><i class="fas fa-rotate-left"></i></button>
-      <button class="icon-btn icon-btn--sm" type="button" :disabled="!canRedo" :title="$t('label.redo')"
-        :aria-label="$t('label.redo')" @click="redo"><i class="fas fa-rotate-right"></i></button>
-      <drop-menu trigger-class="icon-btn icon-btn--sm" :label="$t('label.moreOptions')">
-        <router-link v-if="draft.id && songFile" class="dropdown__item" :to="{ name: 'midi-edit', params: { id: String(draft.id) } }">
-          <i class="fas fa-pen-to-square"></i><span>{{ $t('midiEditor.open') }}</span>
-        </router-link>
-        <button v-if="draft.id" class="dropdown__item" type="button" :disabled="duplicating" @click="duplicate">
-          <i class="fas fa-clone"></i><span>{{ $t('label.duplicate') }}</span>
-        </button>
-        <div class="dropdown__divider"></div>
-        <button v-if="draft.id" class="dropdown__item is-danger" type="button" @click="confirmDeleteSong = true">
-          <i class="fas fa-trash"></i><span>{{ $t('label.deleteSong') }}</span>
-        </button>
-      </drop-menu>
-      <button class="btn btn--volt" type="button" :disabled="!dirty || saving" :title="$t('label.saveShortcut')" @click="save">
-        <span class="icon"><i class="fas" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-disk'"></i></span>
-        {{ draft.id ? $t('label.update') : $t('label.save') }}
-      </button>
+      <!-- the song on the left, its setup in the middle (the coil count shapes everything
+           below: the routing, the lanes, the pads), the actions on the right -->
+      <div class="atelier__bar">
+        <div class="atelier__side">
+          <router-link class="icon-btn atelier__back" :to="{ name: 'edit', params: {} }" :title="$t('atelier.songs')"
+            :aria-label="$t('atelier.songs')"><i class="fas fa-arrow-left"></i></router-link>
+          <!-- the song: its name, its tags on a second line under it -->
+          <div class="atelier__ident">
+            <div class="atelier__name-row">
+              <input v-if="renaming" ref="nameField" v-model="draft.name" class="text-field atelier__name" type="text"
+                :placeholder="$t('label.songName')" :aria-label="$t('label.songName')"
+                @keydown.enter.prevent="endRename(true)" @keydown.esc.prevent="endRename(false)" @blur="endRename(true)">
+              <template v-else>
+                <h1 class="view-head__title atelier__title" :title="draft.name" @click="rename">{{ draft.name || $t('label.songName') }}</h1>
+                <button class="icon-btn icon-btn--sm atelier__rename" type="button" :title="$t('atelier.rename')"
+                  :aria-label="$t('atelier.rename')" @click="rename"><i class="fas fa-pen"></i></button>
+              </template>
+            </div>
+            <!-- the cross takes a tag off, the tag button adds one -->
+            <span class="atelier__tags">
+              <span v-if="draft.tags.length" class="atelier__tag-list">
+                <span v-for="tag in draft.tags.slice(0, TAGS_SHOWN)" :key="tag.id ?? tag.name" class="editor-tag-pill" :style="{ '--tag-c': tag.color }">
+                  {{ tag.name }}
+                  <button class="tag-rm" type="button" :title="$t('label.removeTag')" :aria-label="$t('label.removeTag')"
+                    @click="removeTag(tag.id)"><i class="fas fa-xmark"></i></button>
+                </span>
+              </span>
+              <span class="dropdown" :class="{ 'is-open': openMenu === 'tags' }" @keydown="onMenuKey"
+                @focusin="onMenuFocusIn('tags', $event)" @focusout="onMenuFocusOut">
+                <button v-if="hiddenTags.length" class="atelier__tags-more" type="button"
+                  :title="hiddenTags.map((x) => x.name).join(', ')"
+                  :aria-label="`${$t('atelier.moreTags', hiddenTags.length)} : ${hiddenTags.map((x) => x.name).join(', ')}`"
+                  aria-haspopup="true" :aria-expanded="openMenu === 'tags'" @click="toggleMenu('tags', $event)">…</button>
+                <button class="editor-tags__add" type="button" :title="$t('label.addTag')" :aria-label="$t('label.addTag')"
+                  aria-haspopup="true" :aria-expanded="openMenu === 'tags'" @click="toggleMenu('tags', $event)">
+                  <i class="fas fa-tag"></i><span v-if="!draft.tags.length">{{ $t('label.addTag') }}</span>
+                </button>
+                <span class="dropdown__menu">
+                  <span class="dropdown__header">{{ $t('label.tags') }}</span>
+                  <button v-for="t in tagChoices" :key="t.id ?? t.name" class="dropdown__item tag-dropdown-item"
+                    type="button" :aria-pressed="hasTag(t)" @click="toggleTag(t)">
+                    <i class="far" :class="hasTag(t) ? 'fa-square-check' : 'fa-square'"></i>
+                    <span class="song-tag-pill" :style="{ '--tag-c': t.color }">{{ t.name }}</span>
+                  </button>
+                  <span v-if="tagChoices.length" class="dropdown__divider"></span>
+                  <form class="tag-new" @submit.prevent="createTag">
+                    <input v-model="newTagName" class="text-field tag-new__input" type="text" maxlength="24"
+                      :placeholder="$t('label.newTag')" :aria-label="$t('label.newTag')">
+                    <button class="tag-new__add" type="submit" :disabled="!newTagName.trim() || creatingTag"
+                      :title="$t('label.createTag')" :aria-label="$t('label.createTag')">
+                      <i class="fas" :class="creatingTag ? 'fa-spinner fa-spin' : 'fa-check'"></i>
+                    </button>
+                  </form>
+                </span>
+              </span>
+            </span>
+          </div>
+          <page-tour-button v-if="!dirty" id="edit" />
+        </div>
+        <div class="atelier__setup">
+          <span class="atelier__count" :title="$t('label.coilCount')">
+            <i class="fas" :class="ICONS.coil"></i><span class="atelier__count-label">{{ $t('atelier.tool.coils') }}</span>
+            <segmented-control v-model="draft.coilCount" pressed :aria-label="$t('label.coilCount')"
+              :options="coilRange.map((n) => ({ value: n, label: String(n) }))" />
+          </span>
+          <label class="switch atelier__speakers" :title="$t('atelier.speakersHint')">
+            <input type="checkbox" :checked="speakersOn" @change="setSpeakers(($event.target as HTMLInputElement).checked)">
+            <span class="switch__track"></span>
+            <span class="switch__text"><i class="fas" :class="ICONS.speakers"></i><span class="atelier__speakers-label">{{ $t('atelier.speakers') }}</span></span>
+          </label>
+        </div>
+        <div class="atelier__side atelier__side--end">
+          <span v-if="dirty" class="editor-dirty" :title="$t('label.unsavedChanges')"><i class="fas fa-circle"></i><span class="atelier__dirty-label">{{ $t('label.unsavedChanges') }}</span></span>
+          <button class="icon-btn icon-btn--sm" type="button" :disabled="!canUndo" :title="$t('label.undo')"
+            :aria-label="$t('label.undo')" @click="undo"><i class="fas fa-rotate-left"></i></button>
+          <button class="icon-btn icon-btn--sm" type="button" :disabled="!canRedo" :title="$t('label.redo')"
+            :aria-label="$t('label.redo')" @click="redo"><i class="fas fa-rotate-right"></i></button>
+          <drop-menu class="atelier__more" trigger-class="icon-btn icon-btn--sm" :label="$t('label.moreOptions')" menu-class="atelier__menu">
+            <!-- the song's file: what it is, its notes, another file in its place -->
+            <span v-if="songFile" class="dropdown__header atelier__menu-file" :title="songFile.name">
+              <i class="fas fa-music"></i><span class="atelier__menu-name">{{ songFile.name }}</span>
+              <span v-if="songFile.durationMs" class="atelier__menu-meta">{{ formatDuration(songFile.durationMs) }}</span>
+            </span>
+            <router-link v-if="draft.id && songFile && !mobileLayout" class="dropdown__item" :to="{ name: 'midi-edit', params: { id: String(draft.id) } }">
+              <i class="fas fa-pen-to-square"></i><span>{{ $t('midiEditor.open') }}</span>
+            </router-link>
+            <button v-if="draft.id" class="dropdown__item" type="button" :disabled="replacing" @click="fileInput?.click()">
+              <i class="fas" :class="replacing ? 'fa-spinner fa-spin' : 'fa-file-arrow-up'"></i><span>{{ $t('label.replaceFile') }}…</span>
+            </button>
+            <div class="dropdown__divider"></div>
+            <button v-if="draft.id" class="dropdown__item" type="button" :disabled="duplicating" @click="duplicate">
+              <i class="fas fa-clone"></i><span>{{ $t('label.duplicate') }}</span>
+            </button>
+            <div class="dropdown__divider"></div>
+            <button v-if="draft.id" class="dropdown__item is-danger" type="button" @click="confirmDeleteSong = true">
+              <i class="fas fa-trash"></i><span>{{ $t('label.deleteSong') }}</span>
+            </button>
+            <span v-if="song?.editorName" class="atelier__menu-editor">
+              <i class="fas fa-user-pen"></i>{{ $t('auth.lastEditedBy', { name: song.editorName }) }}
+            </span>
+          </drop-menu>
+          <input ref="fileInput" type="file" accept=".mid,.midi,audio/midi" hidden @change="onFilePicked">
+          <button class="btn btn--volt" type="button" :disabled="!dirty || saving" :title="$t('label.saveShortcut')" @click="save">
+            <span class="icon"><i class="fas" :class="saving ? 'fa-spinner fa-spin' : 'fa-floppy-disk'"></i></span>
+            {{ draft.id ? $t('label.update') : $t('label.save') }}
+          </button>
+        </div>
+      </div>
     </header>
 
     <p v-if="banner" class="atelier__banner">
@@ -923,82 +1005,9 @@ watch(() => props.song, (s) => {
         <DynamicsSection v-else-if="tool === 'dyn'" v-model="draft.events" :coil-count="draft.coilCount" :analysis="analysis"
           :player-position="playerPosition" :song-key="song?.id ?? null" />
 
-        <div v-else class="editor-meta">
-          <div class="field-block field-block--wide">
-            <label class="field-label" for="song-name">{{ $t('label.songName') }}</label>
-            <input id="song-name" class="text-field" :class="{ 'is-invalid': nameError }" v-model="draft.name"
-              :placeholder="$t('label.songName')" :aria-invalid="!!nameError" :aria-describedby="nameError ? 'song-name-error' : undefined">
-            <p v-if="nameError" id="song-name-error" class="field-error" role="alert">{{ nameError }}</p>
-            <span v-if="song && song.editorName" class="editor-meta__editor">
-              <i class="fas fa-user-pen"></i>{{ $t('auth.lastEditedBy', { name: song.editorName }) }}
-            </span>
-          </div>
-
-          <div class="field-block field-block--wide">
-            <span class="field-label">{{ $t('label.midiFile') }}</span>
-            <div class="midi-field">
-              <span class="text-field midi-field__file" :title="songFile?.name">
-                <i class="fas fa-file-audio"></i>
-                <span class="midi-field__name">{{ songFile?.name ?? $t('label.noMidiFile') }}</span>
-                <span v-if="songFile?.durationMs" class="midi-field__meta">{{ formatDuration(songFile.durationMs) }}</span>
-              </span>
-              <RouterLink v-if="draft.id && songFile" class="field-btn midi-field__edit"
-                :to="{ name: 'midi-edit', params: { id: String(draft.id) } }" :title="$t('midiEditor.open')"
-                :aria-label="$t('midiEditor.open')">
-                <i class="fas fa-pen-to-square"></i>
-              </RouterLink>
-              <button class="field-btn" type="button" :disabled="!draft.id || replacing" :title="$t('label.replaceFile')"
-                :aria-label="$t('label.replaceFile')" @click="fileInput?.click()">
-                <i class="fas" :class="replacing ? 'fa-spinner fa-spin' : 'fa-file-arrow-up'"></i>
-              </button>
-              <input ref="fileInput" type="file" accept=".mid,.midi,audio/midi" hidden @change="onFilePicked">
-            </div>
-          </div>
-
-          <div class="field-block">
-            <span class="field-label">{{ $t('label.tags') }}</span>
-            <div class="editor-tags">
-              <div class="editor-tags__list" v-if="draft.tags.length > 0">
-                <span v-for="tag in draft.tags" :key="tag.id ?? tag.name" class="editor-tag-pill"
-                  :style="{ '--tag-c': tag.color }">
-                  {{ tag.name }}
-                  <button class="tag-rm" type="button" :title="$t('label.removeTag')" @click="removeTag(tag.id)">
-                    <i class="fas fa-xmark"></i>
-                  </button>
-                </span>
-              </div>
-
-              <div class="dropdown" :class="{ 'is-open': openMenu === 'tags' }" @keydown="onMenuKey"
-                @focusin="onMenuFocusIn('tags', $event)" @focusout="onMenuFocusOut">
-                <button class="editor-tags__add" type="button" :title="$t('label.addTag')" :aria-label="$t('label.addTag')"
-                  aria-haspopup="true" :aria-expanded="openMenu === 'tags'" @click="toggleMenu('tags', $event)">
-                  <i class="fas fa-plus"></i>
-                </button>
-                <div class="dropdown__menu">
-                  <div class="dropdown__header">{{ $t('label.addTag') }}</div>
-                  <button v-for="t in availableTagsToAdd" :key="t.id" class="dropdown__item tag-dropdown-item"
-                    type="button" @click="addTag(t)">
-                    <span class="cfg-name-dot" :style="{ '--c': t.color }"></span>
-                    <span class="tag-dropdown-name">{{ t.name }}</span>
-                  </button>
-                  <div v-if="availableTagsToAdd.length" class="dropdown__divider"></div>
-                  <form class="tag-new" @submit.prevent="createTag">
-                    <input v-model="newTagName" class="text-field tag-new__input" type="text" maxlength="24"
-                      :placeholder="$t('label.newTag')" :aria-label="$t('label.newTag')">
-                    <button class="tag-new__add" type="submit" :disabled="!newTagName.trim() || creatingTag"
-                      :title="$t('label.createTag')" :aria-label="$t('label.createTag')">
-                      <i class="fas" :class="creatingTag ? 'fa-spinner fa-spin' : 'fa-check'"></i>
-                    </button>
-                  </form>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <p v-if="largeScreenOnly" class="editor-large-only">
-            <i class="fas fa-display"></i>{{ $t(largeScreenOnly) }}
-          </p>
-        </div>
+        <p v-if="largeScreenOnly" class="editor-large-only">
+          <i class="fas fa-display"></i>{{ $t(largeScreenOnly) }}
+        </p>
       </div>
     </section>
 

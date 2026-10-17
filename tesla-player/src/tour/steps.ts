@@ -117,7 +117,7 @@ const PLAY_STEPS: TourStep[] = [
 ];
 
 const EDIT_STEPS: TourStep[] = [
-  { id: 'editor', icon: 'fa-pencil', points: [ICONS.coil, 'fa-file-circle-plus', 'fa-rotate-left'], route: DEMO_SONG, target: '.atelier__head', placement: 'bottom' },
+  { id: 'editor', icon: 'fa-pencil', points: [ICONS.coil, 'fa-pen', 'fa-rotate-left'], route: DEMO_SONG, target: '.atelier__head', placement: 'bottom' },
   { id: 'editScore', icon: ICONS.pianoRoll, points: [ICONS.coil, 'fa-chart-area', 'fa-grip-lines'], route: DEMO_SONG, target: '.tl__top', placement: 'bottom' },
   { id: 'editFile', icon: 'fa-pen-to-square', points: ['fa-pen-to-square', 'fa-file-arrow-up'], note: 'warn', route: DEMO_SONG, target: '.atelier__notes', placement: 'bottom' },
   { id: 'editPlayer', icon: 'fa-play', points: ['fa-play', ICONS.power], route: DEMO_SONG, target: '.player-bar', placement: 'bottom' },

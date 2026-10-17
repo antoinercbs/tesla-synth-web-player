@@ -24,7 +24,7 @@ $menu-items: ".sidebar-menu__item, .dropdown__item, .col-filter__option, .skin-m
 $menu-seps: ".sidebar-menu__sep, .dropdown__divider, .skin-menu__sep";
 
 // a panel (a card on the page), and its head band
-$panels: ".player-panel, .play-panel, .editor-section, .editor-meta, .coil-card, .pl-pane, .pl-meta, .me-card, .env-card, .env-lib__group, .fixed-bar, .live-console, .sy-card, .sy-panel, .tune-panel, .tune-col, .tune-choice, .cam-card, .hist-table-wrap, .data-table, .sg-block";
+$panels: ".player-panel, .play-panel, .editor-section, .coil-card, .pl-pane, .pl-meta, .me-card, .env-card, .env-lib__group, .fixed-bar, .live-console, .sy-card, .sy-panel, .tune-panel, .tune-col, .tune-choice, .cam-card, .hist-table-wrap, .data-table, .sg-block";
 $panel-heads: ".player-panel__head, .play-panel__head, .queue-head, .pl-pane__head";
 
 // a number field keeping the browser's up-down control (the others hide it), and

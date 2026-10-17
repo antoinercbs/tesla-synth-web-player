@@ -126,6 +126,8 @@ export interface Song {
   stereo?: SongStereo | null;
   /** Who last edited this (server-stamped from the OIDC token), or null. */
   editorName?: string | null;
+  /** Epoch ms of its last change, its notes' included (server-stamped); null/absent when unknown. */
+  updatedAt?: number | null;
 }
 
 /**

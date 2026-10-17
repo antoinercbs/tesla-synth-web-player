@@ -3,38 +3,6 @@
 // ===========================================================================
 // components/editor/SongEditor.vue
 
-.editor-meta__editor {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin-top: 0.35rem;
-    font-size: var(--fs-xs);
-    color: var(--text-mute);
-}
-
-.editor-tags {
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-    min-height: 2.35rem;
-    background: var(--bg-2);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-sm);
-    color: var(--text);
-    font-family: var(--font-body);
-    font-size: 1rem;
-    padding: 0.3rem 0.3rem 0.3rem 0.3rem;
-    width: 100%;
-    outline: none;
-    transition: 0.15s;
-}
-
-.editor-tags__list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.3rem;
-}
-
 .editor-tag-pill {
     display: inline-flex;
     align-items: center;
@@ -86,32 +54,10 @@
     background: color-mix(in srgb, var(--volt) 10%, transparent);
 }
 
-.editor-tags__empty {
-    font-size: var(--fs-xs);
-    color: var(--text-mute);
-    font-style: italic;
-}
-
 .tag-dropdown-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-}
-
-.tag-dropdown-name {
-    white-space: nowrap;
-}
-
-.editor-tags .dropdown__menu {
-    right: auto;
-    left: 0;
-    width: 200px;
-    max-width: 250px;
-}
-
-.editor-tags .dropdown__menu::before {
-    left: 0;
-    right: 0;
 }
 
 .tag-new {
@@ -163,7 +109,7 @@
     font-size: 0.45rem;
 }
 
-// only the phone layout shows it, in place of the sections it hides (_song-editor.scss)
+// only the phone layout shows it, in place of the tools it hides (_edit-view.scss)
 .editor-large-only {
     display: none;
     align-items: baseline;
@@ -171,19 +117,4 @@
     margin: 0;
     font-size: var(--fs-sm);
     color: var(--text-mute);
-}
-
-@media (max-width: 600px) {
-    .midi-field {
-        flex-wrap: wrap;
-    }
-
-    .midi-field > *:first-child {
-        flex: 1 1 calc(100% - 6.5rem);
-        min-width: 160px;
-    }
-
-    .field-btn {
-        flex: 0 0 auto;
-    }
 }

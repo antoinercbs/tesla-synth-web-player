@@ -85,22 +85,21 @@ Live changes are sent to the coils as the fader moves and don't alter the saved 
 
 ## Editing a song
 
-Go to **Edit**: it lists your songs, with a search (name, tag or file name), **New song**, and per song its length, coils and the playlists holding it. Click a song to open it; its **⋮** menu adds it to a playlist, duplicates it, opens its notes or deletes it. Tick songs to add them to a playlist, tag them or delete them together.
+Go to **Edit**: it lists your songs, with a search (name, tag, file name or last editor), **New song**, and per song its length, coils and the playlists holding it. Its **Last edit** column gives when it last changed and by whom (sort or filter on it). Click a song to open it; its **⋮** menu adds it to a playlist, duplicates it, opens its notes or deletes it. Tick songs to add them to a playlist, tag them or delete them together.
 
 A song is **its own MIDI file** plus a **per-coil configuration**: no other song plays its file, so editing it changes that song alone. **New song** starts one from a MIDI file (pick it or drop it; several files make as many songs, and a file dropped right on the list does the same), or from a copy of another song's MIDI (its notes only: the coils are yours to set).
 
 A song opens in the **atelier**:
 
-- **The head**: the song's name and file, its **coil count** (1–6, which the routing, the lanes and the pads follow), **Undo / Redo** (Ctrl+Z / Ctrl+Y, outside the text fields), the **⋮** menu (edit the notes, **Duplicate** the song as saved, its file included, delete it) and **Save** (or **Update**, Ctrl+S). A dot marks unsaved changes; leaving the song with some asks first.
+- **The head**: the song's name (the pencil beside it, or a click on it, renames it), its **tags** (the tag button adds one, and can create a new one right there), its **coil count** (1–6, which the routing, the lanes and the pads follow), the **Speakers** switch, **Undo / Redo** (Ctrl+Z / Ctrl+Y, outside the text fields), the **⋮** menu (the file's name and length, edit the notes, **Replace the file** with another one: the coil settings stay, the old file is erased; **Duplicate** the song as saved, its file included, delete it) and **Save** (or **Update**, Ctrl+S). A dot marks unsaved changes; leaving the song with some asks first.
 - **The score**: the song on one time axis. Each note has the colour of the coils playing it, striped when several do (grey and dashed: no coil plays it); under the velocities, each coil's **load** as the board plays it (Duty: its notes' load against its max duty, hatched where the board shrinks them all; Ontime: its longest pulse against its max ontime). Beside it, the channels with their **role** and envelope: hover one to light its notes up. A click on the score moves the playhead, Ctrl + wheel zooms, the grip at the bottom makes the score taller (kept on this computer). Its bar holds **Edit the notes** (the [MIDI editor](#the-midi-editor)) and the player: play, stop, the time and the **Power** fader, plus Panic. The song plays as it is set here, even before saving.
 - **The tools**, one at a time under the score, chosen by their tabs:
   - **Assistant**: sets the coils from the song itself (see below).
   - **Routing**: one row per channel, one pin per coil plus the speakers (the second output). Several pins on a row: the channel plays on several coils. Each row also holds the channel's role (what the Assistant follows: melody, bass, chords, counter-melody, rhythm, drums; a click corrects it) and its **envelope**, written into the song's file when you save.
   - **Coils**: one card per coil, its **On-time (µs)** and **Duty (%)**, and how the board treats its notes (its channels are set in Routing).
   - **Space** and **Dynamics**: the [spatialisation](#spatialisation) and the [power over time](#power-over-time).
-  - **Info**: the name, the file (the arrow replaces it with another file: the coil settings stay, the old file is erased), and the tags (a new one can be created right there).
 
-A new song opens on the **Assistant**; a song already set opens on its **Coils**, with **Calibrate to compare** a click away. When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown as a small "edited by ..." line in Info.
+A new song opens on the **Assistant**; a song already set opens on its **Coils**, with **Calibrate to compare** a click away. When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown at the bottom of the **⋮** menu and in the list's **Last edit** column, with the date.
 
 ### The Assistant
 
