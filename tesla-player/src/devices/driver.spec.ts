@@ -42,6 +42,8 @@ describe('the Syntherrupter v1 driver', () => {
     setCustomEnvelopes([{ id: 1, program: 21, name: 'Pulse', steps: programSteps(1) }]);
     expect(d.coilConfig(coils, 'midi')).toEqual(compileCoilConfig(coils, 'midi'));
     expect(d.coilConfig(coils)).toEqual(compileCoilConfig(coils, 'midi'));
+    // the channel maps of the full setup, the MIDI mode's switch left out
+    expect(d.coilRouting(coils)).toEqual(compileCoilConfig(coils, 'midi').filter((_, i) => i > 0 && i % 3 === 0));
     expect(d.stereo(stereo, 2)).toEqual(compileStereo(stereo, 2));
     expect(d.stereo(null, 0)).toEqual(compileStereo(null, 0));
     expect(d.stereoChannels(stereo)).toEqual(stereoChannelMessages(stereo));

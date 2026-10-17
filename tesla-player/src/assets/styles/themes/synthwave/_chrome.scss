@@ -108,13 +108,12 @@
     }
 
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: rgb(var(--bg-rgb) / 0.85);
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 1px solid rgb(var(--volt-rgb) / 0.4);

@@ -106,7 +106,7 @@
 
     // a bar over the page covers it: no frosted glass
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--bg-2);
@@ -114,7 +114,6 @@
         backdrop-filter: none;
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 2px solid #000;

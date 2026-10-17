@@ -72,7 +72,7 @@
     // a head over the board: its own strip of mask, the page's title clear of the pads
     .screen-head,
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--pcb-mask-dark);
@@ -85,7 +85,6 @@
         box-shadow: 0 1px 0 var(--pcb-silk);
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 1px solid var(--pcb-silk);

@@ -1,155 +1,220 @@
 // ===========================================================================
-//  EDIT VIEW
+//  EDIT VIEW: THE ATELIER
 // ===========================================================================
-// The song editor beside its docked player.
+// components/editor/SongEditor.vue: the head (the song, its file, undo, save),
+// the timeline (the player's transport and Power on top of it), and the tool
+// panel below, its tabs on its own edge: they change what is under them.
 
-// align-items:flex-start so the editor column height is NOT coupled to the dock
-// (a tall dock must not inflate the editor and float the footer mid-pane).
-// flex: 1 0 auto → grows to fill when the editor is short (footer stays pinned),
-// but takes its content height when tall, giving the sticky dock a real range so
-// the player stays put while the editor scrolls.
-// no top padding here: the dock's natural top then sits at/above its sticky
-// threshold, so it stays clamped (no downward jump at the very top of scroll).
-.edit-body {
+.atelier {
     display: flex;
-    flex: 1 0 auto;
-    align-items: flex-start;
-    padding: 0 2rem 0;
-}
-
-// the editor column explicitly stretches to full height; right edge = divider
-.edit-body__editor {
-    flex: 1;
+    flex-direction: column;
+    gap: 0.8rem;
     min-width: 0;
-    min-height: 0;
-    align-self: stretch;
-    display: flex;
-    flex-direction: column;
-    position: relative;
+    padding: 0 2rem 1.6rem;
 }
 
-.edit-body__editor .editor {
-    flex: 1;
-    min-height: 0;
-}
-
-// the embedded player is a visually distinct, sticky "bench" docked to the side
-.edit-body__dock {
-    // width is set inline (drag-resizable via the divider); these are fallbacks.
-    flex: 0 0 400px;
-    width: 400px;
-    align-self: flex-start;
+.atelier__head {
     position: sticky;
-    top: 5rem;
-    // fill the viewport beside the (scrolling) editor; leave a small bottom gap so
-    // the player bottom lines up with the sticky save button.
-    height: calc(100vh - 5rem - 1.4rem);
+    top: 0;
+    z-index: 30;
     display: flex;
-    flex-direction: column;
-}
-
-// the draggable divider rides with the sticky dock (stays fixed while the editor scrolls)
-.edit-body__split {
-    position: sticky;
-    top: 5rem;
-    height: calc(100vh - 5rem - 1.4rem);
-    align-self: flex-start;
-}
-
-.edit-body__dock .player-panel {
-    flex: 1 1 auto;
-    min-height: 0;
-}
-
-// the docked player is narrow (360px): trim the top legend + transport a touch
-.edit-body__dock .player-transport {
-    gap: 0.4rem;
-    padding: 0.4rem 0.8rem 0.8rem;
-}
-
-.edit-body__dock .player-transport .btn {
-    padding: 0.45rem 0.7rem;
-    font-size: var(--fs-sm);
-    min-width: 3.4rem;
-}
-
-// sticky action bar pinned to the bottom of the viewport while editing
-.editor-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 10;
-    display: flex;
-    gap: 0.7rem;
     align-items: center;
-    justify-content: flex-end;
-    margin-top: -1.4rem;
-    padding: 1.4rem 0;
+    gap: 0.6rem;
+    margin: 0 -2rem;
+    padding: 0.8rem 2rem 0.6rem;
     background: var(--scrim-72);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
 
-// delete left, save stays right
-.editor-footer__delete {
-    margin-right: auto;
+.atelier__back {
+    flex: 0 0 auto;
 }
 
-.editor-history {
+.atelier__title {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.atelier__file {
     display: inline-flex;
-    gap: 0.3rem;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+    padding: 0.2rem 0.65rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 }
 
-// Below this width the side dock would crush the editor: stack it underneath.
-@media (max-width: 1100px) {
-    // Switch to standard block layout to break the flex collapsing chain
-    .edit-body {
-        display: flex;
-        flex-direction: column-reverse;
-        gap: 1.4rem;
-    }
+.atelier__file i {
+    color: var(--volt);
+}
 
-    // Normal flow block naturally wraps its content height
-    .edit-body__editor {
-        display: block;
-        padding-right: 0;
-        height: auto;
-        overflow-y: visible;
-    }
+.atelier__count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+    color: var(--volt);
+}
 
-    .edit-body__dock {
-        position: static;
-        display: block;
-        width: 100% !important;
-        height: auto;
-        padding-left: 0;
-        margin-top: 0;
-    }
+.atelier__count-label {
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
 
-    .edit-body__split {
-        display: none !important;
-    }
+.atelier__count .segmented button {
+    min-width: 1.9rem;
+    padding: 0.2rem 0.45rem;
+}
 
-    .editor-footer {
-        bottom: -1px;
-        padding: 1rem 0;
-        background: var(--scrim-72);
-        -webkit-backdrop-filter: blur(10px);
-        backdrop-filter: blur(10px);
-    }
+.atelier__speakers {
+    flex: 0 0 auto;
+    margin-left: 0.4rem;
+    font-size: var(--fs-xs);
+}
 
-    .editor-meta {
-        grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
+.atelier__speakers .switch__text i {
+    margin-right: 0.35rem;
+    color: var(--plasma);
+}
+
+.atelier__spacer {
+    flex: 1 1 auto;
+}
+
+
+.atelier__banner {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 0.5rem 0.6rem 0.5rem 0.9rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+.atelier__banner > i {
+    color: var(--amber);
+}
+
+.atelier__banner > span {
+    flex: 1 1 auto;
+}
+
+.atelier__loading {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 1.4rem 0;
+    color: var(--text-mute);
+}
+
+.atelier__dock {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+}
+
+// the panel's tabs, on its top edge: the open one joins the panel below. Three
+// groups side by side, a rule between them.
+.atelier__dock-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.6rem;
+    padding: 0.4rem 0.6rem 0;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.atelier__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.atelier__tools + .atelier__tools {
+    padding-left: 0.6rem;
+    border-left: 1px solid var(--line-strong);
+}
+
+
+.atelier__tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: -1px;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: var(--cursor-pointer, pointer);
+    transition:
+        color 0.15s,
+        background 0.15s;
+}
+
+.atelier__tool:hover {
+    color: var(--text);
+    background: var(--volt-05);
+}
+
+.atelier__tool.is-on {
+    color: var(--text-strong);
+    background: var(--panel);
+    border-color: var(--line);
+    border-top: 2px solid var(--volt);
+}
+
+.atelier__tool i {
+    color: var(--volt);
+}
+
+.atelier__dock-body {
+    position: relative;
+    padding: 1rem;
+}
+
+// the sections that were the long page's are now tools: no card around a card
+.atelier__dock-body > .editor-meta {
+    margin: 0;
 }
 
 @media (max-width: 1000px) {
-    .edit-body {
+    .atelier {
         padding: 0 0.5rem 0.5rem;
     }
 
-    // the phone layout plays from the Play page (ui/viewport.ts); the player stays
-    // mounted, so a resize back to a large screen finds it loaded
-    .edit-body__dock {
+    .atelier__head {
+        margin: 0 -0.5rem;
+        padding: 0.6rem 0.5rem;
+        flex-wrap: wrap;
+    }
+
+    // the phone layout keeps the essentials (ui/viewport.ts): hidden, not dropped
+    .atelier__tool.is-wide,
+    .atelier__notes,
+    .atelier__file {
         display: none;
     }
 }

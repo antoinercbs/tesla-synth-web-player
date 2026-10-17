@@ -51,7 +51,7 @@ $cork-circled: 255px 15px 225px 15px / 15px 225px 15px 255px;
     // --- the page's head: its title on a strip of masking tape ----------------------------------------
     // a bar over the page: the board itself, fixed like the page's so their grain meets
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--cork-board);
@@ -60,7 +60,6 @@ $cork-circled: 255px 15px 225px 15px / 15px 225px 15px 255px;
         backdrop-filter: none;
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         box-shadow: 0 -2px 6px rgb(0 0 0 / 0.2);

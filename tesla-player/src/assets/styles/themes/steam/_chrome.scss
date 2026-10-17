@@ -72,7 +72,7 @@
 
     // the lamp's light, no frosted glass: a bar is the cabinet's own wood
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--bg-2);
@@ -84,7 +84,6 @@
         box-shadow: 0 2px 0 var(--steam-edge), 0 6px 12px rgb(0 0 0 / 0.5);
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 2px solid var(--steam-edge);

@@ -48,7 +48,7 @@ $bp-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
 
     // a drawing is not frosted: what the lab blurs is the sheet itself
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--bg);
@@ -60,7 +60,6 @@ $bp-arrow-right: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/sv
         box-shadow: 0 1px 0 var(--bp-line);
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 1px solid var(--bp-line);

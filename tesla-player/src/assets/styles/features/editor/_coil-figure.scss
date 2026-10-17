@@ -2,8 +2,8 @@
 //  COIL FIGURE
 // ===========================================================================
 // components/editor/CoilFigure.vue: above, the pulse a lone note fires; below,
-// what the song does with the coil's notes; one notes' axis for both. Its text
-// sizes are in the SVG's units (1rem: 16 of them), scaled with the card.
+// what the song does with the coil's notes; one notes' axis for both. Drawn at
+// the card's width, one SVG unit a pixel: its text keeps the size given here.
 
 .cfig {
     margin-top: 0.6rem;

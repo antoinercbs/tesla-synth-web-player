@@ -119,7 +119,7 @@
 
     // a head's own screen: opaque, no frosted glass (the browser had none)
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--bg-2);
@@ -127,7 +127,6 @@
         backdrop-filter: none;
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 3px ridge var(--web1-frame);

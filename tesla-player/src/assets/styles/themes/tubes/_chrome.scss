@@ -102,7 +102,7 @@
     }
 
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--bg);
@@ -110,7 +110,6 @@
         backdrop-filter: none;
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 1px solid rgb(0 0 0 / 0.5);

@@ -32,9 +32,15 @@ const emit = defineEmits<{
   /** The heard position, a few times a second while playing and on every seek. */
   (e: 'position', ms: number): void;
 }>();
-const props = withDefaults(defineProps<{ showAutoplay?: boolean; compactGraph?: boolean }>(), {
+const props = withDefaults(defineProps<{
+  showAutoplay?: boolean;
+  compactGraph?: boolean;
+  /** 'bar': the transport and the global Power on one line, for the song editor's toolbar. */
+  variant?: 'panel' | 'bar';
+}>(), {
   showAutoplay: true,
   compactGraph: false,
+  variant: 'panel',
 });
 const midiStore = useMidiStore();
 
@@ -71,12 +77,14 @@ watch(() => song.value?.coils, (coils) => {
 const powerCapped = ref(localStorage.getItem('playerPowerCap') === '1');
 watch(powerCapped, (v) => localStorage.setItem('playerPowerCap', v ? '1' : '0'));
 const powerMax = computed(() => (powerCapped.value ? 100 : 200));
+// the bar has the global fader only: a coil's own power would stay out of reach there
+const scope = computed<PowerScope>(() => (props.variant === 'bar' ? 'global' : powerScope.value));
 function powerOf(i: number): number {
-  return powerScope.value === 'advanced' ? (coilPower[i] ?? 100) : masterPower.value;
+  return scope.value === 'advanced' ? (coilPower[i] ?? 100) : masterPower.value;
 }
 const powerBoost = computed(() => masterPower.value > 100); // global readout: past "nominal"
 const masterDirty = computed(() => {
-  if (powerScope.value === 'advanced') {
+  if (scope.value === 'advanced') {
     return (song.value?.coils ?? []).some((c) => (coilPower[c.coilIndex] ?? 100) !== 100);
   }
   return masterPower.value !== 100;
@@ -137,6 +145,11 @@ const progressPct = computed(() =>
 function fmt(ms: number): string {
   const s = Math.max(0, Math.floor(ms / 1000));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+// the bar's clock, to the tenth: a passage is found by ear
+function fmtTenths(ms: number): string {
+  const t = Math.max(0, Math.floor(ms / 100));
+  return `${Math.floor(t / 600)}:${String(Math.floor(t / 10) % 60).padStart(2, '0')}.${t % 10}`;
 }
 
 interface SmfPlayerInstance {
@@ -343,7 +356,9 @@ function resetNotes(): void {
 
 function loadSong(s: Song): void {
   const newPath = s.midiFile ? fileUrl(s.midiFile) : null;
+  const before = song.value;
   song.value = s; // always reflect the latest config (legend, VU colours, etc.)
+  if (isPlaying.value && newPath === loadedPath && before) applyEdits(before, s);
   pendingAutoplay = false; // a plain load cancels any pending auto-start
   if (newPath === loadedPath) return; // same MIDI (or none) → config-only, no reparse
   stop();
@@ -414,6 +429,22 @@ const sentLevels = new Map<number, { ontimeUs: number; dutyKey: number }>();
 const DUTY_STEPS = 2000; // 0.05 % of duty
 
 /** Send each coil its configured values × the automation at `ms` × the live power. */
+/**
+ * A change made while the song plays (the song editor) reaches the board at
+ * once: the coils' channels and places when they changed, their levels always.
+ * The playback mode is not switched on again: that resets the controllers.
+ */
+function applyEdits(before: Song, now: Song): void {
+  const driver = midiStore.driver;
+  const routing = (x: Song): string => JSON.stringify((x.coils ?? []).map((c) => [c.coilIndex, c.channelMask]));
+  if (routing(before) !== routing(now)) for (const frame of driver.coilRouting(now.coils ?? [])) midiStore.sendSysex(frame);
+  if (JSON.stringify(before.stereo ?? null) !== JSON.stringify(now.stereo ?? null) || before.coilCount !== now.coilCount) {
+    for (const frame of driver.stereo(now.stereo, now.coilCount)) midiStore.sendSysex(frame);
+    for (const message of driver.stereoChannels(now.stereo)) midiStore.midiOutput?.send(message);
+  }
+  if (JSON.stringify(before.events ?? []) !== JSON.stringify(now.events ?? [])) startAutomation();
+  sendCoilLevels(heardMs());
+}
 function sendCoilLevels(ms: number, force = false): void {
   const out = midiStore.midiOutput;
   if (!out || !song.value) return;
@@ -680,7 +711,7 @@ function setScope(next: PowerScope): void {
 /** The keyboard's power step: every coil together, never past the cap. */
 function nudgePower(delta: number): void {
   const clamp = (v: number): number => Math.max(0, Math.min(powerMax.value, v + delta));
-  if (powerScope.value === 'advanced') {
+  if (scope.value === 'advanced') {
     for (const c of song.value?.coils ?? []) coilPower[c.coilIndex] = clamp(coilPower[c.coilIndex] ?? 100);
   } else {
     masterPower.value = clamp(masterPower.value);
@@ -700,6 +731,8 @@ function onCoilInput(coilIndex: number, value: number): void {
 }
 
 function loadMidiFile(url: string): Promise<ArrayBuffer> {
+  // the editor's unsaved envelopes (blob:): axios would put the API's base URL in front
+  if (url.startsWith('blob:')) return fetch(url).then((r) => r.arrayBuffer());
   return axios.get(url, { responseType: 'arraybuffer' }).then((r) => r.data as ArrayBuffer);
 }
 
@@ -734,11 +767,36 @@ onBeforeUnmount(() => {
   if (liveTimer) clearTimeout(liveTimer);
 });
 
-defineExpose({ loadSong, playSong, stop, togglePlayPause, seekBy, nudgePower });
+/** Where the song is heard, as of this frame: for a playhead drawn every frame, past the throttled 'position'. */
+function positionMs(): number {
+  return playheadMs.value;
+}
+
+defineExpose({ loadSong, playSong, stop, togglePlayPause, seek, seekBy, nudgePower, positionMs });
 </script>
 
 <template>
-  <article class="player-panel">
+  <div v-if="variant === 'bar'" class="player-bar">
+    <button class="player-bar__play" type="button" :class="{ 'is-on': isPlaying }" :disabled="!canTransport"
+      :title="isPlaying ? $t('player.pause') : $t('player.play')" :aria-label="isPlaying ? $t('player.pause') : $t('player.play')"
+      @click="togglePlayPause"><i class="fas" :class="isPlaying ? 'fa-pause' : 'fa-play'"></i></button>
+    <button class="icon-btn icon-btn--sm" type="button" :disabled="!canStop" :title="$t('player.stop')"
+      :aria-label="$t('player.stop')" @click="stop"><i class="fas fa-stop"></i></button>
+    <span class="player-bar__time">{{ fmtTenths(playheadMs) }} <span>/ {{ fmtTenths(durationMs) }}</span></span>
+    <label class="player-bar__power" :title="$t('label.powerHint')">
+      <i class="fas" :class="ICONS.power"></i><span class="player-bar__label">{{ $t('label.power') }}</span>
+      <input class="power-range player-bar__range" type="range" min="0" :max="powerMax" step="1" :value="masterPower"
+        :disabled="!song" :aria-label="$t('label.power')" @input="masterPower = Number(($event.target as HTMLInputElement).value)"
+        @change="onPowerChange">
+      <b class="player-bar__pct" :class="{ 'is-boost': powerBoost }">{{ masterPower }} %</b>
+    </label>
+    <button class="icon-btn icon-btn--sm player-bar__panic" type="button" :disabled="!canPanic" :title="$t('player.panicHint')"
+      :aria-label="$t('player.panic')" @click="midiStore.panic()"><i class="fas fa-bell-slash"></i></button>
+    <confirm-modal :open="leavePending" :title="$t('player.leaveTitle')"
+      :message="$t('player.leaveQuestion', { name: song?.name ?? '' })" :confirm-label="$t('player.leaveConfirm')"
+      :cancel-label="$t('player.stay')" @confirm="answerLeave(true)" @close="answerLeave(false)" />
+  </div>
+  <article v-else class="player-panel">
     <header class="player-panel__head">
       <span class="player-panel__title"><span class="icon"><i class="fas" :class="ICONS.player"></i></span>{{
         $t('title.player') }}</span>

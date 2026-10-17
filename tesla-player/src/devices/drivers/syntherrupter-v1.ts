@@ -9,6 +9,7 @@ import {
   compileSimpleConfig,
   compileSimpleStop,
   compileStereo,
+  encodeChannelMap,
   encodeEnable,
   stereoChannelMessages,
 } from '@/sysex/syntherrupter';
@@ -18,6 +19,7 @@ export function syntherrupterV1(profile: DeviceProfile): DeviceDriver {
   return {
     profile,
     coilConfig: (coils, mode = 'midi') => compileCoilConfig(coils, mode),
+    coilRouting: (coils) => coils.map((c) => encodeChannelMap(c.coilIndex, c.channelMask, MODE_BYTE.midi)),
     stereo: (stereo, coilCount) => compileStereo(stereo, coilCount, profile.coils),
     stereoChannels: (stereo) => stereoChannelMessages(stereo),
     coilLevel: (coilIndex, param, value) => coilEventFrame(coilIndex, param, value),

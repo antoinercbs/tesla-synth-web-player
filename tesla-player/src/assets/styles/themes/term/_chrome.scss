@@ -128,10 +128,10 @@
         color: var(--term-dialog-text);
     }
 
-    // the editor's save bar: the screen's last line, ruled off
-    .editor-footer {
+    // the song editor's head, with its save: the screen's first line, ruled off
+    .atelier__head {
         background: var(--bg);
-        border-top: 3px double var(--term-frame);
+        border-bottom: 3px double var(--term-frame);
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
     }

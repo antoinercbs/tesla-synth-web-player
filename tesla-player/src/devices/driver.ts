@@ -13,6 +13,8 @@ export interface DeviceDriver {
   readonly profile: DeviceProfile;
   /** The playback mode on, then each coil's ontime, duty and channels. */
   coilConfig(coils: CoilConfig[], mode?: PlaybackMode): number[][];
+  /** Each coil's channels, mid-song: without the mode switched on again, which resets the controllers. */
+  coilRouting(coils: CoilConfig[]): number[][];
   /** The song's coil places, or none: the board keeps the previous song's otherwise. */
   stereo(stereo: SongStereo | null | undefined, coilCount: number): number[][];
   /** Channel messages (not SysEx) placing the channels the file's pan does not. */

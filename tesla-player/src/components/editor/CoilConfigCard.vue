@@ -18,6 +18,8 @@ const props = withDefaults(defineProps<{
   index: number;
   showEnvelope?: boolean;
   availableChannels?: number[] | null;
+  /** Its channels' grid; off where another tool routes them (the song editor's Routing). */
+  showChannels?: boolean;
   /** The coil's notes in the song, and what the board makes of them; none: no song. */
   fates?: NoteFate[] | null;
   /** The longest pulse the coil fires in the song (µs). */
@@ -26,7 +28,7 @@ const props = withDefaults(defineProps<{
   span?: [number, number];
   /** Live: how much the board reduces the keys held right now (%), 0 when it does not. */
   liveCut?: number;
-}>(), { fates: null, peakUs: null, span: () => [36, 96], liveCut: 0 });
+}>(), { showChannels: true, fates: null, peakUs: null, span: () => [36, 96], liveCut: 0 });
 const coil = defineModel<CoilConfig>({ required: true });
 const emit = defineEmits<{
   (e: 'marks', marks: LoadMark[] | null): void;
@@ -96,16 +98,21 @@ const program = computed<number | null>({
 <template>
   <article class="coil-card" :style="{ '--coil': color }">
     <header class="coil-card__head">
-      <h3 class="coil-card__title">{{ $t('label.coil') }} <span class="coil-card__no">{{ index }}</span><span v-if="name" class="coil-card__name"> · {{
-          name }}</span></h3>
+      <!-- its name when it has one: the operator knows the coils by it -->
+      <h3 class="coil-card__title" :title="name ? `${$t('label.coil')} ${index}` : undefined">
+        <span v-if="name" class="coil-card__name">{{ name }}</span>
+        <template v-else>{{ $t('label.coil') }} <span class="coil-card__no">{{ index }}</span></template>
+      </h3>
       <span v-if="liveCut" class="coil-card__live" :title="$t('ontime.live.cutHint')"><i class="fas fa-layer-group"></i>{{
         $t('ontime.live.cut', { pct: liveCut }) }}</span>
       <span class="coil-card__count">{{ activeChannels }} ch</span>
     </header>
 
-    <span class="readout-label">{{ $t('label.midiChannels') }}</span>
-    <ChannelMaskSelector v-model="channelMask" :color="color" :available-channels="availableChannels"
-      :label="`${$t('label.coil')} ${index} · ${$t('label.midiChannels')}`" />
+    <template v-if="showChannels">
+      <span class="readout-label">{{ $t('label.midiChannels') }}</span>
+      <ChannelMaskSelector v-model="channelMask" :color="color" :available-channels="availableChannels"
+        :label="`${$t('label.coil')} ${index} · ${$t('label.midiChannels')}`" />
+    </template>
 
     <!-- the bass on the left, like on a keyboard, and where they hand over -->
     <div class="readout-row coil-drive">

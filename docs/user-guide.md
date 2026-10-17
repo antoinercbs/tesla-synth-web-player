@@ -87,31 +87,45 @@ Live changes are sent to the coils as the fader moves and don't alter the saved 
 
 Go to **Edit**: it lists your songs, with a search (name, tag or file name), **New song**, and per song its length, coils and the playlists holding it. Click a song to open it; its **⋮** menu adds it to a playlist, duplicates it, opens its notes or deletes it. Tick songs to add them to a playlist, tag them or delete them together.
 
-A song is **its own MIDI file** plus a **per-coil configuration**: no other song plays its file, so editing it changes that song alone. **New song** starts one from a MIDI file (pick it or drop it; several files make as many songs, and a file dropped right on the list does the same), or from a copy of another song's MIDI (its notes only: the coils are yours to set). In the editor, **Duplicate** copies the song as saved, its file included, **Undo / Redo** (Ctrl+Z / Ctrl+Shift+Z, outside the text fields) step back through the edits, and a song needs a name to be saved.
+A song is **its own MIDI file** plus a **per-coil configuration**: no other song plays its file, so editing it changes that song alone. **New song** starts one from a MIDI file (pick it or drop it; several files make as many songs, and a file dropped right on the list does the same), or from a copy of another song's MIDI (its notes only: the coils are yours to set).
 
-- **Name** and **MIDI file**: the song's file, with its length. The pen opens its notes in the [MIDI editor](#the-midi-editor); the arrow replaces it with another file (the coil settings stay, the old file is erased).
-- **Coil count**: how many physical coils this song targets (1–6).
-- **Per-coil cards** :for each coil:
-  - **MIDI channels**: which channels of the file feed this coil (a multi-select grid). The player on the right colors notes by their channel→coil mapping so you can see who plays what.
-  - **On-time (µs)** and **Duty (%)**: the coil's power for this song (bounded by the device's safety envelope).
-- **Second-output channels**: which channels mirror to the second output for this song.
+A song opens in the **atelier**:
 
-Press **Save** (or **Update**), or **Ctrl+S**; a dot beside it marks unsaved changes, and leaving the song with some asks first. A tag can be created right from the tag menu (**New tag…**). When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown as a small "edited by ..." line.
+- **The head**: the song's name and file, its **coil count** (1–6, which the routing, the lanes and the pads follow), **Undo / Redo** (Ctrl+Z / Ctrl+Y, outside the text fields), the **⋮** menu (edit the notes, **Duplicate** the song as saved, its file included, delete it) and **Save** (or **Update**, Ctrl+S). A dot marks unsaved changes; leaving the song with some asks first.
+- **The score**: the song on one time axis. Each note has the colour of the coils playing it, striped when several do (grey and dashed: no coil plays it); under the velocities, each coil's **load** as the board plays it (Duty: its notes' load against its max duty, hatched where the board shrinks them all; Ontime: its longest pulse against its max ontime). Beside it, the channels with their **role** and envelope: hover one to light its notes up. A click on the score moves the playhead, Ctrl + wheel zooms, the grip at the bottom makes the score taller (kept on this computer). Its bar holds **Edit the notes** (the [MIDI editor](#the-midi-editor)) and the player: play, stop, the time and the **Power** fader, plus Panic. The song plays as it is set here, even before saving.
+- **The tools**, one at a time under the score, chosen by their tabs:
+  - **Assistant**: sets the coils from the song itself (see below).
+  - **Routing**: one row per channel, one pin per coil plus the speakers (the second output). Several pins on a row: the channel plays on several coils. Each row also holds the channel's role (what the Assistant follows: melody, bass, chords, counter-melody, rhythm, drums; a click corrects it) and its **envelope**, written into the song's file when you save.
+  - **Coils**: one card per coil, its **On-time (µs)** and **Duty (%)**, and how the board treats its notes (its channels are set in Routing).
+  - **Space** and **Dynamics**: the [spatialisation](#spatialisation) and the [power over time](#power-over-time).
+  - **Info**: the name, the file (the arrow replaces it with another file: the coil settings stay, the old file is erased), and the tags (a new one can be created right there).
+
+A new song opens on the **Assistant**; a song already set opens on its **Coils**, with **Calibrate to compare** a click away. When the server has [authentication](./authentication.md) enabled, the song records **who last edited it**, shown as a small "edited by ..." line in Info.
+
+### The Assistant
+
+It reads the song (each channel's register, how many notes it plays at once, how often it sounds) and the coils' limits (as the board gave them, else as it last gave them on this computer, else the app's defaults), then routes the channels and sets each coil. What it finds is saved as plain numbers, like a setting made by hand.
+
+- **The intention**. *Clean*: every note in its place, none stuck at the max ontime (where velocity and nuance stop counting), few shrunk by the max duty the notes share, the melody 3 dB in front (a switch). *Spectacular*: the longest arcs, the max ontime on every note, the board holding the duty at its max when it saturates.
+- **A role per coil**, if you want one (at the top of its pad; *Auto* by default, for this song only): the coil plays the channels of that role (the melody, the bass…), and the Assistant keeps the other lines off it unless one would go unheard. Two coils given the same role both play it. A role the song has no channel for leaves the coil to the Assistant.
+- **A preset**, then **each coil's pad** to refine it: in Clean, power upwards and the crossover across (full bass on the left, even treble on the right); in Spectacular, arc length upwards and how far the bass goes (held back on the left, at the max on the right). Each spot is coloured by what it does to the coil's notes, and the reading under the pad says it in numbers.
+- **The comparison** with the saved setting: the share of notes stuck at the max ontime, the notes the board shrinks, the loudness. Undo brings the saved setting back.
+- It keeps **your routing** once you change it in Routing, and sets the numbers on it; *let the Assistant route* gives the routing back to it.
 
 ### Power over time
 
-The **Power over time** section varies the coils' power along the song. Switch it on, then:
+The **Dynamics** tool varies the coils' power along the song. Switch it on, then:
 
 - **Shape the Song curve**: it sets every coil's power (100 % = the settings on the coil cards, up to 200 %). Double-click the track to add a point, drag a point to move it (it snaps to the beats of the file, hold Alt to place it freely), Delete removes the selected one. **Add at …** puts a point where the player is: pause at the chorus, one click.
 - **Choose each point's transition**: *Instant* (the level jumps there) or *Gradual* (a ramp from the previous point), for rises, fades and crescendos. **Intro rise** and **Fade out** build the usual ones.
 - **Per coil** adds a track per coil, for its ontime or duty: it multiplies the Song curve, for a solo or a balance that changes during the song.
 - The list under the tracks holds the exact time, level and transition of every point.
 
-What a coil gets is its setting × the Song curve × its own curve × the player's live **Power** fader: the fader always applies on top, so it stays your safety control during a show. The player's **Load** view shows what each coil fires at that level.
+What a coil gets is its setting × the Song curve × its own curve × the player's live **Power** fader: the fader always applies on top, so it stays your safety control during a show. The score's coil lanes show what each coil fires at that level.
 
 ### Spatialisation
 
-The **Spatialisation** section spreads the notes across the coils by position, so a melody can travel from one coil to the next. Switch it on, then:
+The **Space** tool spreads the notes across the coils by position, so a melody can travel from one coil to the next. Switch it on, then:
 
 - **Place the coils** on the stage, from left to right: drag a coil's marker (or focus it and use the arrow keys), and its reach with the diamonds on its band. **Space evenly** spreads them the way the Syntherrupter suggests.
 - **Choose how a note passes from one coil to the next**: *Fade* (the volume drops with the distance, the note glides) or *One at a time* (full volume inside the reach, nothing past it).

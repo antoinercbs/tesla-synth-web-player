@@ -79,7 +79,7 @@
     // covered or dimmed
     .screen-head.is-scrolled,
     .modal-overlay,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot,
     .live-piano__arm {
@@ -87,7 +87,6 @@
         backdrop-filter: none;
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         background: var(--bg);

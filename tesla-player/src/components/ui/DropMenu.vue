@@ -7,20 +7,45 @@ import { useDropdown } from './dropdown';
  * (or the window) would cut it. Without a `trigger` slot, the button is the
  * rows' ⋮. A click inside the menu closes it: an item has done its job.
  */
-withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
   label?: string;
   triggerClass?: string;
   menuClass?: string;
   /** Back to the button once closed; off for a menu of links, which navigate away. */
   refocus?: boolean;
+  /**
+   * Placed on the screen beside its button rather than inside its container:
+   * for a menu in a box that scrolls or clips (the song editor's timeline and
+   * routing), which would cut it.
+   */
+  float?: boolean;
 }>(), {
   label: undefined,
   triggerClass: 'dropdown__more',
   menuClass: undefined,
   refocus: true,
+  float: false,
 });
 
 const KEY = 'menu';
+
+/** A floating menu under its button (above it when the window ends first), kept inside the window. */
+function place(wrapper: HTMLElement, m: HTMLElement): void {
+  const originalDisplay = m.style.display;
+  m.style.display = 'flex';
+  const w = m.offsetWidth, h = m.offsetHeight;
+  m.style.display = originalDisplay;
+  const r = wrapper.getBoundingClientRect();
+  const below = r.bottom + 4 + h <= window.innerHeight - 8;
+  Object.assign(m.style, {
+    position: 'fixed',
+    left: `${Math.max(8, Math.min(r.left, window.innerWidth - w - 8))}px`,
+    right: 'auto',
+    top: below ? `${r.bottom + 4}px` : 'auto',
+    bottom: below ? 'auto' : `${window.innerHeight - r.top + 4}px`,
+    marginTop: '0',
+  });
+}
 const { open, toggle, close, onKeydown, onFocusIn, onFocusOut } = useDropdown();
 const root = ref<HTMLElement | null>(null);
 const menu = ref<HTMLElement | null>(null);
@@ -35,6 +60,10 @@ function align(): void {
   const wrapper = root.value;
   const m = menu.value;
   if (!wrapper || !m) return;
+  if (props.float) {
+    place(wrapper, m);
+    return;
+  }
   const bound = wrapper.closest<HTMLElement>('.data-table__scroll')?.getBoundingClientRect().bottom ?? window.innerHeight;
   // Measured while forced visible, then restored: the menu is display:none
   // until opened, and a hidden element has no height to measure.

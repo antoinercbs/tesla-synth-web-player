@@ -94,7 +94,7 @@
     }
 
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--pk-3);
@@ -106,7 +106,6 @@
         box-shadow: 0 2px 0 var(--pk-0);
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 2px solid var(--pk-0);

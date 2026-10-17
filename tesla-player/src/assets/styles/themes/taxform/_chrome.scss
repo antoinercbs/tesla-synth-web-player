@@ -109,7 +109,7 @@ $tax-blocks: ".coil-card, .me-card, .env-card, .env-lib__group, .sy-card, .cam-c
     }
 
     .screen-head.is-scrolled,
-    .editor-footer,
+    .atelier__head,
     .pl-footer,
     .wiz-foot {
         background: var(--bg);
@@ -121,7 +121,6 @@ $tax-blocks: ".coil-card, .me-card, .env-card, .env-lib__group, .sy-card, .cam-c
         box-shadow: 0 1.5px 0 var(--tax-ink);
     }
 
-    .editor-footer,
     .pl-footer,
     .wiz-foot {
         border-top: 1.5px solid var(--tax-ink);

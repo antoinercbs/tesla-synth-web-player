@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, useId } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { CoilLimits } from '@/devices/coil-limits';
 import { fateKind, type LoadMark, type NoteFate } from '@/devices/coil-sim';
@@ -33,11 +33,26 @@ const { t } = useI18n();
 const uid = useId();
 
 // the drawing's frame (viewBox units): the curve, the bars, the notes' names once at the bottom
-const W = 300, L = 36, R = 6, T0 = 16, T1 = 84, B0 = 96, B1 = 158, XL = 169, H = 172;
-const PW = W - L - R;
+const L = 36, R = 6, T0 = 16, T1 = 84, B0 = 96, B1 = 158, XL = 169, H = 172;
+// drawn at the card's own width, one unit a pixel: a wider card widens the drawing, not its text
+const plotEl = ref<HTMLElement | null>(null);
+const W = ref(300);
+let ro: ResizeObserver | null = null;
+onMounted(() => {
+  const el = plotEl.value;
+  if (!el) return;
+  const fit = (w: number): void => { if (w > 0) W.value = Math.max(240, Math.round(w)); };
+  fit(el.clientWidth);
+  if ('ResizeObserver' in window) {
+    ro = new ResizeObserver((entries) => fit(entries[0].contentRect.width));
+    ro.observe(el);
+  }
+});
+onBeforeUnmount(() => ro?.disconnect());
+const PW = computed(() => W.value - L - R);
 const lo = computed(() => props.lo - 1);
 const hi = computed(() => props.hi + 1);
-const cw = computed(() => PW / (hi.value - lo.value + 1));
+const cw = computed(() => PW.value / (hi.value - lo.value + 1));
 const xs = (n: number): number => L + (n - lo.value + 0.5) * cw.value;
 const edge = (n: number): number => L + (n - lo.value) * cw.value;
 const noteOf = (hz: number): number => 69 + 12 * Math.log2(hz / 440);
@@ -55,7 +70,7 @@ const firstFree = computed(() => {
   const fs = saturationHz(props.drive, props.limits);
   return fs === Infinity ? hi.value + 1 : Math.ceil(noteOf(Math.max(fs, 1e-9)));
 });
-const capEdge = computed(() => Math.min(edge(firstFree.value), W - R));
+const capEdge = computed(() => Math.min(edge(firstFree.value), W.value - R));
 const showZone = computed(() => maxOn.value != null && firstFree.value > lo.value);
 
 // ---- above: the pulse of a lone note
@@ -73,7 +88,7 @@ const curve = computed(() => {
   return d;
 });
 const wash = computed(() => `${curve.value} L${xs(hi.value + 0.5)} ${T1} L${xs(lo.value - 0.5)} ${T1} Z`);
-const capOnRight = computed(() => !(inRange.value && xb.value > L + PW / 2));
+const capOnRight = computed(() => !(inRange.value && xb.value > L + PW.value / 2));
 const endValue = computed(() => {
   const v = at(props.hi);
   return maxOn.value != null && Math.abs(v - maxOn.value) <= 1 ? null : { x: xs(props.hi), y: y(v) - 5, v: Math.round(v) };
@@ -82,7 +97,7 @@ const endValue = computed(() => {
 const keyX = computed(() => {
   const KW = 96;
   if (!inRange.value || xb.value - 48 > L + KW + 6) return L;
-  if (xb.value + 46 < W - R - KW - 6) return W - R - KW;
+  if (xb.value + 46 < W.value - R - KW - 6) return W.value - R - KW;
   return null;
 });
 
@@ -208,13 +223,13 @@ const tip = computed(() => {
       lines.push({ text: t(c.byVoices ? 'ontime.fig.tipChordVoices' : 'ontime.fig.tipChord', named) });
     }
   }
-  return { title: `${noteName(n)} · ${hzLabel(f)}`, lines, left: (xs(n) / W) * 100 };
+  return { title: `${noteName(n)} · ${hzLabel(f)}`, lines, left: (xs(n) / W.value) * 100 };
 });
 </script>
 
 <template>
   <div class="cfig">
-    <div class="cfig__plot">
+    <div ref="plotEl" class="cfig__plot">
       <svg :viewBox="`0 0 ${W} ${H}`" role="img" :aria-label="$t('ontime.fig.label')">
         <defs>
           <pattern :id="`${uid}-hatch`" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">

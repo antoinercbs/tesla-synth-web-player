@@ -879,7 +879,7 @@ $cp-bar-top: 4px;
     }
 
     // a page with its own foot bar keeps it last
-    .app-main:has(.editor-footer, .pl-footer, .wiz-foot)::after {
+    .app-main:has(.pl-footer, .wiz-foot)::after {
         display: none;
     }
 

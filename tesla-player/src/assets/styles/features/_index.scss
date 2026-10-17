@@ -24,6 +24,8 @@
 @import "editor/stereo-section";
 @import "editor/song-editor-form";
 @import "editor/new-song";
+@import "atelier/timeline";
+@import "atelier/assistant";
 @import "midi-editor/channel-list";
 @import "midi-editor/piano-roll";
 @import "midi-editor/controls";
@@ -34,6 +36,7 @@
 @import "player/live-mode";
 @import "player/midi-preview";
 @import "player/coil-load-view";
+@import "player/player-bar";
 @import "player/play-panel";
 @import "player/song-playlist-picker";
 @import "player/queue-panel";

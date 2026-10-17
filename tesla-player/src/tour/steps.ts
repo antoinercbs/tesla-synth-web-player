@@ -75,6 +75,8 @@ const paramTab = (n: number): string => `.player-viz .preview__param button:nth-
 const vizTab = (n: number): string => `.player-viz__tabs button:nth-of-type(${n})`;
 // the play page's modes, in their order: playback, live, fixed; only when not the current one
 const playMode = (n: number): string => `.screen-head .mode-switch button:nth-of-type(${n}):not(.is-active)`;
+// a song editor's tool, by its tab
+const atelierTool = (id: string): string => `.atelier__tool[data-tool="${id}"]:not(.is-on)`;
 
 export const MAIN_STEPS: TourStep[] = [
   { id: 'welcome', icon: ICONS.welcome, points: ['fa-gear', 'fa-play', 'fa-pencil', 'fa-list-ul', ICONS.coil], tiles: true, note: 'tip', noteIcon: 'fa-flask', route: PLAY },
@@ -85,7 +87,7 @@ export const MAIN_STEPS: TourStep[] = [
   { id: 'coils', wide: true, icon: 'fa-circle-half-stroke', note: 'tip', route: PLAY, target: '.sidebar-section:has(.sidebar-coils)', placement: 'right' },
   // the path of a song, from the stage back to its file
   { id: 'pathPlay', icon: 'fa-play', points: [ICONS.power, ICONS.live], route: PLAY, target: '.source-panel', placement: 'right' },
-  { id: 'pathSong', icon: 'fa-pencil', points: ['fa-file-audio', ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
+  { id: 'pathSong', icon: 'fa-pencil', points: ['fa-file-audio', ICONS.coil, ICONS.stereo, ICONS.dynamics], route: DEMO_SONG, target: '.atelier__head', placement: 'bottom' },
   { id: 'pathPlaylist', icon: 'fa-list-ul', route: DEMO_PLAYLIST, target: '.pl-panes', placement: 'top' },
   // the hardware
   { id: 'pathTune', wide: true, icon: ICONS.tuning, route: TUNE, target: '.tune-intro__choices', placement: 'bottom' },
@@ -115,13 +117,17 @@ const PLAY_STEPS: TourStep[] = [
 ];
 
 const EDIT_STEPS: TourStep[] = [
-  { id: 'editor', icon: 'fa-pencil', points: ['fa-file-circle-plus', 'fa-tags'], route: DEMO_SONG, target: '.editor-meta', placement: 'bottom' },
-  { id: 'editFile', icon: 'fa-file-audio', points: ['fa-pen-to-square', 'fa-file-arrow-up'], note: 'warn', route: DEMO_SONG, target: '.midi-field', placement: 'bottom' },
-  { id: 'coilCards', icon: ICONS.coil, points: ['fa-layer-group', ICONS.power], route: DEMO_SONG, target: '.coils-grid', placement: 'top' },
-  { id: 'stereo', wide: true, icon: ICONS.stereo, points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top' },
-  { id: 'dynamics', wide: true, icon: ICONS.dynamics, points: ['fa-circle-dot', ICONS.coil], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top' },
-  { id: 'editPlayer', wide: true, icon: 'fa-play', route: DEMO_SONG, target: '.edit-body__dock', placement: 'left' },
-  { id: 'editDone', icon: 'fa-floppy-disk', note: 'tip', route: DEMO_SONG, target: '.editor-footer', placement: 'top' },
+  { id: 'editor', icon: 'fa-pencil', points: [ICONS.coil, 'fa-file-circle-plus', 'fa-rotate-left'], route: DEMO_SONG, target: '.atelier__head', placement: 'bottom' },
+  { id: 'editScore', icon: ICONS.pianoRoll, points: [ICONS.coil, 'fa-chart-area', 'fa-grip-lines'], route: DEMO_SONG, target: '.tl__top', placement: 'bottom' },
+  { id: 'editFile', icon: 'fa-pen-to-square', points: ['fa-pen-to-square', 'fa-file-arrow-up'], note: 'warn', route: DEMO_SONG, target: '.atelier__notes', placement: 'bottom' },
+  { id: 'editPlayer', icon: 'fa-play', points: ['fa-play', ICONS.power], route: DEMO_SONG, target: '.player-bar', placement: 'bottom' },
+  { id: 'editTools', icon: 'fa-toolbox', note: 'tip', route: DEMO_SONG, target: '.atelier__dock-head', placement: 'top' },
+  { id: 'editAssistant', icon: 'fa-wand-magic-sparkles', points: ['fa-music', 'fa-bolt', 'fa-hand-pointer'], note: 'tip', route: DEMO_SONG, target: '.assist__intents', placement: 'top', click: atelierTool('assist') },
+  { id: 'editRouting', icon: 'fa-shuffle', points: ['fa-circle', 'fa-tag', ICONS.envelope], route: DEMO_SONG, target: '.route__grid', placement: 'top', click: atelierTool('route') },
+  { id: 'coilCards', icon: ICONS.coil, points: ['fa-layer-group', ICONS.power], route: DEMO_SONG, target: '.coils-grid', placement: 'top', click: atelierTool('coils') },
+  { id: 'stereo', wide: true, icon: ICONS.stereo, points: ['fa-sliders', 'fa-route'], route: DEMO_SONG, target: '.stereo', placement: 'top', click: atelierTool('space') },
+  { id: 'dynamics', wide: true, icon: ICONS.dynamics, points: ['fa-circle-dot', ICONS.coil], note: 'tip', route: DEMO_SONG, target: '.dyn', placement: 'top', click: atelierTool('dyn') },
+  { id: 'editDone', icon: 'fa-floppy-disk', note: 'tip', route: DEMO_SONG, target: '.atelier__head .btn--volt', placement: 'bottom' },
 ];
 
 const PLAYLIST_STEPS: TourStep[] = [

@@ -348,10 +348,10 @@ $sunken: inset 1px 1px 2px rgb(0 0 0 / 0.22);
         border-color: #cac8bb;
     }
 
-    // a bar along a window's foot: the face, no frosted glass
-    .editor-footer {
+    // a bar along a window's top: the face, no frosted glass
+    .atelier__head {
         background: var(--bg);
-        border-top: 1px solid var(--xp-group-border);
+        border-bottom: 1px solid var(--xp-group-border);
         -webkit-backdrop-filter: none;
         backdrop-filter: none;
     }
