@@ -1,0 +1,55 @@
+// ===========================================================================
+//  WELCOME DIALOG
+// ===========================================================================
+// ui/components/tour/WelcomeDialog.vue
+
+.welcome {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.welcome__logo.brand__emblem {
+    align-self: center;
+    width: 86px;
+    height: 84px;
+    margin: 0.2rem 0 0.1rem;
+}
+
+.welcome__row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+// the look's list: as tall as the language switch above it, shrinking to the row
+.welcome__row .select-field {
+    min-width: 0;
+}
+
+.welcome__row .select-field select,
+.welcome__row .select-field__button {
+    padding: 0.25rem 1.8rem 0.25rem 0.6rem;
+    font-size: var(--fs-sm);
+}
+
+// the interface's level: a new device starts as a beginner, said here
+.welcome__row--mode {
+    flex-wrap: wrap;
+    gap: 0.3rem 0.8rem;
+}
+
+.welcome__mode-hint {
+    flex-basis: 100%;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    text-align: left;
+}
+
+.welcome__later {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}

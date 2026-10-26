@@ -1,0 +1,153 @@
+// ===========================================================================
+//  SHARED TOKENS: the colours every palette shares, and the tints derived from it
+// ===========================================================================
+// Colour tints are derived from rgb-channel triplets via `rgb(var(--x-rgb) / α)`
+// so each colour has a SINGLE source of truth and any opacity is one token away.
+// The surfaces, the accent (--volt), the primary gradient (--grad), the arc and
+// their triplets come from the selected palette (the look's palettes: themes/lab/_palettes.scss…); the
+// fonts, sizes, radii, shadows and motion from the look (themes/<look>/_skin.scss).
+:root {
+    // the page backdrop's second glow: the speakers' violet, untoned
+    --backdrop-glow-rgb: 177 92 255;
+
+    // hairlines / borders (were rgba(120,160,205,α))
+    --line: rgb(var(--line-rgb) / 0.12);
+    --line-strong: rgb(var(--line-rgb) / 0.24);
+    --line-005: rgb(var(--line-rgb) / 0.05);
+    --line-006: rgb(var(--line-rgb) / 0.06);
+    --line-018: rgb(var(--line-rgb) / 0.18);
+    --line-022: rgb(var(--line-rgb) / 0.22);
+    --line-040: rgb(var(--line-rgb) / 0.4);
+
+    // text + near-black ink (on volt/coil fills)
+    --text: #cdd9e6;
+    --text-rgb: 205 217 230;
+    --text-dim: #93a3b8; // 7:1 on --panel
+    --text-mute: #74859b; // 4.9:1 on --panel: the floor for small text
+    --text-strong: #eef3ff; // titles and active items, over a panel
+    --text-bright: #fff; // the most emphasised: a control's text on hover, the active item
+    --on-fill: #fff; // on a coloured fill (a danger button), whatever the skin
+    --ink: #06090f; // on the accent or a coil colour
+
+    // what lightens (faint fills, glare) and what darkens (shadows, masks)
+    --hi-rgb: 255 255 255;
+    --lo-rgb: 0 0 0;
+    // how much of a signal colour (amber, a strike, the OCD, a tag's) its text keeps: a light
+    // palette lowers it, the rest is its strong text
+    --signal-mix: 100%;
+
+    --danger: #ff4d62;
+    --danger-rgb: 255 77 98;
+    --danger-text: #ff8a96; // danger as text on a dark panel
+    --danger-text-hover: #ffb3bb;
+    --ok: #3ddc97;
+    --ok-rgb: 61 220 151;
+    --amber: #e0a93b; // power-range mid / overdrive zone
+    --amber-rgb: 224 169 59;
+
+    // signals besides ok and danger: a caution callout, a setting not read back,
+    // the sync badges, a measure gone the wrong way
+    --caution: #ffd24d;
+    --caution-rgb: 255 210 77;
+    --caution-text: #ffd966;
+    --warn: #f5a623;
+    --conflict: #ffb454;
+    --duplicate: #ff8c69;
+    --duplicate-rgb: 255 140 105;
+    --worse: #ff8c42;
+    // how a coil's bangs end (model/coils/response.ts): cut by the OCD; a strike on the ground
+    // mat, the white-violet of the struck channel
+    --bang-ocd: #ff6a3d;
+    --bang-ocd-rgb: 255 106 61;
+    --bang-strike: #d4c4ff;
+    --bang-strike-rgb: 212 196 255;
+    // a note too short for any arc: not heard
+    --bang-short: #8a96ad;
+    --bang-short-rgb: 138 150 173;
+
+    // materials, the same in every palette: the piano's keys, the knobs, the copper
+    // of the tuning schematic
+    --key-white: linear-gradient(180deg, #c9d2de 0%, #aab5c4 100%);
+    --key-white-hover: linear-gradient(180deg, #d6dee8 0%, #b8c2d0 100%);
+    --key-black: linear-gradient(180deg, #212b3b 0%, #1a2230 55%, #131a26 100%);
+    --key-black-hover: linear-gradient(180deg, #2b3649 0%, #222c3d 55%, #19212f 100%);
+    --key-glow-rgb: 236 240 247;
+    --key-ink-rgb: 6 9 15;
+    --knob: #e8eef9;
+    --copper-deep: #8d4a1f;
+    --copper-glint: #ffd9b8;
+    --bead: #08111a;
+    --bead-rim: #f2b784;
+    --clip: #06090f;
+
+    // the tuning page on the phone, and the tour's drawing of it: black, whatever the
+    // palette (the phone films the arc)
+    --cam-bg: #000;
+    --cam-surface: #0c111a;
+    --cam-raised: #131c28;
+    --cam-line: #22303f;
+    --phone-bezel: #1c212b;
+    --phone-edge: #3a414d;
+
+    // one colour per MIDI channel (the MIDI editor draws them on a canvas, through
+    // model/midi/edit/colors.ts): greys and greyed tints, so a channel never passes for a
+    // fibre cap (the vivid colours are the outputs'), mid-light for dark and light
+    // backgrounds alike, the first ones furthest apart
+    --chan-0: #abc0d7;
+    --chan-1: #bca78c;
+    --chan-2: #898989;
+    --chan-3: #d5c0d2;
+    --chan-4: #769a9c;
+    --chan-5: #dad4bf;
+    --chan-6: #87829a;
+    --chan-7: #a2b8a6;
+    --chan-8: #929fb8;
+    --chan-9: #bababa;
+    --chan-10: #a78c7d;
+    --chan-11: #bad3d9;
+    --chan-12: #b39aa2;
+    --chan-13: #868c78;
+    --chan-14: #d0aea8;
+    --chan-15: #a4a4a4;
+
+    // the showcase site's demo tags: vivid, the site shows no fibre cap
+    --demo-play: #7aa7ff;
+    --demo-edit: #c49bff;
+    --demo-tune: #3ddc97;
+    --demo-midi: #4fd1e8;
+    --demo-usb: #ff7eb6;
+    --demo-desktop: #ff9f5a;
+
+    // the arc measure drawn over the camera image: its zone, the pixels it kept
+    --zone-rgb: 255 190 60;
+    --mask-rgb: 70 255 120;
+
+    // the signals as text on a panel: as they are on a dark palette; a light one lowers
+    // --signal-mix, pulling them toward its strong text, so they read on its paper
+    --amber-text: color-mix(in srgb, var(--amber) var(--signal-mix), var(--text-strong));
+    --bang-strike-text: color-mix(in srgb, var(--bang-strike) var(--signal-mix), var(--text-strong));
+    --bang-ocd-text: color-mix(in srgb, var(--bang-ocd) var(--signal-mix), var(--text-strong));
+
+    // a link under the pointer: its accent, lightened
+    --link-hover: color-mix(in srgb, var(--volt) 65%, #fff);
+
+    // volt tints
+    --volt-05: rgb(var(--volt-rgb) / 0.05);
+    --volt-06: rgb(var(--volt-rgb) / 0.06);
+    --volt-08: rgb(var(--volt-rgb) / 0.08);
+    --volt-10: rgb(var(--volt-rgb) / 0.1);
+    --volt-16: rgb(var(--volt-rgb) / 0.16);
+    --volt-30: rgb(var(--volt-rgb) / 0.3);
+    --volt-50: rgb(var(--volt-rgb) / 0.5);
+    --volt-55: rgb(var(--volt-rgb) / 0.55);
+    --volt-70: rgb(var(--volt-rgb) / 0.7);
+    --volt-95: rgb(var(--volt-rgb) / 0.95);
+
+    // scrims (were rgba(8,11,17,α))
+    --scrim-45: rgb(var(--bg-rgb) / 0.45);
+    --scrim-62: rgb(var(--bg-rgb) / 0.62);
+    --scrim-72: rgb(var(--bg-rgb) / 0.72);
+    --scrim-90: rgb(var(--bg-rgb) / 0.9);
+
+    // the coil colours (--coil-0..5) and the speakers' --plasma: toned per palette
+}

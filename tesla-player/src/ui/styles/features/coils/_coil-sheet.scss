@@ -1,0 +1,448 @@
+// ===========================================================================
+//  COIL SHEET
+// ===========================================================================
+// ui/components/coils/CoilSheet.vue (+ CoilField.vue): what a coil is built of on
+// the left (its sizes on a drawing, one electrical panel, its notes), what the
+// model makes of it at the play point on the right (the 3D, the ontime ruler,
+// each note's power). On a phone the picture holds the top, the rest in two tabs
+// sliding over it. The coil's colour is --c.
+
+.coil-sheet__head {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.coil-sheet__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    flex: 1 1 18rem;
+}
+
+.coil-sheet__dot {
+    flex: 0 0 auto;
+    width: var(--coil-mark-w, 4px);
+    height: 1.4rem;
+    border-radius: var(--coil-mark-radius, var(--radius-2xs));
+    background: var(--c);
+}
+
+.coil-sheet__name {
+    flex: 0 1 auto;
+    min-width: 0;
+    width: 14rem;
+    max-width: 24rem;
+    padding: 0.2rem 0.4rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-strong);
+    font-family: var(--font-display);
+    font-size: var(--fs-2xl);
+    font-weight: 700;
+}
+
+.coil-sheet__name:hover {
+    border-color: var(--line);
+}
+
+.coil-sheet__name:focus {
+    outline: none;
+    border-color: var(--volt-50);
+    background: var(--bg-2);
+}
+
+.coil-sheet__name.is-invalid {
+    border-color: var(--danger);
+}
+
+// its exemplaires (declared in the list): one config, saved to all of them. Bare on the
+// head: a look that paints its head a bar of its own colours its text for it
+.coil-twin {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    padding: 0.25rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    cursor: help;
+}
+
+.coil-twin > i {
+    color: var(--volt);
+}
+
+.coil-twin__lead {
+    color: var(--text-dim);
+}
+
+.coil-twin__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-weight: 600;
+}
+
+.coil-twin__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.coil-sheet__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    // wrapped under the name on a narrow screen: still on the right
+    margin-left: auto;
+}
+
+.coil-sheet__dirty {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--amber);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.coil-sheet__dirty i {
+    font-size: 0.45rem;
+}
+
+.coil-sheet__body {
+    display: grid;
+    grid-template-columns: minmax(26rem, 0.85fr) minmax(0, 1.15fr);
+    gap: 1rem;
+    padding: 0 2rem 1.4rem;
+    align-items: start;
+}
+
+.coil-sheet__form,
+.coil-sheet__model,
+.coil-sheet__results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-width: 0;
+}
+
+// the model stays in sight while the form scrolls
+.coil-sheet__model {
+    position: sticky;
+    top: 5.5rem;
+}
+
+.coil-group {
+    display: block;
+    padding: 0.7rem 0.85rem 0.85rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    min-width: 0;
+}
+
+.coil-group__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-bottom: 0.6rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.coil-group__head small {
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+// the sizes, on their drawing (CoilDimensions)
+.coil-dims {
+    padding-bottom: 0.4rem;
+}
+
+// the electrical panel: a row per theme, its name on the left
+.coil-elec {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.coil-elec__row {
+    display: grid;
+    grid-template-columns: 7rem minmax(0, 1fr);
+    gap: 0.6rem;
+    align-items: start;
+}
+
+.coil-elec__row + .coil-elec__row {
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--line);
+}
+
+.coil-elec__k {
+    padding-top: 1.15rem;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+}
+
+.coil-elec__k small {
+    display: block;
+    margin-top: 0.25rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--text-dim);
+}
+
+.coil-elec__fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(6.4rem, 1fr));
+    gap: 0.55rem 0.6rem;
+}
+
+// the coil's own frequency, worked out from the fields beside it
+.coil-elec__freq {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    grid-column: 1 / -1;
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+    cursor: help;
+}
+
+.coil-elec__freq i {
+    color: var(--volt);
+    font-size: var(--fs-xs);
+}
+
+.coil-elec__freq small {
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.coil-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.coil-field__label {
+    position: relative;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.coil-field__box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+}
+
+.coil-field__box:focus-within {
+    border-color: var(--volt-50);
+}
+
+.coil-field.is-invalid .coil-field__box {
+    border-color: var(--danger);
+}
+
+.coil-field__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+}
+
+.coil-field__input:focus {
+    outline: none;
+}
+
+.coil-field__input::placeholder {
+    color: var(--text-mute);
+    font-style: italic;
+}
+
+.coil-field--choice {
+    grid-column: span 2;
+}
+
+.coil-field__unit {
+    flex: 0 0 auto;
+    padding-right: 0.5rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.coil-notes__text {
+    width: 100%;
+    resize: vertical;
+    padding: 0.45rem 0.55rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+}
+
+.coil-notes__text:focus {
+    outline: none;
+    border-color: var(--volt-50);
+}
+
+.coil-sheet__more,
+.coil-sheet__note {
+    margin: 0;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.coil-sheet__more a {
+    color: var(--volt);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.coil-sheet__more a:hover {
+    text-decoration: underline;
+}
+
+// the phone's two tabs under the picture
+.coil-sheet__tabs {
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}
+
+.coil-sheet__tabs button {
+    flex: 1 1 0;
+    padding: 0.45rem 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.coil-sheet__tabs button.is-on {
+    background: var(--volt-16);
+    color: var(--text-strong);
+}
+
+@media (max-width: 1200px) {
+    .coil-sheet__body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .coil-sheet__model {
+        position: static;
+        order: -1;
+    }
+}
+
+@media (max-width: 1000px) {
+    .coil-sheet__body {
+        padding: 0 0.5rem 0.5rem;
+    }
+
+    .coil-sheet__name {
+        width: 9rem;
+        font-size: var(--fs-xl);
+    }
+
+    .coil-sheet__title {
+        flex-basis: auto;
+    }
+
+    // a row's name over its fields: the width goes to them
+    .coil-elec__row {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 0.35rem;
+    }
+
+    .coil-elec__k {
+        padding-top: 0;
+    }
+
+    .coil-twin__lead,
+    .coil-sheet__save-label {
+        display: none;
+    }
+}
+
+// the phone: the picture held under the head, the tabs and their pages sliding over it
+.coil-sheet__body.is-phone {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+}
+
+.coil-sheet__body.is-phone .coil-sheet__model {
+    display: contents;
+}
+
+.coil-sheet__body.is-phone .coil-sheet__view {
+    position: sticky;
+    top: 4.6rem;
+    z-index: 0;
+    order: 0;
+}
+
+.coil-sheet__body.is-phone .coil-sheet__tabs,
+.coil-sheet__body.is-phone .coil-sheet__results,
+.coil-sheet__body.is-phone .coil-sheet__form {
+    position: relative;
+    z-index: 1;
+    background: var(--bg);
+}
+
+.coil-sheet__body.is-phone .coil-sheet__tabs {
+    order: 1;
+    margin-top: -0.9rem;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    box-shadow: var(--shadow-pop);
+}
+
+.coil-sheet__body.is-phone .coil-sheet__results,
+.coil-sheet__body.is-phone .coil-sheet__form {
+    order: 2;
+    padding-top: 0.6rem;
+    min-height: 70vh;
+}

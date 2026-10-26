@@ -1,0 +1,13 @@
+// ===========================================================================
+//  ICON
+// ===========================================================================
+// The box a Font Awesome glyph sits in (<span class="icon"><i class="fas …">):
+// square, the glyph centred, so a row of icons lines up whatever the glyph's width.
+// A piece that wants the glyph's own size sets width and height back to auto.
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+}

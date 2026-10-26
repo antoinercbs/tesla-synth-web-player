@@ -1,0 +1,52 @@
+{
+    "id": "com.teslasynth.player",
+    "name": "Tesla Coil Player",
+    "short_name": "Tesla Player",
+    "description": "Lecteur et éditeur MIDI en direct pour bobines Tesla.",
+    "display": "standalone",
+    "display_override": [
+        "window-controls-overlay",
+        "minimal-ui"
+    ],
+    "orientation": "any",
+    "theme_color": "#131c28",
+    "background_color": "#080b11",
+    "dir": "ltr",
+    "lang": "fr-FR",
+    "categories": [
+        "music",
+        "entertainment",
+        "utilities"
+    ],
+    "share_target": {
+        "action": "/api/midi",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "files": [
+                {
+                    "name": "file",
+                    "accept": [
+                        "audio/midi",
+                        ".mid",
+                        ".midi"
+                    ]
+                }
+            ]
+        }
+    },
+    "icons": [
+        {
+            "src": "/icon.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/icon-maskable.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+        }
+    ]
+}

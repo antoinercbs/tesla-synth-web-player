@@ -1,0 +1,937 @@
+// ===========================================================================
+//  THE SITE (site/views, site/components)
+// ===========================================================================
+// The project's pages: GitHub Pages, a server's home for a visitor who isn't
+// signed in, the app's "About". They wear the look like the app: its panels,
+// buttons, badges, pills and hints; what is here is their layout only.
+
+.site {
+    flex: 1 0 auto;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.site__page {
+    flex: 1 0 auto;
+}
+
+.site-wrap {
+    // wider on a wide screen, so the page doesn't sit small in the middle of it
+    max-width: clamp(74rem, 72vw, 96rem);
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+// the home's first screen, its preview large (and the bar and footer around it)
+.site-wrap--wide {
+    max-width: 150rem;
+}
+
+.site-narrow {
+    max-width: 50rem;
+}
+
+// a page's sections are linked to: below the bar when scrolled to
+.site [id] {
+    scroll-margin-top: 6rem;
+}
+
+.site-lead {
+    margin: 0;
+    max-width: 60ch;
+    color: var(--text-dim);
+    font-size: var(--fs-lg);
+}
+
+.site-mute {
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.site-small {
+    display: block;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.site-badges {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.site-cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+}
+
+.site-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.1rem;
+    margin: 0.9rem 0 0;
+    font-size: var(--fs-sm);
+}
+
+.site-links a:hover,
+.site-more:hover {
+    text-decoration: underline;
+}
+
+.site-more {
+    font-size: var(--fs-md);
+    white-space: nowrap;
+}
+
+.site-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.9rem;
+    margin: 0;
+    color: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+// ---- the bar: the app's brand lockup and nav items, in a row ----
+.site-top {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    border-bottom: var(--border-w) solid var(--line);
+    background: var(--scrim-62);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.site-top__bar {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    min-height: 4.2rem;
+}
+
+.site-top .brand {
+    display: flex;
+    margin: 0;
+    padding: 0;
+}
+
+.site-top__nav {
+    position: relative;
+    flex-direction: row;
+    align-self: stretch;
+    align-items: center;
+    gap: 0.1rem;
+    margin: 0;
+}
+
+.site-top .nav-item {
+    padding: 0.45rem 0.65rem;
+    font-size: var(--fs-md);
+}
+
+// the current page is the site's own mark (the micro-arc), not the sidebar's: a
+// router link is "active" on every page below its own (the home's, all of them)
+.site-top .nav-item.router-link-active {
+    background: none;
+    box-shadow: none;
+    color: var(--text-dim);
+}
+
+.site-top .nav-item.router-link-active::before {
+    display: none;
+}
+
+.site-top .nav-item.is-current {
+    color: var(--text-strong);
+}
+
+.site-top__arc {
+    bottom: 0.55rem;
+}
+
+.site-top__end {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+}
+
+.site-top__lang button {
+    padding: 0.2rem 0.5rem;
+    font-size: var(--fs-xs);
+}
+
+.site-top__pages {
+    display: none;
+    overflow-x: auto;
+    border-top: var(--border-w) solid var(--line);
+    scrollbar-width: none;
+}
+
+.site-top__pages .site-wrap {
+    display: flex;
+    gap: 0.2rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+}
+
+.site-top__pages .nav-item {
+    padding: 0.35rem 0.6rem;
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.site-top__pages .nav-item.is-current {
+    color: var(--text-strong);
+    background: var(--volt-10);
+}
+
+// ---- the home's first screen: one window, its way in first, the rest below ----
+.site-welcome {
+    // the window between the bar and the pinned footer (both measured by their
+    // components): the rest of the home is a scroll away
+    position: relative;
+    min-height: calc(100dvh - var(--site-top-h, 4.2rem) - var(--site-foot-h, 3.5rem));
+    display: flex;
+    align-items: center;
+    // below: the room "Learn more" sits in
+    padding: 3rem 0 5.5rem;
+    text-align: center;
+}
+
+.site-welcome__inner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+.site-welcome__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.site-welcome .player-hint {
+    margin: 0;
+}
+
+// beside the app's preview (the site, "About"): the text on the left
+.site-welcome--split {
+    text-align: left;
+}
+
+.site-welcome--split .site-welcome__inner {
+    display: grid;
+    // the preview (in time the demo video) large enough to see the app in it:
+    // this screen spreads beyond the site's width (.site-wrap--wide), the text a
+    // narrow column
+    grid-template-columns: minmax(22rem, 0.85fr) minmax(0, 1.6fr);
+    gap: clamp(2rem, 3vw, 4.5rem);
+    align-items: center;
+}
+
+.site-welcome--split .site-welcome__text {
+    align-items: flex-start;
+}
+
+.site-welcome--split .site-welcome__cta {
+    justify-content: flex-start;
+}
+
+.site-welcome--split .site-welcome__title {
+    font-size: clamp(2.8rem, 1.6vw + 1.5rem, 4rem);
+}
+
+.site-welcome__title {
+    margin: 0;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: clamp(3rem, 1.8vw + 1.6rem, 4.4rem);
+    line-height: 1.08;
+}
+
+.site-welcome .site-lead {
+    font-size: clamp(var(--fs-lg), 0.4vw + 0.75rem, 1.2rem);
+}
+
+.site-welcome__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0 0.2rem;
+}
+
+// what "Learn more" scrolls to stops below the bar, not under it (over .site [id])
+.site .site-welcome + * {
+    scroll-margin-top: var(--site-top-h, 4.2rem);
+}
+
+// the rest of the page is below: said, and a click away
+.site-welcome__more {
+    position: absolute;
+    bottom: 1.2rem;
+    left: 50%;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.8rem;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    cursor: var(--cursor-pointer, pointer);
+    transform: translateX(-50%);
+}
+
+.site-welcome__more:hover {
+    color: var(--text-strong);
+}
+
+.site-welcome__more i {
+    color: var(--volt);
+    font-size: var(--fs-lg);
+    animation: site-nudge 1.8s ease-in-out infinite;
+}
+
+@keyframes site-nudge {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(0.35rem);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .site-welcome__more i {
+        animation: none;
+    }
+}
+
+// the way in, well ahead of the other one
+.site-welcome__primary {
+    padding: 1.05rem 2.6rem;
+    font-size: clamp(1.3rem, 0.5vw + 1rem, 1.6rem);
+}
+
+// ---- video: a poster until clicked ----
+.site-video {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--bg-2);
+    box-shadow: var(--shadow-panel);
+}
+
+.site-video__poster,
+.site-video__frame {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-video__scrim {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    background: var(--scrim-45);
+}
+
+.site-video__cap {
+    position: absolute;
+    right: 0.8rem;
+    bottom: 0.7rem;
+    left: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.site-video__dur {
+    padding: 0.1rem 0.45rem;
+    border-radius: var(--radius-xs);
+    background: var(--scrim-62);
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+// ---- sections, cards ----
+.site-page-head {
+    padding: 2.6rem 0 1.4rem;
+}
+
+.site-page-head .view-head__title {
+    margin: 0 0 0.7rem;
+    font-size: 2.1rem;
+}
+
+.site-section {
+    padding: 2.8rem 0 0;
+}
+
+.site-section__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.site-section__head .view-head__title {
+    margin: 0 0 0.4rem;
+}
+
+.site-sub {
+    margin: 0 0 0.9rem;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1rem;
+}
+
+.site-cards--3 {
+    grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+}
+
+.site-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1.1rem 1.2rem;
+    color: inherit;
+}
+
+.site-card > .icon {
+    margin-bottom: 0.3rem;
+    color: var(--volt);
+    font-size: var(--fs-xl);
+}
+
+.site-card b {
+    color: var(--text-strong);
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+}
+
+.site-card p {
+    margin: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+}
+
+.site-card .credits__links,
+.site-card__end {
+    flex-wrap: wrap;
+    margin-top: auto;
+    padding-top: 0.5rem;
+}
+
+// ---- features ----
+.site-feat {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+    gap: 2.5rem;
+    align-items: center;
+    margin-bottom: 3rem;
+}
+
+.site-feat--flip {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.site-feat--flip .site-feat__text {
+    order: 2;
+}
+
+.site-feat__title {
+    margin: 0 0 0.5rem;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-shot img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-panel);
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-ticks {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-md);
+}
+
+.site-ticks li {
+    display: flex;
+    gap: 0.55rem;
+}
+
+.site-ticks i {
+    margin-top: 0.3rem;
+    color: var(--volt);
+    font-size: var(--fs-xs);
+}
+
+.site-looks {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.2rem 1rem;
+}
+
+.site-look {
+    margin: 0;
+}
+
+.site-look img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 10;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-md);
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-look__more {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    aspect-ratio: 16 / 10;
+    padding: 1rem;
+    border: var(--border-w) dashed var(--line-strong);
+    border-radius: var(--radius-md);
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+    text-align: center;
+}
+
+.site-look__more i {
+    color: var(--volt);
+    font-size: var(--fs-2xl);
+}
+
+.site-look figcaption {
+    margin-top: 0.4rem;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+// ---- demos ----
+.site-demos {
+    display: grid;
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    gap: 1.1rem;
+    align-items: start;
+}
+
+.site-vlist {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.site-vgrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    gap: 1rem;
+}
+
+.site-vcard {
+    display: grid;
+    grid-template-columns: 9rem 1fr;
+    gap: 0.9rem;
+    align-items: center;
+    padding: 0.6rem;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.site-vcard:hover,
+.site-vcard.is-current {
+    border-color: var(--line-strong);
+}
+
+.site-vcard.is-current .row-btn--play {
+    border-color: transparent;
+    background: var(--grad);
+    color: var(--on-grad);
+}
+
+.site-vcard b {
+    display: block;
+    margin-bottom: 0.3rem;
+    color: var(--text-strong);
+    font-size: var(--fs-lg);
+}
+
+.site-vcard__thumb {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 10;
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+}
+
+.site-vcard__thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    opacity: 0.55;
+    object-fit: cover;
+    object-position: left top;
+}
+
+.site-vcard__thumb .row-btn {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.site-vcard__meta {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.site-vgrid .site-vcard {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.site-vgrid .site-vcard__thumb {
+    border-radius: 0;
+}
+
+.site-vgrid .site-vcard__text {
+    padding: 0.7rem 0.9rem 0.9rem;
+}
+
+// ---- download: one column of sections ----
+.site-dl {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    padding: 1.8rem 0;
+    border-top: var(--border-w) solid var(--line);
+}
+
+.site-dl__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+}
+
+.site-dl__title .icon {
+    color: var(--volt);
+}
+
+.site-dl .player-hint,
+.site-dl .site-links,
+.site-dl .dl-modal__options,
+.site-dl .dl-modal__note {
+    margin: 0;
+}
+
+.site-dl__big {
+    align-self: flex-start;
+    padding: 0.8rem 1rem;
+}
+
+.site-dl__big small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.site-dl__sync {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.site-code {
+    position: relative;
+}
+
+.site-code__text {
+    margin: 0;
+    padding: 0.7rem 2.8rem 0.7rem 0.8rem;
+    overflow-x: auto;
+    border: var(--border-w) solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    white-space: pre;
+}
+
+.site-code__copy {
+    // over the command's end (it scrolls under): opaque, not showing it through
+    --icon-btn-bg: var(--bg-2);
+    position: absolute;
+    top: 0.4rem;
+    right: 0.4rem;
+}
+
+// ---- credits ----
+.site-lead-credit {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: center;
+    padding: 1.6rem;
+}
+
+.site-lead-credit .credits__item {
+    gap: 0.5rem;
+}
+
+.site-lead-credit .credits__item p {
+    color: var(--text-dim);
+}
+
+.site-lead-credit .dl-modal__options {
+    margin: 0;
+}
+
+.site-lead-credit__kicker {
+    color: var(--volt);
+}
+
+.site-lead-credit__name {
+    margin: 0.3rem 0 0;
+    color: var(--text-strong);
+    font-weight: 700;
+    font-size: var(--fs-2xl);
+}
+
+.site-credits {
+    margin-top: 1rem;
+}
+
+.site-credits__license {
+    margin-top: 1rem;
+}
+
+// ---- footer ----
+.site-foot {
+    margin-top: 3.5rem;
+    padding: 1.6rem 0 2.5rem;
+    border-top: var(--border-w) solid var(--line);
+}
+
+// under the welcome screen: pinned at the window's foot while the page scrolls
+.site-foot--pinned {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    padding: 0.9rem 0;
+    // opaque: the page scrolls right under it
+    background: var(--bg);
+}
+
+.site-foot__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem 2rem;
+}
+
+.site-foot__text {
+    margin: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.site-foot__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    font-size: var(--fs-sm);
+}
+
+.site-foot__links a {
+    color: var(--text-dim);
+}
+
+// ---- narrower screens ----
+@media (max-width: 1100px) {
+    .site-top__nav,
+    .site-top__lang {
+        display: none;
+    }
+
+    .site-top__pages {
+        display: block;
+    }
+}
+
+@media (max-width: 1000px) {
+    .site-wrap {
+        padding: 0 1rem;
+    }
+
+    // the app turns its sidebar into a bottom bar here: the site's brand and nav
+    // items are its own
+    .site-top .brand {
+        display: flex;
+    }
+
+    .site-top__pages a.nav-item {
+        flex: none;
+        flex-direction: row;
+        min-height: 0;
+        border-radius: var(--radius);
+    }
+
+    .site-welcome--split .site-welcome__inner,
+    .site-demos,
+    .site-lead-credit,
+    .site-feat,
+    .site-feat--flip {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .site-feat {
+        gap: 1rem;
+    }
+
+    .site-feat--flip .site-feat__text {
+        order: 0;
+    }
+
+    .site-lead-credit {
+        padding: 1.1rem;
+    }
+
+    .site-looks {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .site-welcome__title,
+    .site-welcome--split .site-welcome__title {
+        font-size: 2.3rem;
+    }
+
+    // a phone can't run the app: its preview would only push the way in down
+    .site-welcome__preview {
+        display: none;
+    }
+
+    .site-welcome__cta {
+        flex-direction: column;
+        align-self: stretch;
+    }
+
+    .site-welcome__cta .btn {
+        justify-content: center;
+    }
+
+    .site-welcome__primary {
+        align-self: stretch;
+    }
+
+    .site-welcome--split .site-welcome__text {
+        align-items: stretch;
+    }
+
+    .site-section__head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    // a phone's screen is too short to give the footer a strip of it for good:
+    // it waits at the end of the page
+    .site-foot--pinned {
+        position: static;
+        padding: 1.6rem 0 2.5rem;
+    }
+
+    .site-welcome {
+        min-height: calc(100dvh - var(--site-top-h, 4.2rem));
+    }
+}
+
+// a short window (a laptop): the first screen's text a size down, to keep it on screen
+@media (max-height: 780px) and (min-width: 601px) {
+    .site-welcome {
+        padding-top: 2rem;
+    }
+
+    .site-welcome__title,
+    .site-welcome--split .site-welcome__title {
+        font-size: 2.5rem;
+    }
+
+    .site-welcome__primary {
+        padding: 0.85rem 2rem;
+        font-size: 1.2rem;
+    }
+
+    // the pinned footer credits Max Zuidberg already
+    .site-welcome__credit {
+        display: none;
+    }
+}
+
+@media (max-width: 480px) {
+    .site-top .brand__sep,
+    .site-top .brand__text,
+    .site-top__gh {
+        display: none;
+    }
+}

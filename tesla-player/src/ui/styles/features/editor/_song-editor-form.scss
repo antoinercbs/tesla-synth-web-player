@@ -1,0 +1,120 @@
+// ===========================================================================
+//  SONG EDITOR
+// ===========================================================================
+// ui/components/editor/SongEditor.vue
+
+.editor-tag-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    padding: 0.15rem 0.2rem 0.15rem 0.6rem;
+    border-radius: var(--radius-xs);
+    color: color-mix(in srgb, var(--tag-c) var(--signal-mix), var(--text-strong));
+    background-color: color-mix(in srgb, var(--tag-c) 15%, transparent);
+    border: 1px solid color-mix(in srgb, var(--tag-c) 30%, transparent);
+}
+
+.tag-rm {
+    background: none;
+    border: none;
+    color: inherit;
+    opacity: 0.6;
+    cursor: var(--cursor-pointer, pointer);
+    padding: 0.2rem;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    transition: 0.15s;
+}
+
+.tag-rm:hover {
+    opacity: 1;
+}
+
+.editor-tags__add {
+    background: transparent;
+    border: none;
+    color: var(--text-mute);
+    border-radius: var(--radius-xs);
+    width: 1.6rem;
+    height: 1.6rem;
+    display: grid;
+    place-items: center;
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.15s;
+    font-size: var(--fs-xs);
+    padding: 0.15rem 0.2rem 0.15rem 0.2rem;
+}
+
+.editor-tags__add:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+    background: color-mix(in srgb, var(--volt) 10%, transparent);
+}
+
+.tag-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag-new {
+    display: flex;
+    gap: 0.3rem;
+    padding: 0.2rem;
+}
+
+.tag-new__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.3rem 0.5rem;
+    font-size: var(--fs-md);
+}
+
+.tag-new__add {
+    flex: 0 0 auto;
+    width: 2rem;
+    display: grid;
+    place-items: center;
+    background: none;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    color: var(--text-dim);
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.15s;
+}
+
+.tag-new__add:hover:not(:disabled) {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+.tag-new__add:disabled {
+    opacity: 0.45;
+    cursor: var(--cursor-default, default);
+}
+
+.editor-dirty {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--amber);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.editor-dirty i {
+    font-size: 0.45rem;
+}
+
+// only the phone layout shows it, in place of the tools it hides (_edit-view.scss)
+.editor-large-only {
+    display: none;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}

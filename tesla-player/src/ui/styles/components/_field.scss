@@ -1,0 +1,159 @@
+// ===========================================================================
+//  FIELDS
+// ===========================================================================
+// A label over its control: text fields, selects, and the button beside a field.
+// A skin restyles them through these tokens (unset, the lab look below):
+//   --field-bg --field-color --field-border --field-radius --field-font
+//   --field-size --field-pad-y --field-pad-x
+//   --field-focus-border --field-focus-ring --field-label-color
+//   --field-btn-bg --field-btn-color --field-btn-border
+
+.field-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    min-width: 0;
+}
+
+.field-block--wide {
+    grid-column: 1 / -1;
+}
+
+// always a stacked label: at its own size in a flex row, left whatever its
+// container's alignment (a dialog centres its text)
+.field-label {
+    flex: none;
+    text-align: left;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--field-label-color, var(--text-dim));
+}
+
+.text-field {
+    background: var(--field-bg, var(--bg-2));
+    border: var(--border-w) solid var(--field-border, var(--line));
+    border-radius: var(--field-radius, var(--radius-sm));
+    color: var(--field-color, var(--text));
+    font-family: var(--field-font, var(--font-body));
+    font-size: var(--field-size, var(--fs-input));
+    padding: var(--field-pad-y, 0.55rem) var(--field-pad-x, 0.75rem);
+    width: 100%;
+    outline: none;
+    transition: var(--dur-fast);
+}
+
+.text-field:focus {
+    border-color: var(--field-focus-border, var(--volt));
+    box-shadow: var(--field-focus-ring, var(--focus-ring));
+}
+
+// a value the form can't take (aria-invalid), and the line saying why under it
+.text-field.is-invalid {
+    border-color: var(--danger);
+}
+
+.field-error {
+    margin: 0.35rem 0 0;
+    font-size: var(--fs-sm);
+    color: var(--danger-text, var(--danger));
+}
+
+.select-field {
+    position: relative;
+}
+
+// a list to pick from: the native one, or the button that opens a menu in its place
+.select-field select,
+.select-field__button {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 100%;
+    background: var(--field-bg, var(--bg-2));
+    border: var(--border-w) solid var(--field-border, var(--line));
+    border-radius: var(--field-radius, var(--radius-sm));
+    color: var(--field-color, var(--text));
+    font-family: var(--field-font, var(--font-body));
+    font-size: var(--field-size, var(--fs-lg));
+    padding: var(--field-pad-y, 0.55rem) 2rem var(--field-pad-y, 0.55rem) var(--field-pad-x, 0.75rem);
+    outline: none;
+    cursor: var(--cursor-pointer, pointer);
+    transition: var(--dur-fast);
+}
+
+.select-field select:focus,
+.select-field__button:focus-visible,
+.select-field__button[aria-expanded="true"] {
+    border-color: var(--field-focus-border, var(--volt));
+    box-shadow: var(--field-focus-ring, var(--focus-ring));
+}
+
+// the button shows the pick on one line, like a closed list
+.select-field__button {
+    display: block;
+    overflow: hidden;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.select-field::after {
+    content: "▾";
+    position: absolute;
+    right: 0.8rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+input[type="number"]::-webkit-inner-spin-button {
+    opacity: 0.35;
+}
+
+.field-btn {
+    flex: 0 0 auto;
+    width: 2.7rem;
+    border-radius: var(--field-radius, var(--radius-sm));
+    cursor: var(--cursor-pointer, pointer);
+    display: grid;
+    place-items: center;
+    background: var(--field-btn-bg, rgb(var(--hi-rgb) / 0.03));
+    border: var(--border-w) solid var(--field-btn-border, var(--line-strong));
+    color: var(--field-btn-color, var(--text-dim));
+    transition: var(--dur-fast);
+    padding: 0;
+}
+
+.field-btn:hover:not(:disabled) {
+    color: var(--volt);
+    border-color: var(--volt);
+}
+
+.field-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+// ui/components/ui/FormField.vue: a label, its text field and a hint, in the settings modals
+.form-field {
+    display: block;
+}
+
+// the quieter body-font label those modals use, not the editor's .field-label
+.form-field .field-label {
+    font-family: var(--font-body);
+    font-size: var(--fs-sm);
+    color: var(--field-label-color, var(--text-mute));
+}
+
+.form-field .text-field {
+    width: 100%;
+    margin-top: 0.3rem;
+}
+
+.form-field__hint {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}

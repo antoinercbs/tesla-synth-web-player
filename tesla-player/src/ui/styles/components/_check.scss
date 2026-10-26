@@ -1,0 +1,67 @@
+// ===========================================================================
+//  CHECK
+// ===========================================================================
+// A box to tick (input.check: a table's rows, a filter's values), drawn in the
+// look's tokens instead of the browser's own. On/off settings are .switch.
+// A skin restyles it through (unset, the lab look below):
+//   --check-size --check-radius --check-bg --check-border --check-on --check-mark
+
+.check {
+    appearance: none;
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-content: center;
+    width: var(--check-size, 1rem);
+    height: var(--check-size, 1rem);
+    margin: 0;
+    border: var(--border-w) solid var(--check-border, var(--line-strong));
+    border-radius: var(--check-radius, var(--radius-xs));
+    background: var(--check-bg, var(--bg-2));
+    cursor: var(--cursor-pointer, pointer);
+    transition:
+        background 0.13s,
+        border-color 0.13s;
+}
+
+// the tick: two borders of a box, turned; scaled from nothing when ticked
+.check::before {
+    content: "";
+    width: calc(var(--check-size, 1rem) * 0.5);
+    height: calc(var(--check-size, 1rem) * 0.28);
+    border-left: 2px solid var(--check-mark, var(--ink));
+    border-bottom: 2px solid var(--check-mark, var(--ink));
+    transform: translateY(-10%) rotate(-45deg) scale(0);
+    transition: transform 0.1s;
+}
+
+.check:hover {
+    border-color: var(--check-on, var(--volt));
+}
+
+.check:checked,
+.check:indeterminate {
+    background: var(--check-on, var(--volt));
+    border-color: var(--check-on, var(--volt));
+}
+
+.check:checked::before {
+    transform: translateY(-10%) rotate(-45deg) scale(1);
+}
+
+// some of them: a dash
+.check:indeterminate::before {
+    width: calc(var(--check-size, 1rem) * 0.5);
+    height: 0;
+    border-left: 0;
+    transform: none;
+}
+
+.check:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+}
+
+.check:disabled {
+    cursor: var(--cursor-default, default);
+    opacity: 0.4;
+}

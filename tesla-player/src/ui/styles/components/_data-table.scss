@@ -1,0 +1,337 @@
+// ===========================================================================
+//  DATA TABLE
+// ===========================================================================
+// The libraries' tables (ui/components/ui/DataTable.vue): the MIDI files, the songs, the
+// playlists. The component writes the columns: --dt-cols, --dt-cols-narrow (the
+// columns a narrow table keeps) and --dt-actions (the actions column). A phone's
+// table turns each row into two lines: the first column, then the others, the
+// actions on the right; its head keeps only the headers that sort or filter, in
+// a row. A column's filter is ui/components/ui/ColumnFilter.vue (components/_column-filter.scss).
+//   --dt-max-h  how tall the rows may grow before they scroll (a page of its
+//               own lets them fill it: .lib-page)
+
+// hugs its rows; only scrolls once they outgrow the space
+.data-table {
+    flex: 0 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    overflow: hidden;
+    container-type: inline-size;
+}
+
+.data-table__scroll {
+    --dt-grid: var(--dt-cols);
+    flex: 1 1 auto;
+    min-height: 0;
+    max-height: var(--dt-max-h, 42vh);
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.data-table__head,
+.data-table__row {
+    display: grid;
+    grid-template-columns: var(--dt-grid);
+    gap: var(--sp-3);
+    align-items: center;
+    padding-inline: var(--sp-3);
+}
+
+.data-table__head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding-block: 0.55rem;
+    background: var(--panel);
+    border-bottom: 1px solid var(--line);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--text-mute);
+}
+
+.data-table__th {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.data-table__th.is-num {
+    justify-content: flex-end;
+    text-align: right;
+}
+
+.data-table__label,
+.data-table__sort span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// a header that sorts: its arrow shows on hover, and stays on the column sorted
+.data-table__sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+    padding: 0.15rem 0;
+    background: none;
+    border: 0;
+    color: inherit;
+    font: inherit;
+    cursor: var(--cursor-pointer, pointer);
+    transition: color 0.13s;
+}
+
+.data-table__sort i {
+    font-size: 0.85em;
+    opacity: 0;
+    transition: opacity 0.13s;
+}
+
+.data-table__sort:hover,
+.data-table__sort:focus-visible {
+    color: var(--text);
+}
+
+.data-table__sort:hover i,
+.data-table__sort:focus-visible i,
+.data-table__sort.is-sorted i {
+    opacity: 1;
+}
+
+.data-table__sort.is-sorted {
+    color: var(--volt);
+}
+
+.data-table__row {
+    position: relative;
+    min-height: 2.9rem;
+    padding-block: 0.3rem;
+    border-bottom: 1px solid var(--line);
+    transition: background 0.13s;
+}
+
+.data-table__row:hover {
+    background: var(--line-005);
+}
+
+/* the item in use: same micro-arc edge as the song on air */
+.data-table__row.is-current {
+    background: var(--volt-08);
+}
+
+.data-table__row.is-current::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    background: linear-gradient(180deg, var(--arc-core), var(--arc-mid) 45%, var(--arc-deep));
+    -webkit-mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+    mask: var(--micro-arc-v) center / 100% 100% no-repeat;
+}
+
+// a row unfolded (the `details` slot): its details under it, on the same ground
+.data-table__row.is-open {
+    border-bottom-color: transparent;
+    background: var(--line-005);
+}
+
+.data-table__fold {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.data-table__details {
+    padding-inline: var(--sp-3);
+    border-bottom: 1px solid var(--line);
+    background: var(--line-005);
+}
+
+// the box ticking a row (selectable)
+.data-table__select {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.data-table__row.is-selected {
+    background: var(--volt-08);
+}
+
+// no overflow here: a cell may hold a menu
+.data-table__cell {
+    min-width: 0;
+}
+
+.data-table__cell.is-num {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+.data-table__actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+}
+
+// as wide as its text: only the name opens the item, not the empty cell around it
+.data-table__name {
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: middle;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-lg);
+    font-weight: 500;
+    color: var(--text-strong);
+    text-decoration: none;
+    transition: color 0.13s;
+}
+
+a.data-table__name {
+    cursor: var(--cursor-pointer, pointer);
+}
+
+a.data-table__name:hover,
+a.data-table__name:focus-visible {
+    color: var(--volt);
+}
+
+// a secondary fact: a file name, a list of instruments
+.data-table__text {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+// a row of chips (a song's tags), cut at the column's edge
+.data-table__chips {
+    display: flex;
+    gap: 0.35rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+// a bare icon button or link among the actions
+.data-table__btn {
+    background: none;
+    border: 0;
+    cursor: var(--cursor-pointer, pointer);
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    display: grid;
+    place-items: center;
+}
+
+.data-table__btn:hover {
+    color: var(--volt);
+}
+
+.data-table__empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--sp-2);
+    padding: var(--sp-4) var(--sp-3) var(--sp-5);
+    color: var(--text-mute);
+    font-size: var(--fs-md);
+    text-align: center;
+}
+
+@container (max-width: 540px) {
+    .data-table__scroll {
+        --dt-grid: var(--dt-cols-narrow);
+    }
+
+    .data-table__th.is-hide-narrow,
+    .data-table__cell.is-hide-narrow {
+        display: none;
+    }
+}
+
+/* phones: two-line rows (the first column, then the others) instead of starving the first column */
+@container (max-width: 420px) {
+    // the sorts and filters stay, those of the columns dropped too
+    .data-table__head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem 0.9rem;
+    }
+
+    .data-table__head > :not(.is-interactive) {
+        display: none;
+    }
+
+    .data-table__th.is-interactive {
+        display: flex;
+    }
+
+    .data-table__row {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: var(--sp-3);
+        row-gap: 0;
+        padding-block: 0.45rem;
+        padding-right: calc(var(--dt-actions) + var(--dt-fold) + var(--sp-3) * 2);
+    }
+
+    .data-table__cell {
+        flex: 0 0 auto;
+    }
+
+    .data-table__cell.is-main {
+        flex-basis: 100%;
+    }
+
+    .data-table__cell.is-num {
+        text-align: left;
+    }
+
+    .data-table__cell.is-hide-phone {
+        display: none;
+    }
+
+    .data-table.is-selectable .data-table__row {
+        padding-left: calc(var(--sp-3) * 2 + 1rem);
+    }
+
+    .data-table__row > .data-table__select {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: var(--sp-3);
+    }
+
+    // no transform to centre it: that would make each row's menu a layer under the next row
+    .data-table__actions {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: calc(var(--sp-3) + var(--dt-fold));
+    }
+
+    .data-table__fold {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: var(--sp-3);
+    }
+}

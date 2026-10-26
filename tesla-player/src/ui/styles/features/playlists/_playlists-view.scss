@@ -1,0 +1,19 @@
+// ===========================================================================
+//  PLAYLISTS VIEW
+// ===========================================================================
+// ui/views/PlaylistsView.vue
+
+// the list (PlaylistLibrary): a playlist some of whose songs will be skipped on the coils wired
+.pl-skips {
+    color: var(--amber-text);
+}
+
+@media (max-width: 1000px) {
+    .pl-screen,
+    .pl-screen .screen-body--fill {
+        height: auto;
+        flex: none;
+        overflow: visible;
+        padding-bottom: 0;
+    }
+}

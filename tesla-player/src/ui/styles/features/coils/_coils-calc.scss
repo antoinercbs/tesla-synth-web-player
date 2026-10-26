@@ -1,0 +1,399 @@
+// ===========================================================================
+//  COILS CALCULATIONS
+// ===========================================================================
+// ui/views/CoilsCalcView.vue: the model's chain, a step per section, each row a
+// quantity: what it is, its equation, its value for the coil shown.
+
+// as tall as its content: a sticky head sticks within its screen, held to one window by .screen
+.calc-screen {
+    flex: 1 0 auto;
+}
+
+.calc-head {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.calc-head__title {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+// the coil's mark, in its fibre's colour (--c), as on its sheet
+.calc-head__dot {
+    flex: 0 0 auto;
+    width: var(--coil-mark-w, 4px);
+    height: 1.4rem;
+    border-radius: var(--coil-mark-radius, var(--radius-2xs));
+    background: var(--c);
+}
+
+.calc-head__what {
+    margin-left: 0.7rem;
+    font-family: var(--font-body);
+    font-size: var(--fs-md);
+    font-weight: 500;
+    color: var(--text-dim);
+}
+
+.calc-missing {
+    color: var(--text-mute);
+}
+
+.calc-body {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 62rem);
+    gap: 2rem;
+    align-items: start;
+}
+
+// the steps, beside them while the page scrolls
+.calc-toc {
+    position: sticky;
+    top: 5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    font-size: var(--fs-sm);
+}
+
+.calc-toc a {
+    display: flex;
+    align-items: baseline;
+    gap: 0.55rem;
+    padding: 0.3rem 0.5rem;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    text-decoration: none;
+}
+
+.calc-toc a:hover {
+    background: rgb(var(--hi-rgb) / 0.05);
+    color: var(--text);
+}
+
+.calc-toc span {
+    flex: 0 0 1.1rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.calc-doc {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.calc-lead {
+    margin: 0;
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+.calc-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    padding: 0.9rem 1rem 1rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    scroll-margin-top: 5rem;
+}
+
+.calc-step__title {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin: 0;
+    font-size: var(--fs-lg);
+    color: var(--text-strong);
+}
+
+.calc-step__n {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--volt);
+}
+
+.calc-step__lead {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    line-height: 1.5;
+}
+
+// a quantity: what it is (and a note) beside its equation, typeset by KaTeX
+.calc-eqs {
+    display: flex;
+    flex-direction: column;
+}
+
+.calc-eq {
+    display: grid;
+    grid-template-columns: minmax(11rem, 15rem) minmax(0, 1fr);
+    gap: 0.35rem 1.4rem;
+    align-items: center;
+    padding: 0.7rem 0;
+    border-top: 1px solid var(--line);
+}
+
+.calc-eq:first-child {
+    border-top: 0;
+}
+
+.calc-eq__what {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.calc-eq__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.calc-eq__what small {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    line-height: 1.4;
+}
+
+// a value typed on the sheet, not worked out
+.calc-eq__sheet {
+    padding: 0 0.4rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+// a long equation scrolls on its own rather than widening the page
+.calc-eq__math {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.15rem 0;
+    color: var(--text-strong);
+}
+
+.calc-eq__math .katex {
+    font-size: 1.12em;
+}
+
+// an equation breaks where it is written to (aligned lines), never by itself
+.calc-eq__math .katex-html {
+    white-space: nowrap;
+}
+
+// the value the equation ends on
+.calc-eq__math .calc-res {
+    color: var(--volt);
+}
+
+// the three arc corners
+.calc-corners {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--fs-sm);
+}
+
+.calc-corners caption {
+    padding-bottom: 0.35rem;
+    text-align: left;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.calc-corners th,
+.calc-corners td {
+    padding: 0.35rem 0.5rem;
+    border-top: 1px solid var(--line);
+    text-align: right;
+    font-weight: 400;
+}
+
+.calc-corners thead th {
+    border-top: 0;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.calc-corners th[scope="row"] {
+    text-align: left;
+    color: var(--text-dim);
+}
+
+.calc-corners td {
+    font-family: var(--font-mono);
+    color: var(--text);
+}
+
+.calc-corners .is-ref th,
+.calc-corners .is-ref td {
+    color: var(--text-strong);
+    font-weight: 600;
+}
+
+// a line's sources, under what it is: each a link to its entry in the list
+.calc-cites {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
+    margin-top: 0.15rem;
+}
+
+.calc-corners caption .calc-cites {
+    display: inline-flex;
+    margin: 0 0 0 0.4rem;
+    vertical-align: baseline;
+}
+
+.calc-cite {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.15rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.calc-cite sup {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    color: var(--volt);
+}
+
+.calc-cite:hover {
+    border-color: var(--volt);
+    color: var(--text);
+}
+
+// the list: each source, what the model takes from it, the lines that cite it
+.calc-srcs {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.calc-src {
+    display: grid;
+    grid-template-columns: 1.6rem minmax(0, 1fr);
+    gap: 0.6rem;
+    padding: 0.65rem 0.4rem;
+    border-top: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    scroll-margin-top: 6rem;
+}
+
+.calc-src:first-child {
+    border-top: 0;
+}
+
+.calc-src__n {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--volt);
+}
+
+.calc-src__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+    font-size: var(--fs-sm);
+}
+
+.calc-src__who {
+    color: var(--text-strong);
+}
+
+// its references: author, title, where, when; the link opens it
+.calc-src__refs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0.15rem 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-xs);
+    line-height: 1.45;
+    color: var(--text-dim);
+}
+
+.calc-src__refs a i {
+    margin-left: 0.35rem;
+    font-size: 0.8em;
+}
+
+.calc-src__what,
+.calc-src__uses {
+    margin: 0;
+    color: var(--text-dim);
+    line-height: 1.45;
+}
+
+.calc-src__uses {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+// reached through a link: lit a moment, so the eye finds it
+.calc-eq,
+.calc-src {
+    scroll-margin-top: 6rem;
+}
+
+.calc-eq:target,
+.calc-eq.is-reached,
+.calc-src:target {
+    animation: calc-reached 2.4s ease-out;
+}
+
+@keyframes calc-reached {
+    from {
+        background: var(--volt-08);
+    }
+
+    to {
+        background: transparent;
+    }
+}
+
+@media (max-width: 1100px) {
+    .calc-body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .calc-toc {
+        display: none;
+    }
+}
+
+@media (max-width: 700px) {
+    .calc-eq {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .calc-eq__math .katex {
+        font-size: 0.95em;
+    }
+
+    .calc-sources dl {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}

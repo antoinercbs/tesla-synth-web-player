@@ -1,0 +1,19 @@
+// ===========================================================================
+//  SONG EDITOR
+// ===========================================================================
+// no padding-bottom: any space below the sticky footer makes it "release" a few
+// px above the viewport bottom at the end of the scroll.
+.editor {
+    display: flex;
+    flex-direction: column;
+    gap: 1.4rem;
+    position: relative;
+}
+
+// section blocks inside the editor
+.editor-section {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1.1rem 1.2rem;
+}

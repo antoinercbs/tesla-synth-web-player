@@ -1,0 +1,436 @@
+// ===========================================================================
+//  COIL FIGURE
+// ===========================================================================
+// ui/components/editor/CoilFigure.vue: the pulse by note in µs, the
+// physics' zones behind, the song's notes as dots, the settings' handles. Drawn
+// at its own width, one SVG unit a pixel: its text keeps the size given here.
+
+.cfig {
+    min-width: 0;
+}
+
+.cfig__plot {
+    position: relative;
+}
+
+.cfig__plot svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+}
+
+.cfig__grid line,
+.cfig__gridline {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.cfig__ax,
+.cfig__side {
+    font-size: 0.5625rem;
+    fill: var(--text-mute);
+}
+
+.cfig__ax {
+    font-family: var(--font-mono);
+}
+
+.cfig__vt {
+    font-size: 0.59rem;
+    fill: var(--text-dim);
+}
+
+.cfig__vt-u {
+    fill: var(--text-mute);
+}
+
+.cfig__hatch-bg {
+    fill: rgb(var(--amber-rgb) / 0.1);
+}
+
+.cfig__hatch-line {
+    stroke: rgb(var(--amber-rgb) / 0.55);
+    stroke-width: 1.5;
+}
+
+// where a pulse's arcs strike the ground mat, where none starts, where the OCD cuts the
+// bangs in the air (what is sent past it, for nothing)
+.cfig__zone.is-ocd {
+    fill: rgb(var(--bang-ocd-rgb) / 0.12);
+}
+
+.cfig__zone.is-strike {
+    fill: rgb(var(--bang-strike-rgb) / 0.13);
+}
+
+.cfig__zone.is-short {
+    fill: rgb(var(--bang-short-rgb) / 0.16);
+}
+
+// the sheet's max duty: the slope a lone note doesn't pass
+.cfig__dmax {
+    fill: none;
+    stroke: var(--amber);
+    stroke-width: 1.2;
+    stroke-dasharray: 5 3;
+    stroke-opacity: 0.8;
+}
+
+// the duty's slope and the ontime's floor, the curve the higher of the two
+.cfig__guide {
+    fill: none;
+    stroke: var(--coil, var(--volt));
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    stroke-opacity: 0.55;
+}
+
+.cfig__cap {
+    stroke: var(--amber);
+    stroke-width: 1.5;
+}
+
+.cfig__ocd {
+    fill: none;
+    stroke: var(--bang-ocd);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+}
+
+.cfig__lab.is-short {
+    fill: var(--bang-short);
+}
+
+.cfig__lab.is-ocd {
+    fill: var(--bang-ocd-text);
+}
+
+.cfig__lab.is-strike {
+    fill: var(--bang-strike-text);
+}
+
+.cfig__curve {
+    fill: none;
+    stroke: var(--coil, var(--volt));
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+// a label over the drawing: a halo of the card's colour keeps it legible on the lines
+.cfig__lab,
+.cfig__val {
+    font-size: 0.59rem;
+    fill: var(--text-dim);
+    paint-order: stroke;
+    stroke: var(--panel);
+    stroke-width: 3px;
+    stroke-linejoin: round;
+}
+
+.cfig__val {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    fill: var(--text-strong);
+}
+
+.cfig__lab.is-max {
+    fill: var(--amber-text);
+}
+
+// a padlock: the sheet's limits, set elsewhere
+.cfig__lock {
+    font-family: var(--fa-family-classic, "Font Awesome 7 Free");
+    font-weight: 900;
+}
+
+// the song's notes at the pulse each fired, by what became of them
+.cfig__dot {
+    fill-opacity: 0.75;
+    stroke: var(--panel);
+    stroke-width: 0.6;
+    pointer-events: none;
+}
+
+.cfig__dot.is-cut {
+    fill: var(--danger);
+}
+
+.cfig__dot.is-reduced {
+    fill: var(--amber-text);
+}
+
+.cfig__dot.is-ocd {
+    fill: var(--bang-ocd-text);
+}
+
+.cfig__dot.is-strike {
+    fill: var(--bang-strike-text);
+}
+
+.cfig__dot.is-short {
+    fill: var(--bang-short);
+}
+
+.cfig__dot.is-ok {
+    fill: var(--text-dim);
+}
+
+// the handles: pills on the slope and the floor, a dot where they meet, the crossover on the axis
+.cfig__pill {
+    fill: var(--bg-2);
+    stroke: var(--coil, var(--volt));
+    stroke-width: 1.2;
+}
+
+.cfig__pill-txt {
+    font-family: var(--font-mono);
+    font-size: 0.59rem;
+    font-weight: 600;
+    fill: var(--text-strong);
+    pointer-events: none;
+}
+
+.cfig__handle,
+.cfig__split.is-handle {
+    touch-action: none;
+}
+
+.cfig__handle {
+    cursor: ns-resize;
+}
+
+.cfig__handle:has(.cfig__knee) {
+    cursor: move;
+}
+
+.cfig__split.is-handle {
+    cursor: ew-resize;
+}
+
+.cfig__handle:hover .cfig__pill,
+.cfig__split.is-handle:hover .cfig__pill {
+    fill: var(--panel-2);
+    stroke-width: 2;
+}
+
+.cfig__hit-h {
+    fill: transparent;
+}
+
+.cfig__knee {
+    fill: var(--coil, var(--volt));
+    stroke: var(--panel);
+    stroke-width: 2;
+}
+
+.cfig__handle:hover .cfig__knee {
+    stroke: var(--text-strong);
+}
+
+.cfig.is-dragging .cfig__hit {
+    cursor: inherit;
+}
+
+// Live: the chords that fit, stacked like on a staff
+.cfig__nh {
+    fill: var(--coil, var(--volt));
+}
+
+.cfig__nh-cut {
+    stroke: var(--amber);
+    stroke-width: 1.2;
+}
+
+.cfig__nh-lost {
+    fill: none;
+    stroke: var(--danger);
+    stroke-width: 1.2;
+}
+
+.cfig__num {
+    font-family: var(--font-mono);
+    font-size: 0.625rem;
+    font-weight: 600;
+    fill: var(--text-strong);
+}
+
+.cfig__base,
+.cfig__tick {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+}
+
+.cfig__xo {
+    stroke: var(--text-dim);
+    stroke-width: 1;
+    stroke-dasharray: 2 3;
+}
+
+.cfig__xoname {
+    font-family: var(--font-mono);
+    font-size: 0.59rem;
+    font-weight: 700;
+    fill: var(--text-strong);
+}
+
+.cfig__col {
+    fill: rgb(var(--hi-rgb) / 0.08);
+    pointer-events: none;
+}
+
+.cfig__hit {
+    fill: transparent;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.cfig__hit.is-pinned {
+    fill: rgb(var(--hi-rgb) / 0.06);
+}
+
+// inside the drawing, at its top, on the side away from the column hovered: the card
+// clips whatever passes its edges
+.cfig__tip {
+    position: absolute;
+    z-index: 3;
+    top: 0.3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: 15rem;
+    max-width: calc(100% - 3rem);
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    box-shadow: var(--shadow-pop);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.cfig__tip.is-left {
+    left: 2.6rem;
+}
+
+.cfig__tip.is-right {
+    right: 0.4rem;
+}
+
+.cfig__tip-title {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.cfig__tip .is-cut {
+    color: var(--danger-text, var(--danger));
+}
+
+.cfig__tip .is-reduced {
+    color: var(--amber-text);
+}
+
+.cfig__tip .is-ocd {
+    color: var(--bang-ocd-text);
+}
+
+.cfig__tip .is-strike {
+    color: var(--bang-strike-text);
+}
+
+.cfig__tip .is-short {
+    color: var(--bang-short);
+}
+
+// one line under the figure, with the drawing's own marks
+.cfig__key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    margin-top: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cfig__key > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.cfig__key > span[title] {
+    cursor: help;
+}
+
+.cfig__key b {
+    font-family: var(--font-mono);
+    color: var(--text-strong);
+}
+
+.cfig__sw-line {
+    width: 14px;
+    height: 2px;
+    border-radius: var(--radius-2xs);
+    background: var(--coil, var(--volt));
+}
+
+.cfig__sw {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: var(--radius-2xs);
+}
+
+.cfig__sw.is-cut {
+    background: var(--danger);
+}
+
+.cfig__sw.is-reduced {
+    background: var(--amber);
+}
+
+.cfig__sw.is-ocd {
+    background: var(--bang-ocd);
+}
+
+.cfig__sw.is-strike {
+    background: var(--bang-strike);
+}
+
+.cfig__sw.is-short {
+    background: var(--bang-short);
+}
+
+.cfig__sw.is-ok {
+    background: var(--text-dim);
+}
+
+.cfig__sw-dot {
+    flex: none;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--text-dim);
+}
+
+.cfig__nhsw {
+    flex: none;
+    width: 8px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--coil, var(--volt));
+}
+
+.cfig__nhsw.is-cut {
+    border: 1px solid var(--amber);
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.8) 0 1.5px, transparent 1.5px 3px);
+}
+
+.cfig__nhsw.is-lost {
+    border: 1px solid var(--danger);
+    background: transparent;
+}

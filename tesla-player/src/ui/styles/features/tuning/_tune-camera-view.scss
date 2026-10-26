@@ -1,0 +1,789 @@
+// ===========================================================================
+//  ARC CAMERA
+// ===========================================================================
+// ui/components/tuning/ArcCamera.vue + ArcReadout.vue, and the two pages built on them:
+// ui/views/TuneCameraView.vue (a session's phone) and ui/views/ArcMeterView.vue (free)
+
+// keep the page dark: the phone sits in the scene and must not light it up
+body.tune-cam-body {
+    background: var(--cam-bg);
+}
+
+// the picture takes the whole screen and never moves: the head and the sheet
+// lie over it, so placing the zone by touch stays where the finger is
+.cam {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--cam-bg);
+    color: var(--text);
+    font-family: var(--font-body);
+}
+
+.cam__head {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 6;
+    gap: 0.6rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: max(0.6rem, env(safe-area-inset-top)) 0.9rem 1.4rem;
+    background: linear-gradient(rgb(var(--lo-rgb) / 0.8), transparent);
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.cam__head > * {
+    pointer-events: auto;
+}
+
+.cam__title {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    color: var(--text);
+}
+
+// the page's tabs share the head with the title: the title gives way
+.cam__tabs {
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+.cam__tabs button {
+    padding: 0.35rem 0.6rem;
+    font-size: var(--fs-sm);
+}
+
+.cam__head:has(.cam__tabs) .cam__title {
+    flex: 1 1 0;
+}
+
+// a page's other tab, over the picture and the sheet, under the head
+.cam__cover {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--cam-bg);
+    padding: calc(max(0.6rem, env(safe-area-inset-top)) + 3.2rem) 0.9rem max(0.9rem, env(safe-area-inset-bottom));
+}
+
+.cam__cover > * {
+    max-width: 36rem;
+    margin: 0 auto;
+}
+
+.cam__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.cam__link::before {
+    content: "";
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    background: var(--danger);
+}
+
+.cam__link.is-ok {
+    color: var(--ok);
+}
+
+.cam__link.is-ok::before {
+    background: var(--ok);
+}
+
+.cam__stage {
+    position: absolute;
+    inset: 0;
+    background: var(--cam-bg);
+    touch-action: none;
+}
+
+.cam__stage.is-editing {
+    cursor: crosshair;
+}
+
+.cam__stage.is-dragging {
+    cursor: grabbing;
+}
+
+.cam__video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: var(--cam-bg);
+}
+
+.cam__overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.cam__gate {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    text-align: center;
+    background: rgb(var(--lo-rgb) / 0.75);
+    z-index: 3;
+}
+
+.cam__gate p {
+    max-width: 30ch;
+    margin: 0;
+}
+
+.cam__gate-icon {
+    font-size: 2rem;
+    color: var(--danger);
+}
+
+// pulled down it keeps the peek (Zone OK, the reading, STOP); ArcCamera.vue
+// translates it by the body's height
+.cam__sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 4;
+    max-width: 36rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: rgb(var(--bg-rgb) / 0.9);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgb(var(--line-rgb) / 0.15);
+    border-bottom: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: var(--shadow-float);
+    will-change: transform;
+}
+
+.cam__sheet.is-settled:not(.is-dragging) {
+    transition: transform 0.25s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cam__sheet.is-settled:not(.is-dragging) {
+        transition: none;
+    }
+}
+
+.cam__grip {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 1.7rem;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: grab;
+    touch-action: none;
+}
+
+.cam__grip-bar {
+    width: 2.6rem;
+    height: 0.3rem;
+    border-radius: var(--radius-pill);
+    background: rgb(var(--line-rgb) / 0.5);
+}
+
+// the safe area belongs to the peek: it is the sheet's bottom when pulled down
+.cam__peek {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 0 0.9rem max(0.9rem, env(safe-area-inset-bottom));
+}
+
+.cam__sheet-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    max-height: 50dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.8rem 0.9rem max(0.9rem, env(safe-area-inset-bottom));
+    border-top: 1px solid rgb(var(--line-rgb) / 0.12);
+}
+
+.cam__hint {
+    margin: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    font-size: var(--fs-lg);
+}
+
+.cam__hint.dim {
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+// placing the zone: the picture asks for the first touch
+.cam__tapme {
+    position: absolute;
+    z-index: 2;
+    left: 50%;
+    top: max(3.4rem, calc(env(safe-area-inset-top) + 2.8rem));
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: calc(100% - 2rem);
+    padding: 0.55rem 0.95rem;
+    border-radius: var(--radius-pill);
+    background: rgb(var(--bg-rgb) / 0.86);
+    border: 1px solid var(--volt);
+    color: var(--text);
+    font-size: var(--fs-md);
+    text-align: center;
+    pointer-events: none;
+    animation: cam-tapme 1.6s ease-in-out infinite;
+}
+
+.cam__tapme i {
+    color: var(--volt);
+}
+
+@keyframes cam-tapme {
+    0%,
+    100% {
+        opacity: 0.75;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cam__tapme {
+        animation: none;
+    }
+}
+
+// the zone's three handles, as drawn on the picture
+.cam__legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.3rem 1rem;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+.cam__legend li,
+.cam__howto li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.cam__howto {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-size: var(--fs-md);
+    color: var(--text);
+}
+
+.cam__howto li {
+    align-items: flex-start;
+}
+
+.cam__howto .cam__swatch {
+    margin-top: 0.3rem;
+}
+
+.cam__swatch {
+    flex: 0 0 auto;
+    display: inline-block;
+}
+
+.cam__swatch--dot {
+    width: 0.8rem;
+    height: 0.8rem;
+    border-radius: 50%;
+    background: var(--danger);
+    outline: 2px solid var(--text-bright);
+}
+
+.cam__swatch--arrow {
+    width: 0.7rem;
+    height: 0.8rem;
+    background: rgb(var(--zone-rgb));
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.cam__swatch--wall {
+    width: 0.4rem;
+    height: 1rem;
+    margin-left: 0.4rem;
+    border-left: 2px solid rgb(var(--zone-rgb));
+}
+
+.cam__swatch--floor {
+    width: 1.1rem;
+    border-top: 2px dashed rgb(var(--zone-rgb));
+}
+
+.cam-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.2rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgb(var(--line-rgb) / 0.3);
+    background: var(--cam-raised);
+    color: var(--text);
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    font-size: 1rem;
+    cursor: var(--cursor-pointer, pointer);
+    min-height: 3rem;
+}
+
+.cam-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+.cam-btn--volt {
+    background: var(--grad);
+    color: var(--on-grad);
+    border-color: transparent;
+}
+
+.cam-btn--danger {
+    background: var(--danger);
+    color: var(--on-fill);
+    border-color: var(--danger);
+    font-size: var(--fs-xl);
+    flex: 1;
+}
+
+.cam__trial {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgb(var(--line-rgb) / 0.18);
+    background: var(--cam-surface);
+}
+
+.cam__trial.is-done {
+    border-color: rgb(var(--line-rgb) / 0.3);
+}
+
+.cam__trial.is-best {
+    border-color: var(--ok);
+}
+
+.cam__trial-head {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.8rem;
+    align-items: baseline;
+}
+
+.cam__trial-n {
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+.cam__trial-tap {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: var(--fs-xl);
+    color: var(--volt);
+}
+
+.cam__trial-best {
+    font-size: var(--fs-xs);
+}
+
+.cam__bg {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: var(--fs-md);
+    color: var(--text);
+}
+
+.cam__notes {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.cam__note {
+    display: grid;
+    grid-template-columns: 6.2rem 1fr;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 1.5rem;
+}
+
+.cam__note-name {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.cam__note-name small {
+    font-weight: 400;
+    font-size: var(--fs-xs);
+    opacity: 0.8;
+}
+
+.cam__note.is-measuring .cam__note-name {
+    color: var(--volt);
+}
+
+.cam__note.is-done .cam__note-name {
+    color: var(--text);
+}
+
+.cam__note-bar {
+    display: block;
+    height: 0.55rem;
+    border-radius: var(--radius-pill);
+    background: rgb(var(--volt-rgb) / 0.15);
+    overflow: hidden;
+}
+
+.cam__note-bar i {
+    display: block;
+    height: 100%;
+    background: var(--volt);
+    transition: width 0.1s linear;
+}
+
+.cam__note-val {
+    font-size: var(--fs-lg);
+    color: var(--text);
+}
+
+.cam__note-val small {
+    color: var(--text-dim);
+}
+
+.cam__result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.9rem;
+    padding-top: 0.4rem;
+    border-top: 1px dashed rgb(var(--line-rgb) / 0.25);
+}
+
+.cam__result-score {
+    font-family: var(--font-display);
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1;
+}
+
+.cam__result-score small {
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+}
+
+.cam__result-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-md);
+}
+
+.cam__result-tag.is-best {
+    color: var(--ok);
+}
+
+.cam__result-tag.is-up {
+    color: var(--ok);
+}
+
+.cam__result-tag.is-down {
+    color: var(--worse);
+}
+
+.cam__p90 {
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+}
+
+.cam__readout {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    padding: 0.3rem 0.7rem;
+    border-radius: var(--radius-xl);
+    border: 1px solid rgb(var(--line-rgb) / 0.15);
+}
+
+.cam__readout.is-measuring {
+    border-color: var(--volt);
+}
+
+.cam__value {
+    font-family: var(--font-display);
+    font-size: 2.2rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--volt);
+    font-variant-numeric: tabular-nums;
+}
+
+.cam__unit {
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+}
+
+.cam__state {
+    margin-left: auto;
+    color: var(--text);
+    font-size: var(--fs-lg);
+}
+
+.cam__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cam__meta span {
+    display: inline-flex;
+    gap: 0.35rem;
+    align-items: center;
+}
+
+.cam__warn {
+    color: var(--danger);
+}
+
+.cam__actions {
+    display: flex;
+    gap: 0.6rem;
+}
+
+// two side by side on a phone: each label on one line
+.cam__actions--even .cam-btn {
+    flex: 1 1 0;
+    min-width: 0;
+    gap: 0.45rem;
+    padding-inline: 0.6rem;
+    font-size: var(--fs-lg);
+    letter-spacing: 0.02em;
+}
+
+// --------------------------------------------------------------- free meter
+
+.cam__close {
+    width: 2.6rem;
+    height: 2.6rem;
+    margin: -0.5rem -0.6rem -0.5rem 0;
+    padding: 0;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--text);
+    font-size: 1.25rem;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.cam__textbtn {
+    padding: 0.3rem 0;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    text-decoration: underline;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.cam__runs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.cam__runs-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+}
+
+.cam__runs-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.cam__run {
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+    grid-template-areas:
+        "heat main del"
+        "heat sub del";
+    column-gap: 0.7rem;
+    align-items: center;
+    min-height: 3.2rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgb(var(--line-rgb) / 0.15);
+    background: var(--cam-surface);
+}
+
+.cam__run.is-live {
+    border-color: var(--volt);
+}
+
+.cam__run.is-best {
+    border-color: var(--ok);
+}
+
+.cam__run-heat,
+.cam__run-live {
+    grid-area: heat;
+}
+
+.cam__run-heat .arc-heat__cap {
+    display: none;
+}
+
+// a portrait camera makes a tall silhouette: the row keeps its height
+.cam__run-heat .arc-heat__canvas {
+    height: 2.6rem;
+    min-height: 0;
+    object-fit: contain;
+}
+
+.cam__run-live {
+    display: grid;
+    place-items: center;
+}
+
+.cam__run-main {
+    grid-area: main;
+    display: flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    color: var(--text);
+}
+
+.cam__run-main small {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cam__run-n {
+    margin-right: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cam__run-p90 {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.cam__run-best {
+    color: var(--ok);
+}
+
+.cam__run-cut {
+    color: var(--danger);
+}
+
+.cam__run-sub {
+    grid-area: sub;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cam__run-del {
+    grid-area: del;
+    width: 2.4rem;
+    height: 2.4rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--text-dim);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+// in the runs tab the rows have room: bigger silhouettes, with the zone drawn
+.cam__cover .cam__run {
+    grid-template-columns: 5rem minmax(0, 1fr) auto;
+    min-height: 4.2rem;
+}
+
+.cam__cover .cam__run-heat .arc-heat__canvas {
+    height: 3.8rem;
+}
+
+.cam__runs-best {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--ok);
+}

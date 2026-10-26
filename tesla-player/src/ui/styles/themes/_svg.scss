@@ -1,0 +1,39 @@
+@use "sass:map";
+@use "sass:string";
+
+// ===========================================================================
+//  SVG DRAWINGS IN A DATA URI
+// ===========================================================================
+// A look draws some of its pieces (a cursor, a block's texture) as SVG, in its
+// palettes, with the palette's colours. Written plainly there, then the characters
+// a URI cannot hold escaped here.
+
+$svg-escapes: (
+    "<": "%3C",
+    ">": "%3E",
+    "#": "%23",
+    '"': "'",
+);
+
+@function svg-escape($svg) {
+    $uri: "";
+    @for $i from 1 through string.length($svg) {
+        $c: string.slice($svg, $i, $i);
+        @if map.has-key($svg-escapes, $c) {
+            $uri: $uri + map.get($svg-escapes, $c);
+        } @else {
+            $uri: $uri + $c;
+        }
+    }
+    @return $uri;
+}
+
+// $body: the SVG's shapes, on a $width × $height canvas (its user units, unless
+// $viewbox says otherwise)
+@function svg-url($body, $width, $height, $viewbox: null) {
+    @if not $viewbox {
+        $viewbox: "0 0 #{$width} #{$height}";
+    }
+    $svg: '<svg xmlns="http://www.w3.org/2000/svg" width="#{$width}" height="#{$height}" viewBox="#{$viewbox}">#{$body}</svg>';
+    @return 'url("data:image/svg+xml,#{svg-escape($svg)}")';
+}

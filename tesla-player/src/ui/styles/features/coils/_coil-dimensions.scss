@@ -1,0 +1,96 @@
+// ===========================================================================
+//  COIL DIMENSIONS
+// ===========================================================================
+// ui/components/coils/CoilDimensions.vue: the coil's side view to scale, as the 3D
+// builds it, its sizes typed on their dimension lines. The parts keep the 3D's
+// materials: copper, aluminium, the black printed parts.
+
+.cdim {
+    position: relative;
+    height: 26rem;
+}
+
+.cdim svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.cdim__floor {
+    stroke: var(--line-040);
+    stroke-width: 1.5;
+}
+
+// the box's plexiglas in its frame, the printed parts and the lid black, the band in its fibre cap's colour (--c)
+.cdim__box {
+    fill: rgb(var(--hi-rgb) / 0.05);
+    stroke: rgb(var(--hi-rgb) / 0.45);
+}
+
+.cdim__dark {
+    fill: var(--bead);
+    stroke: rgb(var(--hi-rgb) / 0.18);
+    stroke-width: 0.8;
+}
+
+.cdim__band {
+    fill: var(--c, var(--text-mute));
+}
+
+.cdim__alu {
+    fill: rgb(var(--hi-rgb) / 0.7);
+}
+
+.cdim__copper {
+    fill: var(--bead-rim);
+}
+
+.cdim__sec {
+    fill: var(--copper-deep);
+    stroke: var(--bead-rim);
+    stroke-opacity: 0.45;
+}
+
+.cdim__ring {
+    fill: rgb(var(--hi-rgb) / 0.55);
+    stroke: rgb(var(--hi-rgb) / 0.85);
+    stroke-width: 0.8;
+}
+
+.cdim__pin {
+    stroke: rgb(var(--hi-rgb) / 0.75);
+    stroke-linecap: round;
+}
+
+.cdim__dim {
+    stroke: var(--volt-70);
+    stroke-width: 1;
+}
+
+.cdim__ext {
+    stroke: var(--volt-30);
+    stroke-width: 0.8;
+    stroke-dasharray: 3 3;
+}
+
+.cdim__arrow {
+    fill: var(--volt);
+}
+
+.cdim__chip {
+    position: absolute;
+    z-index: 1;
+}
+
+.cdim__chip.is-pair {
+    display: grid;
+    grid-template-columns: 0.8fr 1fr;
+    gap: 0.3rem;
+}
+
+@media (max-width: 1000px) {
+    .cdim {
+        height: 22rem;
+    }
+}

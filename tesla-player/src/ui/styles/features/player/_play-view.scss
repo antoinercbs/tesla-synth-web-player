@@ -1,0 +1,57 @@
+// ===========================================================================
+//  PLAY VIEW
+// ===========================================================================
+// ui/views/PlayView.vue: its header's tools, and the page on stage (ui/helpers/stage.ts,
+// html[data-stage]): the sidebar out of the way, the transport, the power and
+// Panic within reach of a hurried hand.
+
+.play-head__actions {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.play-head__actions .icon-btn {
+    font-size: var(--fs-md);
+}
+
+.play-head__actions .icon-btn:hover,
+.play-head__actions .icon-btn.is-on {
+    color: var(--volt);
+    border-color: var(--volt);
+}
+
+// a phone has no keyboard to learn
+@media (max-width: 1000px) {
+    .play-head__keys {
+        display: none;
+    }
+}
+
+html[data-stage] {
+    .sidebar {
+        display: none;
+    }
+
+    .play-head__actions {
+        margin-left: auto;
+    }
+
+    .player-dock {
+        gap: 1.2rem;
+        padding-block: 0.6rem 1.2rem;
+    }
+
+    .player-dock__play {
+        width: 3.8rem;
+        height: 3.8rem;
+        font-size: var(--fs-xl);
+    }
+
+    // the one to find without looking
+    .player-transport .player-dock__panic {
+        min-width: 14rem;
+        min-height: 3.8rem;
+        font-size: var(--fs-xl);
+    }
+}

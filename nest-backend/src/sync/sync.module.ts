@@ -1,0 +1,34 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Envelope } from '../envelopes/entities/envelope.entity';
+import { TeslaCoil } from '../coils/entities/tesla-coil.entity';
+import { Scene } from '../scenes/entities/scene.entity';
+import { MidiFile } from '../midi/entities/midi-file.entity';
+import { PlaylistSong } from '../playlists/entities/playlist-song.entity';
+import { Playlist } from '../playlists/entities/playlist.entity';
+import { Coil } from '../songs/entities/coil.entity';
+import { CoilEvent } from '../songs/entities/coil-event.entity';
+import { Song } from '../songs/entities/song.entity';
+import { SyncController } from './sync.controller';
+import { SyncService } from './sync.service';
+
+@Module({
+  imports: [
+    TypeOrmModule.forFeature([
+      Song,
+      Coil,
+      CoilEvent,
+      MidiFile,
+      Playlist,
+      PlaylistSong,
+      Envelope,
+      TeslaCoil,
+      Scene,
+    ]),
+  ],
+  controllers: [SyncController],
+  providers: [SyncService],
+  // the backup restores through the same upserts
+  exports: [SyncService],
+})
+export class SyncModule {}

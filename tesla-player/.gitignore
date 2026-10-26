@@ -1,0 +1,36 @@
+.DS_Store
+node_modules
+/dist
+
+
+# local env files
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.idea
+.vscode
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# end-to-end test runs (npm run e2e)
+/test-results
+/playwright-report
+/blob-report
+
+# the presentation video and its tooling stay out of the repository (they run only here):
+# npm --prefix video run build records the app, renders and masters it
+/video/
+/playwright.video.config.ts
+/e2e/presentation.video.ts
+/e2e/video-recorder.ts
+/e2e/video-music.ts

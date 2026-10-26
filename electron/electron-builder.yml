@@ -1,0 +1,62 @@
+appId: org.clubelek.teslaplayer
+productName: Tesla Player
+directories:
+  output: dist-electron
+  # NOT the default 'build' — that's our TypeScript outDir (compiled main.js).
+  # Icons live in build-assets/ (generated with `npm run icons`, see the README).
+  buildResources: build-assets
+# Ship only the locales we use (Chromium bundles ~50 language packs ≈ 40 MB).
+electronLanguages:
+  - en-US
+  - fr
+# 'normal' (gzip squashfs), NOT 'maximum' (xz): xz is decompressed on-demand,
+# single-threaded, by squashfuse on every launch, adding ~30 s of cold start to
+# the AppImage for almost no size gain (electron-builder #7483/#6316). gzip
+# decompresses 3-4x faster. The big size wins are the bundled backend + locales.
+compression: normal
+# Linux: wrap the binary so every launch path passes --no-sandbox (see the hook).
+afterPack: scripts/after-pack.cjs
+# App code (compiled main + preload) goes inside the asar. The backend tree and
+# the front-end bundle ride along as extraResources (OUTSIDE the asar): a forked
+# process cannot exec a file inside an asar, and a native .node cannot be
+# dlopen'd from inside one.
+files:
+  - build/**/*
+  - "!**/*.map"
+extraResources:
+  - from: resources/backend
+    to: backend
+    # Drop runtime-irrelevant cruft from the prod node_modules (Node only ever
+    # requires the CJS .js files). Saves several MB.
+    filter:
+      - "**/*"
+      - "!**/*.d.ts"
+      - "!**/*.map"
+      - "!**/*.md"
+      - "!**/*.markdown"
+      - "!**/{test,tests,__tests__,docs,example,examples,.github}/**"
+      - "!**/typeorm/browser/**"
+  - from: resources/public
+    to: public
+asar: true
+# Safety net only: the backend (incl. native sqlite3) ships via extraResources
+# above, so it already lives OUTSIDE the asar and loads from there — nothing in
+# the asar needs unpacking today. This keeps any future in-asar native dep
+# loadable.
+asarUnpack:
+  - "**/*.node"
+linux:
+  target:
+    - AppImage
+  category: Audio
+  icon: build-assets/icon.png
+  artifactName: ${productName}-${version}.${ext}
+win:
+  target:
+    - nsis
+  icon: build-assets/icon.ico
+  artifactName: ${productName}-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true

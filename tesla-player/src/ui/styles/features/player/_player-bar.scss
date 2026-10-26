@@ -1,0 +1,94 @@
+// ===========================================================================
+//  PLAYER BAR
+// ===========================================================================
+// MidiPlayer.vue's variant="bar": the transport and the global Power on one
+// line, in the song editor's toolbar.
+
+// it takes the room its bar leaves: the Power fader stretches into it
+.player-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.player-bar__play {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: var(--volt);
+    color: var(--on-fill);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.player-bar__play:disabled {
+    opacity: 0.4;
+    cursor: var(--cursor-default, default);
+}
+
+.player-bar__time {
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.player-bar__time span {
+    color: var(--text-mute);
+}
+
+.player-bar__power {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 1 1 auto;
+    min-width: 0;
+    margin-left: 0.8rem;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.player-bar__power > i {
+    color: var(--volt);
+}
+
+.player-bar__range {
+    flex: 1 1 auto;
+    min-width: 8rem;
+}
+
+.player-bar__pct {
+    min-width: 3.2rem;
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    text-align: right;
+}
+
+.player-bar__pct.is-boost {
+    color: var(--amber-text);
+}
+
+.player-bar__panic {
+    color: var(--danger);
+}
+
+@media (max-width: 1000px) {
+    // Panic stays on screen, the bar wraps first
+    .player-bar {
+        flex-wrap: wrap;
+    }
+
+    .player-bar__label {
+        display: none;
+    }
+
+    .player-bar__range {
+        min-width: 5rem;
+    }
+}

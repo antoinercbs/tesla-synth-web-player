@@ -1,0 +1,710 @@
+// ui/views/ScenesView.vue: the Coils page's Scènes tab, its list of scenes;
+// ui/components/coils/SceneEditor.vue: one scene set in its 3D
+
+.scenes-screen,
+.scene-edit {
+    min-height: 0;
+}
+
+/* ------------------------------------------------------------ the list: a line per scene, as the coils' */
+.scenes-list-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.scene-line {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.6rem minmax(9rem, 14rem) minmax(0, 1fr) max-content minmax(6rem, max-content) 2rem;
+    align-items: center;
+    gap: 0 1.2rem;
+    min-height: 4.2rem;
+    padding: 0.55rem 0.8rem 0.55rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+    transition: border-color var(--dur-fast);
+}
+
+.scene-line:hover {
+    border-color: var(--volt);
+}
+
+.scene-line__decor {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: var(--radius-md);
+    background: var(--volt-16);
+    color: var(--volt);
+    font-size: var(--fs-lg);
+}
+
+.scene-line__id {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+}
+
+.scene-line__id small,
+.scene-line__edit small,
+.scene-line__gone {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+// its name's link covers the line; its menu sits above
+.scene-line__name {
+    overflow: hidden;
+    color: var(--text-strong);
+    font-weight: 600;
+    text-decoration: none;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scene-line__name::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.scene-line__coils {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 1rem;
+    min-width: 0;
+}
+
+.scene-line__coil {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.scene-line__coil b {
+    color: var(--text);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+}
+
+.scene-line__coil span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+}
+
+.scene-line__none {
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.scene-line__props {
+    display: flex;
+    gap: 0.8rem;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+.scene-line__props span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.scene-line__props i {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.scene-line__edit {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+}
+
+.scene-line__menu {
+    position: relative;
+    z-index: 1;
+}
+
+.scene-line.is-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem 1.2rem;
+    min-height: 3.6rem;
+    border-style: dashed;
+    background: none;
+    color: var(--text-dim);
+}
+
+.scene-line.is-add:hover {
+    border-color: var(--line);
+}
+
+.scene-line__add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.scene-line__decors {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+.scene-line__decors .btn {
+    gap: 0.4rem;
+}
+
+@media (max-width: 800px) {
+    .scene-line {
+        grid-template-columns: 2.6rem minmax(0, 1fr) 2rem;
+        row-gap: 0.4rem;
+    }
+
+    .scene-line__coils,
+    .scene-line__props,
+    .scene-line__edit {
+        grid-column: 2;
+    }
+
+    .scene-line__edit {
+        align-items: flex-start;
+    }
+
+    .scene-line__props:empty {
+        display: none;
+    }
+
+    .scene-line__menu {
+        grid-column: 3;
+        grid-row: 1;
+    }
+}
+
+/* ------------------------------------------------------------ the editor's head: the décor beside the name */
+.scenes-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.38rem 0.8rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--panel);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-sm);
+    white-space: nowrap;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scenes-chip:hover {
+    border-color: var(--volt);
+}
+
+.scenes-chip > i:first-child {
+    color: var(--volt);
+}
+
+.scenes-chip__dd {
+    font-size: 0.65em;
+    color: var(--text-mute);
+}
+
+.scenes-caps {
+    display: inline-flex;
+    gap: 0.2rem;
+    margin-left: auto;
+}
+
+.scenes-caps i,
+.scene-panel__cap {
+    display: inline-block;
+    flex: none;
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+// in a 3D view's scene menu: a dot per coil of the song, full when the scene poses it
+.scenes-fit {
+    display: inline-flex;
+    gap: 0.2rem;
+    margin-left: auto;
+}
+
+.dropdown__item .scenes-fit i {
+    width: 0.55rem;
+    height: 0.55rem;
+    border: 1.5px solid var(--c);
+    border-radius: 50%;
+    opacity: 0.5;
+}
+
+.dropdown__item .scenes-fit i.is-in {
+    background: var(--c);
+    opacity: 1;
+}
+
+// the scenes', the décors', the coils' menus: as wide as their names
+.scenes-list {
+    width: auto;
+    min-width: 13rem;
+    max-width: 20rem;
+}
+
+.dropdown__item.is-on {
+    color: var(--volt);
+}
+
+.dropdown__empty {
+    margin: 0;
+    padding: 0.5rem 0.6rem;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+/* ------------------------------------------------------------ the 3D, all the room left, the panel at its right */
+.scenes-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 19rem;
+    gap: 0.8rem;
+    flex: 1 1 auto;
+    min-height: 22rem;
+    margin: 0 2rem 1.4rem;
+}
+
+.scenes-stage {
+    position: relative;
+    min-height: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.scenes-view {
+    position: absolute;
+    inset: 0;
+    cursor: grab;
+    touch-action: none;
+}
+
+.scenes-view:active {
+    cursor: grabbing;
+}
+
+// over the picture's top: the hand's tools in the middle, what the picture shows at the right
+.scenes-overlay {
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.scenes-overlay > * {
+    pointer-events: auto;
+}
+
+.scenes-overlay__end {
+    position: absolute;
+    right: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.scenes-tools3d {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.25rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--panel-2);
+    box-shadow: var(--shadow-pop);
+}
+
+.scenes-tools3d button,
+.scenes-tools3d__one {
+    display: grid;
+    place-items: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-dim);
+    font-size: var(--fs-md);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scenes-tools3d button:hover,
+.scenes-tools3d__one:hover {
+    background: var(--line-006);
+    color: var(--text-strong);
+}
+
+.scenes-tools3d button.is-on {
+    background: var(--volt-16);
+    color: var(--volt);
+}
+
+// ui/components/coils/OutletIcon.vue: never under 16 px (a blot below), a little over the text it sits in
+.outlet-icon {
+    flex: none;
+    width: max(1.25em, 16px);
+    height: max(1.25em, 16px);
+    vertical-align: -0.3em;
+}
+
+.scene-row__marks .outlet-icon,
+.scene-insp__sec h5 > .outlet-icon {
+    margin-right: 0.15rem;
+    color: var(--text-mute);
+}
+
+.scenes-tools3d__sep {
+    align-self: stretch;
+    width: 1px;
+    margin: 0.3rem 0.15rem;
+    background: var(--line-strong);
+}
+
+.scenes-tools3d__one {
+    border: 1px solid var(--line-strong);
+    background: var(--panel-2);
+    box-shadow: var(--shadow-pop);
+}
+
+.scenes-setting {
+    box-shadow: var(--shadow-pop);
+}
+
+.scenes-note {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 1rem;
+    color: var(--text-mute);
+    text-align: center;
+    pointer-events: none;
+}
+
+/* ------------------------------------------------------------ the panel: the scene's coils and cages, then the chosen one */
+.scene-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 0.8rem 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+}
+
+.scene-panel__title {
+    margin: 0 0 0.2rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.scene-panel__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.scene-row {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-sm);
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scene-row:hover {
+    background: var(--line-006);
+}
+
+.scene-row.is-on {
+    border-color: var(--volt);
+    background: var(--volt-16);
+    color: var(--text-strong);
+}
+
+.scene-row__icon {
+    width: 0.6rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.scene-row__name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.scene-row__marks {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.scene-row__marks i {
+    margin-right: 0.15rem;
+}
+
+.scene-panel__missing {
+    margin: 0;
+    padding: 0 0.6rem;
+    color: var(--amber-text);
+    font-size: var(--fs-xs);
+}
+
+// the two "+": a coil, an accessory
+.scene-panel__adds {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    margin-top: 0.3rem;
+}
+
+.scene-panel__adds .dropdown {
+    display: flex;
+}
+
+.scene-add {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.45rem 0.5rem;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-md);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scene-add:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+/* ------------------------------------------------------------ the chosen coil or cage */
+.scene-insp {
+    margin-top: 0.6rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--line);
+}
+
+.scene-insp__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.4rem;
+}
+
+.scene-insp__head b {
+    color: var(--text-strong);
+    font-size: var(--fs-md);
+}
+
+.scene-insp__sec {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.6rem 0;
+}
+
+.scene-insp__sec + .scene-insp__sec {
+    border-top: 1px solid var(--line);
+}
+
+.scene-insp__sec h5 {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+}
+
+.scene-insp__sec h5 > i {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.scene-insp__x {
+    margin-left: auto;
+    padding: 0.15rem 0.35rem;
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--text-mute);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scene-insp__x:hover {
+    background: var(--line-006);
+    color: var(--danger);
+}
+
+.scene-insp__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+}
+
+.scene-insp__grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+// the tubes: a chip each, the chosen one with its ×
+.scene-insp__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.scene-tube {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.scene-tube.is-on {
+    border-color: var(--volt);
+    background: var(--volt-16);
+    color: var(--text-strong);
+}
+
+.scene-tube__pick,
+.scene-tube__x {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0.55rem;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scene-tube__x {
+    padding-left: 0;
+    color: var(--text-mute);
+}
+
+.scene-tube__x:hover {
+    color: var(--danger);
+}
+
+.scene-tube--add {
+    gap: 0.2rem;
+    padding: 0.3rem 0.55rem;
+    border-style: dashed;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.scene-tube--add:hover:not(:disabled) {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+@media (max-width: 1000px) {
+    .scenes-tools3d button,
+    .scenes-tools3d__one {
+        width: 1.9rem;
+        height: 1.9rem;
+    }
+
+    .scenes-overlay {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .scenes-overlay__end {
+        position: static;
+    }
+
+    // on a phone the picture takes the room, the panel is a sheet over its bottom
+    .scenes-main {
+        position: relative;
+        display: block;
+        margin: 0 0 1rem;
+    }
+
+    .scenes-stage {
+        position: absolute;
+        inset: 0;
+        border-radius: 0;
+        border-left: 0;
+        border-right: 0;
+    }
+
+    .scene-panel {
+        position: absolute;
+        left: 0.5rem;
+        right: 0.5rem;
+        bottom: 0.5rem;
+        max-height: 45%;
+        box-shadow: var(--shadow-pop);
+    }
+}

@@ -1,0 +1,286 @@
+// ===========================================================================
+//  COIL CONFIG CARD
+// ===========================================================================
+// ui/components/editor/CoilConfigCard.vue
+
+.coil-card__name {
+    color: var(--text-mute);
+    font-weight: 400;
+}
+
+.coil-env__label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.85rem;
+}
+
+.coil-env__label .icon {
+    color: var(--coil, var(--volt));
+    font-size: var(--fs-sm);
+}
+
+.coil-env {
+    margin-top: 0.4rem;
+}
+
+// near the board's protection threshold (model/devices/limits.ts): a warning, the value stays
+.coil-card__warn {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0.5rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--amber-text);
+}
+
+// a coil the keys held in Live mode push past its max duty (model/devices/board.ts, DevBoard.heldReduction)
+.coil-card__live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.05rem 0.45rem;
+    border: 1px solid var(--amber);
+    border-radius: var(--radius-pill);
+    background: rgb(var(--amber-rgb) / 0.12);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-strong);
+    white-space: nowrap;
+    cursor: help;
+}
+
+.coil-card__live i {
+    color: var(--amber-text);
+}
+
+// the sheet's limits, in a window of their own (the head's button); amber: the defaults
+.coil-card__sheet {
+    color: var(--text-mute);
+}
+
+.coil-card__sheet.is-default {
+    color: var(--amber-text);
+}
+
+.coil-sheet-modal {
+    max-width: 26rem;
+}
+
+.coil-sheet-modal__lead {
+    margin: 0 0 0.8rem;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+.coil-sheet-modal__list {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    margin: 0;
+    border-top: 1px solid var(--line);
+}
+
+.coil-sheet-modal__list > div {
+    display: contents;
+}
+
+.coil-sheet-modal__list dt,
+.coil-sheet-modal__list dd {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--line);
+}
+
+.coil-sheet-modal__list dt {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-dim);
+}
+
+.coil-sheet-modal__list dt i {
+    font-size: 0.7rem;
+    color: var(--amber-text);
+}
+
+.coil-sheet-modal__list dd {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-strong);
+    text-align: right;
+}
+
+// the driver's: not the board's limits, apart under them
+.coil-sheet-modal__sub {
+    margin: 1rem 0 0.3rem;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text);
+}
+
+.coil-sheet-modal__source {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.8rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    line-height: 1.5;
+}
+
+.coil-sheet-modal__source i {
+    margin-top: 0.2rem;
+}
+
+.coil-sheet-modal__source.is-default,
+.coil-sheet-modal__source.is-default b {
+    color: var(--amber-text);
+}
+
+// Débutant (Live): one power, the ontime and the duty together
+.coil-power {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) 3.4rem;
+    align-items: center;
+    gap: 0.8rem;
+    margin-top: 0.9rem;
+    cursor: help;
+}
+
+.coil-power__k {
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+}
+
+.coil-power__v {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text-strong);
+    text-align: right;
+}
+
+// the strip on the left, as the player's, the drawing on the right
+.coil-card__body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.6rem 1rem;
+    align-items: start;
+}
+
+.coil-strip {
+    --c: var(--coil, var(--volt));
+    display: grid;
+    grid-template-columns: repeat(2, 4.2rem);
+    gap: 0.3rem 0.4rem;
+    padding: 0.5rem 0.45rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel-2);
+}
+
+.coil-strip__ch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+// a setting no note of the song is under: there, but idle
+.coil-strip__ch.is-idle .vfader {
+    opacity: 0.45;
+}
+
+.coil-strip__key {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text);
+    cursor: help;
+}
+
+.coil-strip__key small {
+    font-weight: 400;
+    color: var(--text-mute);
+}
+
+.coil-strip__val {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    width: 100%;
+    padding: 0.1rem 0.2rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+}
+
+.coil-strip__val:focus-within {
+    border-color: var(--c);
+}
+
+.coil-strip__val input {
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    outline: none;
+    background: transparent;
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-align: right;
+    -moz-appearance: textfield;
+}
+
+.coil-strip__val input::-webkit-inner-spin-button,
+.coil-strip__val input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.coil-strip__val i {
+    padding-left: 0.15rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-style: normal;
+    color: var(--text-mute);
+}
+
+.coil-strip .vfader {
+    height: 9.5rem;
+}
+
+.coil-strip__n {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+    white-space: nowrap;
+    cursor: help;
+}
+
+// the track of a setting's fader: plain up to the sheet's limit (--vf-limit), hatched past it
+.vfader--limit .vfader__track {
+    background:
+        linear-gradient(0deg, var(--bg-2) 0 var(--vf-limit, 100%), transparent var(--vf-limit, 100%)),
+        repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.45) 0 2px, rgb(var(--amber-rgb) / 0.1) 2px 5px);
+}
+
+.vfader--limit .vfader__notch {
+    background: var(--amber);
+}
+
+// a narrow card: the strip above the drawing, its faders side by side
+@container (max-width: 420px) {
+    .coil-card__body {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .coil-strip {
+        justify-content: center;
+    }
+}

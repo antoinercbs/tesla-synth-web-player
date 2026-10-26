@@ -1,0 +1,710 @@
+// ===========================================================================
+//  EDIT VIEW: THE ATELIER
+// ===========================================================================
+// ui/components/editor/SongEditor.vue: the head (the song's name and tags, undo,
+// save, its file in the menu),
+// the timeline (the player's transport and Power on top of it), and the tool
+// panel below, its tabs on its own edge: they change what is under them.
+
+.atelier {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    min-width: 0;
+    padding: 0 2rem 1.6rem;
+}
+
+.atelier__head {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    // its labels give way to the song's name when the head runs short (below)
+    container-type: inline-size;
+    margin: 0 -2rem;
+    padding: 0.8rem 2rem 0.6rem;
+    background: var(--scrim-72);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+}
+
+// the song, its setup, the actions: the setup centred, the same place from song to
+// song and from edit to save; the actions keep their room (it shifts rather than covers)
+.atelier__bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(max-content, 1fr);
+    align-items: center;
+    gap: 1rem;
+}
+
+.atelier__side {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+}
+
+.atelier__side--end {
+    justify-content: flex-end;
+}
+
+.atelier__side > .btn,
+.atelier__back {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+// framed, apart from the song and the actions: what the whole song is set for
+.atelier__setup {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.3rem 0.8rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}
+
+// the song: its name, its tags under it
+.atelier__ident {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    flex: 0 1 auto;
+    min-width: 7rem;
+}
+
+.atelier__name-row {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+// a click on it renames the song, like its pencil
+.atelier__title {
+    display: block;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: var(--cursor-text, text);
+}
+
+.atelier__name {
+    flex: 1 1 22rem;
+    min-width: 8rem;
+    padding: 0.2rem 0.5rem;
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    font-weight: 700;
+}
+
+.atelier__rename {
+    flex: 0 0 auto;
+    color: var(--text-mute);
+}
+
+.atelier__tags {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+// one line: the tags past the block's width are cut (not the button, its menu would be too)
+.atelier__tag-list {
+    display: flex;
+    gap: 0.3rem;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.atelier__tags .editor-tag-pill {
+    flex: 0 0 auto;
+    padding-top: 0.05rem;
+    padding-bottom: 0.05rem;
+    font-size: var(--fs-xs);
+}
+
+// the tags past the second: their names on hover, the menu on a click
+.atelier__tags-more {
+    display: grid;
+    place-items: center;
+    height: 1.4rem;
+    padding: 0 0.45rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 700;
+    line-height: 1;
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.15s;
+}
+
+.atelier__tags-more:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+.atelier__tags .dropdown {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.atelier__tags .editor-tags__add {
+    display: inline-flex;
+    gap: 0.35rem;
+    width: auto;
+    height: 1.4rem;
+    white-space: nowrap;
+}
+
+.atelier__tags .dropdown__menu {
+    right: auto;
+    left: 0;
+    width: 200px;
+}
+
+// the ⋮ menu: the file on top, who last edited the song at the bottom
+.atelier__menu {
+    width: 16rem;
+}
+
+.atelier__menu-file {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    letter-spacing: 0;
+}
+
+.atelier__menu-file i {
+    color: var(--volt);
+}
+
+.atelier__menu-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-dim);
+}
+
+.atelier__menu-meta {
+    flex: 0 0 auto;
+    font-variant-numeric: tabular-nums;
+}
+
+.atelier__menu-editor {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.2rem;
+    padding: 0.45rem 0.6rem 0.25rem;
+    border-top: 1px solid var(--line-strong);
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.atelier__count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex: 0 0 auto;
+    color: var(--volt);
+}
+
+.atelier__count-label {
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.atelier__count .segmented button {
+    min-width: 1.9rem;
+    padding: 0.2rem 0.45rem;
+}
+
+// the song's ways: its own coils, its variants on other coils
+.atelier__way {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    min-width: 0;
+    padding-left: 0.6rem;
+    border-left: 1px solid var(--line-strong);
+}
+
+.atelier__way-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 11rem;
+    padding: 0.25rem 0.5rem;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.atelier__way-btn:hover {
+    border-color: var(--line);
+    color: var(--text);
+}
+
+.atelier__way-name {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--text-strong);
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.atelier__way-n {
+    color: var(--text-mute);
+    font-family: var(--font-mono);
+}
+
+.atelier__way-chev {
+    font-size: 0.6em;
+    color: var(--text-mute);
+}
+
+// opens under its button, toward the page's middle
+.atelier__way-menu {
+    right: 0;
+    left: auto;
+    width: auto;
+    min-width: 15rem;
+}
+
+.atelier__way-menu .dropdown__item {
+    white-space: nowrap;
+}
+
+// a variant's number of coils, in the menu
+.atelier__way-count {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    min-width: 1.3rem;
+    height: 1.3rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-xs);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+.atelier__way-field {
+    width: 12rem;
+    padding: 0.2rem 0.5rem;
+    font-size: var(--fs-xs);
+}
+
+// ui/components/editor/DeclineModal.vue: a coil for each place
+.decline__note {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.8rem 0 0;
+    color: var(--text-dim);
+    font-size: var(--fs-sm);
+}
+
+.decline__note i {
+    margin-top: 0.2rem;
+    color: var(--volt);
+}
+
+.decline__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.decline__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1.2fr);
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.decline__from {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+    overflow: hidden;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.decline__arrow {
+    color: var(--text-mute);
+    font-size: 0.8em;
+}
+
+.decline__from--new {
+    gap: 0.4rem;
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.decline__added {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.decline__added .decline__to {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.decline__add {
+    margin-top: 0.6rem;
+}
+
+.decline__warn {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0.6rem 0 0;
+    color: var(--amber-text);
+    font-size: var(--fs-sm);
+}
+
+// ui/components/editor/CoilPicker.vue: the inventory's coils, the song's ticked, in their place's colour (--c)
+.coil-picker {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.coil-pick {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    max-width: 9rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.coil-pick:hover:not(:disabled) {
+    border-color: var(--line-strong);
+    color: var(--text);
+}
+
+.coil-pick:disabled {
+    cursor: default;
+}
+
+.coil-pick__dot {
+    flex: none;
+    width: 0.55rem;
+    height: 0.55rem;
+    border-radius: 50%;
+    border: 1px solid var(--line-strong);
+}
+
+.coil-pick.is-on {
+    border-color: var(--c);
+    background: var(--bg-2);
+    color: var(--text-strong);
+}
+
+.coil-pick.is-on .coil-pick__dot {
+    border-color: var(--c);
+    background: var(--c);
+}
+
+.coil-pick__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// not on an output here: ticked to edit, silent in this room
+.coil-pick__off {
+    color: var(--amber-text);
+    font-size: 0.85em;
+}
+
+.atelier__speakers {
+    flex: 0 0 auto;
+    padding-left: 0.8rem;
+    border-left: 1px solid var(--line-strong);
+    font-size: var(--fs-xs);
+}
+
+.atelier__speakers .switch__text i {
+    margin-right: 0.35rem;
+    color: var(--plasma);
+}
+
+
+.atelier__loading {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0;
+    padding: 1.4rem 0;
+    color: var(--text-mute);
+}
+
+.atelier__dock {
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+}
+
+// the panel's tabs, on its top edge: the open one joins the panel below. Three
+// groups side by side, a rule between them.
+.atelier__dock-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.6rem;
+    padding: 0.4rem 0.6rem 0;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.atelier__tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.atelier__tools + .atelier__tools {
+    padding-left: 0.6rem;
+    border-left: 1px solid var(--line-strong);
+}
+
+
+// a tab: its button, and for Espace and Nuances (options) a cross that takes the
+// option off. The tab's look is on the wrapper, the cross sits inside it.
+.atelier__tab {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: -1px;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    transition: background 0.15s;
+}
+
+.atelier__tab:hover {
+    background: var(--volt-05);
+}
+
+.atelier__tab.is-on {
+    background: var(--panel);
+    border-color: var(--line);
+    border-top: 2px solid var(--volt);
+}
+
+.atelier__tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.55rem 0.9rem;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    cursor: var(--cursor-pointer, pointer);
+    transition: color 0.15s;
+}
+
+.atelier__tool:hover {
+    color: var(--text);
+}
+
+.atelier__tool.is-on {
+    color: var(--text-strong);
+}
+
+.atelier__tool i {
+    color: var(--volt);
+}
+
+.atelier__tab.has-x .atelier__tool {
+    padding-right: 0.3rem;
+}
+
+.atelier__tab-x {
+    display: grid;
+    place-items: center;
+    width: 1.3rem;
+    height: 1.3rem;
+    margin-right: 0.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--text-mute);
+    font-size: 0.7rem;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.atelier__tab-x:hover {
+    color: var(--danger);
+    background: var(--line-005);
+}
+
+// between the Assistant and the two tabs it fills
+.atelier__fills {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: 0.3rem;
+    margin: 0 0.2rem 0.2rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-pill);
+    background: var(--volt-08);
+    color: var(--volt);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: help;
+}
+
+// the options: their name, then an "add" button each while off
+.atelier__opts-cap {
+    align-self: center;
+    margin: 0 0.1rem 0.3rem 0.2rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.atelier__add {
+    display: inline-flex;
+    align-items: center;
+    align-self: center;
+    gap: 0.4rem;
+    margin: 0 0.1rem 0.3rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px dashed var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-mute);
+    font: inherit;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.atelier__add:hover {
+    border-color: var(--volt);
+    color: var(--volt);
+}
+
+// Débutant: one panel, no tabs; the door to the fine settings on the right
+.atelier__simple-head {
+    justify-content: flex-end;
+    padding-bottom: 0.4rem;
+}
+
+.atelier__simple-head .atelier__simple-door {
+    font-size: var(--fs-xs);
+}
+
+.save-copy-modal__text {
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--text-dim);
+    line-height: 1.5;
+}
+
+.atelier__dock-body {
+    position: relative;
+    padding: 1rem;
+}
+
+// short of room, the labels go first (their buttons keep a tooltip), the name stays
+@container (max-width: 1300px) {
+    .atelier__dirty-label {
+        display: none;
+    }
+}
+
+@container (max-width: 1500px) {
+    .atelier__count-label,
+    .atelier__speakers-label {
+        display: none;
+    }
+}
+
+// too short for three columns: a line each, as they fit
+@container (max-width: 1000px) {
+    .atelier__bar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+    }
+
+    .atelier__side {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 1000px) {
+    .atelier {
+        padding: 0 0.5rem 0.5rem;
+    }
+
+    .atelier__head {
+        margin: 0 -0.5rem;
+        padding: 0.6rem 0.5rem;
+    }
+
+    // the head wraps, its buttons land anywhere: their menus hang from its edges
+    .atelier__more,
+    .atelier__tags .dropdown {
+        position: static;
+    }
+
+    .atelier__menu {
+        right: 0.5rem;
+    }
+
+    .atelier__tags .dropdown__menu {
+        left: 0.5rem;
+    }
+
+    // the phone layout keeps the essentials (ui/helpers/viewport.ts): hidden, not dropped,
+    // so a save from there keeps the song's spatialisation and power curve
+    .atelier__tools + .atelier__tools,
+    .atelier__notes {
+        display: none;
+    }
+
+    .atelier__dock-body > .editor-large-only {
+        display: flex;
+        margin-top: 1rem;
+    }
+}

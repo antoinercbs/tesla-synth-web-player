@@ -1,0 +1,172 @@
+// ===========================================================================
+//  COIL 3D
+// ===========================================================================
+// ui/components/coils/CoilScene3d.vue: the coil drawn in 3D, its controls over the
+// picture's corner, the play point under it.
+
+.coil-3d {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    min-width: 0;
+}
+
+.coil-3d__over {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.coil-3d__glass {
+    padding: 0.32rem 0.7rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: var(--scrim-72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    font-size: var(--fs-sm);
+}
+
+.coil-3d__cap {
+    position: absolute;
+    left: 0.75rem;
+    bottom: 0.6rem;
+    z-index: 2;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.coil-3d__strike {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.6rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-strong);
+    pointer-events: none;
+}
+
+.coil-3d__strike i {
+    color: var(--amber);
+}
+
+.coil-3d__view {
+    position: relative;
+    height: clamp(16rem, 42vh, 26rem);
+    cursor: grab;
+    // a finger turns it sideways and still scrolls the page
+    touch-action: pan-y;
+    background: radial-gradient(ellipse at 50% 30%, var(--volt-06), transparent 70%);
+}
+
+.coil-3d__view:active {
+    cursor: grabbing;
+}
+
+.coil-3d__failed {
+    margin: 0;
+    padding: 1rem;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+// ui/components/player/Coils3dView.vue: the song's coils on stage, in the player's views
+.coils-3d {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+}
+
+// its scene, over the view's corner but not in it: a click on the menu is not a click on a coil
+.coils-3d__scene {
+    position: absolute;
+    left: 0.6rem;
+    top: 0.6rem;
+    z-index: 4;
+}
+
+// the room the player's views leave it
+.coils-3d__view {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 12rem;
+    border-radius: var(--radius-md);
+    cursor: grab;
+    touch-action: pan-y;
+    background: radial-gradient(ellipse at 50% 35%, var(--volt-06), transparent 70%);
+}
+
+.coils-3d__view:active {
+    cursor: grabbing;
+}
+
+.coils-3d__view.is-on-coil {
+    cursor: pointer;
+}
+
+// the coil under the pointer: its name, its output
+.coils-3d__tip {
+    position: absolute;
+    z-index: 3;
+    top: calc(var(--y) + 0.9rem);
+    left: clamp(0px, calc(var(--x) + 0.6rem), calc(100% - 15rem));
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    width: max-content;
+    max-width: 15rem;
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    box-shadow: var(--shadow-pop);
+    color: var(--text);
+    font-size: var(--fs-xs);
+    pointer-events: none;
+}
+
+.coils-3d__tip b {
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+}
+
+.coils-3d__tip small {
+    color: var(--text-mute);
+}
+
+.coils-3d__note {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    margin: 0;
+    padding: 1rem;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+    text-align: center;
+}
+
+.coils-3d__missing {
+    margin: 0.3rem 0 0;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}

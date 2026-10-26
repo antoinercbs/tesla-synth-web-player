@@ -1,0 +1,112 @@
+html {
+    background: var(--bg);
+    overflow: hidden;
+    cursor: var(--cursor-default, auto);
+}
+
+// a look's text beam over what edits text, its arrow where it cannot (a disabled
+// field, a number's up-down); the fallbacks are the browser's own
+input:not([type="range"], [type="checkbox"], [type="radio"], [type="color"], [type="file"], [type="button"], [type="submit"]),
+textarea,
+[contenteditable="true"] {
+    cursor: var(--cursor-text, text);
+}
+
+input:disabled,
+textarea:disabled,
+input::-webkit-inner-spin-button {
+    cursor: var(--cursor-default, default);
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--text);
+    background: var(--backdrop);
+    background-attachment: fixed;
+    min-height: 100dvh;
+}
+
+a {
+    color: var(--volt);
+}
+
+a:hover {
+    color: var(--link-hover);
+}
+
+#app {
+    position: relative;
+    z-index: 1;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--line-022);
+    border-radius: var(--radius-sm);
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--line-040);
+    background-clip: padding-box;
+}
+
+// --- keyboard focus ----------------------------------------------------------
+// one ring for every control (mouse clicks don't show it); zero specificity, so a
+// component can still draw its own
+:where(button, a, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+}
+
+// --- typography ------------------------------------------------------------
+h1,
+h2,
+h3,
+.title {
+    font-family: var(--font-display);
+    color: var(--text);
+}
+.mono {
+    font-family: var(--font-mono);
+}
+
+// --- indeterminate loading ---------------------------------------------------
+// a pulse running along the micro-arc (the "active" mark, in motion). Determinate
+// progress keeps a plain bar: an arc there would mean nothing.
+.arc-loader {
+    display: inline-block;
+    flex: 0 0 auto;
+    width: 3.5rem;
+    height: 7px;
+    vertical-align: middle;
+    background: linear-gradient(90deg, var(--line-strong) 0 30%, var(--arc-mid) 42%, var(--arc-core) 50%,
+            var(--arc-mid) 58%, var(--line-strong) 70% 100%) 0 0 / 300% 100%;
+    -webkit-mask: var(--micro-arc) center / 100% 100% no-repeat;
+    mask: var(--micro-arc) center / 100% 100% no-repeat;
+    animation: arc-travel 1.1s linear infinite;
+}
+
+@keyframes arc-travel {
+    from {
+        background-position: 100% 0;
+    }
+
+    to {
+        background-position: 0 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arc-loader {
+        animation: none;
+        background: var(--arc-mid);
+        opacity: 0.6;
+    }
+}

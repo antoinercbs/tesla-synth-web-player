@@ -1,0 +1,468 @@
+// ===========================================================================
+//  ATELIER TIMELINE
+// ===========================================================================
+// ui/components/atelier/AtelierTimeline.vue: the transport on top, then the
+// channels on the left, the score, velocities and coils' lanes on one time axis
+// on the right, the lanes' key, and the edges that size each part. The heights come
+// from the component (--ruler-h, --roll-h, --vel-h, --lane-head-h, --lane-h) so
+// both columns line up.
+
+.tl {
+    display: flex;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.tl__top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 2.8rem;
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.tl__spacer {
+    flex: 0 0 0.4rem;
+}
+
+// the transport and Power: the bar's right half, the fader stretching in it
+.tl__top > .player-bar {
+    flex: 0 1 50%;
+    margin-left: auto;
+}
+
+.tl__grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+}
+
+// a part's lower edge, across both columns: dragged, it sizes the part
+.tl__edge {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 2;
+    height: 9px;
+    transform: translateY(-50%);
+    cursor: row-resize;
+    touch-action: none;
+}
+
+.tl__edge::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--volt);
+    opacity: 0;
+    transition: opacity 0.12s;
+}
+
+.tl__edge:hover::after,
+.tl__edge:focus-visible::after {
+    opacity: 0.8;
+}
+
+.tl__edge:focus-visible {
+    outline: none;
+}
+
+// the lanes' key, under the plot
+.tl > .tl__key {
+    margin: 0;
+    padding: 0.45rem 0.8rem 0.45rem 13.8rem;
+    border-top: 1px solid var(--line);
+}
+
+.tl__side {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    background: var(--panel-2);
+    border-right: 1px solid var(--line);
+}
+
+.tl__corner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--ruler-h);
+    padding: 0 0.3rem 0 0.7rem;
+    border-bottom: 1px solid var(--line);
+}
+
+.tl__title {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.tl__zoom {
+    display: inline-flex;
+    gap: 0.1rem;
+}
+
+.tl__zoom button {
+    padding: 0 0.3rem;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.tl__zoom button:disabled {
+    opacity: 0.35;
+    cursor: var(--cursor-default, default);
+}
+
+.tl__zoom button:hover:not(:disabled) {
+    color: var(--volt);
+}
+
+.tl__chans {
+    display: flex;
+    flex-direction: column;
+    height: var(--roll-h);
+    overflow-y: auto;
+}
+
+.tl__chan {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.15rem;
+    flex: 1 1 0;
+    min-height: 3.2rem;
+    padding: 0.3rem 0.5rem 0.3rem 0.7rem;
+    border-bottom: 1px solid var(--line-005);
+    transition: opacity 0.15s;
+}
+
+.tl__chan.is-hover {
+    background: var(--volt-05);
+}
+
+.tl__chan.is-dim {
+    opacity: 0.45;
+}
+
+.tl__chan-top {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-width: 0;
+}
+
+.tl__dests {
+    display: inline-flex;
+    gap: 2px;
+}
+
+.tl__dest {
+    width: 0.32rem;
+    height: 0.75rem;
+    border-radius: var(--radius-2xs);
+    background: var(--c);
+}
+
+.tl__dest.is-none {
+    background: none;
+    border: 1px dashed var(--text-mute);
+}
+
+.tl__chan-name {
+    flex: 1 1 auto;
+    min-width: 0;
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+// the role, a click away from being corrected
+.tl__role {
+    padding: 0.05rem 0.5rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.is-melody > .tl__role {
+    border-color: var(--volt-50);
+    color: var(--volt);
+}
+
+.is-rhythm > .tl__role,
+.is-drums > .tl__role {
+    border-color: var(--amber);
+    color: var(--amber-text);
+}
+
+.tl__chan-meta {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+}
+
+.tl__env {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tl__env svg {
+    flex: 0 0 auto;
+    width: 2.1rem;
+    height: 0.75rem;
+}
+
+.tl__env path {
+    fill: none;
+    stroke: var(--text-dim);
+    stroke-width: 1.3;
+}
+
+.tl__vel-label {
+    display: flex;
+    align-items: flex-end;
+    height: var(--vel-h);
+    padding: 0 0.7rem 0.3rem;
+    border-top: 1px solid var(--line);
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+// like the channels' corner: the section's name, its two views as plain words
+.tl__lane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--lane-head-h);
+    padding: 0 0.3rem 0 0.7rem;
+    border-top: 1px solid var(--line);
+}
+
+.tl__modes {
+    display: inline-flex;
+    gap: 0.1rem;
+}
+
+.tl__modes button {
+    padding: 0.05rem 0.4rem;
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--text-mute);
+    font: inherit;
+    font-size: var(--fs-xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.tl__modes button:hover {
+    color: var(--text);
+}
+
+.tl__modes button.is-on {
+    color: var(--volt);
+    background: var(--volt-08);
+}
+
+// silenced while listening: a speaker's switch, as in the MIDI editor
+.tl__mute {
+    flex: 0 0 auto;
+    padding: 0.1rem 0.2rem;
+    border: 0;
+    background: none;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.tl__mute:hover {
+    color: var(--text);
+}
+
+.tl__mute.is-on {
+    color: var(--danger);
+}
+
+.tl__lane-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    height: var(--lane-h);
+    padding: 0 0.6rem;
+    border-top: 1px solid var(--line-005);
+    border-left: 3px solid var(--c);
+    font-size: var(--fs-xs);
+}
+
+.tl__lane-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tl__lane-label.is-muted .tl__lane-text,
+.tl__svg .is-muted {
+    opacity: 0.35;
+}
+
+.tl__lane-label b {
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+}
+
+.tl__lane-label span {
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+}
+
+.tl__scroll {
+    position: relative;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.tl__empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    margin: 0;
+    color: var(--text-mute);
+}
+
+// the lanes' lower edge (the score's while there are none)
+.tl__grip {
+    display: grid;
+    place-items: center;
+    height: 0.75rem;
+    border-top: 1px solid var(--line);
+    background: var(--panel-2);
+    cursor: row-resize;
+    touch-action: none;
+}
+
+.tl__grip span {
+    width: 2.6rem;
+    height: 3px;
+    border-radius: var(--radius-pill);
+    background: var(--line-strong);
+}
+
+.tl__grip:hover span,
+.tl__grip:focus-visible span {
+    background: var(--volt);
+}
+
+.tl__grip:focus-visible {
+    outline: none;
+}
+
+.tl__svg {
+    display: block;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.tl__ruler-bg {
+    fill: var(--panel-2);
+}
+
+.tl__bar {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.tl__bar-num {
+    fill: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+}
+
+.tl__notes rect.is-unrouted {
+    stroke: var(--text-mute);
+    stroke-width: 0.6;
+    stroke-dasharray: 2 2;
+}
+
+.tl__sep {
+    stroke: var(--line);
+}
+
+.tl__vel line {
+    stroke-width: 1.2;
+}
+
+.tl__lane-head-bg {
+    fill: var(--panel-2);
+}
+
+.tl__mark {
+    stroke-width: 2;
+    stroke: var(--ok);
+}
+
+.tl__mark.is-reduced {
+    stroke: var(--amber);
+}
+
+.tl__mark.is-cut {
+    stroke: var(--danger);
+}
+
+// moved by a transform every frame (AtelierTimeline's paintHead)
+.tl__playhead {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--volt);
+    pointer-events: none;
+    will-change: transform;
+}
+
+@media (max-width: 1000px) {
+    .tl__grid {
+        grid-template-columns: 8.5rem minmax(0, 1fr);
+    }
+
+    .tl__top > .player-bar {
+        flex-basis: 100%;
+    }
+
+    .tl__env {
+        display: none;
+    }
+}

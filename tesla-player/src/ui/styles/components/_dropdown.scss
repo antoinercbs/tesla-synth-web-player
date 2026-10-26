@@ -1,0 +1,176 @@
+// ===========================================================================
+//  DROPDOWN
+// ===========================================================================
+// A button and the menu it opens (ui/components/ui/DropMenu.vue, ui/components/ui/dropdown.ts): a table
+// row's ⋮ actions, a "used by" list, the song editor's tags. DropMenu's menu
+// floats at the end of <body> (.is-floating), placed beside its button; the
+// song editor's tags stay inside theirs.
+
+.dropdown {
+    position: relative;
+}
+
+// DropMenu's own trigger: the rows' ⋮
+.dropdown__more {
+    background: none;
+    border: 0;
+    cursor: var(--cursor-pointer, pointer);
+    padding: 0.4rem 0.4rem 0.4rem 0;
+    border-radius: var(--radius-sm);
+    color: var(--text-dim);
+    display: grid;
+    place-items: center;
+    transition: 0.15s ease;
+    font-size: var(--fs-xl);
+}
+
+.dropdown__more:hover {
+    color: var(--volt);
+}
+
+.dropdown__menu {
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 0.3rem;
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    padding: 0.3rem;
+    display: none;
+    flex-direction: column;
+    width: 160px;
+    box-shadow: var(--shadow-pop);
+    z-index: 100;
+
+    opacity: 0;
+    visibility: hidden;
+    animation: dropdownFadeDown 0.15s ease forwards;
+    transition:
+        opacity 0.2s,
+        transform 0.2s,
+        visibility 0.2s;
+
+    &::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 0.4rem;
+        bottom: 100%;
+    }
+}
+
+// over everything but the tour's card, as the combo's list and the column filter
+.dropdown__menu.is-floating {
+    position: fixed;
+    right: auto;
+    margin-top: 0;
+    z-index: 1000;
+}
+
+// opened by a click, a tap or the keyboard (ui/components/ui/dropdown.ts)
+.dropdown__menu.is-floating.is-open,
+.dropdown.is-open .dropdown__menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    display: flex;
+}
+
+// a touch screen keeps :hover on what was tapped: a menu closed from inside would stay up
+@media (hover: hover) {
+    .dropdown:hover .dropdown__menu:not(.is-floating) {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+        display: flex;
+    }
+}
+
+.dropdown__item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    padding: 0.5rem 0.6rem;
+    border-radius: var(--radius-xs);
+    cursor: var(--cursor-pointer, pointer);
+    text-align: left;
+    text-decoration: none;
+    font-size: var(--fs-md);
+    transition: 0.15s;
+
+    span {
+        padding-bottom: 2px;
+    }
+}
+
+.dropdown__item i {
+    width: 16px;
+    text-align: center;
+}
+
+.dropdown__item:hover,
+.dropdown__item:focus-visible {
+    background: var(--line-strong);
+    color: var(--text);
+}
+
+.dropdown__item.is-danger:hover,
+.dropdown__item.is-danger:focus-visible {
+    background: rgb(var(--danger-rgb) / 0.12);
+    color: var(--danger);
+}
+
+.dropdown__divider {
+    height: 1px;
+    background: var(--line-strong);
+    margin: 0.3rem 0;
+}
+
+.dropdown__header {
+    font-size: var(--fs-xs);
+    letter-spacing: 0.5px;
+    color: var(--text-mute);
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 0.2rem;
+}
+
+.dropdown__menu.is-dropup {
+    animation: dropdownFadeUp 0.15s ease forwards;
+
+    &::before {
+        bottom: auto;
+        top: 100%;
+    }
+}
+
+@keyframes dropdownFadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes dropdownFadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+

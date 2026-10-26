@@ -1,0 +1,546 @@
+// ===========================================================================
+//  COILS VIEW
+// ===========================================================================
+// ui/views/CoilsView.vue: the inventory, a row per coil on scales shared by all
+// (rulers in the columns' head). The coil's colour (--c) is on its cap and edge
+// only: the bars' colours say what happens (the key under the rows).
+
+.coil-inv-head {
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.coil-inv-head__count {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.coil-inv-body__missing {
+    color: var(--text-mute);
+}
+
+// the rows' grid: the coil, its two bars, its volume, its menu
+.coil-inv-list {
+    --inv-cols: minmax(8rem, 11rem) repeat(2, minmax(0, 1fr)) max-content 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    container-type: inline-size;
+}
+
+.coil-inv-cols,
+.coil-inv {
+    display: grid;
+    grid-template-columns: var(--inv-cols);
+    gap: 0 1.4rem;
+    align-items: center;
+}
+
+.coil-inv-cols {
+    align-items: end;
+    padding: 0 1rem 0.2rem 1.15rem;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.coil-inv-cols__k {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    min-width: 0;
+}
+
+.coil-inv-cols__k b {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+.coil-inv-cols__k small {
+    font-weight: 400;
+    color: var(--text-mute);
+}
+
+// the volume's: no scale, its title over the values
+.coil-inv-cols__k.is-vol {
+    align-self: start;
+}
+
+.coil-inv-cols__k.is-vol b {
+    justify-content: flex-end;
+}
+
+// a column's scale over its bars, its unit where the bars' values sit
+.coil-ruler {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3.4rem;
+    gap: 0.6rem;
+}
+
+// the pulse's: no value column, its unit on its last tick
+.coil-ruler.is-bare {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.coil-ruler__t {
+    position: relative;
+    height: 0.9rem;
+}
+
+.coil-ruler__t span {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+    white-space: nowrap;
+}
+
+.coil-ruler__t span:first-child {
+    transform: none;
+}
+
+.coil-ruler__t span:last-child {
+    transform: translateX(-100%);
+}
+
+.coil-ruler__u {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+    text-align: right;
+}
+
+.coil-inv {
+    position: relative;
+    min-height: 4.2rem;
+    padding: 0.55rem 1rem 0.55rem 1.15rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    color: var(--text);
+    overflow: hidden;
+}
+
+// the coil's colour along its left edge
+.coil-inv::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--coil-mark-w, 4px);
+    background: var(--c);
+}
+
+.coil-inv:hover {
+    border-color: var(--line-strong);
+}
+
+.coil-inv:has(.coil-inv__name:focus-visible) {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+}
+
+// on no output: it doesn't play here
+.coil-inv.is-off .coil-bar {
+    opacity: 0.6;
+}
+
+// its exemplaires, a cap and a name each, then what they share
+.coil-inv__id {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.coil-inv__unit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+.coil-inv__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.1rem 0.6rem;
+    padding-left: 1.5rem;
+}
+
+.coil-inv__diverged {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--amber-text);
+    cursor: help;
+}
+
+.coil-inv__name {
+    min-width: 0;
+    font-size: var(--fs-lg);
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.coil-inv__name:focus-visible {
+    outline: none;
+}
+
+// the whole row opens the sheet (the first exemplaire's: their config is one); the
+// others' names open theirs, above it
+.coil-inv__name.is-first::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+}
+
+.coil-inv__name:not(.is-first) {
+    position: relative;
+    z-index: 1;
+}
+
+.coil-inv__fl {
+    position: relative;
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+    cursor: help;
+}
+
+.coil-inv__menu {
+    position: relative;
+    z-index: 1;
+    justify-self: end;
+}
+
+// a bar on its column's scale: the track, then its value
+.coil-bar {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 3.4rem;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
+    padding-bottom: 0.85rem;
+}
+
+// its name: on a phone only, where the columns' head is gone
+.coil-bar__k {
+    display: none;
+}
+
+.coil-bar__track {
+    position: relative;
+    height: 12px;
+    border-radius: var(--radius-2xs);
+    background: rgb(var(--hi-rgb) / 0.05);
+}
+
+.coil-bar__grid {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 1px;
+    background: var(--line);
+}
+
+.coil-bar__seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+
+// what happens, the same colours for every coil
+.coil-bar__seg.is-air {
+    background: rgb(var(--hi-rgb) / 0.55);
+}
+
+.coil-bar__seg.is-range {
+    background: rgb(var(--hi-rgb) / 0.2);
+}
+
+.coil-bar__seg.is-strike {
+    background: rgb(var(--bang-strike-rgb) / 0.75);
+}
+
+.coil-bar__seg.is-short {
+    background: rgb(var(--bang-short-rgb) / 0.45);
+}
+
+.coil-bar__seg.is-past {
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.45) 0 2px, rgb(var(--amber-rgb) / 0.06) 2px 5px);
+}
+
+// the ground mat on the arcs' scale
+.coil-bar__mat {
+    position: absolute;
+    top: -5px;
+    bottom: -5px;
+    width: 3px;
+    margin-left: -1.5px;
+    background: repeating-linear-gradient(0deg, var(--bang-strike) 0 2px, transparent 2px 4px);
+    cursor: help;
+}
+
+// the sheet's max ontime, padlocked
+.coil-bar__lim {
+    position: absolute;
+    top: -5px;
+    bottom: -5px;
+    width: 2px;
+    margin-left: -1px;
+    background: var(--amber);
+    cursor: help;
+}
+
+.coil-bar__num {
+    position: absolute;
+    top: calc(100% + 3px);
+    transform: translateX(-50%);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: help;
+}
+
+// the arcs' ends: the treble's under the track, the bass's over it, each ending where its arcs do
+.coil-bar.is-arcs {
+    padding-top: 0.85rem;
+}
+
+.coil-bar__end {
+    position: absolute;
+    top: calc(100% + 2px);
+    transform: translateX(-100%);
+    font-size: 0.62rem;
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.coil-bar__end.is-above {
+    top: auto;
+    bottom: calc(100% + 2px);
+}
+
+// above the track, the max's below: they don't collide
+.coil-bar__num.is-above {
+    top: auto;
+    bottom: calc(100% + 2px);
+}
+
+// the pulse's: the track alone, its values on it
+.coil-bar.is-pulse {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: 0.85rem;
+}
+
+.coil-bar__num.is-strike {
+    color: var(--bang-strike-text);
+}
+
+.coil-bar__num.is-max {
+    color: var(--amber-text);
+}
+
+// the volume: its value alone
+.coil-bar.is-vol {
+    grid-template-columns: minmax(0, 1fr);
+}
+
+.coil-bar__num i {
+    margin-right: 0.2rem;
+    font-size: 0.55rem;
+}
+
+.coil-bar__v {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+    text-align: right;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+}
+
+.coil-bar__v small {
+    margin-left: 0.15rem;
+    font-size: 0.72em;
+    font-weight: 500;
+    color: var(--text-mute);
+}
+
+.coil-bar__v.is-mute {
+    color: var(--text-dim);
+    font-weight: 500;
+}
+
+.coil-inv.is-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem 1.2rem;
+    min-height: 3.6rem;
+    border-style: dashed;
+    color: var(--text-dim);
+    cursor: default;
+}
+
+.coil-inv.is-add::before {
+    content: none;
+}
+
+.coil-inv__add {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.coil-inv__sizes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.4rem;
+}
+
+// what the bars' colours say
+.coil-inv-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.2rem;
+    margin: 0.3rem 0 0;
+    padding-left: 1.15rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.coil-inv-key > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.coil-inv-key__sw {
+    width: 14px;
+    height: 10px;
+    border-radius: var(--radius-2xs);
+}
+
+.coil-inv-key__sw.is-air {
+    background: rgb(var(--hi-rgb) / 0.55);
+}
+
+.coil-inv-key__sw.is-strike {
+    background: rgb(var(--bang-strike-rgb) / 0.75);
+}
+
+.coil-inv-key__sw.is-short {
+    background: rgb(var(--bang-short-rgb) / 0.45);
+}
+
+.coil-inv-key__sw.is-past {
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.6) 0 2px, rgb(var(--amber-rgb) / 0.1) 2px 4px);
+}
+
+.coil-inv-key__sw.is-mat {
+    width: 3px;
+    height: 14px;
+    border-radius: 0;
+    background: repeating-linear-gradient(0deg, var(--bang-strike) 0 2px, transparent 2px 4px);
+}
+
+.coil-inv-key__lock {
+    margin-left: -0.15rem;
+    font-size: 0.6rem;
+    color: var(--amber-text);
+}
+
+// a phone, or a narrow window: the columns' head goes, each row stacks its bars, named
+@container (max-width: 700px) {
+    .coil-inv-cols {
+        display: none;
+    }
+
+    .coil-inv {
+        grid-template-columns: minmax(0, 1fr) 2rem;
+        gap: 0.35rem 0.6rem;
+    }
+
+    .coil-inv__id {
+        grid-column: 1;
+        grid-row: 1;
+    }
+
+    .coil-inv__menu {
+        grid-column: 2;
+        grid-row: 1;
+    }
+
+    .coil-bar {
+        grid-column: 1 / -1;
+        grid-template-columns: 4.6rem minmax(0, 1fr) 3.4rem;
+    }
+
+    .coil-bar.is-pulse,
+    .coil-bar.is-vol {
+        grid-template-columns: 4.6rem minmax(0, 1fr);
+    }
+
+    .coil-bar__k {
+        display: block;
+        font-size: var(--fs-xs);
+        color: var(--text-mute);
+    }
+}
+
+// the silhouette, to the scale shared by the page's cards
+.coil-sil {
+    width: 100%;
+    height: auto;
+}
+
+.coil-sil__floor {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+}
+
+.coil-sil__stand {
+    stroke: var(--line-strong);
+    stroke-width: 3;
+}
+
+.coil-sil__pri {
+    stroke: var(--copper-glint);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+}
+
+.coil-sil__sec {
+    fill: var(--copper-deep);
+    stroke: var(--c);
+    stroke-width: 1;
+}
+
+.coil-sil__top {
+    fill: var(--panel-2);
+    stroke: var(--c);
+    stroke-width: 1.2;
+}
+
+.coil-sil__pin {
+    stroke: var(--text-dim);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+}

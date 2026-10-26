@@ -1,0 +1,224 @@
+// ===========================================================================
+//  SONG DETAILS
+// ===========================================================================
+// A song unfolded in a list (ui/components/ui/SongDetails.vue), by the chevron at the end of
+// its row (.row-fold): the songs of Play's drawer, the Edit table. One block per
+// variant, the one playing here first; a line per coil, its dot the colour of
+// the output it is on.
+
+.row-fold {
+    display: grid;
+    place-items: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: none;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+    transition: color 0.13s, background 0.13s;
+}
+
+.row-fold:hover {
+    color: var(--volt);
+    background: var(--line-005);
+}
+
+.row-fold i {
+    transition: transform 0.15s;
+}
+
+.row-fold.is-open {
+    color: var(--volt);
+}
+
+.row-fold.is-open i {
+    transform: rotate(180deg);
+}
+
+// as wide as a reading line, not the whole table
+.song-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 44rem;
+    padding: 0.5rem 0.6rem 0.7rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.song-way {
+    padding: 0.45rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel-2);
+}
+
+.song-way.is-playing {
+    border-color: var(--volt-30);
+}
+
+.song-way.is-misfit {
+    opacity: 0.7;
+}
+
+.song-way__head {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.5rem;
+    color: var(--text);
+}
+
+.song-way__head > i {
+    color: var(--text-mute);
+}
+
+.song-way__name {
+    min-width: 0;
+    color: var(--text-dim);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.song-way__here {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.05rem 0.45rem;
+    border-radius: var(--radius-pill);
+    background: var(--volt-08);
+    color: var(--volt);
+    font-weight: 600;
+}
+
+.song-way__opts {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-left: auto;
+    color: var(--text-mute);
+}
+
+.song-way__opts span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-family: var(--font-mono);
+}
+
+.song-way__coils {
+    list-style: none;
+    margin: 0.35rem 0 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+// dot, name, channels, bass, treble: a column each, the same in every variant's
+// box and in the head above them (lined up with the boxes' padding)
+.song-coil {
+    display: grid;
+    grid-template-columns: 0.6rem minmax(0, 7rem) minmax(0, 1fr) 3.4rem 3.4rem;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+// Débutant: who plays what, not the numbers
+.song-details.is-simple .song-coil {
+    grid-template-columns: 0.6rem minmax(0, 7rem) minmax(0, 1fr);
+}
+
+.song-coil--head {
+    align-items: end;
+    padding-inline: calc(0.6rem + 1px);
+    color: var(--text-mute);
+    font-weight: 600;
+}
+
+.song-coil__h-coil {
+    grid-column: span 2;
+}
+
+.song-coil__h-num {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+}
+
+.song-coil__h-num small {
+    font-weight: 400;
+    font-size: 0.9em;
+}
+
+.song-coil__dot {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.song-coil.is-off .song-coil__dot {
+    background: none;
+    border: 1px dashed var(--text-mute);
+}
+
+.song-coil__name {
+    min-width: 0;
+    color: var(--text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.song-coil__chs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.song-coil__ch {
+    min-width: 1.2rem;
+    padding: 0 0.25rem;
+    border-radius: var(--radius-sm);
+    background: var(--line-005);
+    border: 1px solid var(--line);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    text-align: center;
+}
+
+.song-coil__none {
+    color: var(--text-mute);
+}
+
+.song-coil__num {
+    font-family: var(--font-mono);
+    color: var(--text-dim);
+    text-align: right;
+    white-space: nowrap;
+}
+
+.song-details__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    color: var(--text-mute);
+}
+
+.song-details__facts > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.song-details__facts i {
+    color: var(--text-mute);
+}

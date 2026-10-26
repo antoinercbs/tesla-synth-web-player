@@ -1,0 +1,132 @@
+# Development
+
+← [Docs](./README.md) · [Project README](../readme.md)
+
+For contributors: running the project locally, the stack, building, packaging the desktop app, and translating.
+
+**Contents**
+
+- [Repository layout](#repository-layout)
+- [Tech stack](#tech-stack)
+- [Run the dev servers](#run-the-dev-servers)
+- [Checks](#checks)
+- [Build the production image](#build-the-production-image)
+- [Desktop binaries](#desktop-binaries)
+- [The project's site](#the-projects-site)
+- [Internationalization](#internationalization)
+- [Contributing](#contributing)
+
+---
+
+## Repository layout
+
+| Path | What |
+| --- | --- |
+| `tesla-player/` | Vue 3 front-end |
+| `nest-backend/` | NestJS back-end (REST API + serves the built front in production) |
+| `electron/` | desktop app (runs the backend in-process) |
+| `Dockerfile`, `docker-compose.yml` | single-container production image |
+| `.github/workflows/` | CI (Docker image publishing) |
+| `docs/` | this documentation |
+
+## Tech stack
+
+- **Front-end**: Vue 3 + Vite + TypeScript, with Pinia, vue-router and vue-i18n.
+- **Back-end**: NestJS + TypeORM over SQLite. Serves the REST API under `/api`; in production it also serves the built front-end on the same port.
+- **Desktop**: Electron, running the very same NestJS backend **in-process** behind a private `app://` protocol (no localhost server). See the [desktop app guide](./desktop-app.md).
+
+## Run the dev servers
+
+Run the two dev servers side by side. The front (port `8080`) talks to the back (port `5000`) via `VITE_BASE_URL` in `tesla-player/.env`.
+
+**Back-end:**
+
+```bash
+cd nest-backend
+npm install
+npm run init:db    # first run only — creates database.db (+ schema) at the repo root
+npm run start:dev  # http://localhost:5000  (REST API under /api)
+```
+
+**Front-end:**
+
+```bash
+cd tesla-player
+npm install
+npm run dev        # http://localhost:8080
+```
+
+Open **http://localhost:8080**. The SQLite database and uploaded MIDI files are stored at the repository root (`database.db`, `uploads/`).
+
+To run the desktop app against your local build instead, see the `dev` / `dev:fork` scripts in `electron/package.json`.
+
+### Camera-assisted tuning in development
+
+The phone page of a tuning session needs a **secure context** to open the camera. In development the front is served over plain HTTP, so:
+
+- on this computer, open the camera link from the Tuning screen as-is (`http://localhost:…` counts as secure, the webcam works);
+- for a real phone, serve the front over HTTPS (e.g. `vite --https` with a local certificate such as [mkcert](https://github.com/FiloSottile/mkcert), and point `VITE_BASE_URL` at an HTTPS backend), or test with the packaged desktop app, whose LAN server is HTTPS out of the box (self-signed).
+
+The measurement core is pure TypeScript (`tesla-player/src/model/vision/arc-meter.ts`) and is unit-tested on synthetic frames. It can also replay a real recording: extract raw RGBA frames with ffmpeg (`-pix_fmt rgba`, 384 px wide, 10 fps) and run `ARC_REPLAY=/path/frames.rgba npx vitest run src/model/vision/arc-meter.replay.spec.ts`.
+
+## Checks
+
+```bash
+# front-end (in tesla-player/)
+npm run type-check       # type-check (the app and its end-to-end tests)
+npm run lint             # lint
+npx vitest run           # unit tests
+npm run e2e              # end-to-end tests, in headless Chrome (npm run e2e:ui to watch them)
+VITE_BASE_URL= npx vite build   # production build
+npm run build:site       # the project's site (GitHub Pages), in dist-site/
+
+# back-end (in nest-backend/)
+npm run build            # compile
+```
+
+The end-to-end tests (`tesla-player/e2e/`, Playwright) start a dev server of their own on port 5198 and drive the Chrome installed on this computer (`CHROME_PATH` for another Chromium). No backend is needed and none is reached: the API is answered from memory on the guided tour's sample library (`e2e/fake-api.ts`), the built-in synth stands for the coils, and a fake Syntherrupter (`e2e/board.ts`) for the board. A test fails on any error in the page, and on any API route the fake doesn't know: add the route there when the app calls a new one.
+
+## Build the production image
+
+```bash
+docker compose up --build       # build + run locally
+# or just build the image:
+docker build -t tesla-player .
+```
+
+The image is a 3-stage build (front bundle → back compile → slim runtime). For publishing to a registry via CI, see [Deployment → Building & publishing the image](./deployment.md#building--publishing-the-image-github-actions).
+
+## Desktop binaries
+
+```bash
+cd electron
+npm install                 # downloads Electron + electron-builder
+npm run build:electron      # builds front + back, rebuilds sqlite3 for Electron, then packages
+```
+
+Artifacts land in `electron/dist-electron/`: a Linux `*.AppImage` and a Windows `*.exe`. Building the **Windows** `.exe` from Linux requires **Wine**; without it, only the Linux AppImage is produced. To offer these for download from a server, drop them in the server's `data/electron/` folder. See [Deployment → Offering the desktop downloads](./deployment.md#offering-the-desktop-downloads).
+
+## The project's site
+
+The pages of [the project's site](https://antoinercbs.github.io/tesla-synth-web-player/) (home, features, demos, download, documentation, credits) are views of the app itself (`tesla-player/src/site/views/`, `src/site/`). They serve twice:
+
+- **in the app**, under `/about`: a server's home page for a visitor who isn't signed in, and the sidebar's **⋯** → **About**;
+- **on GitHub Pages**, built on their own:
+
+```bash
+cd tesla-player
+npm run build:site       # → dist-site/ (one index.html copy per page, so direct links answer)
+npm run preview:site     # serve it at http://localhost:4173/tesla-synth-web-player/
+```
+
+- **Documentation**: the pages render `docs/*.md` (this folder), the one source, still read as-is on GitHub. Links between guides become site pages; `src/site/docs.spec.ts` checks every anchor a guide links to exists.
+- **Demo videos**: unlisted YouTube videos, listed in `src/site/demos.ts` (an id per video; one without an id yet only shows while developing).
+- **Screenshots**: `src/site/shots/<language>/` for the site and `docs/img/` for the guides (in English, like them), taken on the guided tour's sample library (public-domain tunes): never on a real library, whose titles may not be public. The site ships the guides' pictures with its pages, so they show offline in the desktop app too. `npm run shots` retakes them all in English and French with the Chrome installed on this computer, on the end-to-end tests' fake API (`e2e/site.shots.ts`): no backend needed. `SHOTS_LOCALE=fr` takes one language, `SHOTS=play,coil` some shots only. Run it before a release when the interface changed.
+
+## Internationalization
+
+The app ships **English** and **French**. The strings live in `tesla-player/src/ui/translations/`, one file per language (`en.js`, `fr.js`) with the same nested keys (a test checks both have the same ones). To add a language, copy `en.js`, translate the values and add it to `index.js` and `locales.ts` (the app fetches a language's file when it is put on). **No programming required**. Contributions of new languages are very welcome.
+
+## Contributing
+
+This project is fully open source. Contributions are welcome via **GitHub pull requests**, and we're glad to hear feature requests and comments via **GitHub issues**. For larger changes, opening an issue first to discuss is appreciated.

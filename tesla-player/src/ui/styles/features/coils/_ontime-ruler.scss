@@ -1,0 +1,191 @@
+// ===========================================================================
+//  ONTIME RULER
+// ===========================================================================
+// ui/components/coils/OntimeRuler.vue: the coil sheet's ontime slider. Its track
+// in the coils list's colours (no arc, in the air, a strike, past the sheet's max
+// hatched), the OCD's cut in its own; the reach above it, the board's max a
+// padlocked handle. Drawn at the screen's pixels: these sizes are the real ones.
+
+.oruler svg {
+    display: block;
+    width: 100%;
+    touch-action: none;
+    user-select: none;
+    font-size: var(--fs-xs);
+}
+
+.oruler__grid line {
+    stroke: var(--line);
+}
+
+.oruler__tick {
+    fill: var(--text-mute);
+    font-family: var(--font-mono);
+}
+
+.oruler__mat {
+    stroke: var(--bang-strike);
+    stroke-dasharray: 2 3;
+    opacity: 0.8;
+}
+
+.oruler__mat-label {
+    fill: var(--bang-strike-text);
+}
+
+.oruler__band {
+    fill: rgb(var(--hi-rgb) / 0.08);
+}
+
+.oruler__line {
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 2;
+}
+
+.oruler__zone.is-short {
+    fill: rgb(var(--bang-short-rgb) / 0.35);
+}
+
+.oruler__zone.is-air {
+    fill: rgb(var(--hi-rgb) / 0.16);
+}
+
+.oruler__zone.is-ocd {
+    fill: rgb(var(--bang-ocd-rgb) / 0.4);
+}
+
+.oruler__zone.is-strike {
+    fill: rgb(var(--bang-strike-rgb) / 0.32);
+}
+
+.oruler__hatch-bg {
+    fill: rgb(var(--amber-rgb) / 0.06);
+}
+
+.oruler__hatch-line {
+    stroke: rgb(var(--amber-rgb) / 0.4);
+    stroke-width: 1.5;
+}
+
+.oruler__zone-label {
+    fill: var(--text-strong);
+    font-weight: 600;
+    pointer-events: none;
+}
+
+.oruler__zone-label.is-past {
+    fill: var(--amber-text);
+}
+
+.oruler__track {
+    fill: none;
+    stroke: var(--line-strong);
+}
+
+.oruler__lock {
+    cursor: ew-resize;
+    outline: none;
+}
+
+.oruler__lock-line {
+    stroke: var(--amber);
+    stroke-width: 1.5;
+}
+
+.oruler__lock-pill {
+    fill: rgb(var(--amber-rgb) / 0.16);
+    stroke: var(--amber);
+}
+
+.oruler__lock:focus-visible .oruler__lock-pill {
+    stroke-width: 2.5;
+}
+
+.oruler__lock-icon {
+    fill: var(--amber-text);
+    font-family: var(--fa-family-classic, "Font Awesome 7 Free");
+    font-weight: 900;
+    font-size: 0.6rem;
+}
+
+.oruler__lock-text {
+    fill: var(--amber-text);
+    font-family: var(--font-mono);
+    font-weight: 600;
+}
+
+.oruler__propose {
+    cursor: var(--cursor-pointer, pointer);
+    outline: none;
+}
+
+.oruler__propose rect {
+    fill: var(--scrim-90);
+    stroke: var(--amber);
+    stroke-dasharray: 3 2;
+}
+
+.oruler__propose:hover rect,
+.oruler__propose:focus-visible rect {
+    fill: rgb(var(--amber-rgb) / 0.16);
+}
+
+.oruler__propose text {
+    fill: var(--amber-text);
+    font-weight: 600;
+}
+
+.oruler__point {
+    cursor: ew-resize;
+    outline: none;
+}
+
+.oruler__point-line {
+    stroke: var(--volt);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 2;
+}
+
+.oruler__point-dot {
+    fill: var(--volt);
+    stroke: var(--bg);
+    stroke-width: 2;
+}
+
+.oruler__bubble {
+    fill: var(--volt);
+}
+
+.oruler__bubble-text {
+    fill: var(--ink);
+    font-family: var(--font-mono);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+}
+
+.oruler__thumb {
+    fill: var(--knob);
+    stroke: var(--volt);
+    stroke-width: 3;
+}
+
+.oruler__point:focus-visible .oruler__thumb {
+    stroke-width: 5;
+}
+
+.oruler__key {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.2rem 0 0;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.oruler__key-band {
+    width: 1rem;
+    height: 0.55rem;
+    border-radius: var(--radius-2xs);
+    background: rgb(var(--hi-rgb) / 0.16);
+}

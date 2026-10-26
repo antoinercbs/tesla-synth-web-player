@@ -1,0 +1,17 @@
+database.db
+*.bak
+uploads
+/data
+node_modules
+dist
+dist-site
+*.zip
+.env.production
+.env.local
+.env.*.local
+.playwright-mcp
+
+# electron desktop app: staged + built artifacts
+electron/build
+electron/resources
+electron/dist-electron

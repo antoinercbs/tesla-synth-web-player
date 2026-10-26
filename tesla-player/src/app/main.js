@@ -1,0 +1,156 @@
+import { createApp, watchEffect } from 'vue'
+import { createPinia } from 'pinia'
+import { createI18n } from 'vue-i18n'
+import axios from 'axios'
+import VueAxios from 'vue-axios'
+
+import App from './App.vue'
+import router from './router'
+import { isLocale, putLocale } from '@/ui/translations/locales'
+import { applyTheme, storedTheme } from '@/ui/helpers/themes'
+import { DEFAULT_SKIN, applySkin, loadSkin, storedSkin } from '@/ui/helpers/skins'
+import { useAuthStore } from '@/app/stores/auth'
+import { oidc } from '@/api/oidc'
+import { PhyResponse } from '@/model/coils/response'
+import { physicsStore } from '@/app/physics-store'
+
+// the default look's faces, shipped with the app (no font service is called): each
+// weight it uses, in every script (a browser only fetches the ones a page shows); the
+// other looks bring theirs with their stylesheet (ui/styles/themes/<look>/look.ts)
+import '@fontsource/ibm-plex-sans/400.css'
+import '@fontsource/ibm-plex-sans/500.css'
+import '@fontsource/ibm-plex-sans/600.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/ibm-plex-mono/600.css'
+import '@fontsource/chakra-petch/500.css'
+import '@fontsource/chakra-petch/600.css'
+import '@fontsource/chakra-petch/700.css'
+import '@/ui/main.scss'
+// CSS webfont only — do NOT also import the JS build: its SVG auto-replacement
+// of <i> elements fights Vue's reactive re-renders and makes icons disappear.
+import '@fortawesome/fontawesome-free/css/all.css'
+
+// the stored look fetched before the app mounts, so it never flashes the default look
+// or palette; one that cannot be fetched gives way to the default
+const skin = storedSkin()
+const lookReady = loadSkin(skin).then(() => skin, () => DEFAULT_SKIN).then((id) => {
+  applySkin(id)
+  applyTheme(storedTheme(id))
+})
+
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
+
+// the coils' responses (~0.2 s a sheet) kept between sessions, under the physics' stamp; not in
+// development, where the physics changes between two reloads
+if (!import.meta.env.DEV) PhyResponse.store = physicsStore(__PHYSICS_STAMP__)
+
+// Attach the OIDC bearer token when one is present. Inert when auth is off or
+// the user is logged out (oidc.accessToken is null), so the no-auth path
+// is unchanged.
+axios.interceptors.request.use((config) => {
+  const token = oidc.accessToken
+  if (token) {
+    config.headers = config.headers || {}
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// On 401 with auth enabled: first try a SILENT token renewal and retry the
+// request once — this recovers a mid-session token expiry in place, WITHOUT a
+// full-page re-login that would lose unsaved edits. Only if renewal fails (the
+// session is genuinely gone) do we redirect to the IdP. The anti-loop guard in
+// requestLogin falls back to the manual /login page if the round-trip isn't
+// yielding a usable session. Errors still propagate so callers see the failure.
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const status = error && error.response && error.response.status
+    const cfg = error && error.config
+    if (oidc.enabled && status === 401 && cfg && !cfg.__authRetried) {
+      cfg.__authRetried = true
+      const token = await oidc.tryRenew()
+      if (token) {
+        // Re-issue the original request; the request interceptor attaches the
+        // freshly-renewed token. No navigation, no lost state.
+        return axios(cfg)
+      }
+      const auth = useAuthStore()
+      auth.markExpired()
+      const current = router.currentRoute.value
+      if (current.name !== 'login' && current.name !== 'auth-callback') {
+        const redirect = current.fullPath
+        auth.requestLogin(redirect)
+          .then((redirected) => {
+            if (!redirected) {
+              router.replace({ name: 'login', query: redirect ? { redirect } : {} }).catch(() => {})
+            }
+          })
+          .catch(() => {})
+      }
+    } else if (oidc.enabled && status === 403) {
+      // Authenticated but lacking the required role → show an access-denied wall
+      // (NOT a re-login: a fresh token would have the same roles and loop).
+      useAuthStore().markAccessDenied()
+      if (router.currentRoute.value.name !== 'login') {
+        router.replace({ name: 'login' }).catch(() => {})
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+// Composition API mode: legacy mode is deprecated in vue-i18n 11, and views
+// that call useI18n() (SyntherrupterView) need it. globalInjection keeps $t and
+// $i18n.locale working in the Options API components and templates.
+// the language picked on this device, else the browser's (a first visitor, often
+// on the signed-out welcome screen, hasn't picked one)
+function firstLocale() {
+  try {
+    const stored = localStorage.getItem('locale')
+    if (isLocale(stored)) return stored
+  } catch {
+    /* storage blocked */
+  }
+  return navigator.language?.toLowerCase().startsWith('fr') ? 'fr' : 'en'
+}
+
+// its messages fetched before the app mounts (putLocale): the other language's come when it is put on
+const i18n = createI18n({
+  legacy: false,
+  globalInjection: true,
+  locale: firstLocale(),
+  fallbackLocale: 'en',
+  messages: {}
+})
+const localeReady = putLocale(i18n.global, i18n.global.locale.value)
+
+// index.html can only say en: a screen reader picks its voice by the page's
+// language, the browser its hyphenation and its offer to translate
+watchEffect(() => { document.documentElement.lang = i18n.global.locale.value })
+
+async function bootstrap() {
+  const app = createApp(App)
+  const pinia = createPinia()
+
+  app.use(pinia)
+  // Learn whether the server requires login BEFORE the router guard and the
+  // app/App.vue data bootstrap run, so the first frame never fires guaranteed-401
+  // requests. Degrades to "auth off" if the server can't be reached.
+  await useAuthStore().init()
+
+  app.use(router)
+  app.use(VueAxios, axios)
+  app.use(i18n)
+
+  // Resolve the first route before the first render, so route meta (e.g. the
+  // bare, chrome-less tuning camera page) is honoured from the very first frame
+  // and the sidebar never mounts for a split second on a phone.
+  await router.isReady()
+  await lookReady
+  await localeReady
+  app.mount('#app')
+}
+
+bootstrap()

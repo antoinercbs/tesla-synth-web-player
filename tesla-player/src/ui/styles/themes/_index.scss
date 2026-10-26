@@ -1,0 +1,34 @@
+// ===========================================================================
+//  THE LOOKS: the default in the app's stylesheet, the others fetched when put on
+// ===========================================================================
+// A look (a skin) is a folder: <look>/_palettes.scss its colours (the user picks
+// one of them), <look>/_skin.scss its structure (a map every look gives the same
+// entries of), <look>/_chrome.scss what tokens cannot say. The default look is
+// here, in the app's stylesheet: its palettes, and its map as custom properties on
+// :root (so a page without data-skin still has every token) and under
+// [data-skin="lab"]. Every other look is a stylesheet of its own,
+// <look>/look.scss, brought in with its fonts by <look>/look.ts the first time the
+// look is put on; ui/helpers/skins.ts lists the ids (its spec checks each has its folder)
+// and applies the chosen one, a data-skin attribute on <html>; ui/helpers/themes.ts does the
+// same for a look's palettes.
+@import "kit";
+@import "lab/palettes";
+
+$default-skin: lab;
+
+:root,
+[data-skin="lab"] {
+    @include -skin($lab);
+}
+
+// While a song plays the looks' decorations hold still (usePlayback sets data-playing): the page's
+// thread feeds the MIDI and moves the playhead, a moving backdrop or breathing panels would take
+// frames from them. What moves to say something (a spinner, an alarm, a live dot) goes on.
+$decorations: "body::before, body::after, .app-shell::before, .app-shell::after, .brand::after, .brand__emblem, .view-head__title, .view-head__title::after, .screen-head::after, .sidebar-section, .sidebar__spacer::before, .sidebar-coil__dot, .nav-item.router-link-active .icon, .nav-item.router-link-active::before, .btn--volt";
+
+[data-playing] {
+    #{$decorations},
+    #{$panels} {
+        animation-play-state: paused !important;
+    }
+}

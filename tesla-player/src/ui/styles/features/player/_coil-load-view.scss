@@ -1,0 +1,350 @@
+// ===========================================================================
+//  COIL LOAD VIEW
+// ===========================================================================
+// ui/components/player/CoilLoadView.vue: one lane per coil along the song, what the
+// board fires against the coil's limit (model/devices/simulation/). The label column's
+// width is the component's LABEL_W.
+
+.cload {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.cload__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 0.7rem;
+    margin-bottom: 0.55rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+// the lanes share the view's height, none under --lane-h (CoilLoadView)
+.cload__lanes {
+    position: relative;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.cload__defs {
+    position: absolute;
+}
+
+.cload__hatch-bg {
+    fill: rgb(var(--amber-rgb) / 0.1);
+}
+
+.cload__hatch-line {
+    stroke: rgb(var(--amber-rgb) / 0.6);
+    stroke-width: 1.5;
+}
+
+.cload__lane {
+    flex: 1 1 0;
+    min-height: var(--lane-h);
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    border-top: 1px solid var(--line);
+}
+
+.cload__label {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    padding: 0.3rem 0.5rem;
+    box-shadow: var(--edge-left) var(--c, var(--volt));
+    font-size: 0.66rem;
+    color: var(--text-mute);
+}
+
+.cload__label b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-family: var(--font-display);
+    font-size: var(--fs-sm);
+    color: var(--text-strong);
+}
+
+.cload__label .fiber-cap {
+    margin-right: 0.35rem;
+}
+
+.cload__plot {
+    position: relative;
+    min-width: 0;
+    cursor: crosshair;
+}
+
+// drawn at the plot's size (CoilLoadView measures it)
+.cload__plot svg {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.cload__area {
+    fill: var(--c, var(--volt));
+    fill-opacity: 0.3;
+}
+
+.cload__line {
+    fill: none;
+    stroke: var(--c, var(--volt));
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.cload__cap {
+    stroke: var(--amber);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+.cload__lost {
+    fill: var(--danger);
+}
+
+// a coil with a sheet: where the OCD cuts its bangs, the pulse past it, its strikes on the ground
+.cload__ocd {
+    fill: none;
+    stroke: var(--bang-ocd);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+    vector-effect: non-scaling-stroke;
+}
+
+.cload__ocd-over {
+    fill: rgb(var(--bang-ocd-rgb) / 0.45);
+}
+
+.cload__strike {
+    fill: var(--bang-strike-text);
+}
+
+// a note too short for any arc: never heard
+.cload__silent {
+    fill: none;
+    stroke: var(--bang-short);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+}
+
+// the notes of the column hovered in a card's figure
+.cload__mark {
+    position: absolute;
+    top: 2px;
+    bottom: 2px;
+    width: 2px;
+    margin-left: -1px;
+    border-radius: var(--radius-2xs);
+    pointer-events: none;
+}
+
+.cload__mark.is-cut {
+    background: var(--danger);
+}
+
+.cload__mark.is-reduced {
+    background: var(--amber);
+}
+
+.cload__mark.is-ocd {
+    background: var(--bang-ocd);
+}
+
+.cload__mark.is-strike {
+    background: var(--bang-strike);
+}
+
+.cload__mark.is-short {
+    background: var(--bang-short);
+}
+
+.cload__mark.is-ok {
+    background: var(--text-dim);
+    opacity: 0.6;
+}
+
+.cload__cross,
+.cload__playhead {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+.cload__cross {
+    width: 1px;
+    background: var(--text-dim);
+}
+
+.cload__playhead {
+    width: 2px;
+    margin-left: -1px;
+    background: var(--text-strong);
+    opacity: 0.8;
+}
+
+.cload__tip {
+    position: absolute;
+    z-index: 3;
+    top: 0.2rem;
+    left: clamp(0%, calc(var(--x) + 0.6rem), calc(100% - 13rem));
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    width: max-content;
+    max-width: 13rem;
+    padding: 0.45rem 0.55rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-md);
+    background: var(--bg-2);
+    box-shadow: var(--shadow-pop);
+    font-size: var(--fs-xs);
+    line-height: 1.4;
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.cload__tip-title {
+    font-weight: 600;
+    color: var(--text-strong);
+}
+
+.cload__tip .is-reduced {
+    color: var(--amber-text);
+}
+
+.cload__tip .is-cut {
+    color: var(--danger-text, var(--danger));
+}
+
+.cload__tip .is-ocd {
+    color: var(--bang-ocd-text);
+}
+
+.cload__tip .is-strike {
+    color: var(--bang-strike-text);
+}
+
+.cload__tip .is-short {
+    color: var(--bang-short);
+}
+
+.cload__axis {
+    display: grid;
+    grid-template-columns: 112px minmax(0, 1fr);
+    padding-top: 0.2rem;
+    border-top: 1px solid var(--line);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+}
+
+.cload__axis div {
+    display: flex;
+    justify-content: space-between;
+}
+
+// one line, the lanes' own marks
+.cload__key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.1rem;
+    margin: 0.55rem 0 0 112px;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.cload__key > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    white-space: nowrap;
+}
+
+.cload__sw {
+    flex: none;
+    width: 16px;
+}
+
+.cload__sw.is-area {
+    height: 9px;
+    border-top: 1.5px solid var(--text-dim);
+    background: rgb(var(--hi-rgb) / 0.18);
+}
+
+.cload__sw.is-limit {
+    height: 2px;
+    background: var(--amber);
+}
+
+.cload__sw.is-hatch {
+    height: 9px;
+    border-bottom: 1.5px solid var(--amber);
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.6) 0 2px, transparent 2px 5px);
+}
+
+.cload__sw.is-lost {
+    width: 0;
+    height: 0;
+    border-right: 5px solid transparent;
+    border-bottom: 8px solid var(--danger);
+    border-left: 5px solid transparent;
+}
+
+.cload__sw.is-ocd {
+    height: 9px;
+    border-bottom: 1.5px dashed var(--bang-ocd);
+    background: rgb(var(--bang-ocd-rgb) / 0.45);
+}
+
+.cload__sw.is-short {
+    width: 8px;
+    height: 8px;
+    border: 1.5px solid var(--bang-short);
+    border-radius: 50%;
+}
+
+.cload__sw.is-strike {
+    width: 0;
+    height: 0;
+    border-top: 8px solid var(--bang-strike);
+    border-right: 5px solid transparent;
+    border-left: 5px solid transparent;
+}
+
+// the docked player: the key under the labels too
+.cload.is-compact .cload__key {
+    margin-left: 0;
+}
+
+// in the song editor, wide above the coils' cards
+.editor-load {
+    margin: 1.1rem 0;
+    padding: 0.8rem 1rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    background: var(--panel);
+}
+
+.player-viz__body > .cload {
+    min-height: 0;
+    overflow: hidden auto;
+}
+
+// the load tab without a song
+.viz-empty {
+    flex: 1 1 auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+}

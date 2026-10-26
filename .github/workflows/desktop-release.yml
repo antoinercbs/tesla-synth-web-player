@@ -1,0 +1,93 @@
+name: Desktop release
+
+# On a version tag (vX.Y.Z): builds the desktop app (electron/) on Linux (.AppImage)
+# and Windows (installer .exe) and attaches both to that tag's GitHub release,
+# created with generated notes if it doesn't exist yet. The site's Download page
+# offers the latest release.
+#
+# A manual run (workflow_dispatch) builds both and keeps them as the run's
+# artifacts, without releasing anything.
+#
+# The file names carry electron/package.json's version: bump it (with
+# tesla-player/ and nest-backend/) before tagging.
+
+on:
+  push:
+    tags: ['v*.*.*']
+  workflow_dispatch:
+
+permissions:
+  contents: write # the release and its assets
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # one release for both builds (two jobs creating it at once could make two)
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create the release if needed
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 \
+            || gh release create "$TAG" --repo "$GITHUB_REPOSITORY" --title "$TAG" --generate-notes
+
+  build:
+    needs: release
+    # the manual run has no release job: build anyway
+    if: always() && (needs.release.result == 'success' || needs.release.result == 'skipped')
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: --linux
+            files: electron/dist-electron/*.AppImage
+          - os: windows-latest
+            target: --win
+            files: electron/dist-electron/*.exe
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install
+        run: |
+          npm ci --legacy-peer-deps --prefix tesla-player
+          npm ci --prefix nest-backend
+          npm ci --prefix electron
+
+      # front + back built, staged into electron/resources, sqlite3 rebuilt for Electron
+      - name: Prepare
+        working-directory: electron
+        run: npm run prepackage
+
+      - name: Package
+        working-directory: electron
+        run: npx electron-builder ${{ matrix.target }} --publish never
+
+      - name: Attach to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${{ github.ref_name }}" ${{ matrix.files }} --repo "$GITHUB_REPOSITORY" --clobber
+
+      - name: Keep the build
+        if: ${{ !startsWith(github.ref, 'refs/tags/') }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-${{ matrix.os }}
+          path: ${{ matrix.files }}

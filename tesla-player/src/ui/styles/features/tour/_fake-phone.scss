@@ -1,0 +1,424 @@
+// ===========================================================================
+//  FAKE PHONE
+// ===========================================================================
+// ui/components/tour/FakePhone.vue
+
+// sized to the screen; everything inside scales with it (em on a width-based font)
+.fphone {
+    position: fixed;
+    width: min(18rem, 22vw, calc((100vh - 5rem) * 0.52));
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    visibility: hidden;
+    container-type: inline-size;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+.fphone.is-placed {
+    visibility: visible;
+}
+
+.fphone.is-dragging {
+    cursor: grabbing;
+}
+
+@media (max-width: 1100px), (max-height: 560px) {
+    .fphone {
+        display: none;
+    }
+}
+
+.fphone button {
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.fphone__caption {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.fphone__grip {
+    margin-left: auto;
+    opacity: 0.7;
+}
+
+.fphone__device {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 0.45em solid var(--phone-bezel);
+    border-radius: 2.2em;
+    background: var(--bg);
+    box-shadow: var(--shadow-phone);
+    font-size: 4.2cqw;
+    color: var(--text);
+}
+
+// the camera page: the picture fills the screen, the head and the sheet lie over it
+.fphone__stage {
+    position: relative;
+    background: var(--cam-bg);
+}
+
+// the 3D under the overlay's canvas, in the same box: the canvas keeps the picture's shape
+.fphone__3d {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.fphone__canvas {
+    position: relative;
+    display: block;
+    width: 100%;
+    aspect-ratio: 9 / 16;
+}
+
+.fphone__head {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5em;
+    padding: 0.9em 1em 1.2em;
+    background: linear-gradient(rgb(var(--lo-rgb) / 0.8), transparent);
+    font-family: var(--font-display);
+    font-size: 0.85em;
+    color: var(--text-dim);
+    pointer-events: none;
+}
+
+.fphone__title {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    white-space: nowrap;
+    color: var(--text);
+}
+
+.fphone__link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    color: var(--ok);
+}
+
+.fphone__link::before {
+    content: "";
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: var(--ok);
+}
+
+// where a finger takes the picture: the pin, then the wall's and the floor's grips
+.fphone__spot,
+.fphone__handle {
+    position: absolute;
+    width: 2.4em;
+    height: 2.4em;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    transform: translate(-50%, -50%);
+}
+
+.fphone__tapme {
+    position: absolute;
+    left: 50%;
+    top: 3.2em;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    width: max-content;
+    max-width: calc(100% - 1.5em);
+    padding: 0.35em 0.8em;
+    border: 1px solid var(--volt);
+    border-radius: var(--radius-pill);
+    background: rgb(var(--bg-rgb) / 0.86);
+    font-size: 0.8em;
+    text-align: center;
+    pointer-events: none;
+}
+
+.fphone__gate {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8em;
+    padding: 1em;
+    background: rgb(var(--lo-rgb) / 0.75);
+    text-align: center;
+    font-size: 0.85em;
+}
+
+.fphone__gate p {
+    margin: 0;
+}
+
+.fphone__sheet {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    max-height: 64%;
+    overflow: hidden;
+    padding: 0.4em 0.7em 0.7em;
+    border-top: 1px solid rgb(var(--line-rgb) / 0.15);
+    border-radius: 1.1em 1.1em 0 0;
+    background: rgb(var(--bg-rgb) / 0.9);
+}
+
+.fphone__sheet-grip {
+    align-self: center;
+    width: 2.4em;
+    height: 0.25em;
+    border-radius: var(--radius-pill);
+    background: rgb(var(--line-rgb) / 0.5);
+}
+
+.fphone__hint {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 0.85em;
+}
+
+.fphone__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.2em 0.8em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: 0.75em;
+    color: var(--text-dim);
+}
+
+.fphone__legend li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+}
+
+.fphone__swatch {
+    display: inline-block;
+    flex: none;
+}
+
+.fphone__swatch--dot {
+    width: 0.75em;
+    height: 0.75em;
+    border-radius: 50%;
+    background: var(--danger);
+    outline: 1.5px solid var(--text-bright);
+}
+
+.fphone__swatch--arrow {
+    width: 0.65em;
+    height: 0.75em;
+    background: rgb(var(--zone-rgb));
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+}
+
+.fphone__swatch--wall {
+    width: 0.3em;
+    height: 0.95em;
+    margin-left: 0.3em;
+    border-left: 2px solid rgb(var(--zone-rgb));
+}
+
+.fphone__swatch--floor {
+    width: 1em;
+    border-top: 2px dashed rgb(var(--zone-rgb));
+}
+
+.fphone__trial {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    padding: 0.6em 0.7em;
+    border: 1px solid rgb(var(--line-rgb) / 0.18);
+    border-radius: 0.8em;
+    background: var(--cam-surface);
+}
+
+.fphone__trial.is-best {
+    border-color: var(--ok);
+}
+
+.fphone__trial-head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6em;
+}
+
+.fphone__trial-n {
+    font-family: var(--font-display);
+    color: var(--text-dim);
+}
+
+.fphone__trial-tap {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1.25em;
+    color: var(--volt);
+}
+
+.fphone__notes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.fphone__note {
+    display: grid;
+    grid-template-columns: 3em 1fr;
+    align-items: center;
+    gap: 0.5em;
+}
+
+.fphone__note-name {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-dim);
+}
+
+.fphone__note.is-measuring .fphone__note-name {
+    color: var(--volt);
+}
+
+.fphone__note.is-done .fphone__note-name {
+    color: var(--text);
+}
+
+.fphone__bar {
+    display: block;
+    height: 0.5em;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: rgb(var(--volt-rgb) / 0.15);
+}
+
+.fphone__bar i {
+    display: block;
+    height: 100%;
+    background: var(--volt);
+    transition: width 0.25s linear;
+}
+
+.fphone__note-val {
+    font-family: var(--font-mono);
+}
+
+.fphone__note-val.is-dim {
+    color: var(--text-dim);
+}
+
+.fphone__result {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5em;
+}
+
+.fphone__result b {
+    font-family: var(--font-display);
+    font-size: 1.45em;
+}
+
+.fphone__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35em;
+    color: var(--text-dim);
+}
+
+.fphone__tag.is-best,
+.fphone__tag.is-up {
+    color: var(--ok);
+}
+
+.fphone__tag.is-down {
+    color: var(--danger);
+}
+
+.fphone__readout {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4em;
+    padding: 0.4em 0.7em;
+    border: 1px solid rgb(var(--line-rgb) / 0.15);
+    border-radius: 0.8em;
+}
+
+.fphone__readout.is-measuring {
+    border-color: var(--volt);
+}
+
+.fphone__value {
+    font-family: var(--font-display);
+    font-size: 2.3em;
+    line-height: 1;
+    color: var(--volt);
+    font-variant-numeric: tabular-nums;
+}
+
+.fphone__unit {
+    color: var(--text-dim);
+}
+
+.fphone__state {
+    margin-left: auto;
+    color: var(--text-dim);
+}
+
+.fphone__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    padding: 0.7em;
+    border: 0;
+    border-radius: 0.8em;
+    font: inherit;
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.fphone__btn:disabled {
+    opacity: 0.45;
+    cursor: var(--cursor-default, default);
+}
+
+.fphone__btn--volt {
+    background: var(--grad);
+    color: var(--on-grad);
+}
+
+.fphone__btn--danger {
+    background: var(--danger);
+    color: var(--on-fill);
+    font-size: 1.2em;
+}

@@ -1,0 +1,710 @@
+// ===========================================================================
+//  OUTPUT STRIPS
+// ===========================================================================
+// ui/components/player/OutputStrips.vue: one strip per output of the board, on the
+// player's view (its fibre's cap, its coil, the coil's power, what it fires);
+// ui/components/ui/VFader.vue, the strips' fader. --c is the output's colour (its
+// fibre's cap), never the coil's.
+
+// an output: its fibre's cap, round, in its colour, and its number
+.fiber-cap {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.fiber-cap::before {
+    content: "";
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.fiber-cap__n {
+    font-family: var(--coil-idx-font, var(--font-mono));
+    color: var(--coil-idx-color, var(--text-mute));
+}
+
+.fiber-cap--lg::before {
+    width: 1rem;
+    height: 1rem;
+}
+
+.fiber-cap--lg .fiber-cap__n {
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.fiber-cap--sm::before {
+    width: 0.5rem;
+    height: 0.5rem;
+}
+
+.fiber-cap--xs {
+    gap: 0.15rem;
+}
+
+.fiber-cap--xs::before {
+    width: 0.45rem;
+    height: 0.45rem;
+}
+
+.dropdown__header .fiber-cap {
+    margin-right: 0.4rem;
+}
+
+// a strip's menu: the coils to plug on its output
+.strip__menu {
+    min-width: 16rem;
+}
+
+.strip__menu .dropdown__item,
+.strip__menu .dropdown__header {
+    white-space: nowrap;
+}
+
+// in a coil's menu: the output it is on already, or none
+.stage-out__elsewhere {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+    padding-left: 0.6rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+// ------------------------------------------------------------------ the strips
+.strips {
+    display: flex;
+    flex-direction: column;
+    flex: none;
+    min-height: 0;
+    max-width: 50%;
+    margin: 0 0.75rem 0.6rem 0;
+    padding: 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: rgb(var(--hi-rgb) / 0.02);
+}
+
+.strips__head {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0 0.2rem 0.4rem;
+}
+
+.strips__fold {
+    display: inline-flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 0.4rem;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--text-dim);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.strips__fold:hover {
+    color: var(--text);
+}
+
+.strips__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.strips__chev {
+    margin-left: auto;
+    font-size: 0.65em;
+    color: var(--text-mute);
+}
+
+.strips__sync {
+    color: var(--ok);
+    font-size: var(--fs-xs);
+}
+
+.strips__row {
+    display: flex;
+    flex: 1 1 auto;
+    gap: 0.4rem;
+    min-height: 0;
+    overflow-x: auto;
+}
+
+// the free output's menu: its button fills the strip's height
+.strips__row > .dropdown {
+    display: flex;
+    flex: none;
+}
+
+.strip {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    width: 5.4rem;
+    min-height: 0;
+    padding: 0.45rem 0.3rem 0.4rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--panel);
+}
+
+// on stage, not in this song: its power waits for the next one
+.strip.is-idle {
+    opacity: 0.65;
+}
+
+.strip > .dropdown {
+    width: 100%;
+}
+
+.strip__head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    padding: 0.1rem 0;
+    border: 0;
+    border-radius: var(--radius-xs);
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.strip__head:hover {
+    background: rgb(var(--hi-rgb) / 0.05);
+}
+
+span.strip__head {
+    cursor: default;
+}
+
+span.strip__head:hover {
+    background: none;
+}
+
+.strip__name {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    max-width: 100%;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.strip__name-text {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.strip__chev {
+    font-size: 0.55em;
+    color: var(--text-mute);
+}
+
+.strip__val {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+}
+
+.strip__val.is-boost,
+.strip__received.is-boost {
+    color: var(--danger);
+}
+
+.strip__val {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: help;
+}
+
+// what it receives, once the general Power multiplies its share
+.strip__received {
+    font-weight: 500;
+    color: var(--text-dim);
+}
+
+.strip__body {
+    display: flex;
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    min-height: 6rem;
+}
+
+// duty and ontime, side by side, their units under them
+.strip__meters {
+    display: grid;
+    grid-template-columns: repeat(2, 0.55rem);
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 0.3rem;
+    padding: 0.45rem 0 0;
+}
+
+// Débutant: one gauge, how busy the coil is
+.strip__meters.is-simple {
+    grid-template-columns: 0.55rem;
+}
+
+.strip__meters small {
+    font-size: 0.55rem;
+    color: var(--text-mute);
+    text-align: center;
+}
+
+// the meters run to 1.5 × the coil's limit: its mark sits at two thirds. No easing:
+// the hatched part sits on the solid one, it would leave before the solid reaches it
+.vmeter {
+    position: relative;
+    border-radius: var(--radius-2xs);
+    background: rgb(var(--hi-rgb) / 0.07);
+    cursor: help;
+}
+
+.vmeter.is-unknown {
+    background: repeating-linear-gradient(0deg, rgb(var(--hi-rgb) / 0.07) 0 4px, transparent 4px 7px);
+}
+
+.vmeter__fill {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 0 0 var(--radius-2xs) var(--radius-2xs);
+    background: var(--c, var(--volt));
+}
+
+.vmeter__over {
+    position: absolute;
+    right: 0;
+    left: 0;
+    background: repeating-linear-gradient(135deg, var(--amber) 0 2px, rgb(var(--amber-rgb) / 0.3) 2px 4px);
+}
+
+.vmeter__max {
+    position: absolute;
+    right: -2px;
+    bottom: calc(66.67% - 1px);
+    left: -2px;
+    height: 2px;
+    border-radius: var(--radius-2xs);
+    background: var(--amber);
+}
+
+.strip__foot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-height: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+}
+
+.strip__red {
+    font-weight: 600;
+    color: var(--amber-text);
+    cursor: help;
+}
+
+.strip__warn {
+    color: var(--amber-text);
+    cursor: help;
+}
+
+.strip__skip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--text-mute);
+    cursor: help;
+}
+
+.strip__skip b {
+    color: var(--text-strong);
+}
+
+.strip__led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgb(var(--hi-rgb) / 0.1);
+    outline: 3px solid transparent;
+    transition: background 0.15s, outline-color 0.15s;
+}
+
+.strip__led.is-on {
+    background: var(--danger);
+    outline-color: rgb(var(--danger-rgb) / 0.28);
+}
+
+// a coil of the song on no output, and the next free output
+.strip--ghost,
+.strip--add {
+    justify-content: center;
+    border-style: dashed;
+    background: none;
+}
+
+.strip--ghost,
+.strip--ghost .strip__head {
+    color: var(--amber-text);
+}
+
+.strip__plug {
+    padding: 0.3rem 0.4rem;
+    font-size: 0.66rem;
+    white-space: normal;
+}
+
+.strip--add {
+    width: 2.6rem;
+    color: var(--text-dim);
+    font: inherit;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.strip--add:hover {
+    border-color: var(--line-strong);
+    color: var(--text);
+}
+
+.strip__free {
+    writing-mode: vertical-rl;
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+// the general Power: the master strip, at the end of the row
+.strip--master {
+    width: 4.8rem;
+    border-color: rgb(var(--volt-rgb) / 0.35);
+}
+
+.strip__master-icon {
+    color: var(--volt);
+    font-size: var(--fs-md);
+}
+
+.strip--master .strip__foot {
+    gap: 0.3rem;
+}
+
+// how to read a strip: the fader, the meters, the max, the cut
+.strips__key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.75rem;
+    margin: 0.45rem 0.2rem 0;
+    font-size: 0.62rem;
+    color: var(--text-mute);
+}
+
+.strips__key > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    cursor: help;
+}
+
+.strips__sw {
+    position: relative;
+    display: inline-block;
+    flex: none;
+}
+
+.strips__sw--fader {
+    width: 3px;
+    height: 0.8rem;
+    border-radius: var(--radius-2xs);
+    background: var(--text-dim);
+}
+
+.strips__sw--fader::after {
+    content: "";
+    position: absolute;
+    top: 0.25rem;
+    left: -3px;
+    width: 9px;
+    height: 4px;
+    border: 1px solid var(--knob);
+    border-radius: var(--radius-2xs);
+    background: var(--panel);
+}
+
+.strips__sw--meter {
+    width: 9px;
+    height: 0.8rem;
+    border-radius: var(--radius-2xs);
+    background: linear-gradient(0deg, var(--text-dim) 0 55%, rgb(var(--hi-rgb) / 0.07) 55%);
+}
+
+.strips__sw--max {
+    width: 10px;
+    height: 2px;
+    border-radius: var(--radius-2xs);
+    background: var(--amber);
+}
+
+.strips__sw--cut {
+    width: 9px;
+    height: 0.6rem;
+    background: repeating-linear-gradient(135deg, var(--amber) 0 2px, rgb(var(--amber-rgb) / 0.3) 2px 4px);
+}
+
+// folded: each output's cap and its power, the view gets the rest
+.strips.is-folded .strips__title,
+.strips.is-folded .strip__name,
+.strips.is-folded .strip__body,
+.strips.is-folded .strip__foot,
+.strips.is-folded .strip__chev,
+.strips.is-folded .strip--ghost,
+.strips.is-folded .strips__row > .dropdown {
+    display: none;
+}
+
+.strips.is-folded .strip {
+    width: 3.2rem;
+}
+
+// ------------------------------------------------------------------ the fader
+.vfader {
+    display: flex;
+    flex: none;
+    flex-direction: column;
+    align-items: center;
+    width: 1.6rem;
+    padding: 0.45rem 0;
+    border-radius: var(--radius-sm);
+    outline: none;
+    cursor: ns-resize;
+    touch-action: none;
+}
+
+.vfader:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 1px;
+}
+
+.vfader.is-disabled {
+    opacity: 0.4;
+    cursor: var(--cursor-default, default);
+}
+
+// the track's zones: as set, overdrive, far overdrive (as the general Power's)
+.vfader__track {
+    position: relative;
+    flex: 1 1 auto;
+    width: 6px;
+    border-radius: var(--radius-xs);
+    background: linear-gradient(0deg, rgb(var(--hi-rgb) / 0.08) 0 50%, rgb(var(--amber-rgb) / 0.25) 50% 75%, rgb(var(--danger-rgb) / 0.3) 75% 100%);
+}
+
+// Débutant: 0–100 % over the whole track, no overdrive zones
+.vfader--plain .vfader__track {
+    background: rgb(var(--hi-rgb) / 0.08);
+}
+
+.vfader--plain .vfader__mid {
+    display: none;
+}
+
+.vfader__fill {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: inherit;
+    background: var(--c, var(--volt));
+}
+
+// the fill's top when it isn't the handle's: what the coil receives
+.vfader__level {
+    position: absolute;
+    right: -4px;
+    left: -4px;
+    height: 2px;
+    margin-bottom: -1px;
+    border-radius: var(--radius-2xs);
+    background: var(--c, var(--volt));
+    cursor: help;
+}
+
+// 100 %: the song as it was set
+.vfader__mid {
+    position: absolute;
+    right: -5px;
+    left: -5px;
+    height: 2px;
+    margin-bottom: -1px;
+    border-radius: var(--radius-2xs);
+    background: var(--text-mute);
+}
+
+// the general Power's: the room for its marks' caps, right of the track
+.vfader.has-marks {
+    width: 2.8rem;
+    align-items: flex-start;
+    padding-left: 0.55rem;
+}
+
+// past it, the coil's bass is at its max ontime
+.vfader__notch {
+    position: absolute;
+    right: -8px;
+    left: -8px;
+    height: 2px;
+    margin-bottom: -1px;
+    border-radius: var(--radius-2xs);
+    background: var(--c, var(--text-dim));
+    cursor: help;
+}
+
+.vfader__notch.is-ahead {
+    opacity: 0.4;
+}
+
+// a coil's notch on the general Power, tagged with its outputs' caps
+.vfader__tag {
+    position: absolute;
+    bottom: -0.4rem;
+    left: calc(100% + 0.3rem);
+    display: inline-flex;
+    gap: 0.15rem;
+    font-size: 0.6rem;
+    white-space: nowrap;
+}
+
+.vfader__thumb {
+    position: absolute;
+    left: 50%;
+    width: 1.5rem;
+    height: 0.7rem;
+    transform: translate(-50%, 50%);
+    border: 2px solid var(--knob);
+    border-radius: var(--radius-xs);
+    background: var(--panel);
+    box-shadow: var(--shadow-knob);
+    pointer-events: none;
+}
+
+// the board's settings differ from the sheets (BoardSyncPrompt): the Syntherrupter
+// before / after, per output; after = the coil's sheet
+.board-sync {
+    width: auto;
+    border-collapse: collapse;
+    font-size: var(--fs-xs);
+}
+
+.board-sync th,
+.board-sync td {
+    padding: 0.2rem 0.6rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.board-sync thead th {
+    color: var(--text-dim);
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.board-sync thead tr:first-child th {
+    padding-bottom: 0;
+}
+
+.board-sync__board {
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+}
+
+.board-sync thead .board-sync__board {
+    text-align: center;
+    color: var(--text);
+}
+
+.board-sync__board i {
+    margin-right: 0.35rem;
+}
+
+.board-sync tbody {
+    border-top: 1px solid var(--line);
+}
+
+.board-sync__out {
+    font-weight: 400;
+    white-space: nowrap;
+}
+
+.board-sync__coil {
+    margin-left: 0.4rem;
+    font-weight: 600;
+}
+
+.board-sync__key {
+    color: var(--text-dim);
+}
+
+.board-sync .board-sync__num {
+    text-align: right;
+    font-family: var(--font-mono);
+    white-space: nowrap;
+}
+
+.board-sync thead .board-sync__num {
+    font-family: inherit;
+}
+
+.board-sync__num small {
+    margin-left: 0.2rem;
+    color: var(--text-mute);
+}
+
+.board-sync__was {
+    color: var(--text-mute);
+}
+
+.board-sync__to b {
+    color: var(--volt);
+}
+
+.board-sync__arrow {
+    color: var(--text-mute);
+    font-size: 0.8em;
+}
+
+.board-sync__from {
+    display: block;
+    color: var(--text-mute);
+    font-size: 0.85em;
+}
+
+.board-sync__from i {
+    margin-right: 0.25rem;
+}
+
+.board-sync__blind {
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}

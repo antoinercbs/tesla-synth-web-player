@@ -1,0 +1,79 @@
+// ===========================================================================
+//  SLIDERS A LOOK DRAWS ITSELF
+// ===========================================================================
+// The lab keeps the browser's slider, in its accent (accent-color). A look that
+// draws its own includes this on its sliders ($sliders, ../_families.scss) and sets
+// on them the groove and the cap:
+//   --range-track --range-track-h --range-track-radius --range-track-shadow
+//   --range-thumb --range-thumb-hover --range-thumb-w --range-thumb-h
+//   --range-thumb-border --range-thumb-radius --range-thumb-shadow --range-focus
+// Each engine names the pieces apart, and drops a whole rule over one it does not
+// know: each is written twice. Without $track the slider keeps its own groove (the
+// power fader's zones); --range-track-h still says how tall it is, to centre the cap.
+
+@mixin -groove {
+    height: var(--range-track-h);
+    border: 0;
+    border-radius: var(--range-track-radius);
+    background: var(--range-track);
+    box-shadow: var(--range-track-shadow);
+}
+
+@mixin -cap {
+    box-sizing: border-box;
+    width: var(--range-thumb-w);
+    height: var(--range-thumb-h);
+    border: var(--range-thumb-border);
+    border-radius: var(--range-thumb-radius);
+    background: var(--range-thumb);
+    box-shadow: var(--range-thumb-shadow);
+}
+
+@mixin drawn-range($track: true) {
+    -webkit-appearance: none;
+    appearance: none;
+    height: var(--range-thumb-h);
+    background: transparent;
+    cursor: var(--cursor-pointer, pointer);
+
+    @if $track {
+        &::-webkit-slider-runnable-track {
+            @include -groove;
+        }
+
+        &::-moz-range-track {
+            @include -groove;
+        }
+    }
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        // the cap sits on the groove's top edge unless pulled up
+        margin-top: calc((var(--range-track-h) - var(--range-thumb-h)) / 2);
+
+        @include -cap;
+    }
+
+    &::-moz-range-thumb {
+        @include -cap;
+    }
+
+    &:hover:not(:disabled)::-webkit-slider-thumb {
+        background: var(--range-thumb-hover, var(--range-thumb));
+    }
+
+    &:hover:not(:disabled)::-moz-range-thumb {
+        background: var(--range-thumb-hover, var(--range-thumb));
+    }
+
+    &:focus-visible {
+        outline: var(--range-focus);
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        opacity: 0.45;
+        cursor: var(--cursor-default, default);
+    }
+}

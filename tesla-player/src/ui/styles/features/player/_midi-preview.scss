@@ -1,0 +1,241 @@
+// ===========================================================================
+//  MIDI PREVIEW
+// ===========================================================================
+// ui/components/player/MidiPreview.vue: the score, alone or above the coils' load (drawn
+// with the load view's own pieces). A skin restyles them through these tokens (unset,
+// the lab look):
+//   --preview-bg --preview-border --preview-radius --preview-shadow --preview-rail-bg
+//   --preview-line (grid, ticks, edges) --preview-ink --preview-ink-dim --preview-ink-mute
+//   --preview-font --preview-playhead --preview-note-rx --preview-glow (a filter on the drawing)
+
+.preview {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 0.4rem;
+}
+
+.preview__frame {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--preview-border, var(--line));
+    border-radius: var(--preview-radius, var(--radius-md));
+    overflow: hidden;
+    background: var(--preview-bg, rgb(var(--hi-rgb) / 0.02));
+    box-shadow: var(--preview-shadow, none);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.preview__param {
+    display: flex;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid var(--preview-line, var(--line));
+    background: var(--preview-rail-bg, rgb(var(--lo-rgb) / 0.18));
+    padding: 4px;
+    gap: 4px;
+    flex: 0 0 auto;
+}
+
+// .segmented too: level with `.segmented button.is-active`, which comes first
+.segmented.preview__param button {
+    flex: 1 1 0;
+    padding: 0.35rem;
+    font-size: var(--fs-xs);
+}
+
+// the choice left off is written in the well's ink, the frame's ground being its
+// (the pointer's hover keeps the look's own)
+.segmented.preview__param button:not(.is-active, :hover) {
+    color: var(--preview-ink-dim, var(--seg-color, var(--text-dim)));
+}
+
+.preview__body {
+    flex: 1 1 auto;
+    min-height: 100px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.preview__scroll {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.preview__svg {
+    display: block;
+    filter: var(--preview-glow, none);
+}
+
+// the notes' corners: the SVG's rx attribute, which a skin may replace
+.preview__svg > rect {
+    rx: var(--preview-note-rx, 1.5px);
+}
+
+.preview__inner {
+    position: relative;
+    display: flex;
+    width: 100%;
+}
+
+// Combined: the line between the score and the lanes, across the rail and the plot; dragged,
+// it shares the height between them
+.preview__edge {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 2;
+    height: 9px;
+    transform: translateY(-50%);
+    cursor: row-resize;
+    touch-action: none;
+}
+
+.preview__edge::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 2px;
+    margin-top: -1px;
+    background: var(--volt);
+    opacity: 0;
+    transition: opacity 0.15s;
+}
+
+.preview__edge:hover::after,
+.preview__edge:focus-visible::after {
+    opacity: 0.8;
+}
+
+.preview__edge:focus-visible {
+    outline: none;
+}
+
+.preview__rail {
+    flex: 0 0 auto;
+    border-right: 1px solid var(--preview-line, var(--line));
+    background: var(--preview-rail-bg, rgb(var(--lo-rgb) / 0.18));
+}
+
+.preview__rail-head {
+    border-bottom: 1px solid var(--preview-line, var(--line));
+}
+
+.preview__rail-roll {
+    border-bottom: 1px solid var(--preview-line, var(--line));
+}
+
+.preview__rail-lane {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1px;
+    padding: 0 0.5rem;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid var(--preview-line, var(--line));
+}
+
+.preview__rail-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--c);
+}
+
+.preview__rail-id .fiber-cap {
+    margin-right: 0.35rem;
+}
+
+.preview__rail-id {
+    font-size: var(--fs-sm);
+    color: var(--preview-ink, var(--text-strong));
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.preview__rail-name {
+    color: var(--preview-ink-dim, var(--text-dim));
+    font-weight: 400;
+}
+
+.preview__rail-sub {
+    font-family: var(--preview-font, var(--font-mono));
+    font-size: 0.62rem;
+    color: var(--preview-ink-mute, var(--text-mute));
+    white-space: nowrap;
+}
+
+// compact rail: narrow column, number on top + ontime/duty written vertically
+.preview__rail.is-compact .preview__rail-lane {
+    align-items: center;
+    padding: 0.2rem 0;
+    gap: 2px;
+}
+
+.preview__rail-cnum {
+    font-family: var(--preview-font, var(--font-mono));
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--preview-ink, var(--text));
+    flex: 0 0 auto;
+}
+
+.preview__rail-csub {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-family: var(--preview-font, var(--font-mono));
+    font-size: 0.6rem;
+    color: var(--preview-ink-mute, var(--text-mute));
+    white-space: nowrap;
+    overflow: hidden;
+    min-height: 0;
+    flex: 0 1 auto;
+}
+
+.preview__grid {
+    stroke: var(--preview-line, var(--line));
+    stroke-width: 1;
+    opacity: 0.6;
+}
+
+.preview__divider {
+    stroke: var(--preview-line, var(--line-strong, var(--line)));
+    stroke-width: 1.5;
+    opacity: 0.9;
+}
+
+.preview__tick {
+    stroke: var(--preview-line, var(--line));
+    stroke-width: 1;
+    opacity: 0.3;
+}
+
+.preview__tick.is-major {
+    opacity: 0.55;
+}
+
+.preview__ticklabel {
+    fill: var(--preview-ink-mute, var(--text-mute));
+    font-family: var(--preview-font, var(--font-mono));
+    font-size: 0.5625rem;
+}
+
+// the arc's white-blue core, shared by the score and the combined view
+.preview__playhead {
+    stroke: var(--preview-playhead, var(--arc-core));
+    stroke-width: 1.5;
+}

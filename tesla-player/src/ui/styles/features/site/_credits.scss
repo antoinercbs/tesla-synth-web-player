@@ -1,0 +1,42 @@
+// ===========================================================================
+//  THE SITE: CREDITS (site/views/SiteCreditsView.vue, the home page's block)
+// ===========================================================================
+
+.credits__item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.credits__item p {
+    margin: 0;
+    font-size: var(--fs-md);
+    line-height: 1.5;
+    color: var(--text-mute);
+}
+
+.credits__by {
+    color: var(--text);
+}
+
+.credits__links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 0.25rem;
+}
+
+.credits__links a,
+.credits__by a {
+    color: var(--volt);
+    text-decoration: none;
+    font-size: var(--fs-md);
+}
+
+.credits__links a:hover,
+.credits__by a:hover {
+    text-decoration: underline;
+}
+
+.credits__links i {
+    font-size: var(--fs-xs);
+}

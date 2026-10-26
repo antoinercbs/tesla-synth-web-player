@@ -1,0 +1,9 @@
+{
+  // the tests run in Node (Playwright compiles them), the app's code they import in the browser's terms
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"]
+  },
+  "include": ["**/*.ts", "../playwright.config.ts", "../playwright.shots.config.ts", "../env.d.ts"],
+  "exclude": []
+}

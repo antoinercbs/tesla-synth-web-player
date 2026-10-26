@@ -1,0 +1,17 @@
+@charset "utf-8";
+
+// main.scss is a thin manifest — the real styles live in styles/* (see styles/README.md).
+// ORDER IS LOAD-BEARING:
+//  - tokens and the default look (palettes, structure) MUST precede everything that uses var(--…)
+//  - components come before features: a feature adjusts the shared pieces it uses
+//  - the other looks are stylesheets of their own (styles/themes/<look>/look.scss),
+//    fetched when put on (ui/helpers/skins.ts): they land after this one, their chrome over it
+
+@import "styles/base/reset"; // what every page assumes of the elements
+@import "styles/tokens/tokens"; // shared colours and the tints derived from the palette
+@import "styles/themes/index"; // the default look: its palettes, its structure
+@import "styles/base/base"; // base elements, typography, scrollbar
+@import "styles/layout/layout"; // app shell, sidebar, brand/nav
+@import "styles/layout/screen"; // the page scaffold
+@import "styles/components/index"; // shared pieces: buttons, fields, modals…
+@import "styles/features/index"; // one partial per feature

@@ -1,0 +1,210 @@
+// ===========================================================================
+//  FIXED MODE
+// ===========================================================================
+// ui/components/player/FixedMode.vue
+
+.fixed {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+// control bar (mirrors the live-mode bar)
+.fixed-bar {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    flex-wrap: wrap;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.2rem;
+}
+
+.fixed-bar__run {
+    margin-left: auto;
+}
+
+.fixed-bar__hint {
+    flex: 1 1 100%;
+    margin: 0.2rem 0 0;
+}
+
+// section header
+.fixed-section__head {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+// per-card on/off switch (tinted with the coil colour) + dimmed off state
+.coil-card__switch {
+    margin-left: auto;
+}
+
+.coil-card__switch input:checked + .switch__track {
+    background: var(--coil, var(--volt));
+    border-color: var(--coil, var(--volt));
+}
+
+.coil-card.is-off {
+    opacity: 0.55;
+}
+
+// the firing rate, on a log slider: its value and the note it sounds above it
+.fixed-freq {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin-top: 0.8rem;
+}
+
+.fixed-freq__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+}
+
+.fixed-freq__head .readout__key {
+    margin-right: auto;
+}
+
+.fixed-freq__note {
+    color: var(--coil, var(--volt));
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+// the exact value, typed: the slider's range, or past it
+.fixed-freq__field {
+    flex: 0 0 auto;
+    width: 6.5rem;
+}
+
+.fixed-freq__field input {
+    padding-block: 0.2rem;
+    font-size: var(--fs-md);
+}
+
+.fixed-freq__range {
+    width: 100%;
+    accent-color: var(--coil, var(--volt));
+}
+
+// linked: moves with the other linked coils, their intervals kept
+.fixed-freq__link {
+    display: grid;
+    place-items: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    padding: 0;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+    transition: 0.13s;
+}
+
+.fixed-freq__link:hover {
+    color: var(--text);
+    border-color: var(--coil, var(--volt));
+}
+
+.fixed-freq__link.is-on {
+    color: var(--ink);
+    background: var(--coil, var(--volt));
+    border-color: var(--coil, var(--volt));
+}
+
+// what the board fires: the pulse, the demand it cut (hatched), the coil's two limits (marks)
+.fx-gauge {
+    margin: 0.8rem 0 0.2rem;
+}
+
+.fx-gauge__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-bottom: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.fx-gauge__head > i {
+    color: var(--coil, var(--volt));
+}
+
+.fx-gauge__real,
+.fx-gauge__duty {
+    white-space: nowrap;
+}
+
+.fx-gauge__real b {
+    font-family: var(--font-mono);
+    font-size: var(--fs-md);
+    color: var(--text-strong);
+}
+
+.fx-gauge__duty {
+    color: var(--text-mute);
+}
+
+.fx-gauge__duty b {
+    font-family: var(--font-mono);
+    font-size: var(--fs-sm);
+    color: var(--text);
+}
+
+.fx-gauge__track {
+    position: relative;
+    height: 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-xs);
+    background: rgb(var(--hi-rgb) / 0.04);
+}
+
+.fx-gauge__fill {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: var(--radius-xs) 0 0 var(--radius-xs);
+    background: var(--coil, var(--volt));
+    transition: width 0.12s;
+}
+
+.fx-gauge__over {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.55) 0 3px, transparent 3px 6px);
+}
+
+.fx-gauge__cap {
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    width: 2px;
+    margin-left: -1px;
+    border-radius: var(--radius-2xs);
+    background: var(--amber);
+    cursor: help;
+}
+
+.fx-gauge__cap.is-duty {
+    background: var(--text-dim);
+}
+
+.fx-gauge__foot {
+    margin-top: 0.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+}

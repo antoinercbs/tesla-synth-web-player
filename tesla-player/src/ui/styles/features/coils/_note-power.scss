@@ -1,0 +1,92 @@
+// ===========================================================================
+//  NOTE POWER
+// ===========================================================================
+// ui/components/coils/NotePower.vue: each note's power into the arcs at the play
+// point's ontime, a bar each; the chosen note's in the accent.
+
+.npower {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+}
+
+.npower__col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.3rem 0 0.2rem;
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-dim);
+    font: inherit;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.npower__col:hover {
+    background: var(--volt-05);
+}
+
+.npower__col:focus-visible {
+    outline: 2px solid var(--volt-50);
+}
+
+// the bar from the base, its value on top of it
+.npower__plot {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.25rem;
+    width: 100%;
+    height: 7rem;
+    border-bottom: 1px solid var(--line-strong);
+}
+
+.npower__v {
+    font-family: var(--font-mono);
+    font-size: var(--fs-xs);
+}
+
+.npower__bar {
+    width: min(4rem, 62%);
+    min-height: 2px;
+    border-radius: var(--radius-xs) var(--radius-xs) 0 0;
+    background: rgb(var(--text-rgb) / 0.3);
+}
+
+.npower__bar.is-capped {
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.45) 0 2px, rgb(var(--text-rgb) / 0.3) 2px 6px);
+}
+
+.npower__f {
+    font-size: var(--fs-sm);
+}
+
+.npower__cap {
+    min-height: 1em;
+    font-size: var(--fs-xs);
+    color: var(--amber-text);
+    white-space: nowrap;
+}
+
+.npower__col.is-on {
+    color: var(--text-strong);
+}
+
+.npower__col.is-on .npower__v,
+.npower__col.is-on .npower__f {
+    font-weight: 600;
+}
+
+.npower__col.is-on .npower__bar {
+    background: var(--volt);
+}
+
+@media (max-width: 1000px) {
+    .npower__plot {
+        height: 5rem;
+    }
+}

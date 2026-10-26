@@ -1,0 +1,26 @@
+// ===========================================================================
+//  SEARCH FIELD
+// ===========================================================================
+// ui/components/ui/SearchField.vue: a text field with its magnifier. It grows in a row.
+
+.search-field {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.search-field .text-field {
+    width: 100%;
+    height: 100%;
+    padding-left: 2.2rem;
+}
+
+.search-field__icon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-mute);
+    pointer-events: none;
+    font-size: var(--fs-md);
+}

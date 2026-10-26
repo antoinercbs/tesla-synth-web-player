@@ -1,0 +1,122 @@
+# Camera-assisted tuning
+
+← [Docs](./README.md) · [Project README](../readme.md)
+
+Tuning ("accord") a Tesla coil means moving the **primary tap** until the primary resonates with the secondary *as loaded by its arcs*, which is a little off the no-load resonance. The usual way is to play a note, look at the arcs, cut the power, move the tap by an eighth of a turn, and repeat, judging by eye. The **Tuning** screen replaces the eye with a phone camera and remembers the result.
+
+The screen opens on a choice: **New tuning**, **Free measurement** or **History**. A new tuning runs as a guided session in four steps — **settings → camera → trials → save** — and every session ends with a saved record. Back on the choice while a session is under way, the first card resumes it instead. To simply measure arcs, whatever drives the coil and without saving anything, use the [free arc meter](#free-arc-meter).
+
+**Contents**
+
+- [What you need](#what-you-need)
+- [The procedure](#the-procedure)
+- [Reading the results](#reading-the-results)
+- [Saving a tuning](#saving-a-tuning)
+- [Free arc meter](#free-arc-meter)
+- [How the measurement works](#how-the-measurement-works)
+- [Limits and good practice](#limits-and-good-practice)
+- [Safety](#safety)
+- [For developers](#for-developers)
+
+---
+
+## What you need
+
+- The coil driven from the app (MIDI or serial output) as for playing music.
+- A **phone with a rear camera**, placed on a stand or leaning against something, framing the coil and the space above its toroid. It must not move during the session. Any laptop webcam works too (less convenient to place).
+- The phone must reach the app:
+  - **web server**: over HTTPS, as the browser only exposes the camera to secure origins;
+  - **desktop app**: over Wi‑Fi, through the local HTTPS server the app starts for the session. Its certificate is self-signed: the phone shows a warning the first time, accept it once.
+
+## The procedure
+
+### 1. Settings — fixed for the whole session
+
+- **Coil under test**: the coil, its usual on-time / duty, and optionally an envelope to force. The **fiber out** is the Syntherrupter output the coil is plugged into; it follows the coil (change it only if the wiring differs).
+- **Test notes**: one to four MIDI notes held one after the other (three by default: C3, G3, C4, shown with their frequency in Hz since a coil's firing rate is its pitch), how long each is held (10 s by default) and the gap between them (3 s). They are the same for every trial, which is what makes the trials comparable. *Play the notes (no measurement)* checks the coil sings before involving the camera.
+- **Primary**: total turns, the range of tap positions to explore (for example 4 to 8 turns), and the tap step (1/8 turn by default). The drawing here is a preview of the range, without a tap clip.
+
+Once the first trial has run, the coil and test notes fields are locked for the session; the primary range stays adjustable.
+
+### 2. Camera
+
+A QR code appears: scan it with the phone (or open the link on this computer for its webcam). On the phone: start the camera, then place the zone **with your finger, on the picture**. Put your finger on the **tip of the breakout pin** and swipe towards the side the arcs go: that sets the pin and the side in one gesture (*Zone OK* stays off until you do). The zone is a **corner**: everything on the arcs' side of a vertical **wall** just behind the pin (the toroid and the coil are ignored), above the dashed **floor**. Put the floor at the ground or the strike rail: the arcs dive towards it, and a strike is measured down to it (it stays where the ground is when the pin moves). Drag the red dot, the wall or the floor to adjust them; touch the arrow beside the pin to flip the side. Nothing else caps the length but the picture's edge. The picture fills the screen and never moves; the panel at the bottom lies over it and can be pulled down to its essentials (or touched on its handle) to see the whole frame. Then *Zone OK*. The player moves on to the trials by itself. From now on, do not touch the phone.
+
+### 3. Trials
+
+![A trial: the phone films the arcs from the side, the page measures them and draws the arc length against the tap position](./img/tuning-trial.webp)
+
+The panel that stays on screen holds everything you act on: the primary drawing, the tap position and *Run trial*. It flips to **what the camera sees** while a trial runs, and back to the primary when it ends; the switch at its top does the same by hand. Beside it, the chart and the trials table build up, under a strip that recalls what is under test (coil, fiber, on-time, duty, test notes).
+
+Set the tap on the drawing (drag the clip along the copper spiral), on the ruler under the chart, with ±, keyboard arrows, or *Use* the suggestion. Move the physical tap **with the coil off**, then *Run trial* and confirm. The app captures the background while the coil is still off, holds the notes while the camera measures, and adds a row to the table. Repeat: the app suggests the next position — a coarse pass on half-turns over the range, then a fine pass around the best point, then an estimated optimum.
+
+**Stop** on the player or on the phone cuts the notes immediately.
+
+### 4. Save
+
+The session ends with a record. See [Saving a tuning](#saving-a-tuning).
+
+## Reading the results
+
+- Each trial has a **score**: the mean, over the notes, of the 90th percentile of the arc length measured frame by frame (in **pixels of the camera's work frame**). The P90 is robust to the arc's flicker and to frames that miss it.
+- The **chart** plots the per-note lengths and the score against the tap position, on the same scale as the tap ruler right under it (graduated at every turn and every tap step, with the best, suggested and previous positions marked); the best trial is highlighted in the table.
+- **Arc silhouettes** show where the arcs went during a trial (brighter = more often), live for the current note and side by side for the best and the last trials.
+- The **phone** mirrors the trial as it runs: trial number, tap under test, each note with a progress bar then its result, and the score against the best so far.
+- Lengths are in pixels: they compare trials of one session (same camera, same place) perfectly well. Converting to centimetres will come with a physical reference placed in front of the coil in a later version.
+
+## Saving a tuning
+
+Saving is the last step of every session, not an afterthought: *Finish and save* shows a recap (best tap, its arc length, the trial count, the test notes and the primary geometry) and the form below stores the retained tap position and its arc length, together with:
+
+- the **place** (map with a draggable marker, pre-filled from the phone's position when available, with a name from OpenStreetMap on request);
+- the **conditions**: indoor / outdoor, temperature, humidity and pressure (fetched from Open‑Meteo for the position, or typed in), dry / wet ground, and a free comment;
+- the test notes, the primary geometry and the whole trial series.
+
+**History** (on the Tuning screen's opening choice) lists every saved tuning across coils, with a coil filter and a place search. A row opens into the full record: map, the trial series drawn on the primary, arc silhouettes, test notes and comment. *Use this position* brings the coil, primary settings and tap back into the tuning session. When the camera reports a position near a saved tuning, the tool also recalls it ("Last tuning near here").
+
+## Free arc meter
+
+The same camera measurement on its own: no session, no test notes, nothing saved, so it works with any coil, driven by this app or not. Open it from **Tuning → Free measurement**, or on a phone from the **More** menu (*Arc meter*).
+
+1. Start the camera and place the zone by hand, as in a session (see [Camera](#2-camera)).
+2. With the coil **off**, *Capture the background*.
+3. Fire the coil. Each **run** is cut out by itself, from its first arc until 1.5 s without one, and added to the **Runs** tab with its P90 (the figure of merit of the trials); the best run is marked. Very short detections (fewer than 3 frames with an arc) are dropped as glitches.
+
+Two tabs share the screen. **Camera** keeps the picture: the bottom panel holds the live reading and the last run's P90 (plus *Redo background* when the phone has moved), and pulled up, *Redo background* and *Change zone*. **Runs** lists them, the best on top, each with its P90, maximum, hit rate, duration and silhouette; a pair of scissors marks a run whose arcs were often cut by the picture's edge or the wall (its length is short). The camera keeps measuring while the list is shown. The runs live as long as the page stays open. Lengths are in pixels, comparable as long as the phone does not move.
+
+## How the measurement works
+
+Everything runs on the phone; only small summaries travel to the player.
+
+1. **Background**: right before each trial, with the coil off, the camera accumulates a couple of dozen frames. Their per-pixel 20th percentile is the background; the per-pixel noise is measured on the dark side of the distribution, so a stray arc cannot inflate it.
+2. **Alignment**: each frame is aligned onto the background by an integer translation found by normalised cross-correlation on gradient features of the decor next to the zone: a band behind the wall (the toroid, the coil) and one below the floor. The phone is supposed to be still: this is a safety net, and a shift beyond a few pixels flags the frame as *moved* and discards it.
+3. **Difference and top-hat**: the frame minus the background (max over the colour channels), then a white top-hat with a 9×9 window: thin bright filaments survive, diffuse illumination (the arc lighting up the room) and exposure drift do not.
+4. **Threshold**: per pixel, the largest of 5 × the measured noise, 2 × the background gradient (tolerates residual misalignment on static edges) and a floor of 16 levels.
+5. **Thin channels only**: a pixel counts only if the top-hat keeps most of its brightness (a channel does; ground lit up by a strike keeps only its texture). So a ground strike is measured up to where the channel meets the ground, not across the lit ground. The rule looks at *how* a pixel is lit, not at how many of its neighbours are: a channel that blooms to several pixels, or forks, passes like a hair-thin one.
+6. **Chaining**: the mask is bridged over small gaps and flood-filled from a small disk around the breakout (10 px of the work frame); only what is connected to the breakout counts, and only if it contains a clearly bright core (an arc does, an edge residue does not). The length is the farthest kept pixel from the breakout. When the kept arc touches the wall or the picture's edge, the length is short of the real one: the phone says so live (the limit turns red), and the free meter marks the run.
+
+On the club's test recordings this gives a P90 that varies by about 3 % between successive 3 s windows on a fixed camera, even with music playing rather than a constant tone.
+
+## Limits and good practice
+
+- **Keep the phone still.** The background is captured at each trial, so slow drifts are absorbed, but a bump during a note spoils that note (the *moved* flag drops the affected frames).
+- **Frame against a dark background** when you can, with the coil base and any LEDs below the floor line. Bright lit windows behind the arcs reduce the contrast.
+- **Filming a screen** (a video of a coil) is a useful dry run but a harsh one: screen refresh and moiré add flicker the background model cannot predict, so expect stray detections that a real scene does not produce.
+- **Daylight** has not been validated: arcs are far less visible and the measurement gets noisy. Dusk or shade works much better.
+- If the arcs reach the picture's edge or the wall, the length saturates: the phone warns. Move the phone back, or the wall.
+- The phone locks exposure, white balance and focus when the browser allows it (Android Chrome); on iOS the background capture at each trial compensates instead.
+
+## Safety
+
+- A trial cannot start until you confirm the coil is off and the tap has been moved with hands clear.
+- Every note is bounded by a timer; at the end, and on any stop, the app sends note-off and *all sound off* on both outputs.
+- Only the selected fiber output listens to the notes (MIDI channel 1 mapped to it alone): the other outputs get an empty channel map for the duration.
+- As always over SysEx, the Syntherrupter's own per-coil limits are the real guardrail: the app never asks for more than the coil's usual on-time and duty.
+
+## For developers
+
+- Front: `tesla-player/src/model/vision/arc-meter.ts` (the meter, pure TypeScript, unit-tested and replayable on recordings), `src/model/tuning/*` (session protocol, suggestion, heat maps), `src/api/tuning-session.ts` (the session link), `src/engine/tuning/tone-runner.ts` (the tone runner), `src/ui/components/tuning/*` (components), views `TuneView.vue` (player, the four-step session), `TuneCameraView.vue` (phone, route `/tune/cam/:sessionId`, no app chrome, public) and `ArcMeterView.vue` (the free meter, route `/tune/meter`, no app chrome, behind the login). Both phone pages are built on `ui/components/tuning/ArcCamera.vue` (camera, corner zone placed by touch, background, per-frame measurement, the overlay sheet); the meter still accepts the prototype's disk zone, which the replays and the records saved with it use; `model/tuning/arc-window.ts` holds a measurement window (statistics + silhouette) and the run segmentation of the free meter.
+- Backend: `nest-backend/src/tuning/` — an in-memory session relay gated by the session token rather than OIDC, and the `CoilTuning` table behind `/api/tunings`.
+- **The live channel is a WebSocket**, one per side, on `…/sessions/:id/ws?token=&after=&who=`: the hub (`tuning-ws.hub.ts`) pushes events and presence changes, and a publish travels up the same socket and comes back acknowledged with its sequence number. A reconnection replays from `after=`, so nothing is lost. SSE (`GET …/events`) and polling (`GET …/poll` + `POST …/events`) remain as fallbacks when a socket cannot be opened at all (a proxy that does not upgrade), and for publishing while the channel is down.
+- Desktop: `electron/src/lan-server.ts` starts an HTTPS server on the in-process Nest app for the session (self-signed certificate cached in the user data folder) and routes its `upgrade` events to the same hub, so the phone gets the WebSocket. The renderer cannot upgrade over the in-process `app://` transport, so it runs the *same* hub connection through the main process (`tuning:open` / `tuning:send` / `tuning:message` IPC).
+- Design notes and the prototype study behind the method: see the feasibility document shared with the team.

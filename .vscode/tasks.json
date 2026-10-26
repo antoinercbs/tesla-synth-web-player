@@ -1,0 +1,99 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      // Default build task (Ctrl+Shift+B): runs both dev servers in parallel,
+      // their terminals open side by side. No debugger, no browser.
+      "label": "dev: servers",
+      "dependsOn": ["backend: dev server", "frontend: dev server"],
+      "dependsOrder": "parallel",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      // Frees the dev ports. Used as the launch config's postDebugTask so that
+      // stopping the run tears the servers down.
+      "label": "dev: stop",
+      "type": "shell",
+      "command": "bash '${workspaceFolder}/.vscode/stop-servers.sh'",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "close": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "backend: init db",
+      "type": "shell",
+      "command": "npm run init:db",
+      "options": {
+        "cwd": "${workspaceFolder}/nest-backend"
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "close": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "backend: dev server",
+      "type": "shell",
+      "command": "npm run start:dev",
+      "options": {
+        "cwd": "${workspaceFolder}/nest-backend"
+      },
+      // Ensure the SQLite schema exists (idempotent) before booting.
+      "dependsOn": ["backend: init db"],
+      "dependsOrder": "sequence",
+      "isBackground": true,
+      "presentation": {
+        // Same group as the frontend task -> the two terminals open side by side.
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always",
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "nest",
+        "pattern": {
+          "regexp": "^\\s*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*Starting compilation.*|.*nest start.*",
+          "endsPattern": ".*Nest application successfully started.*|.*Found 0 errors.*"
+        }
+      }
+    },
+    {
+      "label": "frontend: dev server",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": {
+        "cwd": "${workspaceFolder}/tesla-player"
+      },
+      "isBackground": true,
+      "presentation": {
+        "group": "dev-servers",
+        "panel": "dedicated",
+        "reveal": "always",
+        "clear": true
+      },
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": {
+          "regexp": "^\\s*$"
+        },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": ".*VITE.*|.*vite.*",
+          "endsPattern": ".*(ready in|Local:).*"
+        }
+      }
+    }
+  ]
+}

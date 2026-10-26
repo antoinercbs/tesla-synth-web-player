@@ -1,0 +1,116 @@
+// ===========================================================================
+//  LIBRARY
+// ===========================================================================
+// A library: its bar (the search, then the main action), the messages, the
+// table (ui/components/ui/DataTable.vue). The MIDI files (editor/MidiLibraryPanel.vue), the
+// songs (editor/SongLibrary.vue), the playlists (playlists/PlaylistLibrary.vue);
+// the delete question is ui/components/ui/LibraryConfirm.vue.
+
+.lib {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.lib__bar {
+    display: flex;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+}
+
+.lib__bar .btn {
+    flex: 0 0 auto;
+}
+
+.lib__hint {
+    margin: calc(var(--sp-2) - var(--sp-3)) 0 var(--sp-3);
+    font-size: var(--fs-sm);
+    color: var(--text-mute);
+}
+
+// who last changed a song, a shade above the date beside it
+.lib__editor {
+    color: var(--text);
+}
+
+.lib__msg {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-md);
+    margin-bottom: var(--sp-3);
+}
+
+.lib__msg.is-success {
+    color: var(--ok);
+    background: rgb(var(--ok-rgb) / 0.12);
+}
+
+.lib__msg.is-error {
+    color: var(--danger);
+    background: rgb(var(--danger-rgb) / 0.12);
+}
+
+.lib__msg.is-confirm {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    background: rgb(var(--danger-rgb) / 0.12);
+    color: var(--text);
+}
+
+.lib__confirm-text {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--danger);
+}
+
+.lib__confirm-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.lib__msg .btn {
+    padding: 0.4rem 0.85rem;
+    font-size: var(--fs-md);
+}
+
+// files dragged over it
+.lib__drop {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    border: 1.5px dashed var(--volt);
+    border-radius: var(--radius-lg);
+    background: rgb(var(--bg-rgb) / 0.85);
+    color: var(--text);
+    font-size: var(--fs-lg);
+    pointer-events: none;
+}
+
+.lib__drop-icon {
+    font-size: var(--fs-2xl);
+    color: var(--volt);
+}
+
+// on a page of its own (a .screen-body): the library fills it, the rows scroll inside
+.lib-page {
+    --dt-max-h: none;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    height: 100%;
+}
+
+.lib-page > .lib {
+    flex: 1 1 auto;
+}

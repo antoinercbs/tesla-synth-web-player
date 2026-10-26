@@ -1,0 +1,29 @@
+// ===========================================================================
+//  CHOOSER
+// ===========================================================================
+// A page that opens on a choice, centred (the Tuning page: a new tuning, the
+// free meter, the history). The choices are the page's own.
+
+.edit-chooser {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    max-width: 100%;
+}
+
+// "fondu" — no card/box, content blends into the background
+.edit-chooser__card {
+    width: 100%;
+    max-width: min(600px, 100%);
+    padding: 0 1.5rem;
+    text-align: center;
+}
+
+.edit-chooser .view-head__title {
+    justify-content: center;
+}
+
+.edit-chooser__hint {
+    color: var(--text-dim);
+    margin: 0.6rem 0 1.7rem;
+}

@@ -1,0 +1,714 @@
+// ===========================================================================
+//  ATELIER: ASSISTANT, PADS, ROUTING
+// ===========================================================================
+// ui/components/atelier/AssistantTool.vue, CoilPad.vue, RoutingTool.vue.
+
+.assist {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+// the intention: as wide as the tool, the choice everything else follows
+.assist__intents {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.assist__intent,
+.assist__tile {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.8rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    background: var(--panel-2);
+    color: var(--text-dim);
+    font: inherit;
+    text-align: left;
+    cursor: var(--cursor-pointer, pointer);
+    transition:
+        border-color 0.15s,
+        background 0.15s;
+}
+
+.assist__intent:hover,
+.assist__tile:hover {
+    border-color: var(--line-strong);
+}
+
+.assist__intent > i,
+.assist__tile > i {
+    font-size: var(--fs-lg);
+    color: var(--volt);
+}
+
+.assist__intent.is-loud > i,
+.assist__tiles.is-loud .assist__tile > i {
+    color: var(--plasma);
+}
+
+.assist__intent span,
+.assist__tile span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.assist__intent b,
+.assist__tile b {
+    color: var(--text-strong);
+}
+
+.assist__intent small,
+.assist__tile small {
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.assist__intent.is-on,
+.assist__tile.is-on {
+    border-color: var(--volt-70);
+    background: var(--volt-08);
+}
+
+.assist__intent.is-loud.is-on,
+.assist__tiles.is-loud .assist__tile.is-on {
+    border-color: var(--plasma);
+    background: color-mix(in srgb, var(--plasma) 10%, transparent);
+}
+
+// the presets: tiles like the intentions, lower; the last one lights when the pads were moved by hand
+.assist__tiles {
+    display: grid;
+    grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.assist__tile {
+    padding: 0.55rem 0.8rem;
+}
+
+.assist__tile.is-custom {
+    opacity: 0.45;
+    cursor: var(--cursor-default, default);
+}
+
+.assist__tile.is-custom.is-on {
+    opacity: 1;
+}
+
+.assist__tile svg {
+    flex: 0 0 auto;
+    width: 2.4rem;
+    height: 1rem;
+}
+
+.assist__tile path {
+    fill: none;
+    stroke: var(--volt);
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+
+.assist__tiles.is-loud .assist__tile path {
+    stroke: var(--plasma);
+}
+
+.assist__wait {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 1.2rem 0;
+    color: var(--text-dim);
+}
+
+// the options under the presets: the melody's lead, the routing kept, the work going on
+.assist__bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.2rem;
+    min-height: 1.8rem;
+}
+
+.assist__note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.assist__note > i {
+    color: var(--volt);
+}
+
+.assist__note .arc-loader {
+    width: 0.8rem;
+    height: 0.8rem;
+}
+
+// what the setting does to the song: three figures, the saved one's under each
+.assist__compare {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.assist__compare-title {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.assist__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: 0.6rem;
+}
+
+.assist__stat {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+        "icon key"
+        "icon value"
+        "icon was";
+    column-gap: 0.7rem;
+    align-items: baseline;
+    padding: 0.55rem 0.8rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    cursor: help;
+}
+
+.assist__stat > i {
+    grid-area: icon;
+    align-self: center;
+    color: var(--text-mute);
+    font-size: var(--fs-lg);
+}
+
+.assist__stat-key {
+    grid-area: key;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.assist__stat-value {
+    grid-area: value;
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-size: var(--fs-lg);
+}
+
+.assist__stat-was {
+    grid-area: was;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.assist__stat.is-better > i,
+.assist__stat.is-better .assist__stat-value {
+    color: var(--ok);
+}
+
+.assist__stat.is-worse > i,
+.assist__stat.is-worse .assist__stat-value {
+    color: var(--amber-text);
+}
+
+.assist__link {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--volt);
+    font: inherit;
+    text-decoration: underline;
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.assist__pads {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 15.5rem), 1fr));
+    gap: 0.8rem;
+}
+
+.assist__coil {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    padding: 0.7rem 0.8rem 0.8rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--c);
+    border-radius: var(--radius-md);
+}
+
+.assist__coil-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.assist__coil-head b {
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+}
+
+// the coil's role: a field to pick in, its accent once the user sets one
+.assist__role {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.55rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--fs-xs);
+    cursor: var(--cursor-pointer, pointer);
+}
+
+.assist__role:hover {
+    border-color: var(--volt-50);
+}
+
+.assist__role > i {
+    color: var(--text-mute);
+    font-size: 0.7em;
+}
+
+.assist__role-key {
+    color: var(--text-mute);
+}
+
+.is-set > .assist__role {
+    border-color: var(--volt-70);
+    color: var(--volt);
+}
+
+.assist__coil-head .dropdown {
+    margin-left: auto;
+}
+
+.assist__plays {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem;
+    font-size: var(--fs-xs);
+}
+
+.assist__plays-key {
+    color: var(--text-mute);
+}
+
+.assist__ch {
+    padding: 0.05rem 0.45rem;
+    border-radius: var(--radius-pill);
+    background: var(--line-005);
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.assist__ch b {
+    color: var(--text);
+    font-weight: 600;
+}
+
+.assist__missing {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--amber-text);
+    font-size: var(--fs-xs);
+}
+
+.assist__x {
+    display: flex;
+    justify-content: space-between;
+    padding-left: 1.4rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+// the numbers the song stores, labelled like the coil cards' readouts
+.assist__nums {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.3rem;
+}
+
+.assist__nums > span {
+    display: flex;
+    flex-direction: column;
+    gap: 0.05rem;
+    padding: 0.3rem 0.5rem;
+    background: var(--bg-2);
+    border-radius: var(--radius-sm);
+}
+
+.assist__nums small {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.assist__nums b {
+    color: var(--text-strong);
+    font-family: var(--font-mono);
+    font-variant-numeric: tabular-nums;
+}
+
+// the coil's notes: at the ceiling, shrunk, free (clean); at the max ontime (loud)
+.assist__gauge {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem 0.6rem;
+    cursor: help;
+}
+
+.assist__gauge-bar {
+    display: flex;
+    flex: 1 1 100%;
+    height: 0.4rem;
+    overflow: hidden;
+    border-radius: var(--radius-pill);
+    background: var(--line-005);
+}
+
+.assist__gauge-bar > i {
+    display: block;
+    height: 100%;
+}
+
+.assist__gauge-bar > .is-capped {
+    background: var(--danger);
+}
+
+.assist__gauge-bar > .is-reduced {
+    background: var(--amber);
+}
+
+.assist__gauge-bar > .is-free {
+    background: var(--ok);
+}
+
+.assist__gauge-bar > .is-max {
+    background: var(--plasma);
+}
+
+.assist__gauge-text {
+    color: var(--ok);
+    font-size: var(--fs-xs);
+}
+
+.assist__gauge.is-warn .assist__gauge-text,
+.assist__gauge-held {
+    color: var(--amber-text);
+    font-size: var(--fs-xs);
+}
+
+.assist__drop {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0;
+    color: var(--text-dim);
+    font-size: var(--fs-xs);
+}
+
+.assist__drop i {
+    color: var(--volt);
+}
+
+.assist__empty {
+    margin: 0;
+    color: var(--text-mute);
+    font-size: var(--fs-sm);
+}
+
+.assist__key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.1rem;
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+}
+
+.assist__key span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.assist__sw {
+    display: inline-block;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: var(--radius-2xs);
+}
+
+.assist__sw.is-ok {
+    background: rgb(var(--ok-rgb) / 0.4);
+}
+
+.assist__sw.is-amber {
+    background: rgb(var(--amber-rgb) / 0.45);
+}
+
+.assist__sw.is-danger {
+    background: rgb(var(--danger-rgb) / 0.45);
+}
+
+.assist__sw.is-plasma {
+    background: color-mix(in srgb, var(--plasma) 35%, transparent);
+}
+
+/* -------------------------------------------- a beginner's level (CoilLevel.vue) */
+.clevel {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+}
+
+.clevel__k {
+    font-size: var(--fs-xs);
+    color: var(--text-mute);
+}
+
+.clevel__track {
+    position: relative;
+    height: 1.1rem;
+    border-radius: var(--radius-sm);
+    background: rgb(var(--hi-rgb) / 0.05);
+    cursor: ew-resize;
+    touch-action: none;
+    outline: none;
+}
+
+.clevel__track:focus-visible {
+    box-shadow: var(--focus-ring-strong);
+}
+
+.clevel__seg {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+.clevel__seg.is-free {
+    background: rgb(var(--ok-rgb) / 0.32);
+}
+
+.clevel__seg.is-reduced,
+.clevel__seg.is-held {
+    background: rgb(var(--amber-rgb) / 0.45);
+}
+
+.clevel__seg.is-capped {
+    background: rgb(var(--danger-rgb) / 0.5);
+}
+
+.clevel__seg.is-neverHeld {
+    background: color-mix(in srgb, var(--plasma) 32%, transparent);
+}
+
+.clevel__thumb {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 0.7rem;
+    margin-left: -0.35rem;
+    border: 2px solid var(--knob);
+    border-radius: var(--radius-xs);
+    background: var(--c, var(--volt));
+    box-shadow: var(--shadow-knob);
+    pointer-events: none;
+}
+
+.clevel__ends {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    color: var(--text-mute);
+}
+
+/* ---------------------------------------------------------------- the pad */
+
+.pad {
+    display: grid;
+    grid-template-columns: 1.1rem minmax(0, 1fr);
+    gap: 0.3rem;
+}
+
+.pad__y {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    text-align: center;
+}
+
+.pad__box {
+    position: relative;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    background: var(--bg-2);
+    cursor: crosshair;
+    touch-action: none;
+}
+
+.pad__box:focus-visible {
+    outline: 2px solid var(--volt);
+    outline-offset: 2px;
+}
+
+// the computed spots, one pixel each, stretched smooth by the browser (CoilPad.vue)
+.pad__field {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    image-rendering: auto;
+}
+
+.pad__end {
+    position: absolute;
+    left: 0.3rem;
+    color: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    pointer-events: none;
+}
+
+.pad__end.is-top {
+    top: 0.15rem;
+}
+
+.pad__end.is-bottom {
+    bottom: 0.15rem;
+}
+
+.pad__dot {
+    position: absolute;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: -0.575rem 0 0 -0.575rem;
+    border: 2px solid var(--text-bright);
+    border-radius: 50%;
+    background: var(--c);
+    pointer-events: none;
+}
+
+/* -------------------------------------------------------------- routing */
+
+.route {
+    overflow-x: auto;
+}
+
+.route__grid {
+    display: grid;
+    grid-template-columns: auto auto minmax(11rem, 15rem) repeat(var(--outs), minmax(2.6rem, max-content));
+    align-items: center;
+    gap: 0.3rem 0.6rem;
+    width: max-content;
+}
+
+.route__h {
+    color: var(--text-mute);
+    font-size: var(--fs-xs);
+    text-align: center;
+}
+
+.route__out {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    max-width: 7rem;
+    color: var(--text-dim);
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.route__out i {
+    color: var(--c);
+}
+
+.route__dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.route__ch {
+    color: var(--text-strong);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.route__ch small {
+    color: var(--text-mute);
+    font-weight: 400;
+}
+
+.route__ch.is-hover {
+    color: var(--volt);
+}
+
+.route__pin-cell {
+    display: flex;
+    justify-content: center;
+}
+
+.route__pin {
+    width: 1.3rem;
+    height: 1.3rem;
+    border: 2px solid var(--c);
+    border-radius: 50%;
+    background: none;
+    opacity: 0.45;
+    cursor: var(--cursor-pointer, pointer);
+    transition:
+        opacity 0.12s,
+        background 0.12s;
+}
+
+.route__pin:hover {
+    opacity: 0.9;
+}
+
+.route__pin.is-on {
+    background: var(--c);
+    opacity: 1;
+}
+
+@media (max-width: 1000px) {
+    .assist__intents {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .assist__tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

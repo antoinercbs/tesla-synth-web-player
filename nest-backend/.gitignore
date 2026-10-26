@@ -1,0 +1,7 @@
+/node_modules
+/dist
+*.log
+
+# Runtime data (mirrors the Flask backend layout)
+/database.db
+/uploads

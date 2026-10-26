@@ -1,0 +1,216 @@
+// ===========================================================================
+//  COIL CHART
+// ===========================================================================
+// ui/components/coils/CoilChart.vue: a coil sheet's line chart. The series and the
+// marks carry their colour in --c.
+
+.coil-chart {
+    margin: 0;
+    padding: 0.8rem 0.9rem 0.6rem;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    min-width: 0;
+}
+
+.coil-chart__title {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--text-strong);
+    margin-bottom: 0.3rem;
+}
+
+.coil-chart__plot {
+    position: relative;
+}
+
+.coil-chart__plot svg {
+    display: block;
+    font-size: var(--fs-md);
+    width: 100%;
+    height: auto;
+    touch-action: pan-y;
+}
+
+// behind the curves: no arc, the arcs strike the mat, past the sheet's max (hatched)
+.coil-chart__zone.is-short {
+    fill: rgb(var(--bang-short-rgb) / 0.16);
+}
+
+.coil-chart__zone.is-strike {
+    fill: rgb(var(--bang-strike-rgb) / 0.13);
+}
+
+.coil-chart__hatch-bg {
+    fill: rgb(var(--amber-rgb) / 0.06);
+}
+
+.coil-chart__hatch-line {
+    stroke: rgb(var(--amber-rgb) / 0.4);
+    stroke-width: 1.5;
+}
+
+.coil-chart__lock {
+    font-family: var(--fa-family-classic, "Font Awesome 7 Free");
+    font-weight: 900;
+}
+
+.coil-chart__sw {
+    width: 14px;
+    height: 10px;
+    border-radius: var(--radius-2xs);
+}
+
+.coil-chart__sw.is-short {
+    background: rgb(var(--bang-short-rgb) / 0.4);
+}
+
+.coil-chart__sw.is-strike {
+    background: rgb(var(--bang-strike-rgb) / 0.45);
+}
+
+.coil-chart__sw.is-past {
+    background: repeating-linear-gradient(135deg, rgb(var(--amber-rgb) / 0.6) 0 2px, rgb(var(--amber-rgb) / 0.1) 2px 4px);
+}
+
+.coil-chart__key-lock {
+    font-size: 0.6rem;
+    color: var(--amber-text);
+}
+
+.coil-chart__grid line {
+    stroke: var(--line);
+    stroke-width: 1;
+}
+
+.coil-chart__axis {
+    stroke: var(--line-strong);
+    stroke-width: 1;
+}
+
+.coil-chart__tick {
+    fill: var(--text-mute);
+    font-family: var(--font-mono);
+    font-size: 0.78em;
+}
+
+.coil-chart__label {
+    fill: var(--text-dim);
+    font-size: 0.82em;
+}
+
+.coil-chart__mark line {
+    stroke: var(--c);
+    stroke-width: 1.5;
+}
+
+.coil-chart__mark text {
+    fill: var(--c);
+    font-size: 0.78em;
+    font-weight: 600;
+    paint-order: stroke;
+    stroke: var(--panel);
+    stroke-width: 3px;
+}
+
+.coil-chart__line {
+    fill: none;
+    stroke: var(--c);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    opacity: 0.8;
+}
+
+.coil-chart__line.is-main {
+    stroke-width: 2.5;
+    opacity: 1;
+}
+
+.coil-chart__cursor line {
+    stroke: var(--text-mute);
+    stroke-width: 1;
+}
+
+.coil-chart__cursor circle {
+    fill: var(--c);
+    stroke: var(--panel);
+    stroke-width: 2;
+}
+
+.coil-chart__tip {
+    position: absolute;
+    top: 1.4rem;
+    left: var(--x);
+    transform: translateX(0.8rem);
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.4rem 0.55rem;
+    background: var(--panel-2);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-pop);
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+.coil-chart__tip.is-left {
+    transform: translateX(calc(-100% - 0.8rem));
+}
+
+.coil-chart__tip > b {
+    color: var(--text-strong);
+}
+
+.coil-chart__tip span {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.coil-chart__tip span b {
+    margin-left: auto;
+    padding-left: 0.6rem;
+    color: var(--text);
+    font-family: var(--font-mono);
+}
+
+.coil-chart__tip i {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 50%;
+    background: var(--c);
+}
+
+.coil-chart__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1rem;
+    margin-top: 0.3rem;
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+}
+
+.coil-chart__legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.coil-chart__legend svg {
+    width: 1.4rem;
+    height: 0.4rem;
+}
+
+.coil-chart__legend line {
+    stroke: var(--c);
+    stroke-width: 1.5;
+}
+
+.coil-chart__legend line.is-main {
+    stroke-width: 2.5;
+}

@@ -1,0 +1,348 @@
+/**
+ *  Copyright (c) 2010, Matt Westcott & Ben Firshman
+ *  Copyright (c) 2014 Ryoya KAWAI
+ *
+ *  See LICENSE for more information.
+ *
+ * forked from https://github.com/gasman/jasmid
+ *
+ **/
+
+
+var SmfPlayer = function(output, output2, channelOn1, channelOn2) {
+    this.mOut=output;
+    this.mOut2=output2;
+    this.mChOn1=channelOn1;
+    this.mChOn2=channelOn2;
+    this.nsx1Mode=false;
+    this.rsrv=[];
+    // manual timing offset (ms) added to the 2nd output only, to compensate a
+    // hardware latency difference between interfaces (per-machine calibration).
+    this.output2Offset=0;
+    // the timer's period (ms); 0: a tick of the song. Outputs that play a message at its
+    // timestamp can be fed coarser, well inside the look-ahead (usePlayback sets it)
+    this.tickMs=0;
+};
+
+SmfPlayer.prototype={
+    init: function(midiFile, latency, eventNo) {
+        this.midiFile=midiFile;
+        this.latency=latency;
+
+        this.trackStates = [];
+	      this.beatsPerMinute = 120;
+	      this.ticksPerBeat = this.midiFile.header.ticksPerBeat;
+	      this.channelCount = 16;
+        this.timerId=0;
+        this.deltaTiming=0;
+	      this.nextEventInfo;
+	      this.samplesToNextEvent = 0;
+        this.finished=false;
+        this.nowPlaying=false;
+        
+        this.eventTime=0;
+        this.startTime=0;
+        this.interval=0;
+
+        this.forwading=false;
+        this.duration=0;
+        this._handlingEvents=false;
+        this.eventNo=eventNo;
+        this.posMoving=false;
+
+        
+        this.getFirstEvent();
+    },
+    getFirstEvent: function() {
+        this.eventNo=0;
+        for (var i = 0; i < this.midiFile.tracks.length; i++) {
+		        this.trackStates[i] = {
+			          'nextEventIndex': 0,
+			          'ticksToNextEvent': (
+				            this.midiFile.tracks[i].length ?
+					              this.midiFile.tracks[i][0].deltaTime :
+					              null
+			          )
+		        };
+	      }
+        this._getNextEvent();
+    },
+    moveEvent: function(type) {
+        var playing=this.nowPlaying;
+        switch(type) {
+          case "eventNo":
+            break;
+          case "forward":
+            this.allSoundOff();
+            this.stopPlayOnly();
+            for(var i=0; i<100; i++) {
+                this._getNextEvent();
+            }
+            break;
+          case "backward":
+            this.allSoundOff();
+            var targetEventNo=this.eventNo;
+            this.stopPlayOnly();
+            this.getFirstEvent();
+            while(this.eventNo<targetEventNo-100) {
+                this._getNextEvent();
+            }
+            break;
+          case "zero":
+            this.allSoundOff();
+            this.stopPlayOnly();
+            this.getFirstEvent();
+            if(this.nowPlaying==true) {
+                this.changeFinished(false);
+                this.startPlay();
+            }
+            break;
+        }
+        if(playing==true) {
+            this.changeFinished(false);
+            this.startPlay();
+        }
+    },
+    // Reposition the event cursor to the first event at/after `targetMs`, accumulating
+    // eventTime through the tempo map WITHOUT emitting anything (for a progress-bar seek).
+    // The caller then sets startTime = now - eventTime to resume from this position.
+    seek: function(targetMs) {
+        this.posMoving = true;          // belt-and-suspenders: suppress any output
+        this.getFirstEvent();           // rewind cursor to the very start
+        this.eventTime = 0;
+        this.finished = false;
+        // 120 BPM until the first setTempo (matches the front-end analyzeMidi tempo map)
+        this.interval = (500000 / 1000) / this.ticksPerBeat;
+        while (this.nextEventInfo != null) {
+            var info = this.nextEventInfo;
+            var next = this.eventTime + info.ticksToEvent * this.interval;
+            if (next > targetMs) break; // the next event is past the target → stop here
+            this.eventTime = next;
+            if (info.event.type === 'meta' && info.event.subtype === 'setTempo') {
+                this.interval = (info.event.microsecondsPerBeat / 1000) / this.ticksPerBeat;
+            }
+            this._getNextEvent();
+        }
+        this.posMoving = false;
+    },
+    _getNextEvent: function () {
+        this.eventNo++;
+ 		    var ticksToNextEvent = null;
+		    var nextEventTrack = null;
+		    var nextEventIndex = null;
+		    for (var i = 0; i < this.trackStates.length; i++) {
+			      if ( this.trackStates[i].ticksToNextEvent != null
+				         && (ticksToNextEvent == null || this.trackStates[i].ticksToNextEvent < ticksToNextEvent)
+			      ) {
+				        ticksToNextEvent = this.trackStates[i].ticksToNextEvent;
+				        nextEventTrack = i;
+				        nextEventIndex = this.trackStates[i].nextEventIndex;
+			      }
+		    }
+        
+		    if (nextEventTrack != null) {
+			      // consume event from that track
+			      var nextEvent = this.midiFile.tracks[nextEventTrack][nextEventIndex];
+			      if (this.midiFile.tracks[nextEventTrack][nextEventIndex + 1]) {
+				        this.trackStates[nextEventTrack].ticksToNextEvent += this.midiFile.tracks[nextEventTrack][nextEventIndex + 1].deltaTime;
+			      } else {
+				        this.trackStates[nextEventTrack].ticksToNextEvent = null;
+			      }
+			      this.trackStates[nextEventTrack].nextEventIndex += 1;
+			      // advance timings on all tracks by ticksToNextEvent
+			      for (var i = 0; i < this.trackStates.length; i++) {
+				        if (this.trackStates[i].ticksToNextEvent != null) {
+					          this.trackStates[i].ticksToNextEvent -= ticksToNextEvent;
+				        }
+			      }
+  		      this.nextEventInfo = {
+				        'ticksToEvent': ticksToNextEvent,
+				        'event': nextEvent,
+				        'track': nextEventTrack
+			      };
+			      var beatsToNextEvent = ticksToNextEvent / this.ticksPerBeat;
+			      var secondsToNextEvent = beatsToNextEvent / (this.beatsPerMinute / 60);
+		    } else {
+			      this.nextEventInfo=null;
+			      this.samplesToNextEvent=null;
+			      this.finished=true;
+		    }
+    },
+
+	  _handleEvent: function() {
+        // every event due by now, not one a tick: a page busy elsewhere (the 3D, a slow machine) fires
+        // the timer late and seldom, and one event a tick falls behind for good. Each one's time goes
+        // with it (send's timestamp): sent within the output's look-ahead, it still plays on time
+        for (var guard = 0; guard < 5000; guard++) {
+            if((this.startTime+this.eventTime)>window.performance.now()) return;
+            if(this.finished==true)  {
+                this.allSoundOff();
+                return;
+            }
+		        var event = this.nextEventInfo.event;
+            this.deltaTiming=this.nextEventInfo.ticksToEvent;
+            this.eventTime+=this.deltaTiming*this.interval;
+
+            switch(event.type) {
+              case "meta":
+                if(event.subtype=="setTempo") {
+                    console.info("[Change Tempo] ", ~~(60000000/event.microsecondsPerBeat));
+                    console.info("[Change Interval] ", (event.microsecondsPerBeat/1000)/this.ticksPerBeat, event.microsecondsPerBeat);
+                    this.interval = (event.microsecondsPerBeat/1000)/this.ticksPerBeat;
+                    clearTimeout(this.timerId);
+                    if(this.finished==false) {
+                        this.startPlay();
+                    }
+                } else {
+                    console.info("[meta] " + event.subtype + " : " + event.text + " : "
+                                + event.key + " : " + event.scale + " : " + this.eventTime);
+                }
+                break;
+              case "channel":
+              case "sysEx":
+              case "dividedSysEx":
+                var sendFl=true;
+                if(event.type=="sysEx") {
+                    var gsSysEx=[0xF0, 0x41, 0x10, 0x42, 0x12];
+                    if(event.raw.slice(0, gsSysEx.length).join(" ")==gsSysEx.join(" ")) {
+                        sendFl=false;
+                        for(var i=0, out=[], msg=event.raw; i<msg.length; i++) out.push(msg[i].toString(16));
+                        console.info("[Skip GS SYSEX] ", out.join(" "));
+                    }
+                }
+
+                // for dividedSysEx
+                if(event.type=="sysEx") {
+                    if(event.raw[0]==0xf0 && event.raw[event.raw.length-1]!=0xf7) {
+                        this.rsrv=event.raw;
+                        sendFl=false;
+                    }
+                }
+                if(event.type=="dividedSysEx") {
+                    event.raw.shift();
+                    console.log(event.raw, this.rsrv);
+                    Array.prototype.push.apply(this.rsrv, event.raw);
+                    if(this.rsrv[this.rsrv.length-1]==0xf7) {
+                        event.raw=this.rsrv;
+                        this.rsrv=[];
+                    } else {
+                        sendFl=false;
+                    }
+                }
+
+                
+                /*
+                // disp send midi message
+                var out=[];
+                var msg=event.raw;
+                for(var i=0; i<msg.length; i++) {
+                    out.push(("00"+msg[i].toString(16)).slice(-2));
+                }
+                console.log(this.eventTime, sendFl, out.join(" "));
+                */
+                if(sendFl===true) this._sendToDevice(event.raw, this.startTime+this.eventTime);
+                break;
+            }
+    		    this._getNextEvent();
+            if(this.nextEventInfo==null || this.finished==true) return;
+        }
+	  },
+    
+    _sendToDevice: function(msg, time) {
+        if(this.posMoving==true) {
+            return;
+        }
+        
+        this.dispEventMonitor(msg, null, this.latency);
+        
+        var sb1=msg[0].toString(16).substr(0,1);
+        var sb2=msg[0].toString(16).substr(1,1);
+        var ch=parseInt(sb2, 16);
+        var playCh1 = true;
+        var playCh2 = true;
+        if(ch<16 && (sb1==8 || sb1==9)) {
+            if(this.mChOn1[ch]==false) playCh1=false;
+            if(this.mChOn2[ch]==false) playCh2=false;
+        }
+        if(playCh1==true) {
+            this.mOut.send(msg, {time: `${time+this.latency}`});
+        }
+        if (playCh2==true) {
+            if (this.mOut2 != null) {
+                // 2nd output carries an optional manual offset for hardware calibration
+                this.mOut2.send(msg, {time: `${time+this.latency+(this.output2Offset||0)}`});
+            }
+        }
+    },
+
+	  startPlay: function () {
+        clearInterval(this.timerId);
+        if(this.startTime==0) {
+            this.setStartTime();
+            this.setGM();
+        }
+        if(this.finished==false) {
+            var self=this;
+            this.nowPlaying=true;
+		        this.timerId=setInterval( function() {
+                self._handleEvent.bind(self)();
+                if(self.finished==true) {
+                    clearInterval(self.timerId);
+                    self.stopPlay.bind(self)();
+                }
+            }, this.tickMs || this.interval );
+        }
+	  },
+    
+    stopPlayOnly: function() {
+        this.nowPlaying=false;
+        clearInterval(this.timerId);
+        this.allSoundOff();
+    },
+
+    stopPlay: function() {
+        this.stopPlayOnly();
+        //console.log("[Stoped SMF]");
+        this.changeUiStop();
+	  },
+    changeUiStop: function() {
+    },
+    
+    dispEventMonitor: function(msg, type, latency) {
+    },
+
+    changeFinished: function(status) {
+        this.finished=status;
+        clearInterval(this.timerId);
+    },
+
+    setStartTime: function () {
+        this.startTime=window.performance.now();
+        this.eventTime=0;
+        console.log("[setStartTime]", this.startTime);
+    },
+
+    allSoundOff: function () {
+        for(var i=0; i<16; i++) {
+            var fb="0xb"+i.toString(16);
+            this._sendToDevice([fb, 0x78, 0x00], this.startTime+this.eventTime);
+        }
+    },
+
+    revertPitchBend: function () {
+        for(var i=0; i<16; i++) {
+            var fb="0xe"+i.toString(16);
+            this._sendToDevice([fb, 0x00, 0x00], this.startTime+this.eventTime);
+        }
+    },
+    
+    setGM: function () {
+        console.log("[Set GM]");
+        this._sendToDevice([0xf0, 0x7e, 0x7f, 0x09, 0x01, 0xf7], 0); // GM System ON
+    }
+
+
+    
+};
+
+export default SmfPlayer;

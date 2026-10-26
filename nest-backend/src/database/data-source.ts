@@ -1,0 +1,66 @@
+import { DataSource, DataSourceOptions } from 'typeorm';
+import { DATABASE_PATH } from '../config/paths';
+import { MidiFile } from '../midi/entities/midi-file.entity';
+import { PlaylistSong } from '../playlists/entities/playlist-song.entity';
+import { Playlist } from '../playlists/entities/playlist.entity';
+import { AppConfig } from '../settings/entities/app-config.entity';
+import { Coil } from '../songs/entities/coil.entity';
+import { CoilEvent } from '../songs/entities/coil-event.entity';
+import { Song } from '../songs/entities/song.entity';
+import { Tag } from '../tags/entities/tag.entity';
+import { TeslaCoil } from '../coils/entities/tesla-coil.entity';
+import { Scene } from '../scenes/entities/scene.entity';
+import { CoilTuning } from '../tuning/entities/coil-tuning.entity';
+import { Envelope } from '../envelopes/entities/envelope.entity';
+import { CoilModel1717200000000 } from './migrations/1717200000000-CoilModel';
+import { PlaylistCoilCount1717300000000 } from './migrations/1717300000000-PlaylistCoilCount';
+import { MidiFileDuration1717400000000 } from './migrations/1717400000000-MidiFileDuration';
+import { AppConfig1717500000000 } from './migrations/1717500000000-AppConfig';
+import { AddSyncColumns1717600000000 } from './migrations/1717600000000-AddSyncColumns';
+import { AddEditorName1717700000000 } from './migrations/1717700000000-AddEditorName';
+import { MidiChannelsAndTags1717800000000 } from './migrations/1717800000000-MidiChannelsAndTags';
+import { CoilTuning1717900000000 } from './migrations/1717900000000-CoilTuning';
+import { MidiPrograms1718000000000 } from './migrations/1718000000000-MidiPrograms';
+import { Envelopes1718100000000 } from './migrations/1718100000000-Envelopes';
+import { SongStereo1718200000000 } from './migrations/1718200000000-SongStereo';
+import { CoilEventRamp1718300000000 } from './migrations/1718300000000-CoilEventRamp';
+import { OwnMidiFiles1718400000000 } from './migrations/1718400000000-OwnMidiFiles';
+import { TeslaCoils1718500000000 } from './migrations/1718500000000-TeslaCoils';
+import { CoilWiring1718600000000 } from './migrations/1718600000000-CoilWiring';
+import { SongVariants1718700000000 } from './migrations/1718700000000-SongVariants';
+import { Scenes1718800000000 } from './migrations/1718800000000-Scenes';
+
+/**
+ * Shared TypeORM configuration, used both by the Nest app (app.module) and the
+ * TypeORM CLI (migration:run / migration:revert). Migrations are listed
+ * explicitly (not via a glob) so the same array resolves under ts-node and the
+ * compiled build alike.
+ */
+export const dataSourceOptions: DataSourceOptions = {
+  type: 'sqlite',
+  database: DATABASE_PATH,
+  entities: [Song, Tag, Coil, CoilEvent, MidiFile, Playlist, PlaylistSong, AppConfig, CoilTuning, Envelope, TeslaCoil, Scene],
+  migrations: [
+    CoilModel1717200000000,
+    PlaylistCoilCount1717300000000,
+    MidiFileDuration1717400000000,
+    AppConfig1717500000000,
+    AddSyncColumns1717600000000,
+    AddEditorName1717700000000,
+    MidiChannelsAndTags1717800000000,
+    CoilTuning1717900000000,
+    MidiPrograms1718000000000,
+    Envelopes1718100000000,
+    SongStereo1718200000000,
+    CoilEventRamp1718300000000,
+    OwnMidiFiles1718400000000,
+    TeslaCoils1718500000000,
+    CoilWiring1718600000000,
+    SongVariants1718700000000,
+    Scenes1718800000000,
+  ],
+  migrationsTableName: 'typeorm_migrations',
+  synchronize: false,
+};
+
+export default new DataSource(dataSourceOptions);
