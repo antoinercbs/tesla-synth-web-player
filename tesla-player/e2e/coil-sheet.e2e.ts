@@ -3,6 +3,9 @@ import { test, expect } from './fixtures';
 type CoilBody = { spec: { board: { ontime: number } } };
 
 test.describe('Coil sheet', () => {
+  // the sheet draws its coil in 3D: on a runner without a GPU, in software, the page takes most of the default 30 s
+  test.slow();
+
   test.beforeEach(async ({ page }) => {
     await page.goto('/coils/9601');
     // the model's sweep comes a beat after the page, longer while other tests draw their 3D in software
